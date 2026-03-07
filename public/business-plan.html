@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slideless — Business Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary:    #121212;
+      --bg-surface:    #1a1a2e;
+      --bg-elevated:   #16213e;
+      --bg-code:       #0d1117;
+      --text-primary:  #ffffff;
+      --text-secondary:#999999;
+      --text-muted:    #666666;
+      --accent:        #e94560;
+      --accent-soft:   rgba(233, 69, 96, 0.15);
+      --success:       #2ecc71;
+      --warning:       #f39c12;
+      --danger:        #e74c3c;
+      --info:          #3498db;
+      --border:        rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.15);
+      --font-heading:  'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      --font-body:     'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      --font-mono:     'JetBrains Mono', 'IBM Plex Mono', monospace;
+    }
+    [data-theme="light"] {
+      --bg-primary: #f5f5f7; --bg-surface: #ffffff; --bg-elevated: #e8e8ed;
+      --text-primary: #1a1a1a; --text-secondary: #6b7280; --text-muted: #9ca3af;
+      --border: rgba(0,0,0,0.06); --border-strong: rgba(0,0,0,0.12);
+    }
+    [data-theme="accent"] {
+      --bg-primary: #e94560; --bg-surface: rgba(255,255,255,0.12);
+      --text-primary: #ffffff; --text-secondary: rgba(255,255,255,0.75);
+    }
+    [data-theme="dark-blue"] {
+      --bg-primary: #0f1628; --bg-surface: #1a2340; --bg-elevated: #243050;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .deck { position: relative; width: 100vw; height: 100vh; }
+    .slide {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 64px;
+      background: var(--bg-primary);
+      opacity: 0; transform: translateX(30px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none; overflow: hidden;
+    }
+    .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .slide-inner { max-width: 1400px; width: 100%; margin: 0 auto; }
+
+    .display { font-size: 4rem; font-weight: 900; line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; }
+    .display-sm { font-size: 2.75rem; font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; text-wrap: balance; }
+    h1 { font-size: 3rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+    h2 { font-size: 2.25rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; }
+    h3 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; }
+    .body-text { font-size: 1.25rem; line-height: 1.8; color: var(--text-secondary); max-width: 700px; }
+    .caption { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+    .mono { font-family: var(--font-mono); font-size: 0.85rem; }
+    .highlight { color: var(--accent); }
+    .dim { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .mt-sm { margin-top: 8px; } .mt-md { margin-top: 16px; } .mt-lg { margin-top: 32px; } .mt-xl { margin-top: 48px; }
+
+    .card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: all 0.2s ease;
+    }
+    .card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .card-accent { border-top: 3px solid var(--accent); }
+    .card-success { border-top: 3px solid var(--success); }
+    .card-warning { border-top: 3px solid var(--warning); }
+    .card-info { border-top: 3px solid var(--info); }
+
+    .metric { font-size: 3.5rem; font-weight: 800; color: var(--accent); font-feature-settings: 'tnum'; line-height: 1; }
+    .metric-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
+
+    .tag { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; }
+    .tag--accent { background: var(--accent-soft); color: var(--accent); }
+    .tag--success { background: rgba(46,204,113,0.15); color: var(--success); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--bg-elevated); text-align: left; padding: 12px 16px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); border-bottom: 1px solid var(--border-strong); }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+
+    .flow-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .flow-item {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 24px; font-size: 1rem; font-weight: 500; white-space: nowrap;
+    }
+    .flow-arrow { color: var(--accent); font-size: 1.5rem; font-weight: 300; }
+
+    .timeline-item { display: flex; gap: 20px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .timeline-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+    .timeline-content h3 { font-size: 1.1rem; }
+    .timeline-content p { font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px; }
+
+    .stagger > * { opacity: 0; transform: translateY(16px); animation: fadeUp 0.4s ease forwards; }
+    .stagger > *:nth-child(1) { animation-delay: 0.1s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.15s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.2s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.25s; }
+    .stagger > *:nth-child(5) { animation-delay: 0.3s; }
+    .stagger > *:nth-child(6) { animation-delay: 0.35s; }
+    .stagger > *:nth-child(7) { animation-delay: 0.4s; }
+    .stagger > *:nth-child(8) { animation-delay: 0.45s; }
+    .slide:not(.active) .stagger > * { animation: none; opacity: 0; }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    .nav-controls { position: fixed; bottom: 24px; right: 32px; display: flex; align-items: center; gap: 16px; z-index: 50; }
+    .slide-counter { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
+    .nav-btn { background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-secondary); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.15s ease; }
+    .nav-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .progress-bar { position: fixed; bottom: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.3s ease; z-index: 100; }
+    .brand-mark { position: fixed; top: 24px; left: 32px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; z-index: 50; }
+    .export-btn { position: fixed; top: 24px; right: 32px; background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 6px; font-size: 0.75rem; font-family: var(--font-body); cursor: pointer; z-index: 50; transition: all 0.15s ease; }
+    .export-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+    .deck.overview .slide { position: relative; opacity: 1; transform: none; pointer-events: auto; height: auto; min-height: 45vh; border: 1px solid var(--border); border-radius: 12px; margin: 12px; cursor: pointer; }
+    .deck.overview .slide:hover { border-color: var(--accent); }
+    .deck.overview { display: grid; grid-template-columns: repeat(4, 1fr); height: auto; overflow: auto; padding: 24px; }
+    .deck.overview .nav-controls, .deck.overview .progress-bar, .deck.overview .brand-mark, .deck.overview .export-btn { display: none; }
+
+    @media print {
+      body { overflow: visible; }
+      .slide { position: relative; opacity: 1; transform: none; pointer-events: auto; page-break-after: always; height: 100vh; }
+      .nav-controls, .progress-bar, .brand-mark, .export-btn { display: none !important; }
+      .stagger > * { opacity: 1; transform: none; animation: none; }
+    }
+    @media (max-width: 1024px) {
+      .slide { padding: 40px; }
+      .display { font-size: 2.5rem; } .display-sm { font-size: 2rem; }
+      h1 { font-size: 2rem; } h2 { font-size: 1.75rem; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .flow-row { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+    @media (max-width: 640px) {
+      .slide { padding: 24px; }
+      .display { font-size: 1.75rem; } h1 { font-size: 1.5rem; }
+      .metric { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="brand-mark">Slideless</div>
+<button class="export-btn" onclick="window.print()">Export PDF</button>
+
+<div class="deck" id="deck">
+
+  <!-- ==================== Slide 1: Cover ==================== -->
+  <div class="slide active" data-theme="dark">
+    <div class="slide-inner" style="display: flex; flex-direction: column; align-items: flex-start;">
+      <span class="tag tag--accent" style="margin-bottom: 24px;">Business Plan 2026</span>
+      <h1 class="display">Slideless</h1>
+      <p class="body-text mt-md" style="font-size: 1.5rem; color: var(--text-secondary);">
+        Stop making slides.<br>Start sharing knowledge.
+      </p>
+      <div style="margin-top: 48px; display: flex; gap: 32px; color: var(--text-muted); font-size: 0.9rem;">
+        <span>Prepared by Klay</span>
+        <span>2026-03-07</span>
+        <span>Confidential</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 2: Problem ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">01 &mdash; Problem</p>
+      <h2 class="display-sm">每個團隊都在重複同一件蠢事</h2>
+      <div class="grid-3 mt-xl stagger">
+        <div class="card">
+          <p style="font-size: 3rem; line-height: 1;">1</p>
+          <h3 class="mt-md">複製貼上</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">從文件、表格、資料庫複製數據到投影片。一週後源頭更新了，投影片沒有。</p>
+        </div>
+        <div class="card">
+          <p style="font-size: 3rem; line-height: 1;">2</p>
+          <h3 class="mt-md">設計漂移</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">每個人自己調字體、配色、間距。做到第 10 頁，前 3 頁已經跟後面不一致了。</p>
+        </div>
+        <div class="card">
+          <p style="font-size: 3rem; line-height: 1;">3</p>
+          <h3 class="mt-md">版本地獄</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">final_v2_revised_REAL_final.pptx。沒人知道哪個是最新的。也沒人敢刪舊的。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 3: Market Size ==================== -->
+  <div class="slide" data-theme="dark-blue">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">02 &mdash; Market</p>
+      <h2 class="display-sm">簡報軟體是 <span class="highlight">$160 億</span> 市場<br>但 10 年沒有根本性創新</h2>
+      <div class="grid-4 mt-xl stagger">
+        <div class="card" style="text-align: center;">
+          <p class="metric">$16B</p>
+          <p class="metric-label">全球簡報軟體市場</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <p class="metric">30M+</p>
+          <p class="metric-label">每天製作的 PPT</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <p class="metric">8 hr</p>
+          <p class="metric-label">平均每份簡報耗時</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <p class="metric">0</p>
+          <p class="metric-label">中文市場同類產品</p>
+        </div>
+      </div>
+      <p class="body-text mt-lg">PowerPoint、Google Slides、Keynote 都在做同一件事：幫你排版。<br>沒有人在解決根本問題 —— <strong style="color: var(--text-primary);">內容與呈現的脫節</strong>。</p>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 4: Solution ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">03 &mdash; Solution</p>
+      <h2 class="display-sm">知識庫 + 品牌規範 = 即時簡報</h2>
+      <p class="body-text mt-md">Slideless 不幫你「做投影片」。它從你現有的知識中，自動生成始終最新的專業頁面。</p>
+      <div class="flow-row mt-xl stagger">
+        <div class="flow-item">知識庫<br><span class="dim" style="font-size: 0.8rem;">Notion / Markdown / Docs</span></div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-item">品牌規範<br><span class="dim" style="font-size: 0.8rem;">配色 / 字型 / Logo</span></div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-item" style="border-color: var(--accent);">AI 生成引擎<br><span class="dim" style="font-size: 0.8rem;">Claude API</span></div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-item" style="background: var(--accent-soft); border-color: var(--accent);">HTML 簡報頁面<br><span class="dim" style="font-size: 0.8rem;">URL / PDF / Embed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 5: How It Works ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">04 &mdash; Product</p>
+      <h2>使用者流程：三步完成</h2>
+      <div class="grid-3 mt-xl stagger">
+        <div class="card card-accent">
+          <p class="caption" style="color: var(--accent);">Step 1</p>
+          <h3 class="mt-md">連結知識源</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            貼上 Notion 頁面連結、上傳 Markdown 檔案、或直接在編輯器中撰寫內容。支援匯入 Google Docs。
+          </p>
+        </div>
+        <div class="card card-accent">
+          <p class="caption" style="color: var(--accent);">Step 2</p>
+          <h3 class="mt-md">選擇品牌風格</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            從模板庫挑選，或上傳品牌 Logo、選配色和字型。系統自動生成一致的 Design System。
+          </p>
+        </div>
+        <div class="card card-accent">
+          <p class="caption" style="color: var(--accent);">Step 3</p>
+          <h3 class="mt-md">一鍵生成 & 分享</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            AI 生成完整簡報。給你一個 URL 直接分享，或匯出 PDF。內容更新時，簡報自動同步。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 6: Comparison ==================== -->
+  <div class="slide" data-theme="light">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">05 &mdash; Advantage</p>
+      <h2>Slideless vs 傳統簡報工具</h2>
+      <div class="mt-lg" style="overflow-x: auto;">
+        <table class="stagger">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>PowerPoint / Google Slides</th>
+              <th style="color: var(--accent);">Slideless</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 600;">內容更新</td>
+              <td style="color: var(--text-muted);">手動複製貼上</td>
+              <td style="color: var(--accent); font-weight: 500;">自動從知識庫同步</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">設計一致性</td>
+              <td style="color: var(--text-muted);">模板會漂移</td>
+              <td style="color: var(--accent); font-weight: 500;">Design System 強制一致</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">數據展示</td>
+              <td style="color: var(--text-muted);">靜態截圖</td>
+              <td style="color: var(--accent); font-weight: 500;">即時 API / CSV 連接</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">版本控制</td>
+              <td style="color: var(--text-muted);">二進位檔案，無法 diff</td>
+              <td style="color: var(--accent); font-weight: 500;">純文字，Git 友善</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">分享方式</td>
+              <td style="color: var(--text-muted);">附件 / 雲端硬碟連結</td>
+              <td style="color: var(--accent); font-weight: 500;">URL，任何裝置即開</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">多語言排版</td>
+              <td style="color: var(--text-muted);">CJK 字型常跑版</td>
+              <td style="color: var(--accent); font-weight: 500;">Web 字型，精確控制</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">製作時間</td>
+              <td style="color: var(--text-muted);">4-8 小時</td>
+              <td style="color: var(--accent); font-weight: 500;">2-5 分鐘</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 7: Business Model ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">06 &mdash; Revenue</p>
+      <h2 class="display-sm">商業模式：<span class="highlight">SaaS 訂閱制</span> + 加值服務</h2>
+      <div class="grid-3 mt-xl stagger">
+        <div class="card card-info" style="position: relative;">
+          <span class="tag tag--accent" style="position: absolute; top: -10px; right: 16px;">最多人用</span>
+          <h3>Free</h3>
+          <p class="metric mt-md" style="font-size: 2.5rem;">$0</p>
+          <p class="metric-label">永久免費</p>
+          <ul style="margin-top: 20px; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+            <li>3 份簡報 / 月</li>
+            <li>基本模板</li>
+            <li>Slideless 浮水印</li>
+            <li>PDF 匯出</li>
+            <li>社群支援</li>
+          </ul>
+        </div>
+        <div class="card card-accent" style="position: relative; border: 1px solid var(--accent);">
+          <span class="tag tag--success" style="position: absolute; top: -10px; right: 16px;">主力營收</span>
+          <h3>Pro</h3>
+          <p class="metric mt-md" style="font-size: 2.5rem;">$12<span style="font-size: 1rem; color: var(--text-secondary);">/月</span></p>
+          <p class="metric-label">個人專業版</p>
+          <ul style="margin-top: 20px; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+            <li style="color: var(--text-primary);">無限簡報</li>
+            <li style="color: var(--text-primary);">自訂品牌 / 無浮水印</li>
+            <li style="color: var(--text-primary);">自訂域名</li>
+            <li>Notion / Google Docs 整合</li>
+            <li>即時數據連接</li>
+            <li>優先 AI 生成</li>
+          </ul>
+        </div>
+        <div class="card card-success">
+          <h3>Team</h3>
+          <p class="metric mt-md" style="font-size: 2.5rem;">$29<span style="font-size: 1rem; color: var(--text-secondary);">/人/月</span></p>
+          <p class="metric-label">團隊協作版</p>
+          <ul style="margin-top: 20px; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+            <li style="color: var(--text-primary);">Pro 全部功能</li>
+            <li style="color: var(--text-primary);">共享知識庫</li>
+            <li style="color: var(--text-primary);">團隊品牌管理</li>
+            <li>觀看次數分析</li>
+            <li>API 存取</li>
+            <li>優先客服</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 8: Revenue Streams ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">07 &mdash; Revenue Streams</p>
+      <h2>四條收入線，降低單一依賴風險</h2>
+      <div class="grid-2 mt-xl stagger">
+        <div>
+          <div class="card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3>SaaS 訂閱</h3>
+                <p class="mt-sm" style="color: var(--text-secondary);">Pro + Team 月費，可預測的經常性收入</p>
+              </div>
+              <span class="tag tag--accent">主力 70%</span>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3>模板市集</h3>
+                <p class="mt-sm" style="color: var(--text-secondary);">設計師上架付費模板，平台抽成 30%</p>
+              </div>
+              <span class="tag tag--success">成長 15%</span>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3>API 計量收費</h3>
+                <p class="mt-sm" style="color: var(--text-secondary);">開發者透過 API 批量生成簡報，按次收費</p>
+              </div>
+              <span class="tag tag--accent">擴展 10%</span>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3>白牌授權</h3>
+                <p class="mt-sm" style="color: var(--text-secondary);">企業客戶內嵌到自有系統，年費授權</p>
+              </div>
+              <span class="tag tag--success">高利潤 5%</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="background: var(--bg-elevated);">
+          <h3>單位經濟（Unit Economics）</h3>
+          <table style="margin-top: 16px;">
+            <tbody>
+              <tr><td style="font-weight: 600;">AI 生成成本</td><td style="text-align: right;">~$0.03/份</td></tr>
+              <tr><td style="font-weight: 600;">託管成本</td><td style="text-align: right;">~$0.002/份/月</td></tr>
+              <tr><td style="font-weight: 600;">Pro ARPU</td><td style="text-align: right;">$12/月</td></tr>
+              <tr><td style="font-weight: 600;">Pro 毛利率</td><td style="text-align: right; color: var(--success); font-weight: 600;">~92%</td></tr>
+              <tr style="border-top: 2px solid var(--border-strong);">
+                <td style="font-weight: 600;">LTV (12 個月)</td><td style="text-align: right; color: var(--accent); font-weight: 700;">$144</td>
+              </tr>
+              <tr><td style="font-weight: 600;">目標 CAC</td><td style="text-align: right;">< $30</td></tr>
+              <tr><td style="font-weight: 600;">LTV:CAC</td><td style="text-align: right; color: var(--success); font-weight: 700;">4.8x</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 9: Target Users ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">08 &mdash; Target Users</p>
+      <h2>三層使用者，由內而外擴展</h2>
+      <div class="grid-3 mt-xl stagger">
+        <div class="card card-accent">
+          <p class="caption" style="color: var(--accent);">Phase 1 — Now</p>
+          <h3 class="mt-md">技術團隊</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            AI 團隊、開發團隊、DevOps。已有 Markdown 知識庫，痛恨做 PPT，重視版本控制。
+          </p>
+          <p class="mt-md mono dim">獲客方式：開源模板 + 技術部落格 + Dev 社群</p>
+        </div>
+        <div class="card card-warning">
+          <p class="caption" style="color: var(--warning);">Phase 2 — Q3 2026</p>
+          <h3 class="mt-md">顧問 & 代理商</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            管理顧問、行銷代理商、會計師事務所。每週做大量客戶報告，品牌一致性很重要。
+          </p>
+          <p class="mt-md mono dim">獲客方式：留白工作室客戶轉介 + LinkedIn + 研討會</p>
+        </div>
+        <div class="card card-info">
+          <p class="caption" style="color: var(--info);">Phase 3 — 2027</p>
+          <h3 class="mt-md">教育 & 企業</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.7;">
+            講師做課程簡報、企業內部報告。需要大量模板和批量生成。
+          </p>
+          <p class="mt-md mono dim">獲客方式：教育折扣 + 企業銷售 + 口碑</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 10: Tech Architecture ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">09 &mdash; Architecture</p>
+      <h2>技術架構：我們全部已經會</h2>
+      <div class="grid-2 mt-xl stagger">
+        <div>
+          <table>
+            <thead><tr><th>Layer</th><th>Tech</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Frontend</td><td>Next.js App Router</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Editor</td><td>Monaco / CodeMirror</td><td><span class="tag tag--accent">Build</span></td></tr>
+              <tr><td>AI Engine</td><td>Claude API (Sonnet)</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Database</td><td>Supabase (Postgres)</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Storage</td><td>Supabase Storage</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Hosting</td><td>Vercel</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Auth</td><td>Supabase Auth</td><td><span class="tag tag--success">Ready</span></td></tr>
+              <tr><td>Payments</td><td>Stripe</td><td><span class="tag tag--accent">Build</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+          <h3>核心優勢</h3>
+          <ul style="margin-top: 16px; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 1rem;">
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">8/10 技術元件已有實戰經驗</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">AI 報告生成流程已在內部驗證</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">Design System 架構已建立</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);">MVP 可在 2 週內上線</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 11: Go-to-Market ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">10 &mdash; Go-to-Market</p>
+      <h2>上市策略：開源引流 + SaaS 收割</h2>
+      <div class="mt-xl stagger" style="display: flex; flex-direction: column; gap: 0;">
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background: var(--accent);"></div>
+          <div class="timeline-content">
+            <h3>Phase 1：開源模板（Week 1-2）<span class="dim" style="font-size: 0.85rem; margin-left: 8px;">現在</span></h3>
+            <p>在 GitHub 釋出 HTML 簡報模板 + Design System 範例。寫技術文章解釋方法論。目標：500 stars。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background: var(--warning);"></div>
+          <div class="timeline-content">
+            <h3>Phase 2：MVP 上線（Week 3-4）</h3>
+            <p>Web 編輯器 + AI 生成 + 一鍵部署。Free tier 開放註冊。留白工作室客戶優先試用。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background: var(--info);"></div>
+          <div class="timeline-content">
+            <h3>Phase 3：付費功能（Month 2-3）</h3>
+            <p>Pro 方案上線：自訂品牌、無浮水印、Notion 整合、自訂域名。Stripe 訂閱。</p>
+          </div>
+        </div>
+        <div class="timeline-item" style="border-bottom: none;">
+          <div class="timeline-dot" style="background: var(--success);"></div>
+          <div class="timeline-content">
+            <h3>Phase 4：團隊版 + 模板市集（Month 4-6）</h3>
+            <p>Team 方案、共享知識庫、觀看分析。開放設計師上架付費模板。目標：100 付費用戶。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 12: Financial Projection ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">11 &mdash; Projection</p>
+      <h2>營收預估：6 個月內損益兩平</h2>
+      <div class="grid-2 mt-xl stagger">
+        <div>
+          <table>
+            <thead><tr><th>Month</th><th>Free Users</th><th>Pro</th><th>Team</th><th>MRR</th></tr></thead>
+            <tbody>
+              <tr><td>M1</td><td>200</td><td>0</td><td>0</td><td style="font-weight: 600;">$0</td></tr>
+              <tr><td>M2</td><td>500</td><td>15</td><td>0</td><td style="font-weight: 600;">$180</td></tr>
+              <tr><td>M3</td><td>1,200</td><td>50</td><td>5</td><td style="font-weight: 600;">$745</td></tr>
+              <tr><td>M4</td><td>2,500</td><td>120</td><td>15</td><td style="font-weight: 600;">$1,875</td></tr>
+              <tr><td>M5</td><td>4,000</td><td>200</td><td>30</td><td style="font-weight: 600;">$3,270</td></tr>
+              <tr><td style="color: var(--success);">M6</td><td>6,000</td><td>350</td><td>50</td><td style="font-weight: 700; color: var(--success);">$5,650</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom: 16px;">
+            <h3>月固定成本</h3>
+            <table style="margin-top: 12px;">
+              <tbody>
+                <tr><td>Vercel Pro</td><td style="text-align: right;">$20</td></tr>
+                <tr><td>Supabase Pro</td><td style="text-align: right;">$25</td></tr>
+                <tr><td>Claude API</td><td style="text-align: right;">~$50-200</td></tr>
+                <tr><td>Domain + CDN</td><td style="text-align: right;">$10</td></tr>
+                <tr style="border-top: 2px solid var(--border-strong);">
+                  <td style="font-weight: 600;">Total</td>
+                  <td style="text-align: right; font-weight: 700;">~$105-305</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card" style="background: var(--accent-soft); border-color: var(--accent);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">損益兩平點</p>
+            <p class="metric" style="font-size: 2rem; margin-top: 4px;">~26 Pro users</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">$312 MRR covers max fixed costs</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 13: Competitive Landscape ==================== -->
+  <div class="slide" data-theme="light">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">12 &mdash; Competition</p>
+      <h2>競爭分析：我們切的是被忽略的交叉口</h2>
+      <div class="grid-2 mt-xl stagger">
+        <div style="overflow-x: auto;">
+          <table>
+            <thead><tr><th>Product</th><th>AI 生成</th><th>知識庫連結</th><th>中文</th><th>開源</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight: 600;">Gamma</td><td style="color: var(--success);">Yes</td><td style="color: var(--danger);">No</td><td style="color: var(--warning);">Partial</td><td style="color: var(--danger);">No</td></tr>
+              <tr><td style="font-weight: 600;">Beautiful.ai</td><td style="color: var(--success);">Yes</td><td style="color: var(--danger);">No</td><td style="color: var(--danger);">No</td><td style="color: var(--danger);">No</td></tr>
+              <tr><td style="font-weight: 600;">Tome</td><td style="color: var(--success);">Yes</td><td style="color: var(--danger);">No</td><td style="color: var(--danger);">No</td><td style="color: var(--danger);">No</td></tr>
+              <tr><td style="font-weight: 600;">Keftek</td><td style="color: var(--warning);">Framework</td><td style="color: var(--success);">Yes</td><td style="color: var(--danger);">No</td><td style="color: var(--success);">Yes</td></tr>
+              <tr style="background: var(--accent-soft);">
+                <td style="font-weight: 700; color: var(--accent);">Slideless</td>
+                <td style="color: var(--success); font-weight: 600;">Yes</td>
+                <td style="color: var(--success); font-weight: 600;">Yes</td>
+                <td style="color: var(--success); font-weight: 600;">Yes</td>
+                <td style="color: var(--success); font-weight: 600;">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>差異化定位</h3>
+          <ul style="margin-top: 16px; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 0.95rem;">
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);"><strong>唯一同時有</strong> AI 生成 + 知識庫連結的產品</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);"><strong>唯一中文優先</strong>的同類產品（CJK 排版）</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--accent);"><strong>開源核心</strong>：模板免費，降低信任門檻</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);"><strong>Keftek 是方法論</strong>，我們是產品化的實現</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 14: Risks ==================== -->
+  <div class="slide" data-theme="dark">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">13 &mdash; Risks</p>
+      <h2>風險與對策</h2>
+      <div class="grid-2 mt-xl stagger">
+        <div class="card" style="border-left: 3px solid var(--danger);">
+          <p class="caption" style="color: var(--danger);">Risk 1</p>
+          <h3 class="mt-sm">AI 成本上升</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">Claude API 價格波動可能壓縮利潤</p>
+          <p class="mt-md" style="border-top: 1px solid var(--border); padding-top: 12px; font-weight: 500;">對策：Sonnet 優先、快取常用模板、離線生成選項</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--warning);">
+          <p class="caption" style="color: var(--warning);">Risk 2</p>
+          <h3 class="mt-sm">大廠抄襲</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">Google / Microsoft 可能在 Slides / PPT 加入類似功能</p>
+          <p class="mt-md" style="border-top: 1px solid var(--border); padding-top: 12px; font-weight: 500;">對策：深耕中文市場護城河 + 開源社群黏性 + 知識庫整合深度</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--warning);">
+          <p class="caption" style="color: var(--warning);">Risk 3</p>
+          <h3 class="mt-sm">使用者習慣</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">PPT 使用慣性極強，轉換成本高</p>
+          <p class="mt-md" style="border-top: 1px solid var(--border); padding-top: 12px; font-weight: 500;">對策：PDF export 保底、PPT import 轉換工具、漸進式替代</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--info);">
+          <p class="caption" style="color: var(--info);">Risk 4</p>
+          <h3 class="mt-sm">小團隊資源</h3>
+          <p class="mt-sm" style="color: var(--text-secondary); line-height: 1.6;">AI 團隊同時維護多個專案，可用時間有限</p>
+          <p class="mt-md" style="border-top: 1px solid var(--border); padding-top: 12px; font-weight: 500;">對策：MVP first、複用現有技術棧、AI agent 輔助開發</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 15: Internal Use (Task A) ==================== -->
+  <div class="slide" data-theme="dark-blue">
+    <div class="slide-inner">
+      <p class="caption" style="margin-bottom: 16px;">14 &mdash; Internal Use</p>
+      <h2 class="display-sm">內部先行：<span class="highlight">報告系統立即切換</span></h2>
+      <p class="body-text mt-md">這份企劃書本身就是用 Slideless 模板做的。零 PowerPoint，25KB，瀏覽器直開。</p>
+      <div class="grid-2 mt-xl stagger">
+        <div class="card">
+          <h3>替換項目</h3>
+          <table style="margin-top: 12px;">
+            <tbody>
+              <tr>
+                <td>Nova PPT 報告</td>
+                <td style="text-align: right;"><span class="tag tag--accent">HTML 替換</span></td>
+              </tr>
+              <tr>
+                <td>Email 長報告（>50 行）</td>
+                <td style="text-align: right;"><span class="tag tag--accent">URL 連結</span></td>
+              </tr>
+              <tr>
+                <td>週報 / 月報</td>
+                <td style="text-align: right;"><span class="tag tag--accent">即時數據</span></td>
+              </tr>
+              <tr>
+                <td>客戶提案</td>
+                <td style="text-align: right;"><span class="tag tag--success">Phase 2</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>效益預估</h3>
+          <ul style="margin-top: 16px; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 0.95rem;">
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);">報告製作時間 <strong style="color: var(--success);">-80%</strong>（8 小時 &rarr; 5 分鐘）</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);">排版 bug <strong style="color: var(--success);">歸零</strong>（不再算 Y 座標）</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);">版本控制 <strong style="color: var(--success);">Git 化</strong>（可 diff、可 blame）</li>
+            <li style="padding-left: 16px; border-left: 2px solid var(--success);">行動裝置閱讀 <strong style="color: var(--success);">完美</strong>（RWD）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Slide 16: Call to Action ==================== -->
+  <div class="slide" data-theme="accent">
+    <div class="slide-inner" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <h1 class="display" style="font-size: 3.5rem;">This deck is the proof.</h1>
+      <p class="body-text mt-lg" style="color: rgba(255,255,255,0.85); max-width: 650px; margin: 32px auto 0; font-size: 1.3rem;">
+        你正在看的這份企劃書，就是用 Slideless 的方式製作的。<br>
+        單一 HTML 檔。25KB。任何裝置。不需要 PowerPoint。
+      </p>
+      <div style="margin-top: 48px; display: flex; gap: 24px;">
+        <div style="background: rgba(255,255,255,0.2); padding: 12px 28px; border-radius: 10px; font-weight: 600;">立即內部切換</div>
+        <div style="background: #ffffff; color: var(--accent); padding: 12px 28px; border-radius: 10px; font-weight: 700;">開始做 MVP</div>
+      </div>
+      <p style="margin-top: 64px; font-size: 0.8rem; opacity: 0.5;">Slideless | Rain AI Team | Confidential | 2026-03-07</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav-controls">
+  <button class="nav-btn" onclick="navigate(-1)" aria-label="Previous">&#8592;</button>
+  <span class="slide-counter" id="counter">1 / 16</span>
+  <button class="nav-btn" onclick="navigate(1)" aria-label="Next">&#8594;</button>
+</div>
+<div class="progress-bar" id="progress"></div>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = deck.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+  let isOverview = false;
+
+  function goTo(index) {
+    if (index < 0 || index >= slides.length) return;
+    slides[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+  }
+  function navigate(dir) { goTo(current + dir); }
+  function toggleOverview() {
+    isOverview = !isOverview;
+    deck.classList.toggle('overview', isOverview);
+    if (isOverview) slides.forEach(s => s.classList.add('active'));
+    else slides.forEach((s, i) => s.classList.toggle('active', i === current));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if (e.key === 'o' || e.key === 'O') toggleOverview();
+    else if (e.key >= '1' && e.key <= '9') goTo(parseInt(e.key) - 1);
+    else if (e.key === 'Escape' && isOverview) toggleOverview();
+  });
+
+  let touchStartX = 0;
+  deck.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  deck.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 60) navigate(diff > 0 ? 1 : -1);
+  });
+  deck.addEventListener('click', (e) => {
+    if (!isOverview) return;
+    const slide = e.target.closest('.slide');
+    if (slide) { toggleOverview(); goTo(Array.from(slides).indexOf(slide)); }
+  });
+
+  goTo(0);
+</script>
+
+</body>
+</html>
