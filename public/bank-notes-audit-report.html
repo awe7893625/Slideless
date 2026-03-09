@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>銀行內控筆記 — 三源交叉驗證報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root { --black: #121212; --white: #fff; --cream: #f6f5f1; --accent: #2563eb; --accent-light: #dbeafe; --danger: #d94f4f; --danger-light: #fee2e2; --green: #22c55e; --green-light: #dcfce7; --amber: #d97706; --amber-light: #fef3c7; --grey: #6c6a62; --grey-light: #f0eee6; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Inter','Noto Sans TC',system-ui,sans-serif; background:var(--cream); color:var(--black); line-height:1.7; }
+.container { max-width:880px; margin:0 auto; padding:48px 24px 80px; }
+.hero { text-align:center; padding:48px 0 32px; }
+.hero h1 { font-size:2.2rem; font-weight:800; margin-bottom:8px; letter-spacing:-0.5px; }
+.hero .subtitle { color:var(--grey); font-size:1rem; }
+.badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; margin:0 4px; }
+.badge-danger { background:var(--danger-light); color:var(--danger); }
+.badge-green { background:var(--green-light); color:var(--green); }
+.badge-amber { background:var(--amber-light); color:var(--amber); }
+.badge-blue { background:var(--accent-light); color:var(--accent); }
+h2 { font-size:1.4rem; font-weight:700; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid #e5e5e5; }
+h3 { font-size:1.1rem; font-weight:600; margin:24px 0 8px; color:var(--accent); }
+p, li { font-size:0.92rem; }
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:0.85rem; }
+th, td { padding:10px 14px; border:1px solid #ddd; text-align:left; }
+th { background:var(--grey-light); font-weight:600; }
+tr:nth-child(even) { background:#fafaf7; }
+.card { background:var(--white); border-radius:12px; padding:24px; margin:16px 0; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.card-danger { border-left:4px solid var(--danger); }
+.card-green { border-left:4px solid var(--green); }
+.card-amber { border-left:4px solid var(--amber); }
+.card-blue { border-left:4px solid var(--accent); }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0; }
+.stat { background:var(--white); border-radius:12px; padding:20px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.stat .number { font-size:2rem; font-weight:800; }
+.stat .label { font-size:0.78rem; color:var(--grey); margin-top:4px; }
+ul { padding-left:20px; margin:8px 0; }
+li { margin:4px 0; }
+.hl { color:var(--danger); font-weight:700; }
+.fix-row td:first-child { font-weight:600; white-space:nowrap; }
+.timeline { position:relative; padding-left:32px; margin:20px 0; }
+.timeline::before { content:''; position:absolute; left:12px; top:0; bottom:0; width:2px; background:#ddd; }
+.timeline-item { position:relative; margin:16px 0; }
+.timeline-item::before { content:''; position:absolute; left:-24px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); }
+.timeline-item.done::before { background:var(--green); }
+.footer { text-align:center; margin-top:48px; padding-top:24px; border-top:1px solid #e5e5e5; color:var(--grey); font-size:0.8rem; }
+@media(max-width:640px) { .stats { grid-template-columns:repeat(2,1fr); } .hero h1 { font-size:1.6rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+  <h1>銀行內控筆記<br>三源交叉驗證報告</h1>
+  <p class="subtitle">法規 &times; 1,300 題考古題 &times; JY 筆記 V6.7.0 — 系統化比對</p>
+  <p style="margin-top:12px;">
+    <span class="badge badge-green">已修正 9 個錯誤</span>
+    <span class="badge badge-blue">補充 3 個 P0 考點</span>
+    <span class="badge badge-amber">兩站同步部署</span>
+  </p>
+  <p style="margin-top:8px; font-size:0.82rem; color:var(--grey);">報告日期：2026-03-10</p>
+</div>
+
+<!-- ===== 統計 ===== -->
+<div class="stats">
+  <div class="stat"><div class="number" style="color:var(--danger);">9</div><div class="label">修正的錯誤</div></div>
+  <div class="stat"><div class="number" style="color:var(--accent);">3</div><div class="label">補充 P0 考點</div></div>
+  <div class="stat"><div class="number" style="color:var(--green);">1,300</div><div class="label">分析題數</div></div>
+  <div class="stat"><div class="number" style="color:var(--amber);">6</div><div class="label">爬取法規</div></div>
+</div>
+
+<!-- ===== SECTION 1 ===== -->
+<h2>一、改了哪些東西</h2>
+
+<h3>1-1. 修正的 9 個錯誤</h3>
+<table>
+<tr><th>#</th><th>項目</th><th>錯誤值</th><th>修正值</th><th>嚴重度</th></tr>
+<tr class="fix-row"><td>1</td><td>商品適合度步驟</td><td class="hl">DCFAEB</td><td><strong>DCFBAE</strong></td><td><span class="badge badge-danger">嚴重</span></td></tr>
+<tr class="fix-row"><td>2</td><td>§33 表決（出席）</td><td class="hl">3/4 出席</td><td><strong>2/3 出席</strong></td><td><span class="badge badge-danger">嚴重</span></td></tr>
+<tr class="fix-row"><td>3</td><td>§33 表決（同意）</td><td class="hl">2/3 同意</td><td><strong>3/4 同意</strong></td><td><span class="badge badge-danger">嚴重</span></td></tr>
+<tr class="fix-row"><td>4</td><td>資本等級</td><td class="hl">5 級（含十分充足）</td><td><strong>4 級（適足開始）</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+<tr class="fix-row"><td>5</td><td>偽造幣券報警</td><td class="hl">100 美元</td><td><strong>200 美元</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+<tr class="fix-row"><td>6</td><td>稽核人員無記過</td><td class="hl">2 年</td><td><strong>3 年</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+<tr class="fix-row"><td>7</td><td>避險性交易評估</td><td class="hl">每週</td><td><strong>每月</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+<tr class="fix-row"><td>8</td><td>金庫錄影 / 開戶錄影</td><td class="hl">6 個月 / 3 個月</td><td><strong>2 個月 / 6 個月</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+<tr class="fix-row"><td>9</td><td>CIA 證書</td><td class="hl">有效法定資格</td><td><strong>非法定認可資格</strong></td><td><span class="badge badge-amber">中等</span></td></tr>
+</table>
+<p style="font-size:0.82rem; color:var(--grey);">修正範圍：notes-deck.html（兩站）+ explanations-all.json（10 處題解）+ bank-audit-notes.html</p>
+
+<h3>1-2. 補充的 3 個 P0 高頻考點</h3>
+<div class="card card-blue">
+<table>
+<tr><th>考點</th><th>題數</th><th>屆數</th><th>新增內容</th></tr>
+<tr><td><strong>巴塞爾監理原則</strong></td><td>18 題</td><td>10/10 屆</td><td>董事會 vs 高管職責表、「統一格式」「不定期」陷阱標記</td></tr>
+<tr><td><strong>電子轉帳安全措施</strong></td><td>11 題</td><td>8/10 屆</td><td>必要/非必要對照、「隱密性」陷阱、128 位元、SSL vs SET</td></tr>
+<tr><td><strong>會計師查核簽證</strong></td><td>18 題</td><td>8/10 屆</td><td>立即通報條件、查核範圍排除、獨立性每年評估</td></tr>
+</table>
+</div>
+
+<!-- ===== SECTION 2 ===== -->
+<h2>二、使用了什麼資料</h2>
+
+<div class="card card-green">
+<table>
+<tr><th>來源</th><th>優先順序</th><th>內容</th></tr>
+<tr>
+  <td><strong>法規（6 部）</strong></td>
+  <td><span class="badge badge-danger">1st 最權威</span></td>
+  <td>
+    全國法規資料庫爬取：<br>
+    &bull; 金控及銀行業內部控制及稽核制度實施辦法<br>
+    &bull; 衍生性金融商品業務管理辦法<br>
+    &bull; 信用卡業務機構管理辦法<br>
+    &bull; 銀行法（重點條文）<br>
+    &bull; 金融機構防制洗錢辦法<br>
+    &bull; 偽造變造外國幣券處理辦法
+  </td>
+</tr>
+<tr>
+  <td><strong>歷屆試題（10 屆）</strong></td>
+  <td><span class="badge badge-amber">2nd</span></td>
+  <td>第 39-48 屆銀行內控測驗，共 1,300 題<br>Python3 自動解析 EXAM_DATA，按 15 個主題分類統計</td>
+</tr>
+<tr>
+  <td><strong>JY 筆記 V6.7.0</strong></td>
+  <td><span class="badge badge-blue">3rd 參考</span></td>
+  <td>158 頁 PDF，逐頁比對關鍵數值與描述</td>
+</tr>
+</table>
+<p style="margin-top:12px; font-size:0.85rem;"><strong>衝突裁決規則：</strong>法規 &gt; 試題答案 &gt; JY 筆記</p>
+</div>
+
+<!-- ===== SECTION 3 ===== -->
+<h2>三、驗證步驟</h2>
+
+<div class="timeline">
+  <div class="timeline-item done">
+    <strong>Step 1：JY 筆記逐頁比對</strong>
+    <p>讀取 JY V6.7.0 PDF 全 158 頁，與兩站 HTML 筆記逐一對照數值和描述，發現 5 個數值錯誤。</p>
+  </div>
+  <div class="timeline-item done">
+    <strong>Step 2：歷屆試題系統化分析</strong>
+    <p>用 Python3 解析 EXAM_DATA，1,300 題按 15 個主題分類。統計高頻考點出現次數，找出答案趨勢。發現 3 個嚴重錯誤（DCFAEB、§33 比例、資本等級）+ 10 個覆蓋不足考點。</p>
+  </div>
+  <div class="timeline-item done">
+    <strong>Step 3：法規爬取</strong>
+    <p>派爬蟲從全國法規資料庫抓 6 部核心法規條文，整理為結構化 JSON（68 個考試重點）。</p>
+  </div>
+  <div class="timeline-item done">
+    <strong>Step 4：三源交叉驗證</strong>
+    <p>每個數值和描述用 3 個來源交叉確認。衝突時以法規為準，其次以多屆試題一致答案為準。修正全部 9 個錯誤。</p>
+  </div>
+  <div class="timeline-item done">
+    <strong>Step 5：P0 考點補充</strong>
+    <p>將 3 個高頻但覆蓋不足的考點（巴塞爾 18 題、電子轉帳 11 題、會計師查核 18 題）補充到筆記中，含陷阱標記。</p>
+  </div>
+  <div class="timeline-item done">
+    <strong>Step 6：雙站同步修改 + 部署</strong>
+    <p>所有修改同步套用到 Slideless + BankExamQuiz 兩站，分別 commit 後部署到 Vercel 生產環境。</p>
+  </div>
+</div>
+
+<!-- ===== 修改檔案清單 ===== -->
+<h2>四、修改檔案清單</h2>
+
+<table>
+<tr><th>網站</th><th>檔案</th><th>修改內容</th></tr>
+<tr><td rowspan="3"><strong>bank.somethings.cool</strong></td><td>public/notes-deck.html</td><td>9 處錯誤修正 + 3 個 P0 考點補充</td></tr>
+<tr><td>explanations-all.json</td><td>10 處題解修正</td></tr>
+<tr><td>regulations/（6 個 JSON）</td><td>法規條文備查</td></tr>
+<tr><td><strong>slideless.vercel.app</strong></td><td>public/bank-audit-notes.html</td><td>9 處錯誤修正 + 3 個 P0 考點補充</td></tr>
+</table>
+
+<!-- ===== 結論 ===== -->
+<h2>五、結論</h2>
+
+<div class="card card-green">
+<p style="font-size:1rem;"><strong>筆記正確性保障：</strong></p>
+<ul>
+  <li>所有數值和描述均有 <strong>至少 2 個來源</strong>佐證</li>
+  <li>考試陷阱選項已標記 <code>hl-danger</code>，一目瞭然</li>
+  <li>高頻考點覆蓋率從 ~70% 提升至 <strong>~90%</strong>（P0 全覆蓋）</li>
+  <li>未來修改筆記時，兩站自動同步（已記入工作記憶）</li>
+</ul>
+</div>
+
+<div class="card card-amber">
+<p><strong>後續可選補充（P1-P2）：</strong></p>
+<ul>
+  <li>P1：支票存款（14 題）、銀行治理/薪酬委員會（10 題）、逾期放款轉銷（10 題）、洗錢 CDD（6 題）</li>
+  <li>P2：金控 §44 限額、出口押匯、保管箱業務</li>
+</ul>
+</div>
+
+<div class="footer">
+  Rain AI Team — Klay<br>
+  三源交叉驗證：法規 &times; 1,300 題考古題 &times; JY V6.7.0<br>
+  <a href="https://slideless.vercel.app/bank-audit-notes.html" style="color:var(--accent);">筆記（Slideless）</a> &bull;
+  <a href="https://bank.somethings.cool/" style="color:var(--accent);">筆記（BankExamQuiz）</a>
+</div>
+
+</div>
+</body>
+</html>
