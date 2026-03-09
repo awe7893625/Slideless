@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>銀行內部控制與內部稽核 — 考試筆記整理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #121212;
+  --white: #ffffff;
+  --cream: #f6f5f1;
+  --grey-01: #f0eee6;
+  --grey-02: #8b877c;
+  --grey-03: #6c6a62;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --accent-warm: #eb8054;
+  --green: #85a268;
+  --light-green: #def5d9;
+  --danger: #d94f4f;
+  --danger-light: #fee2e2;
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  background: var(--black);
+  color: var(--grey-03);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+.deck { position: relative; width: 100%; height: 100vh; }
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease-in-out;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
+  padding: 60px 80px;
+}
+.slide::-webkit-scrollbar { width: 6px; }
+.slide::-webkit-scrollbar-track { background: transparent; }
+.slide::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+.slide.active { opacity: 1; visibility: visible; z-index: 1; }
+.slide-inner { max-width: 1100px; width: 100%; margin: auto; }
+
+/* Themes */
+.slide[data-theme="dark"] { background: var(--black); color: rgba(255,255,255,0.92); }
+.slide[data-theme="cream"] { background: var(--cream); color: var(--grey-03); }
+.slide[data-theme="white"] { background: var(--white); color: var(--grey-03); }
+.slide[data-theme="accent"] { background: var(--accent); color: rgba(255,255,255,0.95); }
+
+/* Typography */
+h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 16px; }
+h2 { font-size: 2rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 12px; }
+h3 { font-size: 1.35rem; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+h4 { font-size: 1.1rem; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+p { font-size: 1rem; line-height: 1.7; }
+.subtitle { font-size: 1.1rem; opacity: 0.7; margin-bottom: 24px; }
+.section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+.slide[data-theme="dark"] .section-label { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+.slide[data-theme="cream"] .section-label { background: rgba(0,0,0,0.06); color: var(--grey-02); }
+.slide[data-theme="white"] .section-label { background: var(--cream); color: var(--grey-02); }
+.slide[data-theme="accent"] .section-label { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); }
+
+.slide[data-theme="dark"] h1,
+.slide[data-theme="dark"] h2,
+.slide[data-theme="dark"] h3,
+.slide[data-theme="dark"] h4 { color: #ffffff; }
+.slide[data-theme="cream"] h1,
+.slide[data-theme="cream"] h2,
+.slide[data-theme="cream"] h3,
+.slide[data-theme="cream"] h4 { color: var(--black); }
+.slide[data-theme="white"] h1,
+.slide[data-theme="white"] h2,
+.slide[data-theme="white"] h3,
+.slide[data-theme="white"] h4 { color: var(--black); }
+.slide[data-theme="accent"] h1,
+.slide[data-theme="accent"] h2 { color: #ffffff; }
+
+/* Cards */
+.card {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.slide[data-theme="dark"] .card {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+.slide[data-theme="white"] .card {
+  background: var(--cream);
+  border-color: var(--grey-01);
+}
+
+/* Tables */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 12px 0; }
+.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--grey-01);
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--grey-01);
+  vertical-align: top;
+}
+.slide[data-theme="cream"] .data-table th { color: var(--accent); background: rgba(37,99,235,0.04); }
+.slide[data-theme="white"] .data-table th { color: var(--accent); background: rgba(37,99,235,0.04); }
+.slide[data-theme="dark"] .data-table th { color: var(--accent-light); border-color: rgba(255,255,255,0.1); }
+.slide[data-theme="dark"] .data-table td { border-color: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+
+/* Highlight */
+.hl { color: var(--accent); font-weight: 600; }
+.hl-warm { color: var(--accent-warm); font-weight: 600; }
+.hl-danger { color: var(--danger); font-weight: 600; }
+.hl-green { color: var(--green); font-weight: 600; }
+.hl-purple { color: var(--purple); font-weight: 600; }
+.hl-amber { color: var(--amber); font-weight: 600; }
+.slide[data-theme="dark"] .hl { color: #93c5fd; }
+
+/* Tip/Warning boxes */
+.tip-box {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin: 12px 0;
+  line-height: 1.6;
+}
+.tip-box.warn { background: var(--danger-light); color: #991b1b; border-left: 3px solid var(--danger); }
+.tip-box.info { background: var(--accent-light); color: #1e40af; border-left: 3px solid var(--accent); }
+.tip-box.success { background: var(--light-green); color: #166534; border-left: 3px solid var(--green); }
+.tip-box.purple { background: var(--purple-light); color: #5b21b6; border-left: 3px solid var(--purple); }
+.tip-box.amber { background: var(--amber-light); color: #92400e; border-left: 3px solid var(--amber); }
+.slide[data-theme="dark"] .tip-box.warn { background: rgba(239,68,68,0.12); color: #fca5a5; border-color: #ef4444; }
+.slide[data-theme="dark"] .tip-box.info { background: rgba(59,130,246,0.12); color: #93c5fd; border-color: #3b82f6; }
+.slide[data-theme="dark"] .tip-box.purple { background: rgba(124,58,237,0.12); color: #c4b5fd; border-color: #7c3aed; }
+
+/* Grid */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* Stats */
+.stat-card { text-align: center; padding: 20px 16px; }
+.stat-card .stat-num {
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-card .stat-label { font-size: 0.85rem; opacity: 0.6; }
+
+/* Flow chart */
+.flow-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.flow-step {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
+  min-width: 100px;
+}
+.flow-arrow { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+.slide[data-theme="dark"] .flow-step { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #fff; }
+.slide[data-theme="dark"] .flow-arrow { color: #93c5fd; }
+
+/* Mnemonic box */
+.mnemonic {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 12px 0;
+  position: relative;
+}
+.mnemonic .mnemonic-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--purple);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+.mnemonic .mnemonic-content {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.6;
+}
+
+/* Lists */
+.check-list { list-style: none; padding: 0; }
+.check-list li { padding: 6px 0; padding-left: 24px; position: relative; font-size: 0.95rem; line-height: 1.6; }
+.check-list li::before { content: ""; position: absolute; left: 0; top: 12px; width: 8px; height: 8px; border-radius: 50%; }
+.check-list li.yes::before { background: var(--green); }
+.check-list li.no::before { background: var(--danger); }
+.check-list li.dot::before { background: var(--accent); }
+
+/* Two-column compare */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-col { border-radius: 12px; padding: 20px; }
+.compare-col.positive { background: rgba(133,162,104,0.08); border: 1px solid rgba(133,162,104,0.2); }
+.compare-col.negative { background: rgba(217,79,79,0.06); border: 1px solid rgba(217,79,79,0.15); }
+.compare-col h4 { margin-bottom: 10px; }
+.compare-col.positive h4 { color: var(--green); }
+.compare-col.negative h4 { color: var(--danger); }
+
+/* Subsection divider */
+.sub-divider {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 8px 0 4px;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid rgba(37,99,235,0.15);
+  display: inline-block;
+}
+.slide[data-theme="dark"] .sub-divider { color: #93c5fd; border-color: rgba(147,197,253,0.2); }
+
+/* Animations */
+.stagger > * { opacity: 0; transform: translateY(20px); }
+.active .stagger > * { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.active .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.active .stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.active .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.active .stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.active .stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.active .stagger > *:nth-child(6) { animation-delay: 0.3s; }
+.active .stagger > *:nth-child(7) { animation-delay: 0.35s; }
+.active .stagger > *:nth-child(8) { animation-delay: 0.4s; }
+.active .stagger > *:nth-child(9) { animation-delay: 0.45s; }
+.active .stagger > *:nth-child(10) { animation-delay: 0.5s; }
+.table-animate tr { opacity: 0; transform: translateY(12px); }
+.active .table-animate tr { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.active .table-animate tr:nth-child(1) { animation-delay: 0.05s; }
+.active .table-animate tr:nth-child(2) { animation-delay: 0.1s; }
+.active .table-animate tr:nth-child(3) { animation-delay: 0.12s; }
+.active .table-animate tr:nth-child(4) { animation-delay: 0.16s; }
+.active .table-animate tr:nth-child(5) { animation-delay: 0.2s; }
+.active .table-animate tr:nth-child(6) { animation-delay: 0.24s; }
+.active .table-animate tr:nth-child(7) { animation-delay: 0.28s; }
+.active .table-animate tr:nth-child(8) { animation-delay: 0.32s; }
+.active .table-animate tr:nth-child(9) { animation-delay: 0.36s; }
+.active .table-animate tr:nth-child(10) { animation-delay: 0.4s; }
+.active .table-animate tr:nth-child(11) { animation-delay: 0.44s; }
+.active .table-animate tr:nth-child(12) { animation-delay: 0.48s; }
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Navigation */
+.nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 24px;
+  background: rgba(18,18,18,0.85);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+}
+.nav-bar button {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+.nav-bar button:hover { background: rgba(255,255,255,0.15); }
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 100;
+  transition: width 0.3s ease;
+}
+
+/* Overview */
+.overview-grid {
+  position: fixed; inset: 0;
+  background: rgba(18,18,18,0.95);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+  display: none;
+  padding: 40px;
+  overflow-y: auto;
+}
+.overview-grid.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-content: start; }
+.overview-item {
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+  background: var(--cream);
+}
+.overview-item:hover { border-color: var(--accent); transform: scale(1.03); }
+.overview-item.current { border-color: var(--accent-warm); }
+.overview-item .ov-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Print */
+@media print {
+  .slide { position: relative !important; opacity: 1 !important; visibility: visible !important; page-break-after: always; height: auto; min-height: 100vh; overflow: visible; }
+  .nav-bar, .progress-bar, .overview-grid { display: none !important; }
+  body { overflow: visible; }
+  .deck { height: auto; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide { padding: 32px 20px 80px; }
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.1rem; }
+  .grid-2, .grid-3, .grid-4, .compare-grid { grid-template-columns: 1fr; }
+  .stat-card .stat-num { font-size: 1.8rem; }
+  .flow-box { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .data-table { font-size: 0.8rem; }
+  .data-table th, .data-table td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="deck" id="deck">
+
+<!-- ==================== SLIDE 1: COVER ==================== -->
+<div class="slide active" data-theme="dark" data-title="封面">
+<div class="slide-inner" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh;">
+<div class="stagger">
+  <div class="section-label">台灣金融研訓院</div>
+  <h1 style="font-size:3rem; margin-bottom:8px;">銀行內部控制<br>與內部稽核測驗</h1>
+  <p class="subtitle" style="font-size:1.15rem; margin-bottom:40px;">考古題整理筆記 &middot; 第 25-48 屆 &middot; 兩份筆記合併精華版</p>
+  <div class="grid-4" style="max-width:600px; margin:0 auto 32px;">
+    <div class="stat-card card">
+      <div class="stat-num counter-animate" data-target="50" style="color:#93c5fd;">0</div>
+      <div class="stat-label">法規題數</div>
+    </div>
+    <div class="stat-card card">
+      <div class="stat-num counter-animate" data-target="80" style="color:#93c5fd;">0</div>
+      <div class="stat-label">實務題數</div>
+    </div>
+    <div class="stat-card card">
+      <div class="stat-num counter-animate" data-target="70" style="color:#fbbf24;">0</div>
+      <div class="stat-label">合格分數</div>
+    </div>
+    <div class="stat-card card">
+      <div class="stat-num counter-animate" data-target="24" style="color:#fbbf24;">0</div>
+      <div class="stat-label">屆次資料</div>
+    </div>
+  </div>
+  <div style="display:flex; gap:24px; justify-content:center; font-size:0.85rem; opacity:0.5; flex-wrap:wrap;">
+    <span>答錯不倒扣</span>
+    <span>法規 60 分鐘</span>
+    <span>實務 90 分鐘</span>
+    <span>整理日期 2026-03-07</span>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 2: 考試概覽 ==================== -->
+<div class="slide" data-theme="cream" data-title="考試概覽">
+<div class="slide-inner stagger">
+  <div class="section-label">概覽</div>
+  <h2>考試制度說明</h2>
+  <table class="data-table table-animate" style="margin-bottom:20px;">
+    <tr><th>節次</th><th>科目</th><th>題數</th><th>每題</th><th>時間</th></tr>
+    <tr><td>第一節</td><td>銀行內部控制與內部稽核<span class="hl">法規</span></td><td>50 題</td><td>2 分</td><td>60 分鐘</td></tr>
+    <tr><td>第二節</td><td>銀行內部控制與內部稽核<span class="hl">實務</span></td><td>80 題</td><td>1.25 分</td><td>90 分鐘</td></tr>
+  </table>
+  <div class="tip-box info" style="margin-bottom:16px;">
+    <strong>四選一單選題</strong>，答錯不倒扣，未作答不計分。兩科均達 <strong>70 分</strong>以上方合格。使用 2B 鉛筆在答案卡作答，違者以零分計算。
+  </div>
+  <div class="tip-box amber">
+    <strong>「一般金融類」與「消費金融類」</strong>第一節考試內容完全相同，僅有第二節考試內容有 40% 不同。考試的範圍都一樣，只是章節出題比重不同，所以每章都要讀。
+  </div>
+  <div style="margin-top:20px;">
+    <h3>準備策略</h3>
+    <ul class="check-list">
+      <li class="dot">看熟筆記資料內容，做熟內附試題</li>
+      <li class="dot">至少熟做<strong>近五期筆試歷屆試題</strong>共 250+400 題（做越多屆越好）</li>
+      <li class="dot">把錯誤題目做記號，錯越多次記號越多，考前只複習記號題目</li>
+      <li class="dot">參考讀書計畫：<span class="hl">7 天，每日約 3 小時</span>，短期密集準備</li>
+      <li class="dot">理解每個選項（不只看正確答案），考試會變化選項考同一觀念</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 3: 法規 — 銀行法重點 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：銀行法">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>1-1 銀行法重點（幾乎每屆必考）</h2>
+
+  <div class="sub-divider">授信種類與期限</div>
+  <table class="data-table table-animate">
+    <tr><th>信用類別</th><th>期限</th><th>常考例題</th></tr>
+    <tr><td>短期信用</td><td>1 年以內</td><td></td></tr>
+    <tr><td>中期信用</td><td>1 年以上至 7 年</td><td>消費性放款 3 年 = <span class="hl-warm">中期信用</span></td></tr>
+    <tr><td>長期信用</td><td><span class="hl">7 年以上</span>（含 7 年）</td><td></td></tr>
+    <tr><td>自用住宅放款</td><td>最長 <span class="hl-danger">30 年</span></td><td>非自用住宅者不在此限</td></tr>
+  </table>
+
+  <div class="sub-divider">商業銀行投資限制</div>
+  <table class="data-table table-animate">
+    <tr><th>投資對象</th><th>上限</th></tr>
+    <tr><td>金融 + 非金融相關事業合計</td><td>淨值 <span class="hl-danger">40%</span></td></tr>
+    <tr><td>投資非金融相關事業</td><td>淨值 <span class="hl-danger">10%</span></td></tr>
+    <tr><td>投資同一業別金融相關事業</td><td><span class="hl-danger">1 家</span>（配合政府政策除外）</td></tr>
+    <tr><td>投資每一非金融相關事業</td><td>該被投資事業實收資本 <span class="hl-danger">5%</span></td></tr>
+    <tr><td>投資國內外有價證券</td><td>存款總餘額 + 金融債券 <span class="hl-danger">25%</span></td></tr>
+    <tr><td>投資店頭市場股票（含認股權等）</td><td>核算基數 <span class="hl-danger">5%</span></td></tr>
+  </table>
+
+  <div class="compare-grid" style="margin-top:16px;">
+    <div class="compare-col" style="background:rgba(37,99,235,0.05); border:1px solid rgba(37,99,235,0.15);">
+      <h4 style="color:var(--accent);">直接授信</h4>
+      <ul class="check-list">
+        <li class="dot">放款、透支、貼現</li>
+        <li class="dot">出口押匯</li>
+        <li class="dot">週轉金貸款</li>
+      </ul>
+    </div>
+    <div class="compare-col" style="background:rgba(124,58,237,0.05); border:1px solid rgba(124,58,237,0.15);">
+      <h4 style="color:var(--purple);">間接授信</h4>
+      <ul class="check-list">
+        <li class="dot">保證</li>
+        <li class="dot">承兌</li>
+        <li class="dot">開發國內外信用狀</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 4: 法規 — 利害關係人授信 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：第33條">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>利害關係人授信（第 33 條）</h2>
+
+  <table class="data-table table-animate" style="margin-bottom:16px;">
+    <tr><th>項目</th><th>限額</th></tr>
+    <tr><td>對同一法人擔保授信總餘額</td><td>淨值 <span class="hl-danger">10%</span></td></tr>
+    <tr><td>對同一利害關係人擔保授信</td><td>淨值 <span class="hl-danger">2%</span></td></tr>
+    <tr><td>授信總餘額上限</td><td>各該銀行淨值 <span class="hl-danger">1.5 倍</span></td></tr>
+    <tr><td>消費者貸款每人上限</td><td><span class="hl-danger">200 萬元</span>（原 100 萬，已修正）</td></tr>
+    <tr><td>需 3/4 董事出席 + 2/3 同意</td><td>擔保授信達規定金額</td></tr>
+  </table>
+
+  <div class="tip-box warn">
+    <strong>重要：</strong>以下授信不計入第 33 條限額：<br>
+    (1) 政府機關/公營事業 (2) 以公債、國庫券為擔保 (3) 配合政府政策專案核准
+  </div>
+
+  <div class="grid-2" style="margin-top:16px;">
+    <div class="card">
+      <h4>公營事業授信限額</h4>
+      <p>無擔保 &le; 淨值 <span class="hl">20%</span><br>
+      授信總餘額 &le; 淨值 <span class="hl">40%</span></p>
+    </div>
+    <div class="card">
+      <h4>資本等級（5 級）</h4>
+      <p style="font-size:0.9rem; line-height:1.8;">
+        資本十分充足 &rarr; 資本充足 &rarr; 資本不足 &rarr; 資本顯著不足 &rarr; 資本嚴重不足
+      </p>
+    </div>
+  </div>
+
+  <div class="sub-divider" style="margin-top:20px;">消費者貸款</div>
+  <p style="margin-bottom:8px;">銀行法第 32 條：銀行對本行負責人、職員、主要股東等為<strong>消費者貸款</strong>的規定。</p>
+  <p>範圍：房屋修繕、耐久性消費品（含汽車）、支付學費與其他個人之小額貸款，及信用卡循環信用。</p>
+  <p>額度：每一消費者不超過新台幣 <span class="hl-danger">200 萬元</span>為限。</p>
+</div>
+</div>
+
+<!-- ==================== SLIDE 5: 法規 — 內控稽核制度 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：內控稽核">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>1-2 內部控制及稽核制度實施辦法</h2>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div class="card">
+      <h4>稽核單位組織</h4>
+      <ul class="check-list">
+        <li class="dot">隸屬：<span class="hl">董（理）事會</span></li>
+        <li class="dot">向董事會及監察人報告頻率：每 <span class="hl-danger">半年</span></li>
+        <li class="dot">法令遵循主管報告頻率：同上，每 <span class="hl-danger">半年</span></li>
+        <li class="dot">稽核報告及工作底稿保存：至少 <span class="hl-danger">5 年</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>稽核人員資格</h4>
+      <ul class="check-list">
+        <li class="dot">最近 <span class="hl-danger">3 年</span>內無記過以上不良記錄</li>
+        <li class="dot">具 CIA 資格，或 2 年以上金融檢查經驗</li>
+        <li class="dot">或 <span class="hl-danger">5 年</span>以上金融業務經驗</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-divider">自行查核頻率（常考！）</div>
+  <table class="data-table table-animate" style="margin-bottom:16px;">
+    <tr><th>查核項目</th><th>頻率</th></tr>
+    <tr><td>一般自行查核</td><td>每<span class="hl-danger">半年</span>至少 <span class="hl-danger">1 次</span></td></tr>
+    <tr><td>專案自行查核</td><td>每<span class="hl-danger">月</span>至少 <span class="hl-danger">1 次</span></td></tr>
+    <tr><td>法令遵循事項自行評估的月份</td><td>得免辦理一般自行查核</td></tr>
+    <tr><td>稽核單位辦理專案業務稽核的月份</td><td>得免辦理專案自行查核</td></tr>
+  </table>
+
+  <div class="sub-divider">稽核報告三層責任</div>
+  <div class="flow-box">
+    <div class="flow-step"><strong style="color:var(--accent);">作</strong><br><span style="font-size:0.8rem;">自行查核負責人</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong style="color:var(--accent-warm);">追</strong><br><span style="font-size:0.8rem;">稽核單位</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong style="color:var(--green);">呈</strong><br><span style="font-size:0.8rem;">總經理</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong style="color:var(--purple);">報</strong><br><span style="font-size:0.8rem;">董事會（每半年）</span></div>
+  </div>
+
+  <div class="tip-box warn" style="margin-top:12px;">
+    <strong>陷阱：</strong>自行查核由<strong>單位主管</strong>指定非原經辦人員辦理（不是稽核室辦理）
+  </div>
+
+  <div class="grid-2" style="margin-top:16px;">
+    <div class="card">
+      <h4>法令遵循單位</h4>
+      <ul class="check-list">
+        <li class="dot">隸屬：<span class="hl">總經理</span>（不是稽核室/監察人/董事長）</li>
+        <li class="dot">新任人員/主管：應<strong>就任前</strong>取得資格</li>
+        <li class="dot">資產達 1 兆以上：法令遵循與法務主管互代不宜超過 <span class="hl-danger">3 個月</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>總稽核解聘/調職</h4>
+      <p>應先報請<span class="hl">主管機關核准</span>（非事後備查）</p>
+      <h4 style="margin-top:12px;">內部控制制度聲明書</h4>
+      <p style="font-size:0.9rem;">由董事長、總經理、總稽核、總機構法令遵循主管<strong>聯名出具</strong></p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 6: 法規 — COSO + 洗錢 + 詐騙 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：COSO/洗錢/詐騙">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>COSO、洗錢防制、詐騙通報</h2>
+
+  <div class="sub-divider">COSO 八大要素（口訣：環目事評應活資監）</div>
+  <div class="flow-box" style="margin-bottom:12px; flex-wrap:wrap;">
+    <div class="flow-step" style="border-color:var(--accent);"><strong>環</strong>內部環境</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>目</strong>標設定</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>事</strong>件辨識</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>評</strong>風險評估</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>應</strong>風險因應</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>活</strong>控制活動</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>資</strong>訊與溝通</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent);"><strong>監</strong>督作業</div>
+  </div>
+  <div class="tip-box info" style="margin-bottom:8px;">
+    <strong>金控/銀行業實施辦法</strong>五大組成要素：控制環境、風險評估、控制活動、資訊與溝通、監督作業
+  </div>
+  <div class="tip-box warn">
+    <strong>陷阱：</strong>COSO <strong>不包括</strong>：會計控制、內部稽核功能評估（這兩個是常見陷阱！）
+  </div>
+
+  <div class="sub-divider">會計師查核</div>
+  <ul class="check-list" style="margin-bottom:16px;">
+    <li class="dot">每年委託會計師辦理<strong>內部控制制度查核</strong></li>
+    <li class="dot">應立即通報：受查銀行<span class="hl-danger">資產不足抵償負債或財務狀況顯著惡化</span></li>
+    <li class="dot">不需立即通報：遲未建立法令遵循主管制度</li>
+    <li class="dot"><strong>不包括</strong>查核：銀行授信政策、營運或專案計畫目標達成情形</li>
+  </ul>
+
+  <div class="grid-2">
+    <div>
+      <div class="sub-divider">1-3 洗錢防制</div>
+      <ul class="check-list">
+        <li class="dot">大額通貨申報門檻：<span class="hl-danger">100 萬元（含等值外幣）</span>以上之現金收入或付出</li>
+        <li class="dot">核備免申報帳戶審視頻率：至少每 <span class="hl-danger">1 年</span>一次</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sub-divider">1-5 警示帳戶</div>
+      <ul class="check-list">
+        <li class="dot">接獲通報後轉入信用資料庫：<span class="hl-danger">每半小時</span>內</li>
+        <li class="dot">措施：限制電子支付轉帳</li>
+        <li class="dot">剩餘款項發還：指定<span class="hl">副總經理</span>職級以上督導</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-divider" style="margin-top:16px;">1-4 詐騙通報要點</div>
+  <table class="data-table table-animate">
+    <tr><th>項目</th><th>內容</th></tr>
+    <tr><td>目的</td><td>發揮金融同業互助精神</td></tr>
+    <tr><td>分支機構發現詐騙</td><td>立即通報所屬<span class="hl">總管理機構</span>（非直接通報聯徵中心）</td></tr>
+    <tr><td>聯合徵信中心會員通報方式</td><td><span class="hl">網際網路</span></td></tr>
+    <tr><td>非會員通報方式</td><td>書面（傳真）</td></tr>
+    <tr><td>揭露期限</td><td><span class="hl-danger">5 年</span></td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== SLIDE 7: 法規 — 信用卡 + 金消法 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：信用卡/金消法">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>信用卡法規 / 金融消費者保護法</h2>
+
+  <div class="grid-2">
+    <div>
+      <div class="sub-divider">1-6 信用卡法規</div>
+      <table class="data-table table-animate">
+        <tr><th>項目</th><th>規定</th></tr>
+        <tr><td>全職學生申請家數/額度</td><td>&le; <span class="hl-danger">3 家</span>，每家 &le; <span class="hl-danger">2 萬元</span></td></tr>
+        <tr><td>收到信用卡解除契約期限</td><td><span class="hl-danger">14 日</span>內通知</td></tr>
+        <tr><td>增加年費前通知期限</td><td><span class="hl-danger">30 日</span>前</td></tr>
+        <tr><td>爭議款項回覆期限</td><td>受理後 <span class="hl-danger">14 日</span></td></tr>
+        <tr><td>便利商店代收每筆上限</td><td><span class="hl-danger">2 萬元</span></td></tr>
+      </table>
+
+      <div class="sub-divider" style="margin-top:16px;">備抵呆帳提列（信用卡）</div>
+      <table class="data-table table-animate">
+        <tr><th>逾期期間</th><th>提列比率</th></tr>
+        <tr><td>超過 1 個月至 3 個月</td><td><span class="hl-danger">10%</span></td></tr>
+        <tr><td>超過 3 個月至 6 個月</td><td><span class="hl-danger">50%</span></td></tr>
+        <tr><td>超過 6 個月</td><td><span class="hl-danger">80%</span></td></tr>
+      </table>
+    </div>
+
+    <div>
+      <div class="sub-divider">1-7 金融消費者保護法</div>
+      <table class="data-table table-animate">
+        <tr><th>項目</th><th>期限/規定</th></tr>
+        <tr><td>申訴處理期限</td><td><span class="hl-danger">30 日</span></td></tr>
+        <tr><td>申請評議期限</td><td>收受起 <span class="hl-danger">60 日</span></td></tr>
+        <tr><td>複雜性高風險商品錄音保存</td><td>商品存續期間 + <span class="hl-danger">3 個月</span></td></tr>
+        <tr><td>財富管理業務違規最高罰款</td><td><span class="hl-danger">2,000 萬元</span></td></tr>
+      </table>
+
+      <div class="sub-divider" style="margin-top:16px;">1-8 委外作業</div>
+      <div class="compare-grid">
+        <div class="compare-col positive">
+          <h4>可委外</h4>
+          <ul class="check-list" style="font-size:0.85rem;">
+            <li class="yes">資料處理</li>
+            <li class="yes">鑑價作業</li>
+            <li class="yes">應收債權催收</li>
+            <li class="yes">表單憑證保存</li>
+          </ul>
+        </div>
+        <div class="compare-col negative">
+          <h4>不可委外</h4>
+          <ul class="check-list" style="font-size:0.85rem;">
+            <li class="no">授信審核之准駁</li>
+            <li class="no">消費信用貸款客戶身分核對</li>
+            <li class="no">委託財務簽證會計師辦理內部稽核</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip-box warn" style="margin-top:8px; font-size:0.85rem;">
+        受託機構疏失損害消費者 &rarr; 銀行仍應依法對客戶負責（不得先追委外）
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 8: 法規 — 票券 + 有價證券 ==================== -->
+<div class="slide" data-theme="cream" data-title="法規：票券/證券">
+<div class="slide-inner stagger">
+  <div class="section-label">一、法規科目</div>
+  <h2>1-9 票券與有價證券</h2>
+
+  <table class="data-table table-animate" style="margin-bottom:16px;">
+    <tr><th>項目</th><th>規定</th></tr>
+    <tr><td>票券商業務人員登記</td><td>向<span class="hl">票券金融商業同業公會</span>登記</td></tr>
+    <tr><td>投資單一企業公司債上限</td><td>淨值 <span class="hl-danger">10%</span></td></tr>
+    <tr><td>集中保管機構帳簿保存</td><td>至少 <span class="hl-danger">5 年</span></td></tr>
+    <tr><td>融資性商業本票最低面額</td><td><span class="hl-danger">10 萬元</span></td></tr>
+    <tr><td>短期票券利息分離課稅</td><td><span class="hl-danger">10%</span></td></tr>
+  </table>
+
+  <div class="tip-box info" style="margin-bottom:16px;">
+    銀行不得投資：負責人擔任董監事公司之<strong>股票</strong>（可投資其公司債）<br>
+    附買回條件買入短期票券 &rarr; <strong>應計入</strong>投資有價證券限額
+  </div>
+
+  <div class="sub-divider">商業銀行投資有價證券限額</div>
+  <ul class="check-list" style="margin-bottom:16px;">
+    <li class="dot">集中+店頭市場原始取得成本總餘額 &le; 銀行核算基數 <span class="hl-danger">30%</span></li>
+    <li class="dot">其中店頭市場股票相關 &le; 銀行核算基數 <span class="hl-danger">5%</span></li>
+    <li class="dot">附買回條件買入短期票券及債券之餘額，<span class="hl-danger">不計入</span>投資有價證券之限額內</li>
+    <li class="dot">附賣回條件賣出短期票券及債券之餘額，則應計入</li>
+  </ul>
+
+  <div class="sub-divider">信用評等對照（記法：短期選 3，長期選 BBB-，穆迪選 Baa3）</div>
+  <table class="data-table table-animate">
+    <tr><th></th><th>標準普爾</th><th>穆迪</th><th>惠譽</th><th>中華信評</th></tr>
+    <tr><td><strong>短期</strong></td><td>A-3</td><td>P-3</td><td>F3</td><td>twA-3</td></tr>
+    <tr><td><strong>長期</strong></td><td>BBB-</td><td>Baa3</td><td>BBB-</td><td>twBBB-</td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== SLIDE 9: 實務 — 出納 + 存款 ==================== -->
+<div class="slide" data-theme="cream" data-title="實務：出納/存款">
+<div class="slide-inner stagger">
+  <div class="section-label">二、實務科目</div>
+  <h2>2-1 出納業務 / 2-2 存款業務</h2>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div>
+      <div class="compare-grid">
+        <div class="compare-col positive">
+          <h4>屬於出納業務</h4>
+          <ul class="check-list" style="font-size:0.85rem;">
+            <li class="yes">現金及票據之收付及保管</li>
+            <li class="yes">各種有價證券之保管</li>
+            <li class="yes">幣券及破損券之兌換</li>
+          </ul>
+        </div>
+        <div class="compare-col negative">
+          <h4>不屬出納業務</h4>
+          <ul class="check-list" style="font-size:0.85rem;">
+            <li class="no">傳票之保管</li>
+            <li class="no">日計表之編製</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h4>空白單據</h4>
+        <p style="font-size:0.9rem;">空白支票、空白存摺、空白取款憑條</p>
+        <div class="tip-box warn" style="font-size:0.85rem; margin-top:8px;">
+          陷阱：空白存單<strong>不屬於</strong>「空白單據」的範疇
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sub-divider">現金短溢帳務處理</div>
+      <table class="data-table table-animate" style="margin-bottom:12px;">
+        <tr><th>情形</th><th>會計科目</th></tr>
+        <tr><td>現金短少</td><td>借記「其他應收款」</td></tr>
+        <tr><td>現金溢餘</td><td>貸記「其他應付款」</td></tr>
+      </table>
+      <div class="sub-divider">錄影保存年限</div>
+      <table class="data-table table-animate" style="margin-bottom:12px;">
+        <tr><th>項目</th><th>保存期限</th></tr>
+        <tr><td>金庫監視錄影</td><td>至少 <span class="hl-danger">6 個月</span></td></tr>
+        <tr><td>ATM 監視錄影</td><td>至少 <span class="hl-danger">6 個月</span></td></tr>
+        <tr><td>開戶錄影</td><td>至少 <span class="hl-danger">3 個月</span></td></tr>
+      </table>
+      <div class="sub-divider">偽造幣券</div>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">新臺幣 &rarr; 交<span class="hl">中央銀行</span>（非財政部）</li>
+        <li class="dot">外幣偽造達 <span class="hl-danger">100 美元</span>以上 &rarr; 記明持兌入資料，報<span class="hl">警察機關</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-divider">存款業務重點</div>
+  <div class="grid-2">
+    <div class="card">
+      <h4>未成年人存款</h4>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">未出具法定代理人同意書 &rarr; 銀行發函催告，期限至少 <span class="hl-danger">1 個月</span></li>
+        <li class="dot">一次存入或年度累計 &ge; <span class="hl-danger">50 萬元</span> &rarr; 通報當地國稅局</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>可轉讓定期存單（NCD）</h4>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">存期：最短 <span class="hl-danger">1 個月</span>，最長 <span class="hl-danger">1 年</span></li>
+        <li class="dot">逾期提領：逾期部分<strong>概不計息</strong></li>
+        <li class="dot">不得按月領取利息</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 10: 實務 — 授信業務 ==================== -->
+<div class="slide" data-theme="cream" data-title="實務：授信業務">
+<div class="slide-inner stagger">
+  <div class="section-label">二、實務科目</div>
+  <h2>2-3 授信業務</h2>
+
+  <p style="margin-bottom:12px;">第一關卡（主要控制）：<span class="hl">交易控管</span></p>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div>
+      <div class="sub-divider">授信時效（重要！）</div>
+      <table class="data-table table-animate">
+        <tr><th>種類</th><th>時效年限</th></tr>
+        <tr><td>借款本金</td><td><span class="hl-danger">15 年</span></td></tr>
+        <tr><td>借款利息</td><td><span class="hl-danger">5 年</span></td></tr>
+        <tr><td>墊款</td><td><span class="hl-danger">15 年</span></td></tr>
+        <tr><td>違約金</td><td><span class="hl-danger">10 年</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="sub-divider">票據時效（由短至長）</div>
+      <table class="data-table table-animate">
+        <tr><th>票據種類</th><th>時效</th></tr>
+        <tr><td>支票執票人對前手</td><td><span class="hl-danger">4 個月</span>（最短！）</td></tr>
+        <tr><td>匯票/本票背書人對前手</td><td><span class="hl-danger">1 年</span></td></tr>
+        <tr><td>本票執票人對發票人</td><td><span class="hl-danger">3 年</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-divider">備抵呆帳提列（一般授信）</div>
+  <table class="data-table table-animate" style="margin-bottom:16px;">
+    <tr><th>類別</th><th>提列比率</th></tr>
+    <tr><td>第二類</td><td><span class="hl-danger">2%</span></td></tr>
+    <tr><td>第三類</td><td><span class="hl-danger">10%</span></td></tr>
+    <tr><td>第四類</td><td><span class="hl-danger">50%</span></td></tr>
+    <tr><td>第五類</td><td><span class="hl-danger">100%</span></td></tr>
+  </table>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>擔保品規定</h4>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">不動產：建物火險保單以<span class="hl">授信銀行</span>為受益人</li>
+        <li class="dot">他行存單為擔保 &rarr; 存款行覆函同意<strong>拋棄抵銷權</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>授信財報要求</h4>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">個人總授信 &ge; <span class="hl-danger">1,000 萬元</span>：需提供個人報稅資料</li>
+        <li class="dot">企業戶中長期週轉資金授信 &ge; <span class="hl-danger">1 億元</span>：須徵提現金流量預估表</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-divider" style="margin-top:12px;">票據止付</div>
+  <ul class="check-list" style="font-size:0.9rem;">
+    <li class="dot">存款不足票據掛失止付 &rarr; 受理，但<strong>不提存止付票款</strong></li>
+    <li class="dot">止付通知後最遲 <span class="hl-danger">5 日</span>內提出聲請公示催告證明，否則失效</li>
+    <li class="dot">退票後備付款，自退票日起滿 <span class="hl-danger">3 年</span>未重提示 &rarr; 申請「備付期滿」</li>
+  </ul>
+</div>
+</div>
+
+<!-- ==================== SLIDE 11: 實務 — 外匯 + 財管 + 信託 ==================== -->
+<div class="slide" data-theme="cream" data-title="實務：外匯/財管/信託">
+<div class="slide-inner stagger">
+  <div class="section-label">二、實務科目</div>
+  <h2>2-4 外匯 / 2-5 財富管理 / 信託業務</h2>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div>
+      <div class="sub-divider">外匯業務</div>
+      <table class="data-table table-animate">
+        <tr><th>項目</th><th>門檻/規定</th></tr>
+        <tr><td>結購外幣（匯出）免填申報書</td><td>&lt; <span class="hl-danger">50 萬元</span></td></tr>
+        <tr><td>解付匯入匯款申報義務人</td><td>&ge; <span class="hl-danger">50 萬元</span> &rarr; 受款人</td></tr>
+        <tr><td>大額結匯資料表</td><td>外幣兌換新臺幣 &ge; <span class="hl-danger">50 萬元</span></td></tr>
+        <tr><td>申報書等文件保存</td><td>至少 <span class="hl-danger">5 年</span></td></tr>
+      </table>
+      <div class="sub-divider" style="margin-top:12px;">信用狀重點</div>
+      <ul class="check-list" style="font-size:0.9rem;">
+        <li class="dot">審核單證瑕疵通知：收單日次日起 <span class="hl-danger">5 個銀行營業日</span>終了前通知</li>
+        <li class="dot">未規定最後裝船日 &rarr; 不接受遲於裝運日後 <span class="hl-danger">21 天</span>提示之單據</li>
+        <li class="dot">FOB/FCA 開狀 &rarr; 保險受益人：<span class="hl">開狀銀行</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="sub-divider">財富管理業務</div>
+      <p style="font-size:0.9rem; margin-bottom:8px;">法令遵循監督責任（巴塞爾銀行監理委員會指導原則）&rarr; <span class="hl">董事會</span></p>
+      <div class="mnemonic">
+        <div class="mnemonic-title">商品適合度步驟 DCFAEB（46-48 屆必考）</div>
+        <div class="mnemonic-content">
+          D（客戶資料）&rarr; C（商品資料）&rarr; F（需求適配）&rarr; A（資料更新）&rarr; E（部位調整）&rarr; B（需求監視）
+        </div>
+      </div>
+
+      <div class="sub-divider" style="margin-top:16px;">信託業務</div>
+      <table class="data-table table-animate">
+        <tr><th>項目</th><th>規定</th></tr>
+        <tr><td>信託財產評審委員會評審頻率</td><td>每 <span class="hl-danger">3 個月</span>一次</td></tr>
+        <tr><td>信託業賠償準備金</td><td>至少 <span class="hl-danger">5,000 萬元</span></td></tr>
+        <tr><td>信託業重要契約</td><td>翌日起 <span class="hl-danger">2 個營業日</span>內申報</td></tr>
+        <tr><td>信託財產目錄及收支計算表</td><td>送交<span class="hl">委託人</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 12: 實務 — 資安 + 衍生性金融商品 ==================== -->
+<div class="slide" data-theme="cream" data-title="實務：資安/衍生品">
+<div class="slide-inner stagger">
+  <div class="section-label">二、實務科目</div>
+  <h2>2-6 資訊安全 / 衍生性金融商品</h2>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div>
+      <div class="sub-divider">資訊安全與電腦作業</div>
+      <ul class="check-list">
+        <li class="dot">廢棄媒體：<strong>先銷磁</strong></li>
+        <li class="dot">機密磁帶由<strong>二人</strong>會同封簽密存</li>
+        <li class="dot">電腦主機每班至少 <span class="hl-danger">2 人</span>輪值</li>
+        <li class="dot">換版作業：<span class="hl">資料管制人員</span>執行（非程式設計人員）</li>
+        <li class="dot">最可靠稽核軌跡：<span class="hl">電腦比對報表</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="sub-divider">衍生性金融商品</div>
+      <ul class="check-list">
+        <li class="dot">交易部位評估：至少<strong>每日</strong></li>
+        <li class="dot">避險性交易：至少<strong>每週</strong>評估一次</li>
+        <li class="dot">逾期放款比率 &gt; <span class="hl-danger">3%</span> &rarr; 衍生性金融商品業務以<strong>避險目的</strong>為限</li>
+        <li class="dot">開辦新商品 &rarr; <span class="hl-danger">15 日</span>內報送金管會</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mnemonic" style="margin-bottom:16px;">
+    <div class="mnemonic-title">衍生性金融商品四種（記憶）</div>
+    <div class="mnemonic-content">
+      遠期契約 + 期貨契約 + 選擇權 + 交換契約
+    </div>
+  </div>
+  <div class="tip-box warn">
+    <strong>陷阱：</strong>不屬於衍生性金融商品：<strong>國外基金</strong>、<strong>結構型商品</strong>（另有分類）
+  </div>
+
+  <div class="sub-divider" style="margin-top:16px;">利息所得稅扣繳</div>
+  <table class="data-table table-animate">
+    <tr><th>納稅義務人</th><th>解繳時限</th></tr>
+    <tr><td>境內居住個人</td><td>次月 <span class="hl-danger">10 日</span>前解繳國庫</td></tr>
+    <tr><td>非境內居住個人</td><td>代扣日起 <span class="hl-danger">10 日</span>內解繳國庫</td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== SLIDE 13: 數字速查 — 授信+金額 ==================== -->
+<div class="slide" data-theme="white" data-title="速查：授信數字">
+<div class="slide-inner stagger">
+  <div class="section-label">三、數字速查總表</div>
+  <h2>授信相關數字（考前必背）</h2>
+
+  <table class="data-table table-animate">
+    <tr><th>項目</th><th>數字</th></tr>
+    <tr><td>短/中/長期信用分界</td><td><span class="hl">1 年 / 7 年</span></td></tr>
+    <tr><td>商業銀行投資金融+非金融上限</td><td>淨值 <span class="hl-danger">40%</span></td></tr>
+    <tr><td>投資非金融事業上限</td><td>淨值 <span class="hl-danger">10%</span></td></tr>
+    <tr><td>投資每一非金融事業上限</td><td>實收資本 <span class="hl-danger">5%</span></td></tr>
+    <tr><td>對同一法人擔保授信上限</td><td>淨值 <span class="hl-danger">10%</span></td></tr>
+    <tr><td>利害關係人授信總餘額上限</td><td>淨值 <span class="hl-danger">1.5 倍</span></td></tr>
+    <tr><td>消費者貸款每人上限</td><td><span class="hl-danger">200 萬元</span>（原 100 萬，已修正）</td></tr>
+    <tr><td>大額通貨申報門檻</td><td><span class="hl-danger">100 萬元</span></td></tr>
+    <tr><td>公營事業無擔保授信上限</td><td>淨值 <span class="hl-danger">20%</span></td></tr>
+    <tr><td>公營事業授信總餘額上限</td><td>淨值 <span class="hl-danger">40%</span></td></tr>
+    <tr><td>全職學生信用卡家數/額度</td><td><span class="hl-danger">3 家</span> / 每家 <span class="hl-danger">2 萬元</span></td></tr>
+    <tr><td>個人總授信需報稅資料</td><td>&ge; <span class="hl-danger">1,000 萬元</span></td></tr>
+    <tr><td>企業須提現金流量預估表</td><td>&ge; <span class="hl-danger">1 億元</span></td></tr>
+    <tr><td>外匯結購/解付申報門檻</td><td><span class="hl-danger">50 萬元</span></td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== SLIDE 14: 數字速查 — 時間 ==================== -->
+<div class="slide" data-theme="white" data-title="速查：時間數字">
+<div class="slide-inner stagger">
+  <div class="section-label">三、數字速查總表</div>
+  <h2>時間相關數字（考前必背）</h2>
+
+  <table class="data-table table-animate">
+    <tr><th>項目</th><th>時間</th></tr>
+    <tr><td>稽核/法令遵循向董事會報告</td><td>每<span class="hl-danger">半年</span></td></tr>
+    <tr><td>一般自行查核</td><td>每<span class="hl-danger">半年</span>至少 <span class="hl-danger">1 次</span></td></tr>
+    <tr><td>專案自行查核</td><td>每<span class="hl-danger">月</span>至少 <span class="hl-danger">1 次</span></td></tr>
+    <tr><td>信託財產評審</td><td>每 <span class="hl-danger">3 個月</span></td></tr>
+    <tr><td>一般錄影保存</td><td>至少 <span class="hl-danger">2 個月</span></td></tr>
+    <tr><td>ATM/新開戶錄影保存</td><td>至少 <span class="hl-danger">6 個月</span></td></tr>
+    <tr><td>開戶錄影保存</td><td>至少 <span class="hl-danger">3 個月</span></td></tr>
+    <tr><td>稽核報告底稿保存</td><td>至少 <span class="hl-danger">5 年</span></td></tr>
+    <tr><td>結匯文件保存</td><td>至少 <span class="hl-danger">5 年</span></td></tr>
+    <tr><td>票券集中保管帳簿保存</td><td>至少 <span class="hl-danger">5 年</span></td></tr>
+    <tr><td>信用卡解除契約期限</td><td>收到後 <span class="hl-danger">14 日</span></td></tr>
+    <tr><td>增加年費通知期限</td><td><span class="hl-danger">30 日</span>前</td></tr>
+    <tr><td>爭議款項回覆期限</td><td>受理後 <span class="hl-danger">14 日</span></td></tr>
+    <tr><td>金融消申訴處理期限</td><td><span class="hl-danger">30 日</span></td></tr>
+    <tr><td>金融消申請評議期限</td><td><span class="hl-danger">60 日</span></td></tr>
+    <tr><td>信用狀拒付通知期限</td><td><span class="hl-danger">5 個銀行營業日</span></td></tr>
+    <tr><td>信用狀裝運日後提示</td><td>不接受遲於 <span class="hl-danger">21 天</span></td></tr>
+    <tr><td>偽造外國幣券申報門檻</td><td><span class="hl-danger">200 美元</span>以上</td></tr>
+    <tr><td>詐騙案件揭露期限</td><td><span class="hl-danger">5 年</span></td></tr>
+    <tr><td>稽核人員無不良記錄</td><td>最近 <span class="hl-danger">3 年</span></td></tr>
+    <tr><td>法令遵循與法務互代上限</td><td>不宜超過 <span class="hl-danger">3 個月</span></td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== SLIDE 15: 數字速查 — 時效 ==================== -->
+<div class="slide" data-theme="white" data-title="速查：時效">
+<div class="slide-inner stagger">
+  <div class="section-label">三、數字速查總表</div>
+  <h2>票據時效 / 借款時效</h2>
+
+  <div class="grid-2">
+    <div>
+      <div class="sub-divider">票據時效（由短到長）</div>
+      <table class="data-table table-animate">
+        <tr><th>票據種類</th><th>時效</th></tr>
+        <tr><td>支票執票人對前手</td><td><span class="hl-danger">4 個月</span>（最短！）</td></tr>
+        <tr><td>匯票/本票背書人對前手</td><td><span class="hl-danger">1 年</span></td></tr>
+        <tr><td>本票執票人對發票人</td><td><span class="hl-danger">3 年</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="sub-divider">借款時效</div>
+      <table class="data-table table-animate">
+        <tr><th>種類</th><th>時效</th></tr>
+        <tr><td>借款本金</td><td><span class="hl-danger">15 年</span></td></tr>
+        <tr><td>借款利息</td><td><span class="hl-danger">5 年</span></td></tr>
+        <tr><td>墊款</td><td><span class="hl-danger">15 年</span></td></tr>
+        <tr><td>違約金</td><td><span class="hl-danger">10 年</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-divider" style="margin-top:24px;">備抵呆帳提列比率對照</div>
+  <div class="grid-2">
+    <div>
+      <h4>一般授信</h4>
+      <table class="data-table table-animate">
+        <tr><th>類別</th><th>比率</th></tr>
+        <tr><td>第二類</td><td><span class="hl-danger">2%</span></td></tr>
+        <tr><td>第三類</td><td><span class="hl-danger">10%</span></td></tr>
+        <tr><td>第四類</td><td><span class="hl-danger">50%</span></td></tr>
+        <tr><td>第五類</td><td><span class="hl-danger">100%</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <h4>信用卡</h4>
+      <table class="data-table table-animate">
+        <tr><th>逾期</th><th>比率</th></tr>
+        <tr><td>1-3 個月</td><td><span class="hl-danger">10%</span></td></tr>
+        <tr><td>3-6 個月</td><td><span class="hl-danger">50%</span></td></tr>
+        <tr><td>超過 6 個月</td><td><span class="hl-danger">80%</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 16: 近屆重點題目 ==================== -->
+<div class="slide" data-theme="cream" data-title="近屆考題重點">
+<div class="slide-inner stagger">
+  <div class="section-label">四、近幾屆重點</div>
+  <h2>第 46-48 屆 重點題目彙整</h2>
+
+  <div class="sub-divider">第 46 屆 法規科目</div>
+  <table class="data-table table-animate" style="margin-bottom:16px; font-size:0.85rem;">
+    <tr><th>#</th><th>考點</th><th>答案</th></tr>
+    <tr><td>1</td><td>消費性放款 3 年 &rarr; ?</td><td><span class="hl">中期信用</span></td></tr>
+    <tr><td>3</td><td>商業銀行投資同一業別金融事業 &rarr; ?</td><td><span class="hl">1 家</span></td></tr>
+    <tr><td>5</td><td>薪酬委員會「不應有獨立董事參與」&rarr; ?</td><td><span class="hl-danger">錯誤</span>（應有）</td></tr>
+    <tr><td>10</td><td>稽核單位應定期向「管理階層」報告 &rarr; ?</td><td><span class="hl-danger">錯誤</span>（應向董事會）</td></tr>
+    <tr><td>11</td><td>自行查核由誰指定辦理 &rarr; ?</td><td><span class="hl">單位主管</span></td></tr>
+    <tr><td>21</td><td>大額通貨申報 &rarr; ?</td><td><span class="hl">100 萬元</span></td></tr>
+    <tr><td>35</td><td>金融消費者申訴期限 &rarr; ?</td><td><span class="hl">30 日</span></td></tr>
+  </table>
+
+  <div class="grid-2">
+    <div>
+      <div class="sub-divider">第 47 屆 新增重點</div>
+      <table class="data-table table-animate" style="font-size:0.85rem;">
+        <tr><th>考點</th><th>答案</th></tr>
+        <tr><td>銀行法規遵循監督</td><td><span class="hl">董事會</span></td></tr>
+        <tr><td>稽核人員條件</td><td>最近 3 年無記過</td></tr>
+        <tr><td>內部控制三要素體系</td><td>風管+法遵+內稽+自行查核</td></tr>
+        <tr><td>保管箱監視</td><td>保管箱室外之監視器觀察</td></tr>
+        <tr><td>逾期放款轉銷</td><td>備抵呆帳不足 &rarr; 當年度損失</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="sub-divider">第 48 屆 新增重點</div>
+      <table class="data-table table-animate" style="font-size:0.85rem;">
+        <tr><th>考點</th><th>答案</th></tr>
+        <tr><td>銀行法「授信」不包括</td><td><span class="hl">證券經紀</span></td></tr>
+        <tr><td>保證契約有效期間不得逾</td><td><span class="hl">10 年</span></td></tr>
+        <tr><td>總稽核解聘</td><td>先報主管機關核准</td></tr>
+        <tr><td>法令遵循單位隸屬</td><td><span class="hl">總經理</span></td></tr>
+        <tr><td>建立內控制度法源</td><td><span class="hl">銀行法</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 17: 記憶口訣 ==================== -->
+<div class="slide" data-theme="cream" data-title="記憶口訣">
+<div class="slide-inner stagger">
+  <div class="section-label">五、速記法</div>
+  <h2>記憶口訣與速記法</h2>
+
+  <div class="grid-2">
+    <div class="mnemonic">
+      <div class="mnemonic-title">COSO 八大要素 ——「環目事評應活資監」</div>
+      <div class="mnemonic-content">
+        環（內部環境）&rarr; 目（標設定）&rarr; 事（件辨識）&rarr; 評（風險評估）&rarr; 應（風險因應）&rarr; 活（控制活動）&rarr; 資（訊與溝通）&rarr; 監（督）
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">稽核三層責任</div>
+      <div class="mnemonic-content">
+        作（自行查核負責人）&rarr; 追（稽核單位）&rarr; 呈（總經理）&rarr; 報（董事會，每半年）
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">每「半年」兩件事</div>
+      <div class="mnemonic-content">
+        (1) 法令遵循主管向董事會報告<br>
+        (2) 稽核單位向董事會報告
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">保存年限 ——「2-6-5」速記</div>
+      <div class="mnemonic-content">
+        <span class="hl-danger">2</span> 個月：一般錄影（閉路電視）<br>
+        <span class="hl-danger">6</span> 個月：ATM、新開戶櫃檯錄影<br>
+        <span class="hl-danger">5</span> 年：稽核底稿、結匯文件、票券集中保管帳簿
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">票據時效最短</div>
+      <div class="mnemonic-content">
+        支票執票人對前手 = <span class="hl-danger">4 個月</span><br>
+        4 個月（支票）&rarr; 1 年（匯本背書）&rarr; 3 年（本票發票人）
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">利害關係人授信不計入限額（三種）</div>
+      <div class="mnemonic-content">
+        (1) 政府機關/公營事業<br>
+        (2) 以公債、國庫券為擔保<br>
+        (3) 配合政府政策，主管機關專案核准
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">財富管理適合度步驟：DCFAEB</div>
+      <div class="mnemonic-content">
+        D（客戶資料）&rarr; C（商品資料）&rarr; F（需求適配）&rarr; A（資料更新）&rarr; E（部位調整）&rarr; B（需求監視）
+      </div>
+    </div>
+    <div class="mnemonic">
+      <div class="mnemonic-title">偽造幣券交給誰</div>
+      <div class="mnemonic-content">
+        新臺幣 &rarr; <span class="hl">中央銀行</span><br>
+        外幣 &ge; 100 美元 &rarr; 記名後報<span class="hl">警察機關</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mnemonic" style="margin-top:16px;">
+    <div class="mnemonic-title">衍生性金融商品四種</div>
+    <div class="mnemonic-content">
+      遠期契約 + 期貨契約 + 選擇權 + 交換契約<br>
+      <span class="hl-danger">不含：國外基金、結構型商品</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 18: CTA ==================== -->
+<div class="slide" data-theme="dark" data-title="結語">
+<div class="slide-inner" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh;">
+<div class="stagger">
+  <div class="section-label">祝考試順利</div>
+  <h1 style="font-size:2.6rem; margin-bottom:16px;">兩科均達 70 分<br>就能拿到證照</h1>
+  <p class="subtitle" style="max-width:600px; margin:0 auto 32px;">
+    短期密集準備 7 天 &middot; 熟做近五屆歷屆試題<br>
+    理解觀念比死背答案更重要
+  </p>
+  <div class="grid-3" style="max-width:500px; margin:0 auto 32px; gap:12px;">
+    <div class="card stat-card">
+      <div class="stat-num" style="font-size:1.6rem; color:#93c5fd;">法規</div>
+      <div class="stat-label">50 題 / 60 min</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-num" style="font-size:1.6rem; color:#fbbf24;">實務</div>
+      <div class="stat-label">80 題 / 90 min</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-num" style="font-size:1.6rem; color:#86efac;">合格</div>
+      <div class="stat-label">兩科均 &ge; 70</div>
+    </div>
+  </div>
+  <p style="font-size:0.85rem; opacity:0.4;">
+    資料來源：JY 價值筆記 V6.7.0 + 銀行內控稽核考試筆記（第 25-48 屆）<br>
+    整理日期：2026-03-07 &middot; Slideless Deck Format
+  </p>
+</div>
+</div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Page info (top-right, minimal) -->
+<div id="pageInfo" style="position:fixed;top:12px;right:20px;z-index:100;font-size:0.75rem;color:var(--grey-02);opacity:0.6;">1 / 18</div>
+
+<!-- Overview Grid -->
+<div class="overview-grid" id="overview"></div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+
+let transitioning = false;
+function goTo(n) {
+  if (n < 0 || n >= total || n === current || transitioning) return;
+  transitioning = true;
+  const oldSlide = slides[current];
+  const newSlide = slides[n];
+  // Show new slide behind old one, then crossfade
+  newSlide.style.opacity = '0';
+  newSlide.classList.add('active');
+  newSlide.scrollTop = 0;
+  // Small delay to ensure browser paints the new slide at opacity 0
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      newSlide.style.opacity = '';
+      oldSlide.style.opacity = '0';
+      setTimeout(() => {
+        oldSlide.classList.remove('active');
+        oldSlide.style.opacity = '';
+        current = n;
+        document.getElementById('pageInfo').textContent = (current + 1) + ' / ' + total;
+        document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+        animateCounters(slides[current]);
+        updateOverview();
+        transitioning = false;
+      }, 450);
+    });
+  });
+}
+function nextSlide() { goTo(current + 1); }
+function prevSlide() { goTo(current - 1); }
+
+// Counters
+function animateCounters(slide) {
+  slide.querySelectorAll('.counter-animate').forEach(el => {
+    if (el.dataset.animated) return;
+    el.dataset.animated = '1';
+    const target = parseFloat(el.dataset.target);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    if (target === 0) { el.textContent = prefix + '0' + suffix; return; }
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(target * eased);
+      el.textContent = prefix + value + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (document.getElementById('overview').classList.contains('active')) {
+    if (e.key === 'Escape' || e.key === 'o' || e.key === 'O') toggleOverview();
+    return;
+  }
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowDown': case ' ': e.preventDefault(); nextSlide(); break;
+    case 'ArrowLeft': case 'ArrowUp': e.preventDefault(); prevSlide(); break;
+    case 'Home': e.preventDefault(); goTo(0); break;
+    case 'End': e.preventDefault(); goTo(total - 1); break;
+    case 'f': case 'F': toggleFullscreen(); break;
+    case 'o': case 'O': toggleOverview(); break;
+    case 'Escape': if (document.fullscreenElement) document.exitFullscreen(); break;
+  }
+});
+
+// Touch — only navigate on deliberate horizontal swipes
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+});
+document.addEventListener('touchend', e => {
+  const diffX = e.changedTouches[0].clientX - touchStartX;
+  const diffY = e.changedTouches[0].clientY - touchStartY;
+  // Only trigger if horizontal movement > vertical AND exceeds threshold
+  if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+    diffX > 0 ? prevSlide() : nextSlide();
+  }
+});
+
+// Fullscreen
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+// Overview
+function toggleOverview() {
+  const ov = document.getElementById('overview');
+  if (ov.classList.contains('active')) { ov.classList.remove('active'); return; }
+  ov.innerHTML = '';
+  slides.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'overview-item' + (i === current ? ' current' : '');
+    const theme = s.dataset.theme || 'cream';
+    if (theme === 'dark') item.style.background = '#121212';
+    else if (theme === 'accent') item.style.background = '#2563eb';
+    else if (theme === 'white') item.style.background = '#fff';
+    const label = document.createElement('div');
+    label.className = 'ov-label';
+    label.textContent = (i + 1) + '. ' + (s.dataset.title || '');
+    item.appendChild(label);
+    item.addEventListener('click', () => { goTo(i); toggleOverview(); });
+    ov.appendChild(item);
+  });
+  ov.classList.add('active');
+}
+function updateOverview() {
+  document.querySelectorAll('.overview-item').forEach((item, i) => {
+    item.classList.toggle('current', i === current);
+  });
+}
+
+// Init
+goTo(0);
+</script>
+</body>
+</html>
