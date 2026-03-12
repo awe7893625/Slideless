@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>團隊架構審查：Jarvis & Noel + 任務看板診斷</title>
+<style>
+  :root { --bg: #faf9f7; --card: #fff; --border: #e8e4df; --text: #1a1a1a; --sub: #6b6560; --accent: #d4764e; --green: #2d8a56; --red: #c0392b; --blue: #2f7cf6; --tag-bg: #f3efe9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .deck { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .date { font-size: 0.8rem; color: var(--sub); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 40px; }
+  .section { margin-bottom: 48px; }
+  h2 { font-size: 1.1rem; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px; }
+  h3 { font-size: 0.95rem; font-weight: 600; margin: 20px 0 10px; }
+  p, li { font-size: 0.9rem; color: var(--text); }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  .card { background: var(--card); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 16px; }
+  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .card-header .icon { font-size: 1.2rem; }
+  .card-header .label { font-size: 0.75rem; color: var(--sub); letter-spacing: 0.1em; text-transform: uppercase; }
+  .card-header .name { font-size: 1rem; font-weight: 600; }
+  .tag { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 6px; }
+  .tag-green { background: #e8f5e9; color: var(--green); }
+  .tag-red { background: #fdecea; color: var(--red); }
+  .tag-blue { background: #e3f2fd; color: var(--blue); }
+  .tag-gray { background: var(--tag-bg); color: var(--sub); }
+  .stat-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat-box { flex: 1; min-width: 120px; background: var(--card); border: 1px solid var(--border); padding: 14px 16px; text-align: center; }
+  .stat-box .num { font-size: 1.6rem; font-weight: 700; }
+  .stat-box .lbl { font-size: 0.7rem; color: var(--sub); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  th { font-size: 0.7rem; color: var(--sub); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .fix-item { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+  .fix-num { font-size: 0.8rem; font-weight: 700; color: var(--accent); min-width: 24px; margin-top: 2px; }
+  .fix-text { font-size: 0.88rem; }
+  .verdict { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; padding: 10px 14px; margin: 10px 0; }
+  .verdict-pass { background: #e8f5e9; color: var(--green); border-left: 3px solid var(--green); }
+  .verdict-warn { background: #fff8e1; color: #e6a817; border-left: 3px solid #e6a817; }
+  .verdict-fail { background: #fdecea; color: var(--red); border-left: 3px solid var(--red); }
+  .footer { text-align: center; font-size: 0.7rem; color: var(--sub); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); }
+  @media(max-width:600px) { .deck { padding: 24px 16px 60px; } h1 { font-size: 1.3rem; } .stat-row { flex-direction: column; } }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<h1>團隊架構審查：Jarvis & Noel + 任務看板診斷</h1>
+<div class="date">2026-03-12 &mdash; Klay Audit Report</div>
+
+<!-- Section 1: Agent Status -->
+<div class="section">
+<h2>1. Agent 現況回報</h2>
+
+<div class="card">
+  <div class="card-header">
+    <span class="icon">&#x1F916;</span>
+    <div>
+      <div class="name">Jarvis</div>
+      <div class="label">Dispatch Center &middot; Docs Dept</div>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;">
+    <span class="tag tag-blue">Gemini 2.5 Flash</span>
+    <span class="tag tag-gray">Telegram Bot</span>
+    <span class="tag tag-green">Online</span>
+  </div>
+  <p><strong>職責：</strong>指令調度中心。接收 Rain 的 Telegram 訊息，路由到正確的 Agent 執行。</p>
+  <ul>
+    <li><strong>dispatch_klay</strong> &mdash; Major/Critical 任務 → spawn-klay.py（建立 Kai 任務 + tmux session）</li>
+    <li><strong>dispatch_worker</strong> &mdash; Standard 任務 → spawn-worker.py</li>
+    <li><strong>dispatch_ray</strong> &mdash; 架構審查 → spawn-ray.py</li>
+    <li><strong>dispatch_openclaw</strong> &mdash; 外部 Agent（Spider/Lynx/Nautilus/Probe/Echo/Buzz/Noel）</li>
+    <li><strong>check_tasks / complete_task</strong> &mdash; 查詢/完成 Kai 看板任務</li>
+    <li><strong>Email</strong> &mdash; 透過 run_terminal_command → Kai API 寄送</li>
+    <li><strong>投影快捷</strong> &mdash; AirPlay 投射控制（/mirror, /project, /sidecar, /airplay）</li>
+  </ul>
+  <p style="margin-top:8px;font-size:0.82rem;color:var(--sub);">原始碼：~/Desktop/Jarvis_Claude/（main.py + agent/ + tools/）</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="icon">&#x1F468;&#x200D;&#x1F4BC;</span>
+    <div>
+      <div class="name">Noel</div>
+      <div class="label">Personal Assistant &middot; External Dept</div>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;">
+    <span class="tag tag-blue">Gemini 2.5 Pro</span>
+    <span class="tag tag-gray">OpenClaw</span>
+  </div>
+  <p><strong>職責：</strong>備用個人助理。直接執行小任務，不再負責調度。</p>
+  <ul>
+    <li><strong>TW Accounting</strong> &mdash; 台灣會計/稅務相關協助</li>
+    <li><strong>KR Banking</strong> &mdash; 韓商銀行財務處理</li>
+    <li><strong>External Workers 指揮官</strong> &mdash; 派遣 Spider/Lynx/Nautilus/Probe/Echo/Buzz</li>
+    <li><strong>coding-agent</strong> &mdash; 可做小型 edit/write 修改</li>
+  </ul>
+  <p style="margin-top:8px;font-size:0.82rem;color:var(--sub);">原始碼：~/.openclaw/ workspace-noel/</p>
+</div>
+
+<h3>分工對照表</h3>
+<table>
+  <tr><th>職能</th><th>Jarvis</th><th>Noel</th></tr>
+  <tr><td>任務調度</td><td class="tag-green" style="background:none;font-weight:600;">主要負責</td><td>不負責</td></tr>
+  <tr><td>直接執行小任務</td><td>不執行（只路由）</td><td class="tag-green" style="background:none;font-weight:600;">可執行</td></tr>
+  <tr><td>外部 Agent 管理</td><td>透過 openclaw CLI</td><td class="tag-green" style="background:none;font-weight:600;">主要指揮官</td></tr>
+  <tr><td>Email 寄送</td><td class="tag-green" style="background:none;font-weight:600;">可寄送</td><td>不負責</td></tr>
+  <tr><td>會計/稅務</td><td>不負責</td><td class="tag-green" style="background:none;font-weight:600;">專長</td></tr>
+</table>
+</div>
+
+<!-- Section 2: Telegram → Task Board -->
+<div class="section">
+<h2>2. Jarvis Telegram 指令是否自動登記任務看板？</h2>
+
+<div class="verdict verdict-warn">&#x26A0;&#xFE0F; 部分自動 &mdash; 有缺口需要注意</div>
+
+<table>
+  <tr><th>路徑</th><th>自動建 Kai 任務</th><th>有 done/fail callback</th></tr>
+  <tr><td>dispatch_klay（spawn-klay.py）</td><td><span class="tag tag-green">自動建立</span></td><td><span class="tag tag-green">有</span></td></tr>
+  <tr><td>dispatch_ray（spawn-ray.py）</td><td><span class="tag tag-green">自動建立</span></td><td><span class="tag tag-green">有</span></td></tr>
+  <tr><td>dispatch_worker（spawn-worker.py）</td><td><span class="tag tag-green">自動建立</span></td><td><span class="tag tag-green">有</span></td></tr>
+  <tr><td>dispatch_openclaw（外部 Agent）</td><td><span class="tag tag-red">無登記</span></td><td><span class="tag tag-red">無</span></td></tr>
+  <tr><td>Jarvis 直接處理（聊天/投影/查詢）</td><td><span class="tag tag-gray">不需要</span></td><td><span class="tag tag-gray">N/A</span></td></tr>
+</table>
+
+<p style="margin-top:14px;"><strong>結論：</strong>Klay/Ray/Worker 派發路徑完整，會自動在 Kai 看板建立任務並追蹤完成。但 <code>dispatch_openclaw</code>（Spider/Lynx/Nautilus 等外部 Agent）沒有建立 Kai 任務，這些任務完全無追蹤記錄。</p>
+
+<p><strong>建議：</strong>在 <code>dispatch_openclaw</code> 執行前後增加 Kai 任務建立 + 完成呼叫，確保所有 dispatch 都有 audit trail。</p>
+</div>
+
+<!-- Section 3: Task Board Diagnosis -->
+<div class="section">
+<h2>3. 任務看板「執行中」欄位問題診斷</h2>
+
+<h3>調查前狀態</h3>
+<div class="stat-row">
+  <div class="stat-box"><div class="num" style="color:var(--red);">12</div><div class="lbl">Stale Pending</div></div>
+  <div class="stat-box"><div class="num" style="color:var(--blue);">1</div><div class="lbl">Stale Executing</div></div>
+  <div class="stat-box"><div class="num">17</div><div class="lbl">Success</div></div>
+  <div class="stat-box"><div class="num" style="color:var(--red);">3</div><div class="lbl">Failed</div></div>
+</div>
+
+<h3>根本原因</h3>
+
+<div class="card">
+  <h3 style="margin-top:0;">Bug #1：session-start.sh 孤兒任務堆積</h3>
+  <p><code>~/.claude/hooks/session-start.sh</code> 每次啟動 Claude Code 都會建立 "Terminal Session" 任務，設計為建立後立即 claim+done（純 audit trail）。</p>
+  <p style="margin-top:8px;"><strong>問題：</strong>claim 或 done 的 curl 呼叫偶爾因網路 timeout 靜默失敗（<code>|| true</code> 吞掉錯誤），導致任務永遠留在 pending 狀態。</p>
+  <p><strong>影響：</strong>12 個 "Terminal Session" 孤兒任務堆積在「待處理」欄位，造成看板視覺混亂。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">Bug #2：Stale Executing 任務（Ray 審查）</h3>
+  <p>spawn-ray.py 建立的 Ray 審查任務，對應的 Claude Code session 已結束但未呼叫 <code>/done</code> endpoint。</p>
+  <p style="margin-top:8px;"><strong>問題：</strong>任務卡在 executing，需等 30 分鐘 timeout 才自動 fail。</p>
+  <p><strong>影響：</strong>看板「執行中」欄位顯示已結束的任務。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">前端邏輯驗證</h3>
+  <div class="verdict verdict-pass">&#x2705; 前端邏輯正確</div>
+  <ul>
+    <li><code>claimed</code> 狀態正確映射到「執行中」欄位</li>
+    <li>四欄（pending / executing / success / failed）涵蓋所有有效狀態</li>
+    <li>後端 timeout scanner 每 60 秒執行一次</li>
+  </ul>
+</div>
+</div>
+
+<!-- Section 4: Fixes Applied -->
+<div class="section">
+<h2>4. 已執行修復</h2>
+
+<div class="fix-item">
+  <span class="fix-num">01</span>
+  <div class="fix-text"><strong>清理 12 個 stale Terminal Session 任務</strong><br>全部 claim + done，從 pending 移至 success。看板「待處理」欄位已清空。</div>
+</div>
+
+<div class="fix-item">
+  <span class="fix-num">02</span>
+  <div class="fix-text"><strong>標記 stale Ray 審查任務為 failed</strong><br>task_id <code>0bb5574a</code> 已標記為失敗，從「執行中」欄位移除。</div>
+</div>
+
+<div class="fix-item">
+  <span class="fix-num">03</span>
+  <div class="fix-text"><strong>修復 session-start.sh（防止未來孤兒任務）</strong><br>修改邏輯：若 done 呼叫失敗（回應不含 "success"），自動 DELETE 該任務。避免 pending 欄位被孤兒任務污染。</div>
+</div>
+
+<h3>修復後狀態</h3>
+<div class="stat-row">
+  <div class="stat-box"><div class="num" style="color:var(--green);">0</div><div class="lbl">Pending</div></div>
+  <div class="stat-box"><div class="num" style="color:var(--green);">0</div><div class="lbl">Executing</div></div>
+  <div class="stat-box"><div class="num" style="color:var(--green);">29</div><div class="lbl">Success</div></div>
+  <div class="stat-box"><div class="num">4</div><div class="lbl">Failed</div></div>
+</div>
+</div>
+
+<!-- Section 5: Recommendations -->
+<div class="section">
+<h2>5. 後續建議</h2>
+
+<table>
+  <tr><th>優先級</th><th>項目</th><th>負責</th></tr>
+  <tr><td><span class="tag tag-red">P1</span></td><td>dispatch_openclaw 增加 Kai 任務追蹤（建立 + 完成）</td><td>Max / Rex</td></tr>
+  <tr><td><span class="tag tag-blue">P2</span></td><td>review 類任務 timeout 從 1800s 縮短至 600s</td><td>Max</td></tr>
+  <tr><td><span class="tag tag-gray">P3</span></td><td>看板新增「強制 Fail」按鈕（讓 Rain 可手動清理卡住的任務）</td><td>John</td></tr>
+</table>
+</div>
+
+<div class="footer">Rain AI Team &mdash; Klay Audit Report &mdash; 2026-03-12</div>
+
+</div>
+</body>
+</html>
