@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 架構重組報告 2026-03-12</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --white:#ffffff;
+  --black:#121212;
+  --g01:#f0eee6;
+  --g02:#8b877c;
+  --g03:#6c6a62;
+  --g04:#3a3834;
+  --warm:#eb8054;
+  --warm2:#f49a78;
+  --green:#6a9e52;
+  --red:#c94f4f;
+  --blue:#5a8fb9;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter','Noto Sans TC',sans-serif;
+}
+html{scroll-behavior:smooth;scroll-padding-top:54px}
+body{font-family:var(--sans);background:var(--cream);color:var(--black);line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g01);border-radius:2px}
+
+/* ━━ PROGRESS BAR ━━ */
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--warm);z-index:300;width:0;transition:width .1s}
+
+/* ━━ NAV ━━ */
+nav{position:fixed;top:0;left:0;right:0;height:54px;background:rgba(246,245,241,0.92);backdrop-filter:blur(16px);z-index:200;
+  border-bottom:1px solid var(--g01);display:flex;align-items:center;padding:0 40px;gap:24px}
+.nav-brand{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--g03);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:12px;font-weight:500;color:var(--g02);text-decoration:none;padding:5px 11px;border-radius:6px;
+  transition:all .15s;white-space:nowrap}
+.nav-links a:hover{color:var(--black);background:var(--g01)}
+.nav-links a.active{color:var(--black);background:var(--g01)}
+.nav-links a.cta{color:var(--warm);font-weight:700}
+.nav-links a.cta:hover{background:rgba(235,128,84,0.1)}
+
+/* ━━ FLOATING TOC ━━ */
+.ftoc{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100}
+@media(max-width:960px){.ftoc{display:none}}
+.ftoc-dot{width:6px;height:6px;border-radius:50%;background:var(--g01);cursor:pointer;transition:all .2s;position:relative;border:1px solid var(--g02)}
+.ftoc-dot.active{background:var(--warm);border-color:var(--warm);transform:scale(1.4)}
+.ftoc-dot::after{content:attr(data-label);position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;
+  font-family:var(--mono);white-space:nowrap;color:var(--g04);background:var(--white);
+  border:1px solid var(--g01);padding:3px 8px;border-radius:5px;opacity:0;pointer-events:none;
+  transition:opacity .15s;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.ftoc-dot:hover::after{opacity:1}
+
+/* ━━ COVER ━━ */
+.cover{background:var(--black);color:var(--white);padding:90px 40px 64px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.cover-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  color:var(--warm);margin-bottom:20px}
+.cover h1{font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.05;margin-bottom:14px}
+.cover h1 em{color:var(--warm);font-style:normal}
+.cover-sub{font-size:14px;color:rgba(255,255,255,0.4);max-width:560px;line-height:1.8;margin-bottom:48px}
+.cover-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.cs-pill{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:14px 22px;text-align:center;transition:transform .2s}
+.cs-pill:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+.cs-pill .n{font-family:var(--mono);font-size:26px;font-weight:800;line-height:1;color:var(--white)}
+.cs-pill .n.warm{color:var(--warm)}
+.cs-pill .n.green{color:#7fcf60}
+.cs-pill .l{font-size:10px;color:rgba(255,255,255,0.35);margin-top:5px;font-family:var(--mono);letter-spacing:.5px}
+.cover-meta{margin-top:36px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:1px}
+
+/* ━━ MAIN BODY ━━ */
+.body-wrap{background:var(--cream)}
+
+/* ━━ SECTION ━━ */
+.sec{padding:64px 0 48px}
+.sec-inner{max-width:1080px;margin:0 auto;padding:0 40px}
+.sec-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--warm);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.sec-eyebrow::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,var(--warm),transparent)}
+.sec-title{font-size:clamp(22px,3.5vw,36px);font-weight:700;letter-spacing:-0.5px;color:var(--black);margin-bottom:8px}
+.sec-title em{font-style:normal;color:var(--warm)}
+.sec-desc{font-size:13px;color:var(--g02);max-width:600px;line-height:1.85;margin-bottom:36px}
+.divider{height:1px;background:var(--g01);margin:0 40px}
+
+/* ━━ CAROUSEL ━━ */
+.carousel-wrap{position:relative}
+.carousel-wrap::before,.carousel-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:56px;z-index:10;pointer-events:none}
+.carousel-wrap::before{left:0;background:linear-gradient(90deg,var(--cream),transparent)}
+.carousel-wrap::after{right:0;background:linear-gradient(-90deg,var(--cream),transparent)}
+.carousel{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  padding:6px 52px 20px;cursor:grab;user-select:none}
+.carousel::-webkit-scrollbar{display:none}
+.carousel.dragging{cursor:grabbing}
+
+.cc{flex:0 0 280px;scroll-snap-align:start;background:var(--white);border:1px solid var(--g01);
+  border-radius:14px;padding:22px;transition:all .2s;position:relative;overflow:hidden}
+.cc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--g01);transition:background .2s}
+.cc:hover{box-shadow:0 8px 24px rgba(0,0,0,0.07);transform:translateY(-2px)}
+.cc:hover::after{background:var(--warm)}
+
+.cc-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;border-radius:5px;margin-bottom:12px}
+.badge-new{background:rgba(235,128,84,0.1);color:var(--warm);border:1px solid rgba(235,128,84,0.2)}
+.badge-sec{background:rgba(201,79,79,0.08);color:var(--red);border:1px solid rgba(201,79,79,0.15)}
+.badge-fix{background:rgba(106,158,82,0.1);color:var(--green);border:1px solid rgba(106,158,82,0.18)}
+.badge-sync{background:rgba(90,143,185,0.1);color:var(--blue);border:1px solid rgba(90,143,185,0.18)}
+
+.cc-num{position:absolute;top:16px;right:18px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--g01)}
+.cc-title{font-size:13.5px;font-weight:700;color:var(--black);margin-bottom:8px;line-height:1.4}
+.cc-body{font-size:12px;color:var(--g03);line-height:1.8}
+.cc-body strong{color:var(--g04);font-weight:600}
+.cc-body code{font-family:var(--mono);font-size:10.5px;background:var(--g01);padding:1px 5px;border-radius:3px;color:var(--g04)}
+.cc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.cc-tag{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:4px;
+  background:var(--cream);color:var(--g02);border:1px solid var(--g01)}
+
+/* Agent card */
+.ac{flex:0 0 180px;scroll-snap-align:start;background:var(--white);border:1px solid var(--g01);
+  border-radius:12px;padding:18px 16px;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+.ac:hover{box-shadow:0 6px 20px rgba(0,0,0,0.07);transform:translateY(-2px)}
+.ac-avatar{width:44px;height:44px;border-radius:10px;background:var(--cream);display:flex;
+  align-items:center;justify-content:center;font-size:18px;margin:0 auto 10px;border:1px solid var(--g01)}
+.ac-name{font-size:13px;font-weight:700;color:var(--black);margin-bottom:3px}
+.ac-role{font-size:11px;color:var(--g02);line-height:1.4;margin-bottom:8px}
+.ac-model{font-family:var(--mono);font-size:9px;color:var(--warm);background:rgba(235,128,84,0.08);
+  padding:2px 6px;border-radius:4px;display:inline-block;border:1px solid rgba(235,128,84,0.15)}
+.ac-new{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:8px;font-weight:700;
+  color:var(--warm);background:rgba(235,128,84,0.1);padding:2px 5px;border-radius:3px;
+  letter-spacing:1px;border:1px solid rgba(235,128,84,0.2)}
+.ac-line{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--g01)}
+.ac.new .ac-line{background:var(--warm)}
+.ac.core .ac-line{background:linear-gradient(90deg,var(--warm),var(--warm2))}
+
+.c-nav{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.c-btn{width:32px;height:32px;border-radius:50%;background:var(--white);border:1px solid var(--g01);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--g02)}
+.c-btn:hover{border-color:var(--g03);color:var(--black);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.c-dots{display:flex;gap:5px;align-items:center}
+.cdot{width:5px;height:5px;border-radius:50%;background:var(--g01);cursor:pointer;transition:all .2s;border:1px solid var(--g02)}
+.cdot.active{background:var(--warm);border-color:var(--warm);width:14px;border-radius:3px}
+
+/* ━━ DIFF PANEL ━━ */
+.diff-label{font-size:12px;font-weight:600;color:var(--g03);margin:28px 0 12px;
+  display:flex;align-items:center;gap:10px;font-family:var(--mono)}
+.diff-label::after{content:'';flex:1;height:1px;background:var(--g01)}
+.diff-panel{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g01);border-radius:12px;overflow:hidden;background:var(--white)}
+@media(max-width:600px){.diff-panel{grid-template-columns:1fr}}
+.dp-head{padding:10px 18px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;border-bottom:1px solid var(--g01)}
+.dp-head.bad{color:var(--red);background:rgba(201,79,79,0.05)}
+.dp-head.good{color:var(--green);background:rgba(106,158,82,0.05);border-left:1px solid var(--g01)}
+.dp-body{padding:16px 18px;overflow-x:auto;border-left:1px solid var(--g01)}
+.dp-body:first-child{border-left:none}
+.dp-body pre{font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--g02);white-space:pre}
+.hl-bad{color:var(--red)}
+.hl-good{color:var(--green)}
+.hl-ok{color:var(--warm)}
+
+/* ━━ FLOW DIAGRAM ━━ */
+.flow-scroll{overflow-x:auto;scrollbar-width:none;padding-bottom:16px}
+.flow-scroll::-webkit-scrollbar{display:none}
+.flow-nodes{display:flex;align-items:center;gap:0;min-width:max-content;padding:12px 4px 4px}
+.fn{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
+.fn-box{width:76px;height:72px;border-radius:12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;border:1px solid var(--g01);background:var(--white);
+  text-align:center;cursor:default;transition:all .2s;line-height:1.25}
+.fn-box:hover{box-shadow:0 4px 14px rgba(0,0,0,0.08);transform:translateY(-3px)}
+.fn-icon{font-size:18px}
+.fn-name{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--g04)}
+.fn-lbl{font-size:10px;color:var(--g02);text-align:center;max-width:84px;line-height:1.3}
+.fn-box.warm{background:rgba(235,128,84,0.07);border-color:rgba(235,128,84,0.25)}
+.fn-box.warm .fn-name{color:var(--warm)}
+.fn-box.green{background:rgba(106,158,82,0.07);border-color:rgba(106,158,82,0.25)}
+.fn-box.green .fn-name{color:var(--green)}
+.fn-box.red{background:rgba(201,79,79,0.07);border-color:rgba(201,79,79,0.2)}
+.fn-box.red .fn-name{color:var(--red)}
+.fn-box.blue{background:rgba(90,143,185,0.07);border-color:rgba(90,143,185,0.25)}
+.fn-box.blue .fn-name{color:var(--blue)}
+.fn-box.black{background:var(--black);border-color:var(--black)}
+.fn-box.black .fn-name{color:var(--white)}
+.fn-box.black .fn-icon{filter:invert(1)}
+.fn-arrow{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;padding:0 6px;margin-top:-30px}
+.fn-arrow svg{color:var(--g01)}
+.fn-arrow-note{font-size:9px;font-family:var(--mono);color:var(--g02);white-space:nowrap}
+
+/* ━━ ACCORDION ━━ */
+.acc{display:flex;flex-direction:column;gap:8px}
+.ai{background:var(--white);border:1px solid var(--g01);border-radius:12px;overflow:hidden;transition:box-shadow .2s}
+.ai:hover{box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.ai-head{padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
+.ai-badge{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:3px 9px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+.ab-high{background:rgba(201,79,79,0.08);color:var(--red);border:1px solid rgba(201,79,79,0.15)}
+.ab-midhigh{background:rgba(235,128,84,0.1);color:var(--warm);border:1px solid rgba(235,128,84,0.2)}
+.ab-done{background:rgba(106,158,82,0.1);color:var(--green);border:1px solid rgba(106,158,82,0.18)}
+.ai-text{flex:1}
+.ai-title{font-size:13.5px;font-weight:700;color:var(--black)}
+.ai-sub{font-size:11.5px;color:var(--g02);margin-top:2px}
+.ai-arrow{color:var(--g02);transition:transform .25s;flex-shrink:0}
+.ai.open .ai-arrow{transform:rotate(180deg)}
+.ai-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.ai.open .ai-body{max-height:600px}
+.ai-content{padding:0 20px 20px;margin-top:4px;border-top:1px solid var(--g01);
+  padding-top:16px;font-size:13px;color:var(--g03);line-height:1.85}
+.ai-content strong{color:var(--g04);font-weight:600}
+.ai-content code{font-family:var(--mono);font-size:11px;background:var(--cream);padding:1px 5px;border-radius:3px;color:var(--g04)}
+
+/* ━━ STAT ROW ━━ */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:32px}
+@media(max-width:720px){.stat-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.sbox{background:var(--white);border:1px solid var(--g01);border-radius:10px;padding:16px;text-align:center}
+.sbox .n{font-family:var(--mono);font-size:22px;font-weight:800;line-height:1;margin-bottom:4px}
+.sbox .l{font-size:10px;color:var(--g02);letter-spacing:.5px;font-family:var(--mono)}
+.sbox.w .n{color:var(--warm)}
+.sbox.g .n{color:var(--green)}
+.sbox.b .n{color:var(--blue)}
+.sbox.r .n{color:var(--red)}
+
+/* ━━ LIST ITEMS ━━ */
+.il{display:flex;flex-direction:column;gap:8px}
+.ir{background:var(--white);border:1px solid var(--g01);border-radius:10px;padding:14px 18px;
+  display:flex;gap:12px;font-size:13px;color:var(--g03);line-height:1.75;align-items:flex-start}
+.ir strong{color:var(--black);font-weight:600}
+.ir code{font-family:var(--mono);font-size:11px;background:var(--cream);padding:1px 5px;border-radius:3px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--warm);flex-shrink:0;margin-top:8px}
+.dot.green{background:var(--green)}
+.dot.blue{background:var(--blue)}
+
+/* ━━ CALLOUT ━━ */
+.callout{border-left:3px solid var(--warm);padding:14px 18px;background:rgba(235,128,84,0.06);
+  border-radius:0 8px 8px 0;margin-top:20px;font-size:13px;color:var(--g03);line-height:1.8}
+.callout strong{color:var(--black);font-weight:600}
+
+/* ━━ TABLE ━━ */
+.tbl-wrap{overflow-x:auto;margin:20px 0}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--g02);padding:10px 14px;text-align:left;border-bottom:2px solid var(--g01);background:var(--cream)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--g01);color:var(--g03);vertical-align:top}
+.tbl tr:hover td{background:rgba(235,128,84,0.03)}
+.tbl code{font-family:var(--mono);font-size:10.5px;background:var(--g01);padding:1px 5px;border-radius:3px}
+.tbl .pass{color:var(--green);font-weight:600}
+.tbl .fail{color:var(--red);font-weight:600}
+
+/* ━━ SCROLL REVEAL ━━ */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+.delay1{transition-delay:.08s}.delay2{transition-delay:.16s}.delay3{transition-delay:.24s}
+
+/* ━━ FOOTER ━━ */
+footer{text-align:center;padding:48px 40px;font-family:var(--mono);font-size:10.5px;
+  color:var(--g02);border-top:1px solid var(--g01);margin-top:8px;line-height:2}
+footer a{color:var(--warm);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+
+<nav>
+  <span class="nav-brand">RAIN AI TEAM &middot; 2026-03-12</span>
+  <div class="nav-links">
+    <a href="#changes" class="cta">&#9733; 架構重組</a>
+    <a href="#security">安全強化</a>
+    <a href="#review">審查流程</a>
+    <a href="#sync">全團隊同步</a>
+    <a href="#flow">新架構圖</a>
+    <a href="#summary">總結</a>
+  </div>
+</nav>
+
+<div class="ftoc">
+  <div class="ftoc-dot active" data-section="cover" data-label="封面"></div>
+  <div class="ftoc-dot" data-section="changes" data-label="架構重組"></div>
+  <div class="ftoc-dot" data-section="security" data-label="安全強化"></div>
+  <div class="ftoc-dot" data-section="review" data-label="審查流程"></div>
+  <div class="ftoc-dot" data-section="sync" data-label="團隊同步"></div>
+  <div class="ftoc-dot" data-section="flow" data-label="新架構圖"></div>
+  <div class="ftoc-dot" data-section="summary" data-label="總結"></div>
+</div>
+
+<!-- ━━ COVER ━━ -->
+<div class="cover" id="cover">
+  <div class="cover-eyebrow">Rain AI Team &middot; 架構重組報告 &middot; 2026-03-12</div>
+  <h1>Jarvis &rarr; <em>Dispatch Center</em><br>Noel &rarr; <em>Personal Assistant</em></h1>
+  <p class="cover-sub">調度架構全面重組 &middot; Ray 架構審查 + Quill 程式碼審查 &middot; 安全白名單機制 &middot; 7 處同步點全更新 &middot; v9 Migration</p>
+  <div class="cover-stats">
+    <div class="cs-pill"><div class="n warm" data-target="13">0</div><div class="l">改動項目</div></div>
+    <div class="cs-pill"><div class="n green" data-target="13">0</div><div class="l">全部完成 &check;</div></div>
+    <div class="cs-pill"><div class="n">23</div><div class="l">同步修正</div></div>
+    <div class="cs-pill"><div class="n green">2</div><div class="l">獨立審查通過</div></div>
+    <div class="cs-pill"><div class="n" data-target="37">0</div><div class="l">Team Agents</div></div>
+  </div>
+  <div class="cover-meta">Klay (CEO &middot; Opus) &middot; Ray (Design Review &middot; Codex Plus) &middot; Quill (Code Review &middot; Sonnet)</div>
+</div>
+
+<!-- ━━━━ BODY ━━━━ -->
+<div class="body-wrap">
+
+<!-- ─── SECTION 1: 架構重組 ─── -->
+<section class="sec" id="changes">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#9733; 架構重組</div>
+    <h2 class="sec-title reveal">Jarvis &amp; Noel <em>角色互換</em></h2>
+    <p class="sec-desc reveal">Jarvis 升級為指令調度中心（Gemini Flash），Noel 轉型為備用個人助理（Gemini 2.5 Pro）。所有 Telegram 指令統一由 Jarvis 路由。</p>
+
+    <div class="stat-row reveal delay1">
+      <div class="sbox w"><div class="n">2</div><div class="l">角色重定義</div></div>
+      <div class="sbox b"><div class="n">6</div><div class="l">dispatch 函數</div></div>
+      <div class="sbox w"><div class="n">3</div><div class="l">spawn 腳本更新</div></div>
+      <div class="sbox g"><div class="n">20</div><div class="l">工具（含新增）</div></div>
+      <div class="sbox g"><div class="n">&check;</div><div class="l">Jarvis 重啟</div></div>
+    </div>
+  </div>
+
+  <div class="carousel-wrap reveal delay2">
+    <div class="carousel" id="changesCar">
+
+      <div class="cc">
+        <div class="cc-num">01</div>
+        <span class="cc-badge badge-new">&#9733; 核心變更</span>
+        <div class="cc-title">Jarvis &rarr; Dispatch Center</div>
+        <div class="cc-body">從「Email 文書助理」升級為 <strong>Telegram 指令調度中心</strong>。新增 6 個 dispatch 函數（<code>dispatch_klay</code>、<code>dispatch_worker</code>、<code>dispatch_ray</code>、<code>dispatch_openclaw</code>、<code>check_tasks</code>、<code>complete_task</code>），模型降為 Flash（只需意圖解析）。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">claude_client.py</span>
+          <span class="cc-tag">dispatch_tools.py</span>
+          <span class="cc-tag">Gemini Flash</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">02</div>
+        <span class="cc-badge badge-new">&#9733; 核心變更</span>
+        <div class="cc-title">Noel &rarr; Personal Assistant</div>
+        <div class="cc-body">從「營運總監」轉型為 <strong>備用個人助理</strong>。模型升級到 Gemini 2.5 Pro（需更強能力直接執行任務）。移除所有 dispatch 技能，保留 <code>firecrawl</code>、<code>browser</code>、<code>coding-agent</code>。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">openclaw.json</span>
+          <span class="cc-tag">SOUL.md</span>
+          <span class="cc-tag">Gemini 2.5 Pro</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">03</div>
+        <span class="cc-badge badge-fix">&#10003; 修復</span>
+        <div class="cc-title">spawn 腳本 provenance 修正</div>
+        <div class="cc-body">三支 spawn 腳本（<code>spawn-klay</code>、<code>spawn-worker</code>、<code>spawn-ray</code>）的 <code>created_by</code> 從 <code>"noel"</code> 改為 <code>"jarvis"</code>，prompt 文字從「由 Noel 轉發」改為「由 Jarvis Dispatch Center 轉發」。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">spawn-klay.py</span>
+          <span class="cc-tag">spawn-worker.py</span>
+          <span class="cc-tag">spawn-ray.py</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">04</div>
+        <span class="cc-badge badge-new">&#9733; 新功能</span>
+        <div class="cc-title">send_email typed tool</div>
+        <div class="cc-body">取代 SYSTEM_PROMPT 的 raw <code>curl</code>。獨立 async 函數，有 <strong>email regex</strong>、<strong>subject &le;200 字</strong>、<strong>html &le;50000 字</strong> 三重驗證。透過 Kai API 寄送。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">dispatch_tools.py:233</span>
+          <span class="cc-tag">send_email</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">05</div>
+        <span class="cc-badge badge-fix">&#10003; 修復</span>
+        <div class="cc-title">Jarvis 路由修正</div>
+        <div class="cc-body"><strong>Code review</strong> 原錯誤路由到 Ray（設計審查），改為 dispatch_worker 指定 <strong>Quill</strong>（專職程式碼審查官）。OpenClaw agent 清單新增 <strong>Nautilus</strong>（動態爬蟲）。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">claude_client.py:63</span>
+          <span class="cc-tag">Quill</span>
+          <span class="cc-tag">Nautilus</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">06</div>
+        <span class="cc-badge badge-fix">&#10003; 修復</span>
+        <div class="cc-title">Noel 舊 dispatch 殘留清理</div>
+        <div class="cc-body"><code>BOOTSTRAP.md</code> 全文重寫（Operations Director &rarr; Personal Assistant）。<code>agent-dispatch/SKILL.md</code> 標記停用。<code>USER.md</code> 移除 tmux 派發指令。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">BOOTSTRAP.md</span>
+          <span class="cc-tag">SKILL.md</span>
+          <span class="cc-tag">USER.md</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="c-nav">
+      <div class="c-btn" onclick="document.getElementById('changesCar').scrollBy({left:-300,behavior:'smooth'})">&larr;</div>
+      <div class="c-btn" onclick="document.getElementById('changesCar').scrollBy({left:300,behavior:'smooth'})">&rarr;</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 2: 安全強化 ─── -->
+<section class="sec" id="security">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#128274; 安全強化</div>
+    <h2 class="sec-title reveal">三層<em>防禦機制</em></h2>
+    <p class="sec-desc reveal">dispatch 函數硬化 + terminal 指令白名單 + shell injection 修復。Quill 審查發現的 2 個漏洞也已修補。</p>
+
+    <div class="acc reveal delay1">
+
+      <div class="ai">
+        <div class="ai-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ai-badge ab-high">HIGH</span>
+          <div class="ai-text">
+            <div class="ai-title">run_terminal_command 白名單 + 黑名單</div>
+            <div class="ai-sub">system_tools.py &mdash; 39 個允許指令 + 15 個危險模式</div>
+          </div>
+          <span class="ai-arrow">&darr;</span>
+        </div>
+        <div class="ai-body">
+          <div class="ai-content">
+            <strong>白名單</strong>：只允許 39 個指令前綴（<code>ls</code>, <code>git</code>, <code>curl</code>, <code>python3</code>, <code>open</code>, <code>tmux</code>, <code>openclaw</code> 等）。管道命令拆解後逐一檢查。<br><br>
+            <strong>黑名單</strong>：15 個危險 regex 模式，包含 <code>rm -rf /</code>、<code>mkfs</code>、<code>dd if=</code>、fork bomb、<code>curl|bash</code>、<code>DROP TABLE</code>、<code>eval $()</code>、<strong>反引號命令替換</strong>、<strong>$() 命令替換</strong>。<br><br>
+            <strong>Quill W2 修復</strong>：黑名單新增 <code>`...`</code> 和 <code>$(</code> 模式，防止反引號/命令替換繞過白名單。
+          </div>
+        </div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ai-badge ab-high">HIGH</span>
+          <div class="ai-text">
+            <div class="ai-title">open_application Shell Injection 修復</div>
+            <div class="ai-sub">system_tools.py &mdash; Quill W3 漏洞修補</div>
+          </div>
+          <span class="ai-arrow">&darr;</span>
+        </div>
+        <div class="ai-body">
+          <div class="ai-content">
+            <strong>問題</strong>：<code>open_application()</code> 用 f-string 拼接 shell 指令（<code>open -a '{app_name}'</code>），單引號可被注入。<br><br>
+            <strong>修復</strong>：改用 <code>asyncio.create_subprocess_exec("open", "-a", app_name)</code>，完全繞開 shell 層，消除注入風險。
+          </div>
+        </div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ai-badge ab-midhigh">MID</span>
+          <div class="ai-text">
+            <div class="ai-title">dispatch_tools 全面硬化</div>
+            <div class="ai-sub">4 項改善：exit code / JSON 驗證 / agent 白名單 / task_id 驗證</div>
+          </div>
+          <span class="ai-arrow">&darr;</span>
+        </div>
+        <div class="ai-body">
+          <div class="ai-content">
+            <strong>_run_spawn</strong>：檢查 exit code（非零附加 <code>exit_code</code> 欄位），驗證輸出是否為合法 JSON（非法則回傳前 200 字供 debug）。<br><br>
+            <strong>dispatch_openclaw</strong>：<code>ALLOWED_OPENCLAW_AGENTS</code> 白名單（spider/lynx/nautilus/probe/echo/noel/buzz），拒絕未知 agent。<br><br>
+            <strong>complete_task</strong>：<code>task_id</code> 用 <code>re.fullmatch(r"[A-Za-z0-9_\-]{1,64}")</code> 驗證。
+          </div>
+        </div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ai-badge ab-midhigh">MID</span>
+          <div class="ai-text">
+            <div class="ai-title">tmux return code + 收尾保障</div>
+            <div class="ai-sub">spawn-klay/worker/ray.py &mdash; 防看板孤兒任務</div>
+          </div>
+          <span class="ai-arrow">&darr;</span>
+        </div>
+        <div class="ai-body">
+          <div class="ai-content">
+            <strong>tmux check</strong>：三支 spawn 腳本在 <code>proc.wait()</code> 後檢查 return code，非零則立即 fail_kai_task。<br><br>
+            <strong>Shell fallback</strong>：Claude/Codex 退出後，shell 腳本自動檢查任務狀態。若仍在 <code>executing</code> 或 <code>pending</code>，根據 exit code 自動 <code>/done</code> 或 <code>/fail</code>。徹底解決「看板執行中顯示已結束任務」。
+          </div>
+        </div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ai-badge ab-done">&#10003; DONE</span>
+          <div class="ai-text">
+            <div class="ai-title">dispatch_openclaw 看板登記</div>
+            <div class="ai-sub">OpenClaw 任務自動建立 Kai 任務追蹤</div>
+          </div>
+          <span class="ai-arrow">&darr;</span>
+        </div>
+        <div class="ai-body">
+          <div class="ai-content">
+            <strong>問題</strong>：spawn-klay/worker/ray 自動登記看板，但 <code>dispatch_openclaw</code> 完全不經 Kai，無法追蹤。<br><br>
+            <strong>修復</strong>：新增 <code>_kai_create_task()</code>、<code>_kai_complete_task()</code>、<code>_kai_fail_task()</code> 三個 helper。Best-effort 設計，看板 API 失敗不阻擋主流程。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 3: 審查流程 ─── -->
+<section class="sec" id="review">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#128269; 雙層審查</div>
+    <h2 class="sec-title reveal">Ray + Quill <em>獨立審查</em></h2>
+    <p class="sec-desc reveal">Ray 做架構設計審查（7 項 + 3 項看板問題），Quill 做程式碼品質審查（3 WARN + 2 SUGGEST）。全部發現已修復。</p>
+
+    <div class="diff-label reveal">Ray &mdash; 架構設計審查（Codex Plus）</div>
+    <div class="tbl-wrap reveal delay1">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>發現</th><th>嚴重度</th><th>修復</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>spawn 腳本 <code>created_by: "noel"</code> 溯源錯誤</td><td>HIGH</td><td class="pass">&check; &rarr; "jarvis"</td></tr>
+          <tr><td>2</td><td>spawn prompt 仍寫「Noel 轉發」</td><td>MID</td><td class="pass">&check; &rarr; "Jarvis Dispatch Center"</td></tr>
+          <tr><td>3</td><td>spawn-klay/ray 缺 tmux return code 檢查</td><td>MID</td><td class="pass">&check; 加入 check + fail_kai_task</td></tr>
+          <tr><td>4</td><td>Noel workspace 有舊 dispatch 殘留</td><td>LOW</td><td class="pass">&check; BOOTSTRAP + SKILL + USER 重寫</td></tr>
+          <tr><td>5</td><td>Code review 錯誤路由到 Ray（應為 Quill）</td><td>MID</td><td class="pass">&check; 修正 SYSTEM_PROMPT 路由</td></tr>
+          <tr><td>6</td><td>OpenClaw agent list 缺 Nautilus</td><td>LOW</td><td class="pass">&check; 加入 nautilus</td></tr>
+          <tr><td>7</td><td>dispatch_tools.py 不檢查 exit code / JSON</td><td>MID</td><td class="pass">&check; 全面硬化</td></tr>
+          <tr><td>B1</td><td>dispatch_openclaw 不登記看板</td><td>MID</td><td class="pass">&check; 自動建 Kai 任務</td></tr>
+          <tr><td>B2</td><td>看板孤兒任務堆積</td><td>LOW</td><td class="pass">&check; session hook DELETE fallback</td></tr>
+          <tr><td>B3</td><td>Ray 任務未 complete（卡在 executing）</td><td>MID</td><td class="pass">&check; shell fallback complete</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="diff-label reveal">Quill &mdash; 程式碼品質審查（Sonnet）</div>
+    <div class="tbl-wrap reveal delay2">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>發現</th><th>分級</th><th>修復</th></tr></thead>
+        <tbody>
+          <tr><td>W1</td><td>email regex 接受極短 TLD（<code>a@b.c</code>）</td><td>WARN</td><td>記 tech debt（Rain 是唯一收件人）</td></tr>
+          <tr><td>W2</td><td>管道分割漏 <code>$()</code> 和反引號命令替換繞過</td><td>WARN</td><td class="pass">&check; 黑名單加 <code>$(</code> + <code>`</code></td></tr>
+          <tr><td>W3</td><td><code>open_application</code> shell injection via 單引號</td><td>WARN</td><td class="pass">&check; 改用 subprocess_exec</td></tr>
+          <tr><td>S1</td><td>兩個 wait_for 理論最大 60s（文件說 30s）</td><td>SUGGEST</td><td>不影響功能，記錄</td></tr>
+          <tr><td>S2</td><td>task_id regex 未說明格式來源</td><td>SUGGEST</td><td>不影響功能，記錄</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout reveal delay3">
+      <strong>審查結論：</strong>Ray PASS（10/10 修復）&bull; Quill WARN &rarr; PASS（2/3 修復，W1 記 tech debt）&bull; 所有安全漏洞已補上。
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 4: 全團隊同步 ─── -->
+<section class="sec" id="sync">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#128260; 全團隊同步</div>
+    <h2 class="sec-title reveal">7 同步點 + <em>v9 Migration</em></h2>
+    <p class="sec-desc reveal">Scout 審核 Kai 後端、Explore 審核 agent 定義與記憶、23 處不一致全部修正。v9 migration 自動更新資料庫。</p>
+
+    <div class="tbl-wrap reveal delay1">
+      <table class="tbl">
+        <thead><tr><th>同步點</th><th>Jarvis</th><th>Noel</th><th>狀態</th></tr></thead>
+        <tbody>
+          <tr><td><code>CLAUDE.md</code></td><td>Dispatch/Flash</td><td>PersonalAssistant/GeminiPro</td><td class="pass">&check;</td></tr>
+          <tr><td><code>team-roster.md</code></td><td>Dispatch Center + Email</td><td>Personal Assistant</td><td class="pass">&check;</td></tr>
+          <tr><td><code>team_service.py</code></td><td>dept=dispatch, model=Flash</td><td>dept=external, model=Pro</td><td class="pass">&check;</td></tr>
+          <tr><td><code>agent_task_service.py</code></td><td>fallback &rarr; jarvis</td><td>移除 dispatch 路由</td><td class="pass">&check;</td></tr>
+          <tr><td><code>noel/SKILL.md</code></td><td>&mdash;</td><td>role: Personal Assistant</td><td class="pass">&check;</td></tr>
+          <tr><td><code>MEMORY.md</code> index</td><td>skill_assignment 已更新</td><td>&mdash;</td><td class="pass">&check;</td></tr>
+          <tr><td><code>team.json</code></td><td>dept=dispatch, reports_to=klay</td><td>陣列 core&rarr;external</td><td class="pass">&check;</td></tr>
+          <tr><td><strong>Kai API</strong></td><td>Dispatch Center / Gemini Flash</td><td>Personal Assistant / Gemini 2.5 Pro</td><td class="pass">&check;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout reveal delay2">
+      <strong>v9 Migration</strong>：<code>.team_v9_jarvis_noel_restructure</code> &mdash; Kai 重啟後自動同步 <code>team_members.json</code> 中的 role/rank/department/api_provider/model/skills 欄位。額外修正：<code>verification-flow.md</code>（Noel&rarr;Jarvis coordinates）、<code>noel/persona.md</code>、<code>skill_assignment.md</code>。
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 5: 新架構圖 ─── -->
+<section class="sec" id="flow">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#128736; 新架構</div>
+    <h2 class="sec-title reveal">指令調度<em>新流程</em></h2>
+    <p class="sec-desc reveal">Rain 的 Telegram 指令統一進 Jarvis，由 Jarvis 判斷路由到 Claude Code 團隊或 OpenClaw 團隊。</p>
+
+    <div class="flow-scroll reveal delay1">
+      <div class="flow-nodes">
+
+        <div class="fn">
+          <div class="fn-box black"><span class="fn-icon">&#128100;</span><span class="fn-name">Rain</span></div>
+          <div class="fn-lbl">Telegram</div>
+        </div>
+
+        <div class="fn-arrow">
+          <svg width="32" height="14"><path d="M2 7h24m0 0l-5-4m5 4l-5 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+          <span class="fn-arrow-note">指令</span>
+        </div>
+
+        <div class="fn">
+          <div class="fn-box warm"><span class="fn-icon">&#128225;</span><span class="fn-name">Jarvis</span></div>
+          <div class="fn-lbl">Dispatch Center<br>Gemini Flash</div>
+        </div>
+
+        <div class="fn-arrow">
+          <svg width="32" height="14"><path d="M2 7h24m0 0l-5-4m5 4l-5 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+          <span class="fn-arrow-note">路由</span>
+        </div>
+
+        <div class="fn">
+          <div class="fn-box blue"><span class="fn-icon">&#128188;</span><span class="fn-name">Klay</span></div>
+          <div class="fn-lbl">CEO / Major<br>Opus</div>
+        </div>
+
+        <div class="fn-arrow">
+          <svg width="32" height="14"><path d="M2 7h24m0 0l-5-4m5 4l-5 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+        </div>
+
+        <div class="fn">
+          <div class="fn-box green"><span class="fn-icon">&#9997;</span><span class="fn-name">Worker</span></div>
+          <div class="fn-lbl">Standard<br>Sonnet</div>
+        </div>
+
+        <div class="fn-arrow">
+          <svg width="32" height="14"><path d="M2 7h24m0 0l-5-4m5 4l-5 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+        </div>
+
+        <div class="fn">
+          <div class="fn-box red"><span class="fn-icon">&#128269;</span><span class="fn-name">Ray</span></div>
+          <div class="fn-lbl">Design Review<br>Codex Plus</div>
+        </div>
+
+        <div class="fn-arrow">
+          <svg width="32" height="14"><path d="M2 7h24m0 0l-5-4m5 4l-5 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+        </div>
+
+        <div class="fn">
+          <div class="fn-box"><span class="fn-icon">&#127760;</span><span class="fn-name">OpenClaw</span></div>
+          <div class="fn-lbl">Spider/Lynx/Noel<br>Probe/Echo/Buzz</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="diff-label reveal delay2">Before &rarr; After 對比</div>
+    <div class="diff-panel reveal delay2">
+      <div class="dp-head bad">&#10006; Before</div>
+      <div class="dp-head good">&#10004; After</div>
+      <div class="dp-body">
+<pre>Rain &rarr; <span class="hl-bad">Noel (Ops Director)</span>
+  &rarr; spawn-klay.py
+  &rarr; spawn-ray.py
+  &rarr; openclaw agent
+
+<span class="hl-bad">Noel = Sonnet (OpenClaw)</span>
+<span class="hl-bad">Jarvis = Email only (OpenRouter)</span>
+<span class="hl-bad">dispatch_openclaw 不登記看板</span>
+<span class="hl-bad">run_terminal_command 無白名單</span></pre>
+      </div>
+      <div class="dp-body">
+<pre>Rain &rarr; <span class="hl-good">Jarvis (Dispatch Center)</span>
+  &rarr; spawn-klay / worker / ray
+  &rarr; openclaw agent
+  &rarr; send_email (typed tool)
+
+<span class="hl-good">Noel = Gemini 2.5 Pro (Personal Asst)</span>
+<span class="hl-good">Jarvis = Gemini Flash (Dispatch + Email)</span>
+<span class="hl-good">dispatch_openclaw 自動登記 Kai 看板</span>
+<span class="hl-good">run_terminal_command 39 白名單 + 15 黑名單</span></pre>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SECTION 6: 總結 ─── -->
+<section class="sec" id="summary">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">&#128200; 總結</div>
+    <h2 class="sec-title reveal">完成<em>清單</em></h2>
+
+    <div class="stat-row reveal delay1">
+      <div class="sbox w"><div class="n">13</div><div class="l">改動項目</div></div>
+      <div class="sbox g"><div class="n">13</div><div class="l">全部完成</div></div>
+      <div class="sbox r"><div class="n">23</div><div class="l">同步修正</div></div>
+      <div class="sbox b"><div class="n">2</div><div class="l">獨立審查</div></div>
+      <div class="sbox g"><div class="n">0</div><div class="l">未解決</div></div>
+    </div>
+
+    <div class="il reveal delay2">
+      <div class="ir"><span class="dot"></span><span><strong>架構重組</strong> &mdash; Jarvis 升級 Dispatch Center（Flash），Noel 轉型 Personal Assistant（Gemini Pro）</span></div>
+      <div class="ir"><span class="dot green"></span><span><strong>安全強化</strong> &mdash; terminal 白名單/黑名單、shell injection 修復、dispatch 函數全面硬化</span></div>
+      <div class="ir"><span class="dot blue"></span><span><strong>看板追蹤</strong> &mdash; OpenClaw 任務自動登記、shell fallback 防孤兒任務、session hook 清理機制</span></div>
+      <div class="ir"><span class="dot"></span><span><strong>雙層審查</strong> &mdash; Ray 架構審查 10/10 修復 + Quill 程式碼審查 WARN&rarr;PASS</span></div>
+      <div class="ir"><span class="dot green"></span><span><strong>7 處同步</strong> &mdash; CLAUDE.md / team-roster / team_service / agent_task_service / SKILL.md / MEMORY.md / team.json + v9 migration</span></div>
+      <div class="ir"><span class="dot blue"></span><span><strong>Tech Debt</strong> &mdash; W1 email regex（低風險，單一收件人）、S1 timeout 標示、S2 task_id 格式來源</span></div>
+    </div>
+
+    <div class="callout reveal delay3">
+      <strong>看板狀態：</strong>Pending 0 / Executing 0 / Success 29 / Failed 4<br>
+      <strong>Kai 健康：</strong>port 5002 &check; &bull; v9 migration &check; &bull; Jarvis 重啟 &check;
+    </div>
+  </div>
+</section>
+
+</div><!-- body-wrap -->
+
+<footer>
+  Rain AI Team &mdash; 架構重組報告<br>
+  2026-03-12 &middot; Generated by <a href="#">Klay (CEO &middot; Opus 4.6)</a><br>
+  Reviewed by Ray (Codex Plus) + Quill (Sonnet 4.6)
+</footer>
+
+<script>
+// ── Progress Bar ──
+const bar=document.getElementById('bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement,b=document.body;
+  const st=h.scrollTop||b.scrollTop,sh=h.scrollHeight||b.scrollHeight,ch=h.clientHeight;
+  bar.style.width=(st/(sh-ch))*100+'%';
+});
+
+// ── Floating TOC ──
+const dots=[...document.querySelectorAll('.ftoc-dot')];
+const secs=[...document.querySelectorAll('[id]')].filter(e=>dots.some(d=>d.dataset.section===e.id));
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    dots.forEach(d=>d.classList.toggle('active',d.dataset.section===e.target.id));
+  }});
+},{rootMargin:'-40% 0px -55% 0px'});
+secs.forEach(s=>obs.observe(s));
+dots.forEach(d=>d.addEventListener('click',()=>{
+  document.getElementById(d.dataset.section)?.scrollIntoView({behavior:'smooth'});
+}));
+
+// ── Nav active ──
+const navLinks=[...document.querySelectorAll('.nav-links a')];
+const navObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));
+  }});
+},{rootMargin:'-30% 0px -65% 0px'});
+secs.forEach(s=>navObs.observe(s));
+
+// ── Scroll Reveal ──
+const revObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}});
+},{threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+
+// ── Counter Animation ──
+const cObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){
+    const el=e.target,t=+el.dataset.target;
+    if(!t)return;
+    let c=0;const step=Math.max(1,Math.floor(t/30));
+    const iv=setInterval(()=>{c=Math.min(c+step,t);el.textContent=c;if(c>=t)clearInterval(iv);},30);
+    cObs.unobserve(el);
+  }});
+},{threshold:0.5});
+document.querySelectorAll('[data-target]').forEach(el=>cObs.observe(el));
+
+// ── Carousel Drag ──
+document.querySelectorAll('.carousel').forEach(c=>{
+  let down=false,sx=0,sl=0;
+  c.addEventListener('mousedown',e=>{down=true;sx=e.pageX-c.offsetLeft;sl=c.scrollLeft;c.classList.add('dragging');});
+  c.addEventListener('mouseleave',()=>{down=false;c.classList.remove('dragging');});
+  c.addEventListener('mouseup',()=>{down=false;c.classList.remove('dragging');});
+  c.addEventListener('mousemove',e=>{if(!down)return;e.preventDefault();c.scrollLeft=sl-(e.pageX-c.offsetLeft-sx);});
+});
+</script>
+</body>
+</html>
