@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Night Shift 分析報告 — Rain AI Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#f6f5f1;--white:#ffffff;--grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;--black:#121212;--accent-warm:#eb8054;--accent-cool:#a8cde8;--green:#85a268;--red:#d94f4f;--yellow:#d4a843}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--grey-03);font-family:'Inter','Noto Sans TC',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cover{background:var(--black);color:#fff;padding:80px 40px 60px;text-align:center}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);font-family:'JetBrains Mono',monospace;margin-bottom:16px}
+.cover h1{font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:-1px;margin-bottom:12px}
+.cover .subtitle{font-size:16px;color:rgba(255,255,255,0.6);max-width:500px;margin:0 auto 20px}
+.date{font-size:14px;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace}
+.main{max-width:720px;margin:0 auto;padding:48px 40px 80px}
+.section{margin-bottom:56px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:24px;color:var(--black)}
+.card{background:var(--white);border-radius:12px;padding:28px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:16px}
+.card-label{font-size:12px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.card h3{font-size:17px;font-weight:700;color:var(--black);margin-bottom:10px}
+.card p,.card li{font-size:14px;color:var(--grey-03);line-height:1.8}
+.card ul{padding-left:18px;margin-top:6px}
+.card li{margin-bottom:4px}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;margin-right:6px;margin-bottom:4px}
+.tag-green{background:#e8f0de;color:var(--green)}
+.tag-red{background:#fce4e4;color:var(--red)}
+.tag-blue{background:#dfedf8;color:#5a8db5}
+.tag-warm{background:#fde8de;color:var(--accent-warm)}
+.tag-yellow{background:#f5edcf;color:var(--yellow)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:600px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:var(--white);border-radius:12px;padding:22px;border:1px solid var(--grey-01)}
+.compare-card h4{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--black)}
+.compare-card p{font-size:13px;color:var(--grey-03);line-height:1.7}
+.metric-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.metric{flex:1;min-width:140px;background:var(--white);border-radius:12px;padding:18px;border:1px solid var(--grey-01);text-align:center}
+.metric .val{font-size:28px;font-weight:800;color:var(--black);font-family:'JetBrains Mono',monospace}
+.metric .label{font-size:11px;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.table-wrap{overflow-x:auto;margin-top:12px;border-radius:12px;border:1px solid var(--grey-01)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
+th{background:var(--grey-01);color:var(--grey-03);font-weight:600;text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+td{padding:10px 14px;border-top:1px solid var(--grey-01);color:var(--grey-03)}
+tr:hover td{background:rgba(0,0,0,0.01)}
+.flow-box{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:var(--grey-03);overflow-x:auto;white-space:pre}
+.priority-badge{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.p-high{background:var(--red)}
+.p-mid{background:var(--yellow)}
+.p-low{background:var(--green)}
+.verdict{background:var(--black);color:#fff;border-radius:12px;padding:28px;margin-top:24px}
+.verdict h3{color:var(--accent-warm);font-size:18px;margin-bottom:12px}
+.verdict p{color:rgba(255,255,255,0.75);font-size:14px;line-height:1.8}
+.footer{text-align:center;padding:40px;font-size:12px;color:var(--grey-02);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="eyebrow">COMPETITIVE ANALYSIS</div>
+  <h1>AI Night Shift 研究報告</h1>
+  <div class="subtitle">JudyaiLab 的多 Agent 夜班排程框架 vs Rain AI Team — 優化建議與實施方案</div>
+  <div class="date">2026-03-12 · Klay · Rain AI Team</div>
+</div>
+
+<div class="main">
+
+  <!-- SECTION 01 -->
+  <div class="section">
+    <div class="section-eyebrow">01 · 專案概覽</div>
+    <div class="section-title">AI Night Shift 是什麼</div>
+
+    <div class="card">
+      <div class="card-label">TL;DR</div>
+      <p><strong>AI Night Shift</strong> 是 JudyaiLab 開源的多 Agent 夜班排程框架。核心概念：用 cron 排程在非工作時間自動執行 AI Agent（Claude Code、Gemini、自訂 Agent），透過<strong>檔案式通訊</strong>（night_chat.md + JSON inbox）讓多個 Agent 協作，產出報告。</p>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric"><div class="val">30+</div><div class="label">Production Shifts</div></div>
+      <div class="metric"><div class="val">Bash</div><div class="label">Core Language</div></div>
+      <div class="metric"><div class="val">3</div><div class="label">Agent Types</div></div>
+      <div class="metric"><div class="val">MIT</div><div class="label">License</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">支援的 Agent</div>
+      <ul>
+        <li><strong>Claude Code</strong> — 主力開發 Agent（2-3 小時/輪次）</li>
+        <li><strong>Gemini CLI</strong> — 巡邏型研究 Agent（每 1-2 小時）</li>
+        <li><strong>OpenClaw Heartbeat</strong> — 協調監控（每 30 分鐘）</li>
+        <li><strong>自訂 Adapter</strong> — 可擴充任何 CLI Agent（Codex、Aider 等）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 02 -->
+  <div class="section">
+    <div class="section-eyebrow">02 · 架構分析</div>
+    <div class="section-title">核心機制</div>
+
+    <div class="card">
+      <div class="card-label">Execution Flow</div>
+      <div class="flow-box">Cron Trigger
+  → Load config.env
+  → PID Lock（防止重複執行）
+  → Pre-Phase Plugins（健康檢查、備份）
+  → [Round Loop × MAX_ROUNDS]
+    ├ Timeout 檢查
+    ├ Rate-limit 偵測
+    ├ 載入 Prompt Template（{ROUND}, {DATE} 變數替換）
+    ├ 讀取 night_chat.md + bot_inbox 上下文
+    ├ Adapter 執行 Agent
+    ├ 產出 Round Report
+    └ 寫入 night_chat.md
+  → Post-Phase Plugins（git summary、通知）
+  → 產出 Daily Summary
+  → 釋放 PID Lock</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">通訊機制</div>
+      <h3>檔案式多 Agent 通訊</h3>
+      <ul>
+        <li><strong>night_chat.md</strong> — Append-only 共享日誌（[HH:MM] Agent: 訊息）</li>
+        <li><strong>bot_inbox/</strong> — 每個 Agent 獨立 JSON 佇列，處理完移到 done/</li>
+        <li><strong>msg.sh / notify.sh</strong> — Agent 對 Agent 直傳訊息</li>
+      </ul>
+      <p style="margin-top:10px;font-size:13px;color:var(--grey-02)">優點：零外部依賴、簡單易部署。缺點：不支援分散式、無即時同步、無 schema 驗證。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Adapter Pattern</div>
+      <h3>每個 CLI Agent 需實作 6 個函式</h3>
+      <ul>
+        <li><code>adapter_run()</code> — 執行 Agent（非互動式）</li>
+        <li><code>adapter_build_flags()</code> — 生成 CLI 參數</li>
+        <li><code>adapter_check_rate_limit()</code> — 偵測 429/quota</li>
+        <li><code>adapter_check_completion()</code> — 辨識完成訊號</li>
+        <li><code>adapter_verify()</code> — 確認工具已安裝</li>
+        <li><code>adapter_name()</code> — 顯示名稱</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 03 -->
+  <div class="section">
+    <div class="section-eyebrow">03 · 對比分析</div>
+    <div class="section-title">AI Night Shift vs Rain AI Team</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>面向</th><th>AI Night Shift</th><th>Rain AI Team</th><th>差異</th></tr></thead>
+        <tbody>
+          <tr><td>Agent 數量</td><td>3 類（Claude/Gemini/Heartbeat）</td><td>29 Agent（多角色分工）</td><td>我們規模大 10x</td></tr>
+          <tr><td>排程機制</td><td>cron 定時</td><td>無自動夜班排程</td><td><span class="tag tag-red">他們領先</span></td></tr>
+          <tr><td>通訊方式</td><td>檔案（.md + JSON）</td><td>Kai API + Discord + Handoff</td><td>我們更結構化</td></tr>
+          <tr><td>任務管理</td><td>外部看板（Linear/Jira）</td><td>Kai 中控台內建</td><td>我們更整合</td></tr>
+          <tr><td>審查機制</td><td>無（無 code review）</td><td>4 層審查（Sentinel→Ray→Quill→Forge）</td><td>我們遠領先</td></tr>
+          <tr><td>安全機制</td><td>PID lock + Permission 開關</td><td>Sentinel hook + 密鑰掃描 + LaunchAgent</td><td>我們更完善</td></tr>
+          <tr><td>Dashboard</td><td>靜態 HTML（手動上傳）</td><td>Kai 即時前端（Vue + API）</td><td>我們更即時</td></tr>
+          <tr><td>自動修復</td><td>Rate-limit 重試</td><td>Self-repair + lessons.md</td><td>我們更智能</td></tr>
+          <tr><td>夜間自動化</td><td>完整排程框架</td><td>僅 LaunchAgent 零散腳本</td><td><span class="tag tag-red">他們領先</span></td></tr>
+          <tr><td>Plugin 系統</td><td>Pre/Task/Post 三階段 hooks</td><td>Claude hooks（較原始）</td><td><span class="tag tag-yellow">可借鏡</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 04 -->
+  <div class="section">
+    <div class="section-eyebrow">04 · 可借鏡的優勢</div>
+    <div class="section-title">他們做對了什麼</div>
+
+    <div class="card">
+      <h3><span class="priority-badge p-high"></span>夜班自動排程 — 我們的最大缺口</h3>
+      <p>他們的核心價值：<strong>非工作時間讓 Agent 自動幹活</strong>。配合 cron + 時間窗口（WINDOW_HOURS）+ 輪次限制（MAX_ROUNDS），Agent 在深夜自動處理待辦事項、跑回歸測試、做代碼維護。我們目前的 Agent 全依賴 Rain 手動啟動。</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="priority-badge p-mid"></span>Adapter 抽象層 — Agent 可插拔</h3>
+      <p>統一介面讓不同 CLI Agent（Claude、Codex、Aider）用同一套排程系統。我們的 spawn-klay.py / spawn-ray.py 是硬編碼的，沒有統一 adapter。</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="priority-badge p-mid"></span>Rate-Limit 自動處理</h3>
+      <p>偵測 429 → 等 60 分鐘 → 重試。我們目前遇到 rate limit 就手動處理或放棄。</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="priority-badge p-low"></span>Plugin 三階段 Hook</h3>
+      <p>Pre（健康檢查）→ Task（品質清理）→ Post（git summary + 報告），每個 plugin 5 分鐘 timeout、非阻塞。比我們的 Claude hooks 更有結構。</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="priority-badge p-low"></span>完成訊號機制</h3>
+      <p>Agent 輸出 NIGHT_SHIFT_COMPLETE 表示完成；連續兩次 → 提前結束。簡單但有效。</p>
+    </div>
+  </div>
+
+  <!-- SECTION 05 -->
+  <div class="section">
+    <div class="section-eyebrow">05 · 他們的弱點</div>
+    <div class="section-title">我們已經超越的地方</div>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>無審查機制</h4>
+        <p>Agent 產出直接 commit，沒有 code review、沒有 veto。我們有 4 層審查。</p>
+      </div>
+      <div class="compare-card">
+        <h4>單機限制</h4>
+        <p>PID lock 假設所有 Agent 在同一台機器。我們的 OpenClaw 已支援遠端 Agent。</p>
+      </div>
+      <div class="compare-card">
+        <h4>Bash-Only</h4>
+        <p>核心全是 shell script，難以維護、測試、擴充。我們用 Python + structured API。</p>
+      </div>
+      <div class="compare-card">
+        <h4>無 Schema 驗證</h4>
+        <p>JSON 訊息無驗證，格式錯誤靜默失敗。我們的 Kai API 有 Pydantic schema。</p>
+      </div>
+      <div class="compare-card">
+        <h4>粗糙的 Dashboard</h4>
+        <p>靜態 HTML 需手動上傳檔案。我們的 Kai 前端即時更新。</p>
+      </div>
+      <div class="compare-card">
+        <h4>無角色分工</h4>
+        <p>所有 Agent 平等，無審查者/實作者/協調者區分。我們有完整的 chain of command。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 06 -->
+  <div class="section">
+    <div class="section-eyebrow">06 · 優化方案</div>
+    <div class="section-title">Rain AI Team 實施計畫</div>
+
+    <div class="card" style="border-left:3px solid var(--accent-warm)">
+      <div class="card-label">Phase 1 · 高優先 — 夜班排程系統</div>
+      <h3>Kai Night Shift Mode</h3>
+      <p>在 Kai 中控台新增夜班模式，每晚自動執行待處理任務。</p>
+      <ul>
+        <li><strong>架構</strong>：LaunchAgent（cron）→ 呼叫 Kai API <code>/api/night-shift/start</code></li>
+        <li><strong>執行者</strong>：Max（後端 API）+ Forge（LaunchAgent 部署）</li>
+        <li><strong>核心功能</strong>：
+          <ul>
+            <li>自動從 task board 撈「pending」任務，按 priority 排序</li>
+            <li>自動 dispatch Agent（借鏡 adapter pattern 但用 Python）</li>
+            <li>時間窗口限制（23:00-06:00 TST，可設定）</li>
+            <li>Rate-limit 自動偵測 + 等待重試</li>
+            <li>每輪產出結果寫回 task board</li>
+            <li>晨間報告自動 email Rain</li>
+          </ul>
+        </li>
+        <li><strong>優於原版</strong>：整合 Kai task board（非外部 Linear）、4 層審查不跳過、Python 非 Bash</li>
+        <li><strong>估計</strong>：Major 級任務</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--accent-cool)">
+      <div class="card-label">Phase 2 · 中優先 — Agent Adapter SDK</div>
+      <h3>統一 Agent 呼叫介面</h3>
+      <p>將 spawn-klay.py、spawn-ray.py 統一為 Agent Adapter SDK。</p>
+      <ul>
+        <li><strong>統一介面</strong>：<code>AgentAdapter.run(prompt, timeout, config)</code></li>
+        <li><strong>內建功能</strong>：rate-limit 偵測、completion signal、health check、telemetry</li>
+        <li><strong>支援</strong>：Claude Code / Codex / Gemini CLI / OpenClaw agents</li>
+        <li><strong>執行者</strong>：Max</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--green)">
+      <div class="card-label">Phase 3 · 低優先 — Plugin 系統升級</div>
+      <h3>結構化 Hook 系統</h3>
+      <p>將現有 Claude hooks 升級為三階段 plugin 架構（Pre/Task/Post），每個 plugin 有 timeout + 非阻塞執行。</p>
+      <ul>
+        <li><strong>Pre-phase</strong>：健康檢查、環境驗證、備份</li>
+        <li><strong>Task-phase</strong>：品質門檻（lint score、test coverage）</li>
+        <li><strong>Post-phase</strong>：自動 commit summary、Discord 通知、晨間報告</li>
+        <li><strong>執行者</strong>：Forge</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 07 -->
+  <div class="section">
+    <div class="section-eyebrow">07 · 實施架構圖</div>
+    <div class="section-title">Kai Night Shift Mode — 技術架構</div>
+
+    <div class="card">
+      <div class="flow-box">┌──────────────────────────────────────────────────┐
+│  LaunchAgent (cron: 23:00 TST daily)             │
+│  ai.rain.kai-nightshift                          │
+└───────────────────┬──────────────────────────────┘
+                    │ POST /api/night-shift/start
+                    ▼
+┌──────────────────────────────────────────────────┐
+│  Kai Backend — Night Shift Service               │
+│  ┌────────────────────────────────────────────┐  │
+│  │ 1. 撈取 pending tasks (priority desc)     │  │
+│  │ 2. 過濾夜班適合的任務類型                   │  │
+│  │ 3. Rate-limit budget 計算                  │  │
+│  │ 4. 時間窗口管理 (23:00-06:00)             │  │
+│  └────────────────────────────────────────────┘  │
+└───────────────────┬──────────────────────────────┘
+                    │ dispatch
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+  ┌──────────┐ ┌──────────┐ ┌──────────┐
+  │ Claude   │ │ Codex    │ │ OpenClaw │
+  │ Adapter  │ │ Adapter  │ │ Adapter  │
+  │ (Klay/   │ │ (Ray)    │ │ (Spider/ │
+  │  Max/    │ │          │ │  Probe)  │
+  │  John)   │ │          │ │          │
+  └────┬─────┘ └────┬─────┘ └────┬─────┘
+       │             │             │
+       └─────────────┼─────────────┘
+                     ▼
+  ┌──────────────────────────────────────────────┐
+  │  Post-Shift Pipeline                         │
+  │  → Task board 更新（done/blocked）            │
+  │  → Quill code review（如有 code changes）     │
+  │  → Sentinel scan                              │
+  │  → 晨間報告 → Email Rain                     │
+  │  → Discord 通知                               │
+  └──────────────────────────────────────────────┘</div>
+    </div>
+  </div>
+
+  <!-- SECTION 08 -->
+  <div class="section">
+    <div class="section-eyebrow">08 · 風險評估</div>
+    <div class="section-title">預期風險與緩解措施</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>風險</th><th>嚴重度</th><th>緩解措施</th></tr></thead>
+        <tbody>
+          <tr><td>夜間 Agent 產出品質無人監控</td><td><span class="tag tag-red">HIGH</span></td><td>保留 4 層審查、夜班產出標記 needs-review、晨間 Rain 確認</td></tr>
+          <tr><td>API 配額在夜間耗盡</td><td><span class="tag tag-red">HIGH</span></td><td>Rate-limit 偵測 + budget cap + Knox 餘額警報</td></tr>
+          <tr><td>自動 commit 引入 bug</td><td><span class="tag tag-yellow">MED</span></td><td>夜班 commit 到 dev branch、不直接 push main、晨間 PR review</td></tr>
+          <tr><td>任務排序錯誤</td><td><span class="tag tag-yellow">MED</span></td><td>夜班只處理 Standard 以下、Major/Critical 排除</td></tr>
+          <tr><td>Agent 卡住佔用資源</td><td><span class="tag tag-blue">LOW</span></td><td>Per-round timeout + PID watchdog + 窗口硬關閉</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 09 -->
+  <div class="section">
+    <div class="section-eyebrow">09 · 結論</div>
+    <div class="section-title">行動建議</div>
+
+    <div class="verdict">
+      <h3>結論：借鏡排程概念，但用我們的架構實現</h3>
+      <p>AI Night Shift 的核心價值是<strong>「非工作時間自動執行 Agent」</strong>這個概念。但他們的實現（Bash + 檔案通訊 + 無審查）對我們來說太粗糙。</p>
+      <p style="margin-top:12px">建議做法：</p>
+      <p style="margin-top:8px">1. <strong>Phase 1 立即啟動</strong>：在 Kai 中控台實現 Night Shift Mode（Python，整合現有 task board + 審查機制）</p>
+      <p>2. <strong>Phase 2 排入 backlog</strong>：統一 Agent Adapter SDK，取代零散的 spawn-*.py</p>
+      <p>3. <strong>Phase 3 觀望</strong>：Plugin 系統升級，待 Phase 1 穩定後再做</p>
+      <p style="margin-top:12px;color:var(--accent-warm);font-weight:600">預估效益：每日多 6-7 小時 Agent 產能（23:00-06:00），Rain 不在時系統仍在推進任務。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Rain AI Team · Klay · 2026-03-12 · Pending Ray Architecture Review
+</div>
+
+</body>
+</html>
