@@ -364,10 +364,52 @@ tr:hover td{background:rgba(0,0,0,0.01)}
     </div>
   </div>
 
+  <!-- SECTION 10 -->
+  <div class="section">
+    <div class="section-eyebrow">10 · 實作與測試</div>
+    <div class="section-title">E2E 驗證結果</div>
+
+    <div class="card">
+      <div class="card-label">已完成實作</div>
+      <h3>Night Shift 系統已上線</h3>
+      <ul>
+        <li><strong>night_shift_service.py</strong> — 核心排程引擎（串行執行、rate-limit 偵測、caffeinate 防 sleep）</li>
+        <li><strong>night_shift.py（API）</strong> — 4 端點（start/stop/status/history）</li>
+        <li><strong>spawn-klay.py --night-mode</strong> — 夜班簡化 prompt（skip 3-Phase、commit dev、verified:false）</li>
+        <li><strong>LaunchAgent</strong> — 23:15 觸發、與 nightly-optimization（22:50）錯開</li>
+        <li><strong>晨間報告 Email</strong> — 自動寄送任務明細到 Rain 信箱</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Bug 修復紀錄</div>
+      <h3>14 項問題已修復</h3>
+      <ul>
+        <li><span class="tag tag-red">BLOCKER</span> async + time.sleep 阻塞 event loop → 改同步 + threadpool</li>
+        <li><span class="tag tag-red">BLOCKER</span> record_run 方法不存在 → 改用 log_run</li>
+        <li><span class="tag tag-red">BLOCKER</span> subprocess timeout 30s 太短 → 改 60s</li>
+        <li><span class="tag tag-red">BLOCKER</span> <strong>force flag 未傳入 run_shift()</strong> → 白天測試 loop 立刻 break（E2E 測試發現）</li>
+        <li><span class="tag tag-yellow">MAJOR</span> 無 thread safety → threading.Lock</li>
+        <li><span class="tag tag-yellow">MAJOR</span> stop 指令無效 → 加入 _running 檢查</li>
+        <li><span class="tag tag-yellow">MAJOR</span> workdir 無驗證 → _validate_workdir 白名單</li>
+        <li><span class="tag tag-yellow">MAJOR</span> verified=true → false（夜班無人審查）</li>
+        <li><span class="tag tag-yellow">MAJOR</span> private method 直接存取 → public API</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-label">E2E 測試結果</div>
+      <h3>驗證通過</h3>
+      <p><strong>測試流程</strong>：建立測試任務 → force=true 啟動 → 確認 dispatch → 手動停止 → 驗證 metrics</p>
+      <p style="margin-top:8px"><strong>結果</strong>：tasks_attempted=1、正確撈取任務（task_id: 00a34a78）、stop 信號正確回應、spawn-klay --night-mode 正確呼叫</p>
+      <p style="margin-top:8px;color:var(--green);font-weight:600">Status: PASS — 系統在今晚 23:15 將自動執行第一次正式夜班</p>
+    </div>
+  </div>
+
 </div>
 
 <div class="footer">
-  Rain AI Team · Klay · 2026-03-12 · Pending Ray Architecture Review
+  Rain AI Team · Klay · 2026-03-12 · Ray + Quill Reviewed
 </div>
 
 </body>
