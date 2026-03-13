@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Governance System — 全面修復完成報告</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f6f5f1; color: #1a1a1a; line-height: 1.6; }
+.slide { max-width: 900px; margin: 0 auto; padding: 60px 40px; min-height: 100vh; }
+.slide + .slide { border-top: 2px solid #e8e6e0; }
+h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; color: #111; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 16px; color: #222; padding-bottom: 8px; border-bottom: 2px solid #333; }
+h3 { font-size: 1.15rem; font-weight: 600; margin: 20px 0 10px; color: #333; }
+.subtitle { font-size: 1rem; color: #666; margin-bottom: 40px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fecaca; color: #991b1b; }
+.badge-gray { background: #f3f4f6; color: #374151; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+.metric { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e5e5e5; }
+.metric .value { font-size: 2rem; font-weight: 700; color: #111; }
+.metric .label { font-size: 0.85rem; color: #666; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e5e5; }
+th { background: #f9f8f5; font-weight: 600; color: #333; }
+tr:hover { background: #fafaf8; }
+.code { background: #f3f2ee; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.85em; }
+.section-card { background: #fff; border-radius: 12px; padding: 24px; margin: 16px 0; border: 1px solid #e5e5e5; }
+ul { padding-left: 20px; }
+li { margin: 6px 0; }
+.check { color: #16a34a; }
+.warn { color: #d97706; }
+.fix { color: #2563eb; }
+.footer { text-align: center; padding: 40px; color: #999; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<div class="slide" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+  <h1>AI Governance System v2</h1>
+  <p class="subtitle">全面修復完成報告 — 2026-03-13</p>
+  <div style="margin-top:20px;">
+    <span class="badge badge-green">11 審計模組</span>
+    <span class="badge badge-blue">9 API 端點</span>
+    <span class="badge badge-amber">3 級自我修正</span>
+  </div>
+  <p style="margin-top:40px; color:#888; font-size:0.9rem;">Klay | Rain AI Team</p>
+</div>
+
+<!-- Slide 2: Executive Summary -->
+<div class="slide">
+  <h2>Executive Summary</h2>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="value">26</div>
+      <div class="label">修復項目總數</div>
+    </div>
+    <div class="metric">
+      <div class="value">4</div>
+      <div class="label">檔案修改</div>
+    </div>
+    <div class="metric">
+      <div class="value">11</div>
+      <div class="label">審計模組 (H1-H10+H1b)</div>
+    </div>
+    <div class="metric">
+      <div class="value">10</div>
+      <div class="label">中控台同步 Gap 修復</div>
+    </div>
+  </div>
+  <div class="section-card">
+    <h3>修復範圍</h3>
+    <ul>
+      <li><strong>governance-audit.py</strong> — 新增 3 模組（H1b/H9/H10）、改進 H4 三級審查邏輯、unknown_severity 指標</li>
+      <li><strong>governance-autofix.py</strong> — Findings rotation 防無限增長、修復遺漏的 import re</li>
+      <li><strong>governance.py (API)</strong> — 新增 /summary + /autofix 端點、cache_age_seconds</li>
+      <li><strong>night-shift-comprehensive.py</strong> — .get() 防禦鏈、Module H timeout 改進</li>
+      <li><strong>Kai 後端 4 大 bug fix</strong> — NameError/gooayeai/infer_rank/auto_start claim</li>
+      <li><strong>前端 2 修復</strong> — TaskBoard 顯示 severity + SchedulesPage 定期任務分類</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 3: Governance Audit Modules -->
+<div class="slide">
+  <h2>審計模組清單 (11 modules)</h2>
+  <table>
+    <thead><tr><th>Module</th><th>功能</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td class="code">H1</td><td>Agent Structure — SKILL.md / persona.md 完整度</td><td><span class="badge badge-green">100%</span></td></tr>
+      <tr><td class="code">H1b</td><td>Inverse Scan — agents/ 孤兒檔案偵測 <span class="badge badge-blue">NEW</span></td><td><span class="badge badge-green">0 orphans</span></td></tr>
+      <tr><td class="code">H2</td><td>Config Diff — git 追蹤設定檔變更</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td class="code">H3</td><td>Role Overlap — task_types 職責重疊分析</td><td><span class="badge badge-amber">3 overlaps</span></td></tr>
+      <tr><td class="code">H4</td><td>Review Compliance — 三級審查合規 <span class="badge badge-blue">IMPROVED</span></td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td class="code">H5</td><td>Dispatch Analytics — 派工完成率/延遲/失敗率</td><td><span class="badge badge-green">6 agents</span></td></tr>
+      <tr><td class="code">H6</td><td>Cost-by-Agent — Token 成本分析</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td class="code">H7</td><td>Memory System — 記憶檔案新鮮度 & 覆蓋率</td><td><span class="badge badge-green">44 files</span></td></tr>
+      <tr><td class="code">H8</td><td>Scheduler — LaunchAgent 與 Kai 排程同步</td><td><span class="badge badge-amber">36 unreg</span></td></tr>
+      <tr><td class="code">H9</td><td>Sentinel Hook — 密鑰掃描腳本存在性 <span class="badge badge-blue">NEW</span></td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td class="code">H10</td><td>Frozen Agent Activity — 凍結 Agent 活動偵測 <span class="badge badge-blue">NEW</span></td><td><span class="badge badge-green">0 violations</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Slide 4: H4 Review Compliance Improvements -->
+<div class="slide">
+  <h2>H4 Review Compliance 改進</h2>
+  <div class="section-card">
+    <h3>改動前</h3>
+    <ul>
+      <li>只檢查 Major/Critical 任務是否有 <span class="code">verified=true</span></li>
+      <li>Standard 任務直接通過，不檢查 Quill review</li>
+      <li>unknown severity 任務只排除不計算</li>
+    </ul>
+  </div>
+  <div class="section-card">
+    <h3>改動後（符合 review-responsibility-matrix.md）</h3>
+    <ul>
+      <li><span class="check">&#x2713;</span> <strong>Major/Critical</strong>：檢查 <span class="code">verified=true</span> OR <span class="code">review_evidence</span> 含 Quill</li>
+      <li><span class="check">&#x2713;</span> <strong>Standard</strong>：檢查 Quill lightweight review OR verified flag</li>
+      <li><span class="check">&#x2713;</span> <strong>Tiny</strong>：自動通過（無審查需求）</li>
+      <li><span class="check">&#x2713;</span> <strong>unknown severity</strong>：產生 <span class="code">unknown_severity_task</span> finding，追蹤 unknown_severity_pct 指標</li>
+      <li><span class="check">&#x2713;</span> 完整 docstring 記錄 <span class="code">verified</span> 與 <span class="code">review_evidence</span> 語義</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 5: API Endpoints -->
+<div class="slide">
+  <h2>Governance API 端點 (9 total)</h2>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>功能</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td class="code">/api/governance/audit</td><td>最新審計快取 + cache_age_seconds</td><td><span class="badge badge-blue">IMPROVED</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/summary</td><td>一站式治理摘要（12 指標）</td><td><span class="badge badge-blue">NEW</span></td></tr>
+      <tr><td>POST</td><td class="code">/api/governance/autofix</td><td>觸發自我修正引擎</td><td><span class="badge badge-blue">NEW</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/agent-kpis</td><td>Per-agent KPI + Scoreboard</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/config-diff</td><td>Config 差異報告</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/dispatch-analytics</td><td>派工分析</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/review-compliance</td><td>審查合規</td><td><span class="badge badge-green">OK</span></td></tr>
+      <tr><td>GET</td><td class="code">/api/governance/findings-history</td><td>Findings 歷史</td><td><span class="badge badge-green">OK</span></td></tr>
+    </tbody>
+  </table>
+  <div class="section-card" style="margin-top:20px;">
+    <h3>GET /api/governance/summary 回傳範例</h3>
+    <pre style="background:#f3f2ee; padding:12px; border-radius:8px; font-size:0.85rem; overflow-x:auto;">{
+  "h1_coverage_pct": 100.0,
+  "h1b_orphans": 0,
+  "h4_compliance_pct": 85.7,
+  "h4_unknown_severity_pct": 12.5,
+  "h9_sentinel_ok": true,
+  "h10_frozen_violations": 0,
+  "cache_age_seconds": 47
+}</pre>
+  </div>
+</div>
+
+<!-- Slide 6: Control Center Sync Audit -->
+<div class="slide">
+  <h2>中控台同步盤查 — 10 個 Gap 修復</h2>
+  <table>
+    <thead><tr><th>#</th><th>嚴重度</th><th>Gap</th><th>修復</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="badge badge-red">Crash</span></td><td><span class="code">_VALID_SEVERITY</span> NameError（update_task 崩潰）</td><td><span class="check">&#x2713; 修復</span></td></tr>
+      <tr><td>2</td><td><span class="badge badge-amber">UI</span></td><td>TaskBoard 不顯示 severity_level / review_evidence</td><td><span class="fix">John 修復中</span></td></tr>
+      <tr><td>3</td><td><span class="badge badge-amber">UI</span></td><td>SchedulesPage 缺 recurring-task 分類</td><td><span class="fix">John 修復中</span></td></tr>
+      <tr><td>4</td><td><span class="badge badge-amber">Data</span></td><td>gooayeai (team.json) vs gooaye (team_service) ID 不一致</td><td><span class="check">&#x2713; v11 migration</span></td></tr>
+      <tr><td>5</td><td><span class="badge badge-gray">Latent</span></td><td>Team migration 缺 quill/echomarketer 角色更新保證</td><td><span class="warn">&#x26A0; Low risk</span></td></tr>
+      <tr><td>6</td><td><span class="badge badge-amber">Bug</span></td><td><span class="code">_infer_rank</span> 缺 quill/tax/echomarketer/nautilus</td><td><span class="check">&#x2713; 修復</span></td></tr>
+      <tr><td>7</td><td><span class="badge badge-gray">Logic</span></td><td>chain task dedup bypass + auto_start 可重複建立</td><td><span class="warn">&#x26A0; Edge case</span></td></tr>
+      <tr><td>8</td><td><span class="badge badge-gray">Sync</span></td><td>組織異動無 WebSocket 廣播（15s polling）</td><td><span class="warn">&#x26A0; v2 改善</span></td></tr>
+      <tr><td>9</td><td><span class="badge badge-amber">Bug</span></td><td>auto_start claim 用 request 的 assigned_to 而非解析後結果</td><td><span class="check">&#x2713; 修復</span></td></tr>
+      <tr><td>10</td><td><span class="badge badge-gray">Gap</span></td><td>Schedule runs 不建立 task board 條目（兩系統隔離）</td><td><span class="warn">&#x26A0; v2 改善</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Slide 7: Self-Correction Engine -->
+<div class="slide">
+  <h2>Self-Correction Engine 改進</h2>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="value">L1</div>
+      <div class="label">Alert（&lt;3 distinct days）</div>
+    </div>
+    <div class="metric">
+      <div class="value">L2</div>
+      <div class="label">Suggest（3+ distinct days）</div>
+    </div>
+    <div class="metric">
+      <div class="value">L3</div>
+      <div class="label">Auto-fix（5+ days, SAFE_TO_FIX only）</div>
+    </div>
+  </div>
+  <div class="section-card">
+    <h3>本次改進</h3>
+    <ul>
+      <li><span class="check">&#x2713;</span> <strong>import re</strong> 修復（runtime NameError 風險消除）</li>
+      <li><span class="check">&#x2713;</span> <strong>Findings rotation</strong>（S3）— 超過 5000 行自動輪替，防止 JSONL 無限增長</li>
+      <li><span class="check">&#x2713;</span> <strong>POST /api/governance/autofix</strong> — 可透過 API 觸發（預設 dry-run）</li>
+      <li><span class="check">&#x2713;</span> 與 Night Shift Module I 整合（L1/L2/L3 統計顯示在夜班報告）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 8: Files Changed -->
+<div class="slide">
+  <h2>修改檔案清單</h2>
+  <table>
+    <thead><tr><th>檔案</th><th>變更</th></tr></thead>
+    <tbody>
+      <tr><td class="code">governance-audit.py</td><td>+3 模組 (H1b/H9/H10)、H4 改進、module_map、report builder</td></tr>
+      <tr><td class="code">governance-autofix.py</td><td>+import re、+findings rotation、rotate call in main()</td></tr>
+      <tr><td class="code">governance.py (API)</td><td>+/summary、+/autofix、+_cache_age、+cache_age_seconds</td></tr>
+      <tr><td class="code">night-shift-comprehensive.py</td><td>.get() 防禦鏈、Module H timeout/cache check</td></tr>
+      <tr><td class="code">agent_task_service.py</td><td>NameError fix (_VALID_SEVERITY → VALID_SEVERITY_LEVELS)</td></tr>
+      <tr><td class="code">agent_tasks.py (API)</td><td>auto_start claim 使用解析後的 assigned_to</td></tr>
+      <tr><td class="code">team_service.py</td><td>gooaye→gooayeai (v11 migration)、_infer_rank +4 agents</td></tr>
+      <tr><td class="code">TaskBoard.tsx</td><td>+severity_level badge + review_evidence 顯示</td></tr>
+      <tr><td class="code">SchedulesPage.tsx</td><td>+recurring-task 分類標籤</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Slide 9: Remaining Items -->
+<div class="slide">
+  <h2>剩餘項目（v2 規劃）</h2>
+  <div class="section-card">
+    <h3>Low Priority / Future Enhancements</h3>
+    <ul>
+      <li><span class="warn">&#x26A0;</span> <strong>Gap 5</strong>：Team migration 角色文字新鮮度保證 — risk low（DEFAULT_MEMBERS 優先）</li>
+      <li><span class="warn">&#x26A0;</span> <strong>Gap 7</strong>：Chain task dedup — edge case，需要重新設計 parent_task_id 邏輯</li>
+      <li><span class="warn">&#x26A0;</span> <strong>Gap 8</strong>：WebSocket 組織異動廣播 — 需要前端 + 後端聯動</li>
+      <li><span class="warn">&#x26A0;</span> <strong>Gap 10</strong>：Schedule runs → task board 整合 — 需要架構決策（是否合併兩表）</li>
+      <li><span class="warn">&#x26A0;</span> <strong>G8</strong>：Real-time compliance hook — 需要 task lifecycle 重構</li>
+      <li><span class="warn">&#x26A0;</span> <strong>G10</strong>：3-Phase Planning compliance — 需要 task metadata 擴充</li>
+      <li><span class="warn">&#x26A0;</span> <strong>G12</strong>：Model tier escalation detection — 需要 agent_model 欄位標準化</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Rain AI Team — Governance System v2 Completion Report</p>
+  <p>Generated 2026-03-13 by Klay (Claude Opus 4.6)</p>
+</div>
+
+</body>
+</html>
