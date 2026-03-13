@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Team Governance System — 設計審查報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:#f6f5f1;color:#121212;line-height:1.7;-webkit-font-smoothing:antialiased}
+code,.mono{font-family:'JetBrains Mono',monospace;font-size:.88em}
+
+/* Cover */
+.cover{background:#121212;color:#fff;padding:80px 32px 60px;text-align:center}
+.cover h1{font-size:2.2rem;font-weight:700;margin-bottom:12px;letter-spacing:-.02em}
+.cover h1 span{color:#eb8054}
+.cover .subtitle{font-size:1.05rem;color:#aaa;margin-bottom:8px}
+.cover .meta{font-size:.85rem;color:#666;margin-top:16px}
+.cover .verdict{display:inline-block;margin-top:24px;padding:8px 24px;border:2px solid #eb8054;border-radius:6px;color:#eb8054;font-weight:600;font-size:1.1rem;letter-spacing:.04em}
+
+/* Main */
+.main{max-width:700px;margin:0 auto;padding:48px 24px 80px}
+
+/* Section */
+.section{margin-bottom:48px}
+.section-eyebrow{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#eb8054;margin-bottom:8px}
+.section h2{font-size:1.4rem;font-weight:700;margin-bottom:16px;letter-spacing:-.01em}
+.section h3{font-size:1.05rem;font-weight:600;margin:20px 0 10px;color:#333}
+.section p{margin-bottom:12px;color:#333;font-size:.95rem}
+.section ul{margin:0 0 12px 20px;color:#333;font-size:.95rem}
+.section li{margin-bottom:6px}
+
+/* Cards */
+.card{background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h4{font-size:.95rem;font-weight:600;margin-bottom:8px}
+.card p,.card li{font-size:.9rem;color:#444}
+
+/* Status badges */
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;letter-spacing:.02em}
+.badge-green{background:#e8f5e0;color:#3d7a1c}
+.badge-orange{background:#fff3e0;color:#c45d1a}
+.badge-red{background:#fde8e8;color:#b91c1c}
+.badge-blue{background:#e0f0ff;color:#1a5fb4}
+.badge-gray{background:#f0eee6;color:#6c6a62}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:12px 0 16px;border-radius:8px;border:1px solid #e8e6df}
+table{width:100%;border-collapse:collapse;min-width:500px;font-size:.88rem}
+th{background:#f0eee6;font-weight:600;text-align:left;padding:10px 14px;color:#333;white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid #eee;color:#444}
+tr:hover td{background:#faf9f5}
+
+/* Action card */
+.action-card{border-left:4px solid #eb8054;background:#fff;padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.action-card.blue{border-left-color:#a8cde8}
+.action-card.green{border-left-color:#85a268}
+.action-card.red{border-left-color:#d94f4f}
+
+/* Risk bar */
+.risk-bar{display:flex;align-items:center;gap:8px;margin:4px 0}
+.risk-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.risk-high{background:#d94f4f}
+.risk-medium{background:#eb8054}
+.risk-low{background:#85a268}
+
+/* Phase timeline */
+.timeline{position:relative;padding-left:28px;margin:20px 0}
+.timeline::before{content:'';position:absolute;left:10px;top:4px;bottom:4px;width:2px;background:#e8e6df}
+.timeline-item{position:relative;margin-bottom:24px}
+.timeline-item::before{content:'';position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;background:#eb8054;border:2px solid #f6f5f1}
+.timeline-item.phase2::before{background:#a8cde8}
+.timeline-item.phase3::before{background:#85a268}
+.timeline-item h4{font-size:.95rem;font-weight:600;margin-bottom:4px}
+.timeline-item p{font-size:.88rem;color:#555}
+
+/* Progress */
+.progress-row{display:flex;align-items:center;gap:12px;margin:6px 0}
+.progress-bar{flex:1;height:8px;background:#e8e6df;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px}
+.progress-label{font-size:.82rem;color:#8b877c;min-width:36px;text-align:right}
+
+/* Footer */
+.footer{text-align:center;padding:32px;color:#aaa;font-size:.8rem;border-top:1px solid #e8e6df;margin-top:40px}
+
+/* Gap chart */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.gap-item{background:#fff;border:1px solid #e8e6df;border-radius:8px;padding:14px 16px}
+.gap-item .gap-num{font-size:1.6rem;font-weight:700;color:#eb8054}
+.gap-item .gap-label{font-size:.82rem;color:#8b877c;margin-top:2px}
+
+@media(max-width:600px){
+  .cover{padding:48px 20px 40px}
+  .cover h1{font-size:1.6rem}
+  .main{padding:32px 16px 60px}
+  .section h2{font-size:1.2rem}
+  .gap-grid{grid-template-columns:1fr}
+  table{min-width:400px}
+}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <h1>AI Team <span>Governance System</span></h1>
+  <div class="subtitle">自動治理系統 — Phase 3 設計審查報告</div>
+  <div class="meta">2026-03-13 | Klay (Business) + Scout (Architecture) + Ray (Design Review)</div>
+  <div class="verdict">RAY VERDICT: CONDITIONAL PASS</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- 1. Executive Summary -->
+  <div class="section">
+    <div class="section-eyebrow">Executive Summary</div>
+    <h2>為什麼需要 Governance System</h2>
+    <p>Rain AI Team 現有 28 個 Agent、7 個部門、15+ LaunchAgent 排程。每日執行數十個任務，但<strong>缺乏系統性的自動治理機制</strong>來確保架構一致性、規範遵守、任務可追溯性。</p>
+    <p>現有夜班審計覆蓋約 <strong>60-70%</strong> 的治理需求，但缺少 Config Diff、Review Compliance、Agent KPI 自動化、Self-Correction 四個關鍵能力。</p>
+
+    <div class="gap-grid">
+      <div class="gap-item">
+        <div class="gap-num">70%</div>
+        <div class="gap-label">現有審計覆蓋率</div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-num">8</div>
+        <div class="gap-label">識別的關鍵 Gap</div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-num">3</div>
+        <div class="gap-label">分階段實施</div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-num">4</div>
+        <div class="gap-label">前置修復項目</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Current State -->
+  <div class="section">
+    <div class="section-eyebrow">Current State</div>
+    <h2>現有系統盤點</h2>
+
+    <h3>已有能力（強基礎）</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><th>系統</th><th>覆蓋範圍</th><th>狀態</th></tr>
+      <tr><td>Night Shift 7 模組</td><td>Session 分析 / Knowledge / LaunchAgent / Website / API Key / Zombie / Discord</td><td><span class="badge badge-green">運行中</span></td></tr>
+      <tr><td>Session Review Hook</td><td>5 問 + 反思強制執行</td><td><span class="badge badge-green">運行中</span></td></tr>
+      <tr><td>Lessons Learned</td><td>23 條教訓 + 畢業機制</td><td><span class="badge badge-green">運行中</span></td></tr>
+      <tr><td>Kai 中控台</td><td>Task CRUD + Telemetry + Dispatch + Postmortem + Scoreboard</td><td><span class="badge badge-green">運行中</span></td></tr>
+      <tr><td>team.json</td><td>28 Agents 單一真相來源</td><td><span class="badge badge-green">運行中</span></td></tr>
+      <tr><td>Agent Profiles</td><td>54 個 SKILL.md + persona.md</td><td><span class="badge badge-orange">27/28 有檔案</span></td></tr>
+      <tr><td>Recurring Task Detector</td><td>29 Pattern + Auto-register</td><td><span class="badge badge-green">運行中</span></td></tr>
+    </table>
+    </div>
+
+    <h3>覆蓋率評估</h3>
+    <div class="progress-row">
+      <span style="font-size:.88rem;min-width:120px">審計自動化</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:70%;background:#85a268"></div></div>
+      <span class="progress-label">70%</span>
+    </div>
+    <div class="progress-row">
+      <span style="font-size:.88rem;min-width:120px">Config 追蹤</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:10%;background:#d94f4f"></div></div>
+      <span class="progress-label">10%</span>
+    </div>
+    <div class="progress-row">
+      <span style="font-size:.88rem;min-width:120px">KPI 自動化</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:30%;background:#eb8054"></div></div>
+      <span class="progress-label">30%</span>
+    </div>
+    <div class="progress-row">
+      <span style="font-size:.88rem;min-width:120px">Self-Correction</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:5%;background:#d94f4f"></div></div>
+      <span class="progress-label">5%</span>
+    </div>
+  </div>
+
+  <!-- 3. Gap Analysis -->
+  <div class="section">
+    <div class="section-eyebrow">Gap Analysis</div>
+    <h2>8 個關鍵缺口</h2>
+
+    <div class="card">
+      <h4>1. Config Diff System <span class="badge badge-red">缺失</span></h4>
+      <p>沒有追蹤 agent config/prompt/model 變更的機制。Agent 角色或模型被改時，無人知道。</p>
+    </div>
+    <div class="card">
+      <h4>2. Agent KPI 自動計算 <span class="badge badge-orange">草稿</span></h4>
+      <p>agent-kpi.md 只有 v1 定義，10 個 agent。無自動化計算，靠手動更新。</p>
+    </div>
+    <div class="card">
+      <h4>3. Dispatch Analytics <span class="badge badge-red">缺失</span></h4>
+      <p>不知道哪個 agent 延遲最多、哪類任務失敗率高。無法回答「dispatch 有沒有效？」</p>
+    </div>
+    <div class="card">
+      <h4>4. Review Compliance Checker <span class="badge badge-red">缺失</span></h4>
+      <p>無法偵測 Major 任務跳過 Ray 審查。Task model 甚至沒有 severity_level 欄位。</p>
+    </div>
+    <div class="card">
+      <h4>5. Cost-by-Agent Breakdown <span class="badge badge-orange">部分</span></h4>
+      <p>Token 成本有記在 task 上，但無分群分析、無預算警報。</p>
+    </div>
+    <div class="card">
+      <h4>6. Self-Correction Loop <span class="badge badge-red">缺失</span></h4>
+      <p>發現問題後只有 Discord alert，沒有自動修復機制。</p>
+    </div>
+    <div class="card">
+      <h4>7. Centralized Audit API <span class="badge badge-red">缺失</span></h4>
+      <p>夜班審計產 JSON cache，但沒有可查詢的 API endpoint 或 dashboard。</p>
+    </div>
+    <div class="card">
+      <h4>8. SKILL.md 升級 Enforcement <span class="badge badge-orange">規則有，執行無</span></h4>
+      <p>72h TTL 寫在 SOP，但沒有系統 enforce。逾期項目無自動提醒。</p>
+    </div>
+  </div>
+
+  <!-- 4. Ray Design Review -->
+  <div class="section">
+    <div class="section-eyebrow">Ray Design Review</div>
+    <h2>Phase 3 審查結論</h2>
+
+    <div class="action-card red">
+      <h4>判定：⚠️ 有條件通過（Conditional Pass）</h4>
+      <p>設計方向正確，但需要修改後才能開始實作。</p>
+    </div>
+
+    <h3>6 個風險項目</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><th>風險</th><th>嚴重度</th><th>對策</th></tr>
+      <tr>
+        <td>Kai 後端膨脹（main.py 1206 行 / 60 router）</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-medium"></div>Medium</div></td>
+        <td>做成獨立 script，不塞進 Kai</td>
+      </tr>
+      <tr>
+        <td>Self-correction 寫檔案可能與 agent 衝突</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-high"></div>High</div></td>
+        <td>Phase 1-2 只做 alert，Phase 3 才開 auto-fix（有 flag）</td>
+      </tr>
+      <tr>
+        <td>Config diff 用 HEAD~1 不可靠</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-medium"></div>Medium</div></td>
+        <td>改用 timestamp-based diffing</td>
+      </tr>
+      <tr>
+        <td>Governance service 跨 service 依賴</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-medium"></div>Medium</div></td>
+        <td>用 HTTP self-call，不直接 import</td>
+      </tr>
+      <tr>
+        <td>Auto-fix 沒有 rollback 機制</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-medium"></div>Medium</div></td>
+        <td>所有 auto-fix 記錄到 append-only JSONL + dry-run flag</td>
+      </tr>
+      <tr>
+        <td>night-shift-comprehensive.py 已 617 行，再加會變 monolith</td>
+        <td><div class="risk-bar"><div class="risk-dot risk-low"></div>Low</div></td>
+        <td>Governance 獨立 script，nightly pipeline 呼叫</td>
+      </tr>
+    </table>
+    </div>
+
+    <h3>Skeptic Check（魔鬼代言人）</h3>
+    <div class="action-card blue">
+      <h4>「如果根本不做 Governance System？」</h4>
+      <p>現有系統已覆蓋 60-70%。真正缺的是 <strong>config diff</strong>（沒人追蹤 agent 配置變更）、<strong>review compliance</strong>（Major 任務可能跳審查）、<strong>role overlap detection</strong>（手動檢查易出錯）。</p>
+      <p>建議：不要一次建全部，分 3 phase 做。Phase 1 只要 1 天，立刻就有 80% 的價值。</p>
+    </div>
+  </div>
+
+  <!-- 5. Implementation Plan -->
+  <div class="section">
+    <div class="section-eyebrow">Implementation Plan</div>
+    <h2>三階段實施計畫</h2>
+
+    <h3>前置條件（Must-fix）</h3>
+    <div class="action-card red">
+      <ul style="margin:0;padding-left:18px">
+        <li><strong>Kai task model 加 severity_level 欄位</strong> — 否則 review compliance 無法做</li>
+        <li><strong>補齊 4 個 agent profile</strong> — quill / nautilus / echomarketer（flat→directory）、gooayeai（完全缺失）</li>
+        <li><strong>Frozen agents 排除邏輯</strong> — Milo/Sage 不列入缺失報告</li>
+      </ul>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>Phase 1 — 獨立審計腳本（1 天）</h4>
+        <p>建立 <code>governance-audit.py</code>，包含 4 個核心審計模組：</p>
+        <ul style="margin:8px 0 0 18px;font-size:.88rem;color:#555">
+          <li>Agent 結構盤點（SKILL.md / persona.md / memory 完整性）</li>
+          <li>Config Diff（timestamp-based git diff）</li>
+          <li>Role Overlap Detection（責任重疊分析）</li>
+          <li>Review Compliance（任務等級 × 審查者矩陣對比）</li>
+        </ul>
+        <p>輸出：JSON + Discord 通知。整合進 nightly pipeline 作為 Module H。</p>
+      </div>
+      <div class="timeline-item phase2">
+        <h4>Phase 2 — Kai API 端點（第 2 週+）</h4>
+        <p>將審計結果包裝成 API：</p>
+        <ul style="margin:8px 0 0 18px;font-size:.88rem;color:#555">
+          <li><code>GET /api/governance/audit</code> — 完整審計報告</li>
+          <li><code>GET /api/governance/agent-kpis</code> — Agent KPI（利用現有 ScoreboardService + PostMortemService）</li>
+          <li><code>GET /api/governance/config-diff</code> — 24h 配置變更</li>
+          <li><code>GET /api/governance/dispatch-analytics</code> — Dispatch 分析</li>
+        </ul>
+      </div>
+      <div class="timeline-item phase3">
+        <h4>Phase 3 — Self-Correction Engine（第 4 週+）</h4>
+        <p>Rules-based 自動修正，預設 <strong>alert-only</strong>，<code>--auto-fix</code> 需手動開啟：</p>
+        <ul style="margin:8px 0 0 18px;font-size:.88rem;color:#555">
+          <li>agent_missing_memory → alert（不自動建空檔）</li>
+          <li>task_missing_postmortem → alert</li>
+          <li>scheduler_unregistered_job → alert（不自動註冊）</li>
+          <li>skill_upgrade_expired_72h → alert Quill</li>
+          <li>review_bypassed → alert Ray</li>
+        </ul>
+        <p>所有修正記錄到 append-only JSONL，支援 <code>--dry-run</code> 預覽。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Architecture -->
+  <div class="section">
+    <div class="section-eyebrow">Architecture</div>
+    <h2>系統架構設計</h2>
+
+    <div class="card">
+      <h4>設計原則</h4>
+      <ul>
+        <li><strong>獨立 script 優先</strong> — 不塞進 Kai main.py，避免後端膨脹</li>
+        <li><strong>Alert-first</strong> — 先觀察再自動修，避免誤修</li>
+        <li><strong>漸進式</strong> — Phase 1 用 1 天拿到 80% 價值</li>
+        <li><strong>向後相容</strong> — 不破壞現有 night-shift / session review 機制</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>核心元件</h4>
+      <div class="table-wrap">
+      <table>
+        <tr><th>元件</th><th>路徑</th><th>Phase</th></tr>
+        <tr><td>governance-audit.py</td><td><code>~/Projects/scripts/</code></td><td>Phase 1</td></tr>
+        <tr><td>governance routes</td><td><code>backend/app/routes/governance.py</code></td><td>Phase 2</td></tr>
+        <tr><td>governance service</td><td><code>backend/app/services/governance_service.py</code></td><td>Phase 2</td></tr>
+        <tr><td>self-correction engine</td><td><code>~/Projects/scripts/governance-autofix.py</code></td><td>Phase 3</td></tr>
+        <tr><td>audit log</td><td><code>~/.claude/cache/governance-audit-log.jsonl</code></td><td>Phase 1</td></tr>
+        <tr><td>config diff cache</td><td><code>~/.claude/cache/config-diff-latest.json</code></td><td>Phase 1</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Config Diff 機制（Timestamp-based）</h4>
+      <p>每次審計：讀取上次 <code>last_audit_timestamp</code> → <code>git log --since={ts} --name-only -- .claude/agents/ .claude/team.json .claude/rules/</code> → 列出變更檔案 + diff → 寫入報告。</p>
+    </div>
+  </div>
+
+  <!-- 7. Agent Profile Gap -->
+  <div class="section">
+    <div class="section-eyebrow">Pre-requisite Findings</div>
+    <h2>Agent Profile 缺失清單</h2>
+
+    <div class="table-wrap">
+    <table>
+      <tr><th>Agent</th><th>現狀</th><th>需要</th><th>優先級</th></tr>
+      <tr><td>Quill</td><td>Flat file <code>agents/quill.md</code></td><td>升級為 <code>agents/quill/SKILL.md</code></td><td><span class="badge badge-orange">Medium</span></td></tr>
+      <tr><td>Nautilus</td><td>Flat file <code>agents/nautilus.md</code></td><td>升級為 <code>agents/nautilus/SKILL.md</code></td><td><span class="badge badge-orange">Medium</span></td></tr>
+      <tr><td>EchoMarketer</td><td>Flat file <code>agents/echomarketer.md</code></td><td>升級為 <code>agents/echomarketer/SKILL.md</code></td><td><span class="badge badge-orange">Medium</span></td></tr>
+      <tr><td>GooayeAI</td><td>完全缺失</td><td>建立完整 profile</td><td><span class="badge badge-red">High</span></td></tr>
+    </table>
+    </div>
+  </div>
+
+  <!-- 8. Decision Matrix -->
+  <div class="section">
+    <div class="section-eyebrow">Decision Required</div>
+    <h2>待 Rain 決策</h2>
+
+    <div class="action-card green">
+      <h4>Phase 1 可以立即開始（1 天內完成）</h4>
+      <p>獨立 governance-audit.py + config diff + nightly 整合。無風險，純觀察性。</p>
+    </div>
+
+    <div class="card">
+      <h4>需要決定</h4>
+      <ul>
+        <li>是否同意 Ray 的分階段策略（Phase 1 → 觀察 2 週 → Phase 2）？</li>
+        <li>是否同意不新增 "AI Auditor" Agent，用現有系統承擔？</li>
+        <li>Phase 3 Self-Correction 的觸發條件要多嚴格？</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>AI Team Governance System Design Review | 2026-03-13</p>
+    <p>Prepared by Klay (Business) + Scout (Architecture) + Ray (Design Review)</p>
+    <p style="margin-top:8px;color:#ccc">Rain AI Team &mdash; Slideless Report System</p>
+  </div>
+
+</div>
+</body>
+</html>
