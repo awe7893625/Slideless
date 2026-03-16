@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社團發文助手 v1.6 — 後台操作展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f6f5f1;
+    --white: #ffffff;
+    --grey-01: #f0eee6;
+    --grey-02: #8b877c;
+    --grey-03: #6c6a62;
+    --black: #121212;
+    --accent-warm: #eb8054;
+    --accent-cool: #a8cde8;
+    --green: #85a268;
+    --danger: #d94f4f;
+    --blue: #4a7aab;
+    --purple: #7c6ceb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    color: var(--black);
+    line-height: 1.6;
+  }
+
+  /* Cover */
+  .cover {
+    background: var(--black);
+    color: white;
+    padding: 100px 40px 80px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .cover .subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cover .tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .cover .tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+  .cover .version-badge {
+    display: inline-block;
+    background: var(--accent-warm);
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 18px;
+    border-radius: 24px;
+    margin-top: 32px;
+  }
+
+  /* Main */
+  .main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 56px 24px 100px;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid var(--grey-01);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    margin-bottom: 56px;
+  }
+  .toc h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--black);
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    text-decoration: none;
+    color: var(--grey-03);
+    font-size: 14px;
+    transition: color 0.15s;
+  }
+  .toc-item:hover { color: var(--black); }
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-warm);
+    min-width: 22px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 64px;
+  }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--black);
+    margin-bottom: 12px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--grey-03);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  /* Screenshot */
+  .screenshot-wrap {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 12px;
+    border: 1px solid var(--grey-01);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .screenshot-wrap img {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+  }
+  .screenshot-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--grey-02);
+    text-align: center;
+    padding: 10px 0 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Feature cards */
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .feat-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--grey-01);
+  }
+  .feat-card .feat-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .feat-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .feat-card p {
+    font-size: 12px;
+    color: var(--grey-03);
+    line-height: 1.6;
+  }
+
+  /* Highlight badge */
+  .highlight-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .badge-core { background: #e8f4e1; color: var(--green); }
+  .badge-auto { background: #e8e4f8; color: var(--purple); }
+  .badge-safe { background: #fef3e2; color: #c07a20; }
+  .badge-new  { background: #e1eef8; color: var(--blue); }
+
+  /* Tech comparison dark section */
+  .tech-section {
+    background: var(--black);
+    color: white;
+    border-radius: 16px;
+    padding: 40px 32px;
+    margin-bottom: 64px;
+  }
+  .tech-section .section-eyebrow { color: var(--accent-warm); }
+  .tech-section .section-title { color: white; }
+  .tech-section .section-desc { color: rgba(255,255,255,0.5); }
+  .tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .tech-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .tech-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-warm);
+    margin-bottom: 6px;
+  }
+  .tech-card p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0;
+  }
+  .flow-step {
+    background: var(--white);
+    border: 1px solid var(--grey-01);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--black);
+  }
+  .flow-step.active {
+    background: var(--accent-warm);
+    color: white;
+    border-color: var(--accent-warm);
+  }
+  .flow-arrow {
+    color: var(--grey-02);
+    font-size: 16px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--grey-01);
+  }
+  .footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--grey-02);
+    letter-spacing: 1px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .toc-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: 1fr; }
+    .main { padding: 32px 16px 60px; }
+    .cover { padding: 60px 20px 50px; }
+    .flow { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+  <div class="eyebrow">Product Walkthrough</div>
+  <h1>社團發文助手 v1.6<br>後台操作展示</h1>
+  <div class="subtitle">FBGroupPoster — Chrome Extension Dashboard</div>
+  <div class="tags">
+    <span class="tag">Chrome Extension</span>
+    <span class="tag">Playwright Automation</span>
+    <span class="tag">Anti-Detection</span>
+    <span class="tag">591 / HouseBox</span>
+  </div>
+  <div class="version-badge">v1.6.0 STABLE</div>
+</div>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>功能總覽</h2>
+    <div class="toc-grid">
+      <a class="toc-item" href="#dashboard"><span class="toc-num">01</span>首頁 Dashboard</a>
+      <a class="toc-item" href="#accounts"><span class="toc-num">02</span>帳號管理</a>
+      <a class="toc-item" href="#templates"><span class="toc-num">03</span>文案設定</a>
+      <a class="toc-item" href="#posting"><span class="toc-num">04</span>一鍵發文</a>
+      <a class="toc-item" href="#groups"><span class="toc-num">05</span>社團管理</a>
+      <a class="toc-item" href="#schedule"><span class="toc-num">06</span>排程發文</a>
+      <a class="toc-item" href="#marketplace"><span class="toc-num">07</span>Marketplace</a>
+      <a class="toc-item" href="#automation"><span class="toc-num">08</span>自動排程</a>
+      <a class="toc-item" href="#nurture"><span class="toc-num">09</span>自動養號</a>
+      <a class="toc-item" href="#analytics"><span class="toc-num">10</span>數據統計</a>
+      <a class="toc-item" href="#settings"><span class="toc-num">11</span>系統設定</a>
+      <a class="toc-item" href="#realflow"><span class="toc-num">12</span>實際發文流程</a>
+    </div>
+  </div>
+
+  <!-- 01 Dashboard -->
+  <div class="section" id="dashboard">
+    <div class="section-eyebrow">01 — Dashboard</div>
+    <h2 class="section-title">首頁 Dashboard <span class="highlight-badge badge-core">Core</span></h2>
+    <p class="section-desc">
+      進入後台首先看到統計卡片：今日發文數、成功率、社團數、佇列中待發。下方的「近 7 天發文趨勢」圖表讓你掌握每日產出。底部快速操作區一鍵跳轉至發文、排程、社團管理。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/01-dashboard.png" alt="Dashboard">
+      <div class="screenshot-caption">Dashboard — 統計卡片 + 7 天趨勢 + 快速操作</div>
+    </div>
+  </div>
+
+  <!-- 02 Accounts -->
+  <div class="section" id="accounts">
+    <div class="section-eyebrow">02 — Account Management</div>
+    <h2 class="section-title">帳號管理 <span class="highlight-badge badge-safe">Security</span></h2>
+    <p class="section-desc">
+      支援多 Profile 切換，切換帳號後社團清單與名片資訊自動跟隨。FB 帳號密碼僅存本機瀏覽器，永不外傳。「我的名片」填入姓名和電話，591 匯入時自動替換為你的聯絡方式。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/02-accounts.png" alt="帳號管理">
+      <div class="screenshot-caption">帳號 Profile + Facebook 登入 + 名片設定</div>
+    </div>
+  </div>
+
+  <!-- 03 Templates -->
+  <div class="section" id="templates">
+    <div class="section-eyebrow">03 — Copy Templates</div>
+    <h2 class="section-title">文案設定 <span class="highlight-badge badge-auto">Spintax</span></h2>
+    <p class="section-desc">
+      建立可重複使用的文案模板。支援 Spintax 語法（如 <code>{選項A|選項B}</code>），每次發文自動隨機替換，讓每篇貼文字略有不同，降低被偵測為批量發文的風險。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/03-templates.png" alt="文案設定">
+      <div class="screenshot-caption">模板名稱 + Spintax 文案內容 + 模板庫</div>
+    </div>
+  </div>
+
+  <!-- 04 Posting -->
+  <div class="section" id="posting">
+    <div class="section-eyebrow">04 — One-Click Post</div>
+    <h2 class="section-title">一鍵發文 <span class="highlight-badge badge-core">Core</span></h2>
+    <p class="section-desc">
+      核心功能。支援三種匯入方式：貼上 591/HouseBox 連結批量擷取（最多 30 筆）、PDF 批量匯入（整個資料夾）、手動建立發文。系統自動抓取標題、價格、圖片，組成佇列後一鍵發送到所有已選社團。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/04-posting.png" alt="一鍵發文">
+      <div class="screenshot-caption">批量匯入 591/HouseBox + PDF 匯入 + 手動建立</div>
+    </div>
+  </div>
+
+  <!-- 05 Groups -->
+  <div class="section" id="groups">
+    <div class="section-eyebrow">05 — Group Management</div>
+    <h2 class="section-title">社團管理 <span class="highlight-badge badge-new">Smart</span></h2>
+    <p class="section-desc">
+      關鍵字搜尋 Facebook 社團，勾選後一鍵申請加入並自動存入清單。內建 10 個精選推薦房仲社團，一鍵全部加入。「社群包」功能可將社團分組（如：台北租屋、中和買房），發文時套用整組社團。到 FB 社團頁面還會自動偵測並提示加入。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/05-groups.png" alt="社團管理">
+      <div class="screenshot-caption">搜尋加入 + 推薦社團 + 社群包管理</div>
+    </div>
+  </div>
+
+  <!-- 06 Schedule -->
+  <div class="section" id="schedule">
+    <div class="section-eyebrow">06 — Scheduled Posts</div>
+    <h2 class="section-title">排程發文</h2>
+    <p class="section-desc">
+      設定自動發文時間，每天定時發文。在「一鍵發文」頁面的佇列項目中點擊排程按鈕即可新增。排程列表集中管理所有待發任務，到了指定時間系統自動執行。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/06-schedule.png" alt="排程發文">
+      <div class="screenshot-caption">排程任務列表 + 快速建立入口</div>
+    </div>
+  </div>
+
+  <!-- 07 Marketplace -->
+  <div class="section" id="marketplace">
+    <div class="section-eyebrow">07 — FB Marketplace</div>
+    <h2 class="section-title">Marketplace 上架 <span class="highlight-badge badge-new">New</span></h2>
+    <p class="section-desc">
+      除了社團發文，還能一鍵上架到 Facebook Marketplace。物件從「一鍵發文」頁面的佇列直接帶入，省去重複輸入，同一物件同時覆蓋社團 + Marketplace 雙通路曝光。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/07-marketplace.png" alt="Marketplace">
+      <div class="screenshot-caption">Marketplace 待上架物件管理</div>
+    </div>
+  </div>
+
+  <!-- 08 Automation -->
+  <div class="section" id="automation">
+    <div class="section-eyebrow">08 — Automation</div>
+    <h2 class="section-title">自動排程 <span class="highlight-badge badge-auto">Auto</span></h2>
+    <p class="section-desc">
+      自動化任務總覽：自動社團發文、自動加入社團、自動刪文、熱門貼文留言。可個別開關，狀態即時顯示「運行中 / 未設定」。發文設定包含每篇間隔（建議 2-3 分鐘）、智慧延遲、自動刪文天數、文案微變化、發文完成通知。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/08-automation.png" alt="自動排程">
+      <div class="screenshot-caption">4 大自動化任務 + 發文間隔/延遲/刪文/微變化設定</div>
+    </div>
+  </div>
+
+  <!-- 09 Nurture -->
+  <div class="section" id="nurture">
+    <div class="section-eyebrow">09 — Account Nurturing</div>
+    <h2 class="section-title">自動養號 <span class="highlight-badge badge-safe">Anti-Ban</span></h2>
+    <p class="section-desc">
+      模擬真人使用 Facebook，降低帳號被偵測為自動化的風險。「自動留言」對社團最新貼文留言（支援 Spintax），增加互動和曝光。「自動養號」執行滑動態、按讚、留言等行為，分一般（10 分鐘）和熱門模式。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/09-nurture.png" alt="自動養號">
+      <div class="screenshot-caption">自動留言（Spintax）+ 自動養號（一般/熱門模式）</div>
+    </div>
+  </div>
+
+  <!-- 10 Analytics -->
+  <div class="section" id="analytics">
+    <div class="section-eyebrow">10 — Analytics</div>
+    <h2 class="section-title">數據統計</h2>
+    <p class="section-desc">
+      追蹤所有發文記錄，按狀態篩選：已發、待刪、失敗、已刪。統計儀表板可展開查看成功率與社團排行。支援搜尋特定社團或文案，批量管理已發佈貼文。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/10-analytics.png" alt="數據統計">
+      <div class="screenshot-caption">發文統計儀表板 + 狀態篩選 + 搜尋 + 批量操作</div>
+    </div>
+  </div>
+
+  <!-- 11 Settings -->
+  <div class="section" id="settings">
+    <div class="section-eyebrow">11 — Settings</div>
+    <h2 class="section-title">系統設定 <span class="highlight-badge badge-safe">Security</span></h2>
+    <p class="section-desc">
+      授權碼管理（支援免費試用申請）。發文操作畫面可選擇顯示或隱藏瀏覽器自動操作過程。進階防偵測：啟用指紋遮罩（WebDriver 隱藏、Canvas 指紋微擾、WebGL 資訊模糊、語言一致性），建議保持開啟。資料管理支援匯出、匯入、清除。
+    </p>
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/11-settings.png" alt="系統設定">
+      <div class="screenshot-caption">授權碼 + 操作可見性 + 指紋遮罩防偵測 + 資料匯出匯入</div>
+    </div>
+  </div>
+
+  <!-- 12 Real Flow -->
+  <div class="section" id="realflow">
+    <div class="section-eyebrow">12 — Real Workflow Demo</div>
+    <h2 class="section-title">實際發文流程</h2>
+    <p class="section-desc">
+      完整流程：從 HouseBox 擷取物件資訊 → 系統自動組成文案（含標題、價格、坪數、格局、圖片）→ 開啟 FB 社團 compose dialog → 自動填入內容和圖片 → 點擊發佈。全程自動，房仲只需貼上連結。
+    </p>
+
+    <div class="flow">
+      <div class="flow-step">HouseBox 物件頁</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step active">系統擷取資訊</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">組成發文文案</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step active">FB Compose</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">自動發佈</div>
+    </div>
+
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/13-housebox.png" alt="HouseBox 擷取">
+      <div class="screenshot-caption">Step 1 — HouseBox 物件頁，系統自動擷取標題、價格、坪數、格局、圖片</div>
+    </div>
+
+    <div class="screenshot-wrap">
+      <img src="fbposter-screenshots/12-fb-compose.png" alt="FB Compose">
+      <div class="screenshot-caption">Step 2 — FB 社團 Compose Dialog，自動填入文案 + 圖片，一鍵發佈</div>
+    </div>
+  </div>
+
+  <!-- 13 Tech Highlights (dark section) -->
+  <div class="tech-section">
+    <div class="section-eyebrow">Technical Edge</div>
+    <h2 class="section-title">技術亮點</h2>
+    <p class="section-desc">相比市面上的「行銷快手」等競品，我們的核心技術優勢</p>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <h4>Playwright 自動化</h4>
+        <p>使用 Playwright 驅動真實 Chromium，非 HTTP 請求模擬，完整重現用戶操作，FB 無法從 API 層面偵測。</p>
+      </div>
+      <div class="tech-card">
+        <h4>指紋遮罩防偵測</h4>
+        <p>WebDriver 隱藏、Canvas 指紋微擾、WebGL 資訊模糊、語言一致性，四層防護讓 FB 反自動化偵測失效。</p>
+      </div>
+      <div class="tech-card">
+        <h4>591 / HouseBox 爬蟲</h4>
+        <p>一鍵擷取 591 和 HouseBox 物件資料（標題、價格、坪數、格局、圖片），競品只能手動輸入。</p>
+      </div>
+      <div class="tech-card">
+        <h4>Spintax 文案引擎</h4>
+        <p>每篇貼文自動隨機替換用字，搭配文案微變化功能，每個社團的發文都略有不同，避免被標記為 spam。</p>
+      </div>
+      <div class="tech-card">
+        <h4>智慧延遲 + 養號</h4>
+        <p>根據社團數量自動調整發文間隔，搭配自動養號（滑動態、按讚、留言）模擬真人行為，長期保護帳號安全。</p>
+      </div>
+      <div class="tech-card">
+        <h4>本機架構零風險</h4>
+        <p>帳號密碼純本地存儲，不經任何第三方伺服器。對比競品的雲端代發，零資料外洩風險。</p>
+      </div>
+      <div class="tech-card">
+        <h4>社群包批量管理</h4>
+        <p>社團分組 + 標籤分類 + 推薦社團 + 搜尋加入，管理數十個社團只需幾秒。競品需逐一手動操作。</p>
+      </div>
+      <div class="tech-card">
+        <h4>PDF 批量匯入</h4>
+        <p>支援整個資料夾的 PDF 檔案批量匯入，自動擷取房屋資訊和圖片。傳統做法需一筆一筆手工建立。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>FBGroupPoster v1.6.0 &mdash; Built by Blankspace Studio &mdash; 2026</p>
+</div>
+
+</body>
+</html>
