@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBGroupPoster vs SnapPost — 技術架構對比</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f6f5f1;
+    --white: #ffffff;
+    --grey-01: #f0eee6;
+    --grey-02: #8b877c;
+    --grey-03: #6c6a62;
+    --black: #121212;
+    --accent-warm: #eb8054;
+    --accent-cool: #a8cde8;
+    --green: #85a268;
+    --danger: #d94f4f;
+    --blue: #4a7aab;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    color: var(--black);
+    line-height: 1.6;
+  }
+  .cover {
+    background: var(--black);
+    color: white;
+    padding: 80px 40px 60px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .cover .subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cover .tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .cover .tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--black);
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid var(--grey-01);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+  }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--grey-02);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--black);
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--grey-03);
+    line-height: 1.7;
+  }
+  .card ul, .card ol {
+    padding-left: 18px;
+  }
+  .card li {
+    margin-bottom: 6px;
+  }
+  /* Comparison Table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .compare-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--grey-01);
+    color: var(--grey-02);
+  }
+  .compare-table th:first-child { width: 25%; }
+  .compare-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--grey-01);
+    vertical-align: top;
+    color: var(--grey-03);
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child {
+    font-weight: 600;
+    color: var(--black);
+    font-size: 12px;
+  }
+  .compare-table td.ours { color: var(--black); }
+  .compare-table td.theirs { color: var(--grey-03); }
+  .compare-table tr:hover td { background: var(--cream); }
+  /* Verdict badges */
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-win   { background: #e8f4e1; color: var(--green); }
+  .badge-lose  { background: #fde8e8; color: var(--danger); }
+  .badge-tie   { background: var(--grey-01); color: var(--grey-02); }
+  .badge-warn  { background: #fef3e2; color: #c07a20; }
+  /* Code block */
+  .code-block {
+    background: var(--black);
+    color: #a8cde8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    line-height: 1.7;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+  .code-block .comment { color: #666; }
+  .code-block .keyword { color: #eb8054; }
+  .code-block .string  { color: #85a268; }
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 12px 0;
+  }
+  .flow-step {
+    background: var(--cream);
+    border: 1px solid var(--grey-01);
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--grey-03);
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: var(--accent-warm);
+    font-weight: 700;
+  }
+  /* Two-column grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .compare-table th:nth-child(3), .compare-table td:nth-child(3) { display: none; }
+  }
+  .col-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: inline-block;
+  }
+  .col-header.ours   { background: #e8f0fe; color: var(--blue); }
+  .col-header.theirs { background: #fde8e8; color: var(--danger); }
+  /* Improvement items */
+  .improve-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .improve-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-warm);
+    line-height: 1.2;
+    flex-shrink: 0;
+    width: 32px;
+  }
+  .improve-body h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--black);
+  }
+  .improve-body p {
+    font-size: 13px;
+    color: var(--grey-03);
+    line-height: 1.7;
+  }
+  .improve-body .effort {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 8px;
+  }
+  .effort-low  { background: #e8f4e1; color: var(--green); }
+  .effort-mid  { background: #fef3e2; color: #c07a20; }
+  .effort-high { background: #fde8e8; color: var(--danger); }
+  /* Summary callout */
+  .callout {
+    border-left: 3px solid var(--accent-warm);
+    padding: 16px 20px;
+    background: #fff8f5;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+  }
+  .callout p { font-size: 14px; color: var(--grey-03); line-height: 1.7; }
+  .callout strong { color: var(--black); }
+  /* Score cards */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 500px) { .score-grid { grid-template-columns: 1fr 1fr; } }
+  .score-card {
+    background: var(--cream);
+    border: 1px solid var(--grey-01);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .score-card .score-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .score-card .score-label {
+    font-size: 11px;
+    color: var(--grey-02);
+    font-weight: 600;
+  }
+  .score-green { color: var(--green); }
+  .score-orange { color: var(--accent-warm); }
+  .score-red { color: var(--danger); }
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--grey-01);
+    margin: 32px 0;
+  }
+  /* Footer */
+  footer {
+    background: var(--black);
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    padding: 32px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Scout · Architecture Analysis · 2026-03-16</div>
+  <h1>FBGroupPoster vs SnapPost<br>技術架構深度對比</h1>
+  <div class="subtitle">Chrome Extension (MV3)  vs  Desktop Application</div>
+  <div class="tags">
+    <span class="tag">Chrome Extension MV3</span>
+    <span class="tag">FB DOM Automation</span>
+    <span class="tag">Spintax Engine</span>
+    <span class="tag">Anti-Detection</span>
+    <span class="tag">Auto-Delete</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Section 01: Executive Summary -->
+  <div class="section">
+    <div class="section-eyebrow">01</div>
+    <div class="section-title">執行摘要</div>
+
+    <div class="callout">
+      <p>
+        我們的 <strong>FBGroupPoster</strong> 是 Chrome Extension（MV3），直接在瀏覽器環境操作 Facebook DOM。
+        競品 <strong>SnapPost</strong>（原 行銷快手）是 Windows/macOS 桌面應用，透過獨立程序控制瀏覽器。
+        兩者核心目標相同，但架構選擇帶來截然不同的能力邊界與限制。
+        <strong>我們在帳號安全和客製化有明顯優勢；SnapPost 在規模化和群組資料庫佔先。</strong>
+      </p>
+    </div>
+
+    <div class="score-grid">
+      <div class="score-card">
+        <div class="score-val score-green">$50</div>
+        <div class="score-label">SnapPost 月費 (USD)</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val score-orange">7,000+</div>
+        <div class="score-label">SnapPost 預建群組庫</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val score-orange">6,000</div>
+        <div class="score-label">SnapPost 每月最大發文次數</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val score-green">5</div>
+        <div class="score-label">我們支援圖片數上限（張）</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val score-green">MV3</div>
+        <div class="score-label">我們的 Extension 規範</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val score-red">v5.7.4</div>
+        <div class="score-label">SnapPost 目前版本</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 02: Architecture Overview -->
+  <div class="section">
+    <div class="section-eyebrow">02</div>
+    <div class="section-title">架構類型對比</div>
+
+    <div class="card">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>FBGroupPoster（我們）</th>
+            <th>SnapPost（競品）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>產品類型</td>
+            <td class="ours">Chrome Extension (MV3) <span class="badge badge-win">瀏覽器原生</span></td>
+            <td class="theirs">桌面應用（Win/Mac）<span class="badge badge-tie">獨立程序</span></td>
+          </tr>
+          <tr>
+            <td>安裝方式</td>
+            <td class="ours">Chrome Web Store / 手動 .crx</td>
+            <td class="theirs">下載 .exe 或 .zip 安裝</td>
+          </tr>
+          <tr>
+            <td>授權機制</td>
+            <td class="ours">License Key + Device ID 線上驗證（4 小時緩存）</td>
+            <td class="theirs">Google 帳號綁定 + Stripe 訂閱</td>
+          </tr>
+          <tr>
+            <td>帳號隔離</td>
+            <td class="ours">共用使用者的 Chrome Profile（同一個 cookie jar）<span class="badge badge-warn">風險</span></td>
+            <td class="theirs">獨立 Cookie 管理（可多帳號切換）<span class="badge badge-win">較佳</span></td>
+          </tr>
+          <tr>
+            <td>跨平台</td>
+            <td class="ours">任何支援 Chrome 的系統（含 macOS / Linux）<span class="badge badge-win">優勢</span></td>
+            <td class="theirs">Windows 優先，macOS 次之（M/Intel 各一版）</td>
+          </tr>
+          <tr>
+            <td>資料存儲</td>
+            <td class="ours">chrome.storage.local（限 ~10MB）</td>
+            <td class="theirs">本地端加密存儲（Argon2）</td>
+          </tr>
+          <tr>
+            <td>定價模式</td>
+            <td class="ours">License Key 一次性 or 訂閱</td>
+            <td class="theirs">訂閱制 $50/月（Stripe 自動扣款）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 03: Posting Technology -->
+  <div class="section">
+    <div class="section-eyebrow">03</div>
+    <div class="section-title">發文技術深度對比</div>
+
+    <div class="two-col" style="margin-bottom: 16px;">
+      <div>
+        <span class="col-header ours">我們 — 雙路線架構</span>
+      </div>
+      <div>
+        <span class="col-header theirs">SnapPost — 推測架構</span>
+      </div>
+    </div>
+
+    <!-- Our mbasic route -->
+    <div class="card">
+      <div class="card-label">路線 A — mbasic（純文字，速度優先）</div>
+      <h3>mbasic.facebook.com + textarea 直接填值</h3>
+      <div class="flow">
+        <div class="flow-step">tabs.create( mbasic URL )</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">waitForTabLoad</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">applyStealthPatches</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">performPost( textarea.value )</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">form.submit()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">tabs.remove()</div>
+      </div>
+      <ul style="margin-top: 12px;">
+        <li><strong>優點：</strong>mbasic 是純 HTML，無 React/SPA，DOM 極穩定；submit 不受前端框架影響</li>
+        <li><strong>優點：</strong>等待時間短（少等 React 渲染）</li>
+        <li><strong>限制：</strong>不支援圖片上傳（mbasic 無 file input）</li>
+        <li><strong>回退策略：</strong>若 mbasic 發文失敗，不 fallback 圖片路線（純文字語意不變）</li>
+      </ul>
+    </div>
+
+    <!-- Our www route -->
+    <div class="card">
+      <div class="card-label">路線 B — www compose dialog（圖片支援）</div>
+      <h3>www.facebook.com + React Compose Dialog + DataTransfer</h3>
+      <div class="flow">
+        <div class="flow-step">tabs.create( www URL )</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">clickComposeArea()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">fetch( imageUrl ) → DataURL</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">DataTransfer → fileInput.files</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">insertTextToCompose( execCommand )</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">clickPostButton( TreeWalker )</div>
+      </div>
+      <ul style="margin-top: 12px;">
+        <li><strong>優點：</strong>支援最多 5 張圖片，DataTransfer 是目前繞過 React controlled input 的最可靠方式</li>
+        <li><strong>優點：</strong>圖文並茂提高社團貼文吸引力</li>
+        <li><strong>限制：</strong>Facebook React DOM 選擇器不穩定，每次 FB 改版可能需要更新選擇器策略（TreeWalker 找「發佈」文字節點較脆弱）</li>
+        <li><strong>限制：</strong>需等 12 秒圖片上傳完成，整體較 mbasic 慢 2-3 倍</li>
+        <li><strong>回退策略：</strong>www 失敗 → 自動退回 mbasic（不含圖片）</li>
+      </ul>
+    </div>
+
+    <!-- SnapPost inferred -->
+    <div class="card">
+      <div class="card-label">SnapPost — 逆向推斷（Confidence: medium）</div>
+      <h3>桌面應用 + 獨立 Chromium 實例（推測）</h3>
+      <ul>
+        <li><strong>推測根據：</strong>桌面 .exe 應用 + v5.7.4 版本命名，符合 Electron + Playwright/Puppeteer 架構</li>
+        <li><strong>Cookie 管理：</strong>明確提及「Cookie 管理」功能，可能用 Chrome Extension 擷取 cookie 後注入獨立瀏覽器實例</li>
+        <li><strong>多帳號：</strong>Deluxe 支援 100 個 FB 帳號，顯示有帳號 profile 隔離機制（Extension 架構天然無法做到）</li>
+        <li><strong>群組資料庫：</strong>7,000+ 預建社團 — 必然有後端服務提供群組清單，我們是純本地</li>
+        <li><strong>反偵測：</strong>明確提及「環境模擬（Environment Simulation）」，比我們的指紋遮罩更完整</li>
+        <li><strong>無法確認：</strong>是否直接呼叫 FB 非公開 API（如 FAP）；若是則穩定性遠高於 DOM 操作</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Section 04: Anti-Detection -->
+  <div class="section">
+    <div class="section-eyebrow">04</div>
+    <div class="section-title">防偵測技術對比</div>
+
+    <div class="card">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>防偵測技術</th>
+            <th>我們的實作</th>
+            <th>SnapPost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Spintax 文字變異</td>
+            <td class="ours">完整 Spintax 引擎（支援巢狀）＋ Round-Robin 內容輪替 <span class="badge badge-win">優勢</span></td>
+            <td class="theirs">「Unique images and texts」— 推測有類似機制，未公開細節</td>
+          </tr>
+          <tr>
+            <td>發文間隔</td>
+            <td class="ours">Smart Delay（依群組數量自適應 60s~1200s）+ ±20% 抖動</td>
+            <td class="theirs">「Random breaks」— 無具體參數</td>
+          </tr>
+          <tr>
+            <td>Canvas 指紋</td>
+            <td class="ours">toDataURL 微擾（改 10 像素亂數 XOR）<span class="badge badge-tie">基礎</span></td>
+            <td class="theirs">「Fingerprint masking」— 可能更完整</td>
+          </tr>
+          <tr>
+            <td>WebGL 指紋</td>
+            <td class="ours">getParameter 覆蓋（Intel Iris 硬編碼）<span class="badge badge-warn">固定值</span></td>
+            <td class="theirs">未公開，推測動態生成</td>
+          </tr>
+          <tr>
+            <td>navigator.webdriver</td>
+            <td class="ours">Object.defineProperty → undefined</td>
+            <td class="theirs">「Environment Simulation」覆蓋</td>
+          </tr>
+          <tr>
+            <td>語言/時區一致性</td>
+            <td class="ours">navigator.languages 固定 zh-TW,zh,en-US,en</td>
+            <td class="theirs">推測跟隨系統設定</td>
+          </tr>
+          <tr>
+            <td>資料加密</td>
+            <td class="ours">chrome.storage（無加密）<span class="badge badge-lose">缺陷</span></td>
+            <td class="theirs">Argon2 加密本地存儲 <span class="badge badge-win">優勢</span></td>
+          </tr>
+          <tr>
+            <td>帳號風險隔離</td>
+            <td class="ours">共用使用者 Chrome Profile<span class="badge badge-lose">高風險</span></td>
+            <td class="theirs">Cookie 隔離（各帳號獨立）<span class="badge badge-win">優勢</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>關鍵差距：</strong>我們的 WebGL 指紋回傳固定字串「Intel Iris OpenGL Engine」，
+        所有使用者指紋完全相同，一旦 Facebook 建立此特徵的封鎖規則，將批次影響所有用戶。
+        應改為動態生成隨機但合理的顯卡字串。
+      </p>
+    </div>
+  </div>
+
+  <!-- Section 05: Auto-Delete -->
+  <div class="section">
+    <div class="section-eyebrow">05</div>
+    <div class="section-title">自動刪文技術對比</div>
+
+    <div class="two-col">
+      <div class="card">
+        <span class="col-header ours">我們的實作</span>
+        <h3>chrome.alarms + DOM 操作</h3>
+        <ul>
+          <li>排程由 <code>chrome.alarms.create</code> 觸發，精度 ±1 分鐘</li>
+          <li>一般貼文：開啟 postUrl tab → 找 <code>[aria-label*="動作"]</code> 三點選單 → TreeWalker 找「刪除貼文」→ 確認 dialog</li>
+          <li>待審貼文（無 URL）：導到 <code>mbasic/groups/{id}/my_pending_content</code> → 找第一個「刪除」連結</li>
+          <li>退出前安全檢查：只在有明確 postUrl 格式（/posts/、/permalink/、story_fbid=）時才執行，防止刪錯文</li>
+          <li style="color: var(--danger); font-weight: 600;">已知問題：confirm dialog 的「刪除」按鈕有時點擊無效（FB 某些版本 dialog button 無法 simulateClick）</li>
+          <li style="color: var(--danger);">已知問題：手動刪文後，Extension 記錄仍顯示 pending_delete，需手動清除</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="col-header theirs">SnapPost（行銷快手）</span>
+        <h3>「設定貼文存續時間」每週清理</h3>
+        <ul>
+          <li>使用者設定「貼文存活天數」和目標社團範圍</li>
+          <li>每週自動掃描並刪除過期貼文</li>
+          <li>桌面應用可保持背景常駐，不受 Service Worker 生命週期限制</li>
+          <li>推測：以 Playwright headless 控制瀏覽器，DOM 操作更穩定</li>
+          <li style="color: var(--green);">優勢：UI 清晰（設定存活時間），使用者不需要記得手動刪</li>
+          <li style="color: var(--green);">優勢：週期性批次清理，比我們每筆獨立排程更有效率</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 06: Group Management -->
+  <div class="section">
+    <div class="section-eyebrow">06</div>
+    <div class="section-title">社團管理與規模化能力</div>
+
+    <div class="card">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>功能</th>
+            <th>我們</th>
+            <th>SnapPost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>群組資料庫</td>
+            <td class="ours">純本地，使用者自行蒐集 <span class="badge badge-lose">弱項</span></td>
+            <td class="theirs">7,000+ 預建高品質社團 <span class="badge badge-win">強項</span></td>
+          </tr>
+          <tr>
+            <td>加入社團</td>
+            <td class="ours">關鍵字搜尋 → 自動點擊「加入」按鈕，每次最多抓 20 個結果</td>
+            <td class="theirs">從預建庫選擇 → 漸進式加入（避免帳號被鎖）</td>
+          </tr>
+          <tr>
+            <td>社團規則偵測</td>
+            <td class="ours">抓取 About 頁面 → 解析必填欄位、禁止事項、格式樣本 <span class="badge badge-win">獨有</span></td>
+            <td class="theirs">未提及</td>
+          </tr>
+          <tr>
+            <td>內容個人化</td>
+            <td class="ours">群組自訂模板（{案名}、{地點}等佔位符）<span class="badge badge-win">獨有</span></td>
+            <td class="theirs">未提及具體機制</td>
+          </tr>
+          <tr>
+            <td>多帳號支援</td>
+            <td class="ours">單 Chrome Profile（共用 cookie）<span class="badge badge-lose">限制</span></td>
+            <td class="theirs">Standard 3帳號 / Deluxe 100帳號 <span class="badge badge-win">優勢</span></td>
+          </tr>
+          <tr>
+            <td>每月發文量</td>
+            <td class="ours">受限於 Smart Delay + Service Worker 生命週期</td>
+            <td class="theirs">6,000+ 次/月（宣稱值）</td>
+          </tr>
+          <tr>
+            <td>Marketplace 發文</td>
+            <td class="ours">支援（獨立 postToMarketplace 路線）<span class="badge badge-win">獨有</span></td>
+            <td class="theirs">支援（「無限上架」功能）</td>
+          </tr>
+          <tr>
+            <td>自動留言</td>
+            <td class="ours">支援 AUTO_COMMENT（URL Comment）</td>
+            <td class="theirs">支援（Add-on $19.9/月）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 07: Data Pipeline -->
+  <div class="section">
+    <div class="section-eyebrow">07</div>
+    <div class="section-title">資料來源與爬蟲管線</div>
+
+    <div class="callout">
+      <p>
+        這是我們 <strong>最差異化的功能</strong>：內建 591 / HouseBox 爬蟲 + PDF 批量匯入，
+        是 SnapPost 完全沒有的房仲垂直整合能力。
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">我們的資料管線（房仲垂直整合）</div>
+      <div class="flow">
+        <div class="flow-step">591 URL / HouseBox URL</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">tabs.create（背景 tab）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">scripting.executeScript</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">DOM / og:image 解析</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">generateProfessionalPostContent</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">加入發文佇列</div>
+      </div>
+      <div class="flow" style="margin-top: 8px;">
+        <div class="flow-step">PDF 檔案（批量）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">pdf.js 解析</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">文字 + 圖片擷取</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">加入發文佇列</div>
+      </div>
+      <ul style="margin-top: 16px;">
+        <li>591 用 <code>og:title</code> 取標題（SSR，不需等 Vue 渲染），再等 7-10 秒讓 Vue 完成 mount 後取其他欄位</li>
+        <li>HouseBox 用 innerText 全頁正規表達式匹配（CSS class 不穩定，文字模式較可靠）</li>
+        <li>自動生成專業房仲格式（emoji、格局、售點、hashtag）</li>
+        <li>地址自動模糊處理（移除巷弄門牌，保護隱私）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-label">SnapPost</div>
+      <p>SnapPost 是通用 Facebook 行銷工具，<strong>沒有房仲垂直功能</strong>。使用者需自行準備貼文內容，無自動擷取房源資料的功能。這是我們在房仲市場的核心競爭護城河。</p>
+    </div>
+  </div>
+
+  <!-- Section 08: Stability & State Management -->
+  <div class="section">
+    <div class="section-eyebrow">08</div>
+    <div class="section-title">狀態管理與穩定性</div>
+
+    <div class="card">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>我們</th>
+            <th>SnapPost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>發文狀態追蹤</td>
+            <td class="ours">postRecords（chrome.storage）：active / pending_approval / failed / pending_delete / deleted</td>
+            <td class="theirs">App 內部資料庫，細節未知</td>
+          </tr>
+          <tr>
+            <td>進度回報</td>
+            <td class="ours">每發完一個群組更新 postingProgress → popup real-time 顯示</td>
+            <td class="theirs">App UI 顯示，推測類似</td>
+          </tr>
+          <tr>
+            <td>崩潰恢復</td>
+            <td class="ours">每筆發文後立即 set postRecords（避免 Chrome 崩潰丟資料）</td>
+            <td class="theirs">桌面 App 常駐，崩潰風險較低</td>
+          </tr>
+          <tr>
+            <td>Service Worker 存活</td>
+            <td class="ours">SW keepalive：每筆發文前 touch storage（MV3 SW 5分鐘 inactive 會被殺）<span class="badge badge-warn">架構限制</span></td>
+            <td class="theirs">N/A（常駐程序）<span class="badge badge-win">無此問題</span></td>
+          </tr>
+          <tr>
+            <td>發文鎖定</td>
+            <td class="ours">postingLock（1小時 TTL）防止 popup + alarm 同時發文造成衝突</td>
+            <td class="theirs">單一程序，無競爭問題</td>
+          </tr>
+          <tr>
+            <td>Retry 機制</td>
+            <td class="ours">最多 2 次重試，間隔 5-8 秒</td>
+            <td class="theirs">「Random breaks」推測有重試</td>
+          </tr>
+          <tr>
+            <td>Pending 文處理</td>
+            <td class="ours">偵測 "等待/審核" 關鍵字 → 標記 pendingApproval → 導到 my_pending_content 刪除</td>
+            <td class="theirs">未知具體機制</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 09: Improvement Recommendations -->
+  <div class="section">
+    <div class="section-eyebrow">09</div>
+    <div class="section-title">改善建議（優先排序）</div>
+
+    <div class="card">
+      <div class="improve-item">
+        <div class="improve-num">01</div>
+        <div class="improve-body">
+          <h4>WebGL 指紋動態化</h4>
+          <p>目前 <code>getParameter</code> 回傳固定的「Intel Iris OpenGL Engine」，所有用戶指紋相同。應建立一個顯卡字串池（實際市場常見顯卡型號，約 20-30 種），每次安裝時隨機選取並固定，或每 N 天輪替。這是當前防偵測最明顯的漏洞。</p>
+          <span class="effort effort-low">工時: ~2小時</span>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 16px 0;">
+
+      <div class="improve-item">
+        <div class="improve-num">02</div>
+        <div class="improve-body">
+          <h4>刪文 Confirm Dialog 修復</h4>
+          <p>目前 simulateClick 在某些版本的 FB confirm dialog 上無效，根本原因是 FB 的 button 使用 React 合成事件，dispatchEvent 不一定能觸發。解決方案：改用 <code>pointerdown + pointerup + click</code> 三連擊，或搭配 <code>element.focus() + enter keydown</code> 作為備援。</p>
+          <span class="effort effort-low">工時: ~3小時</span>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 16px 0;">
+
+      <div class="improve-item">
+        <div class="improve-num">03</div>
+        <div class="improve-body">
+          <h4>群組預建資料庫（縮小與 SnapPost 的差距）</h4>
+          <p>SnapPost 最大賣點之一是 7,000+ 預建高質量群組。我們可以建立「房仲專屬群組庫」：爬取台灣主要縣市的房屋買賣/租屋相關 Facebook 群組，建立結構化清單（群組 ID、名稱、成員數、地區、更新日期），打包進 Extension 或作為雲端 API 提供。這個差異化版本（「台灣房仲群組庫」）比 SnapPost 的通用庫更有針對性。</p>
+          <span class="effort effort-mid">工時: ~2-3天（含爬蟲 + UI 整合）</span>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 16px 0;">
+
+      <div class="improve-item">
+        <div class="improve-num">04</div>
+        <div class="improve-body">
+          <h4>chrome.storage 資料加密</h4>
+          <p>SnapPost 使用 Argon2 加密帳號和授權資料，我們的 chrome.storage 是明文存儲。雖然 Chrome Extension 的 storage 已有 sandbox 保護，但對進階用戶（透過 Chrome DevTools 存取）是可見的。建議使用 AES-GCM 加密 license key 和帳號相關敏感資料，密鑰可從 device ID 派生。</p>
+          <span class="effort effort-mid">工時: ~4小時</span>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 16px 0;">
+
+      <div class="improve-item">
+        <div class="improve-num">05</div>
+        <div class="improve-body">
+          <h4>多 Chrome Profile 支援（帳號隔離）</h4>
+          <p>目前我們共用使用者 Chrome Profile，所有操作都在同一個 FB 帳號下。SnapPost 支援 100 個帳號切換。Chrome Extension 無法直接切換 Profile，但可以：（1）在設定中讓使用者切換「目前操作帳號」標識，提示他們在正確 Profile 下使用；（2）長期可考慮提供 Chromium-embedded 的桌面版本解決此根本問題。</p>
+          <span class="effort effort-high">工時: 中長期規劃</span>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 16px 0;">
+
+      <div class="improve-item">
+        <div class="improve-num">06</div>
+        <div class="improve-body">
+          <h4>www compose 選擇器穩定化</h4>
+          <p>目前 <code>clickComposeArea</code> 和 <code>clickPostButton</code> 依賴文字節點（「留個言」、「發佈」）和 TreeWalker，FB 改版後容易失效。建議加入 MutationObserver 監控 dialog 開啟狀態，並建立選擇器版本管理機制（記錄哪個版本在哪個日期失效），快速定位並修復 regression。</p>
+          <span class="effort effort-mid">工時: ~1天</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 10: Competitive Summary -->
+  <div class="section">
+    <div class="section-eyebrow">10</div>
+    <div class="section-title">競爭態勢總結</div>
+
+    <div class="two-col">
+      <div class="card">
+        <span class="col-header ours">我們的優勢</span>
+        <ul>
+          <li>房仲垂直整合（591/HouseBox 爬蟲 + PDF 匯入）</li>
+          <li>社團規則自動偵測（About 頁面解析）</li>
+          <li>群組自訂模板（佔位符系統）</li>
+          <li>Spintax 巢狀引擎 + Round-Robin 輪替</li>
+          <li>跨平台（任何 Chrome 環境）</li>
+          <li>Marketplace 發文整合</li>
+          <li>Smart Delay 自適應間隔</li>
+          <li>完整的待審文處理流程</li>
+          <li>開放原始碼可審計（安全性透明）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="col-header theirs">SnapPost 的優勢</span>
+        <ul>
+          <li>7,000+ 預建高品質群組庫</li>
+          <li>多帳號支援（最多 100 個）</li>
+          <li>Argon2 加密本地資料</li>
+          <li>帳號 Cookie 隔離</li>
+          <li>背景常駐（不受 SW 生命週期限制）</li>
+          <li>更完整的環境模擬反偵測</li>
+          <li>週期性批次刪文（每週清理）</li>
+          <li>一對一遠端教學服務（降低客服門檻）</li>
+          <li>3,000+ 客戶的市場驗證</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 16px;">
+      <p>
+        <strong>結論：</strong>我們在<strong>房仲垂直市場</strong>有明顯差異化優勢，SnapPost 在<strong>通用規模化行銷</strong>較強。
+        最高優先的改善項目是 WebGL 指紋動態化（2小時，高 ROI）和刪文 confirm dialog 修復（3小時，解決已知痛點）。
+        中期目標是建立台灣房仲專屬群組資料庫，這是同時防禦和擴大護城河的最佳策略。
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Scout · System Architect &amp; Codebase Analyst · Rain AI Team · 2026-03-16
+</footer>
+
+</body>
+</html>
