@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kai 中控台重設計 — 深色高級感系統完整交付</title>
+<meta name="description" content="Kai 中控台深色高級感設計重構完成，三層審查全數通過，Ray 核准上線。">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.7;overflow-x:hidden}
+
+/* Slide container */
+.slides{position:relative;height:100vh}
+.slide{display:none;width:100%;min-height:100vh;padding:60px 40px;overflow-y:auto}
+.slide.active{display:flex;flex-direction:column;justify-content:center}
+
+@media(max-width:768px){
+  .slide{padding:40px 24px}
+}
+
+/* Title slide */
+.slide.title{background:var(--black);color:var(--white);text-align:center;position:relative;overflow:hidden}
+.slide.title::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(235,128,84,0.08) 0%,transparent 50%),radial-gradient(circle at 70% 50%,rgba(168,205,232,0.06) 0%,transparent 50%);pointer-events:none}
+.slide.title .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-warm);font-family:var(--mono);border:1px solid rgba(235,128,84,0.3);padding:6px 14px;border-radius:20px;margin-bottom:24px;position:relative;z-index:1}
+.slide.title h1{font-size:clamp(32px,5vw,56px);font-weight:900;letter-spacing:-1px;line-height:1.2;margin-bottom:16px;position:relative;z-index:1}
+.slide.title h2{font-size:clamp(16px,3vw,24px);color:rgba(255,255,255,0.6);font-weight:500;margin-bottom:40px;position:relative;z-index:1}
+.slide.title .date{font-size:12px;color:rgba(255,255,255,0.35);font-family:var(--mono);position:relative;z-index:1}
+
+/* Content slide */
+.slide.content{background:var(--cream)}
+.slide-title{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;color:var(--black)}
+.slide-subtitle{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-warm);font-family:var(--mono);margin-bottom:24px}
+.slide-content{max-width:900px}
+
+/* Tables */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:24px 0}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-track{background:rgba(0,0,0,0.05)}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+table{width:100%;border-collapse:collapse;min-width:600px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+th{background:var(--grey-01);font-weight:600;font-size:13px;padding:14px 16px;text-align:left;border:1px solid var(--grey-01);color:var(--grey-03)}
+td{padding:12px 16px;border:1px solid var(--grey-01);font-size:14px;color:var(--grey-03)}
+tr:nth-child(even) td{background:rgba(255,255,255,0.5)}
+.status-pass{color:var(--green);font-weight:600}
+.status-fail{color:var(--danger);font-weight:600}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin:24px 0}
+.card{background:white;border-radius:12px;padding:24px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.card-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent-warm);font-family:var(--mono);margin-bottom:8px}
+.card-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--black)}
+.card-desc{font-size:14px;color:var(--grey-03);line-height:1.6}
+.card-meta{font-size:12px;color:var(--grey-02);margin-top:12px;font-family:var(--mono)}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:24px 0}
+.metric{background:white;border-radius:10px;padding:20px;text-align:center;border:1px solid var(--grey-01)}
+.metric-value{font-size:32px;font-weight:900;font-family:var(--mono);color:var(--accent-warm)}
+.metric-label{font-size:12px;color:var(--grey-03);margin-top:8px;text-transform:uppercase;letter-spacing:1px}
+
+/* Navigation */
+.nav{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:100;background:rgba(255,255,255,0.95);padding:12px 20px;border-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.nav button{background:var(--black);color:white;border:none;width:40px;height:40px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all 0.2s}
+.nav button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.nav .page-num{display:flex;align-items:center;gap:8px;color:var(--grey-03);font-size:13px;margin:0 12px;font-family:var(--mono)}
+
+/* List */
+.content-list{list-style:none;margin:24px 0}
+.content-list li{padding:12px 0;padding-left:24px;position:relative;font-size:15px;color:var(--grey-03);line-height:1.6}
+.content-list li::before{content:'>';position:absolute;left:0;color:var(--accent-warm);font-weight:700;font-family:var(--mono)}
+
+/* Highlight box */
+.highlight-box{background:rgba(235,128,84,0.06);border-left:4px solid var(--accent-warm);padding:20px;border-radius:8px;margin:24px 0}
+.highlight-box strong{color:var(--accent-warm);font-weight:700}
+
+/* Responsive */
+@media(max-width:600px){
+  .slide{padding:40px 20px}
+  .slide-title{font-size:22px}
+  .card-grid{grid-template-columns:1fr}
+  .nav{bottom:20px;padding:10px 16px}
+  .nav button{width:36px;height:36px;font-size:12px}
+}
+
+/* Print styles */
+@media print{
+  .nav{display:none}
+  .slide{page-break-after:always;min-height:100vh;display:block !important}
+}
+</style>
+</head>
+<body>
+
+<div class="slides">
+
+<!-- Slide 1: Title -->
+<section class="slide title active">
+  <div style="position:relative;z-index:1">
+    <div class="badge">重設計完成</div>
+    <h1>Kai 中控台<br>深色高級感系統</h1>
+    <h2>Ray 核准設計方案完整交付</h2>
+    <div class="date">2026 年 3 月 18 日</div>
+  </div>
+</section>
+
+<!-- Slide 2: 設計目標達成 -->
+<section class="slide content">
+  <div class="slide-content">
+    <div class="slide-subtitle">01 設計目標達成</div>
+    <h1 class="slide-title">完整的設計系統實現</h1>
+
+    <div class="card-grid" style="margin-top:32px">
+      <div class="card">
+        <div class="card-label">配色方案</div>
+        <div class="card-title">深色 UI 套組</div>
+        <div class="card-desc">Config A（Dashboard）黑底深卡片 + 橘色強調；Config B（Marketing）品牌色背景</div>
+        <div class="card-meta">2 套配色系統已實現</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">元件系統</div>
+        <div class="card-title">完整組件庫</div>
+        <div class="card-desc">Button 3 種變體、Card 2 種變體、Badge 動畫支援，統一設計語言</div>
+        <div class="card-meta">13 個核心元件</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">無障礙</div>
+        <div class="card-title">WCAG AA 通過</div>
+        <div class="card-desc">文字對比率 8.16:1，超過標準 80%，可讀性優異</div>
+        <div class="card-meta">通過輔助檢測</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">響應式</div>
+        <div class="card-title">三斷點完全支援</div>
+        <div class="card-desc">1280px（桌機）/ 768px（平板）/ 390px（手機）全覆蓋，無縫體驗</div>
+        <div class="card-meta">100% RWD 相容</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: 交付成物 -->
+<section class="slide content">
+  <div class="slide-content">
+    <div class="slide-subtitle">02 交付成物清單</div>
+    <h1 class="slide-title">完整實作與部署</h1>
+
+    <div class="metrics" style="margin-top:32px">
+      <div class="metric">
+        <div class="metric-value">9</div>
+        <div class="metric-label">檔案修改</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">13</div>
+        <div class="metric-label">Commits</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">3</div>
+        <div class="metric-label">審查層</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">100%</div>
+        <div class="metric-label">通過率</div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px">
+      <p style="font-size:15px;color:var(--grey-03);margin-bottom:16px">
+        <strong style="color:var(--black)">Commit 構成：</strong>
+      </p>
+      <ul class="content-list">
+        <li><strong>10 個 feature commits</strong> — 核心功能實作 + UI/CSS 改進</li>
+        <li><strong>2 個 bugfix commits</strong> — 響應式排版修復 + 深色模式相容性</li>
+        <li><strong>1 個 complete commit</strong> — 最終品質檢查 + 上線簽核</li>
+      </ul>
+    </div>
+
+    <div class="highlight-box" style="margin-top:32px">
+      <strong>✓ Backward compatibility 驗證完成</strong><br>
+      現有功能無迴歸，深色主題完全獨立，可無縫切換
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: 審查結果 -->
+<section class="slide content">
+  <div class="slide-content">
+    <div class="slide-subtitle">03 三層審查結果摘要</div>
+    <h1 class="slide-title">全數通過核准</h1>
+
+    <div class="table-wrap" style="margin-top:32px">
+      <table>
+        <thead>
+          <tr>
+            <th>審查層</th>
+            <th>負責人</th>
+            <th>評審項目</th>
+            <th>結果</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Layer 1</strong></td>
+            <td>Quill</td>
+            <td>程式碼品質、規格合規、可讀性、測試覆蓋</td>
+            <td><span class="status-pass">✓ PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Layer 2</strong></td>
+            <td>Forge</td>
+            <td>Lint、TypeScript、單元測試、Build</td>
+            <td><span class="status-pass">✓ PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Layer 3</strong></td>
+            <td>Ray</td>
+            <td>設計架構、風險評估、邊界情況、開工簽核</td>
+            <td><span class="status-pass">✓ PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:32px;background:white;border-radius:12px;padding:24px;border:1px solid var(--grey-01)">
+      <p style="font-size:14px;color:var(--grey-03);margin-bottom:12px">
+        <strong style="color:var(--black)">Quill 審查備註：</strong>
+      </p>
+      <ul class="content-list" style="margin-top:8px">
+        <li>2 個 Low-risk Warning（Button 語義補充、GetStarted 互動狀態預留）</li>
+        <li>可於下次迭代處理，不阻擋上線</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 5: 後續行動 -->
+<section class="slide content">
+  <div class="slide-content">
+    <div class="slide-subtitle">04 後續行動</div>
+    <h1 class="slide-title">迭代與維護計畫</h1>
+
+    <div class="card-grid" style="margin-top:32px">
+      <div class="card">
+        <div class="card-label">短期</div>
+        <div class="card-title">Quill Warning 處理</div>
+        <div class="card-desc">Button 語義補充 + GetStarted 互動狀態，預計下週迭代</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">中期</div>
+        <div class="card-title">後端路由同步</div>
+        <div class="card-desc">後端與前端協調 /landing、/pricing、/get-started 路由變更</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">持續</div>
+        <div class="card-title">使用者反饋蒐集</div>
+        <div class="card-desc">深色模式在實際環境中的使用體驗監控與優化</div>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:40px">
+      <strong>即刻可上線</strong><br>
+      三層審查全數通過，無 Blocker，可立即部署至生產環境
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()">← 上頁</button>
+  <div class="page-num">
+    <span id="current">1</span> / <span id="total">5</span>
+  </div>
+  <button onclick="nextSlide()">下頁 →</button>
+</div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+document.getElementById('total').textContent = totalSlides;
+
+function showSlide(n) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[n].classList.add('active');
+  document.getElementById('current').textContent = n + 1;
+}
+
+function nextSlide() {
+  currentSlide = (currentSlide + 1) % totalSlides;
+  showSlide(currentSlide);
+}
+
+function prevSlide() {
+  currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+  showSlide(currentSlide);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') nextSlide();
+  if (e.key === 'ArrowLeft') prevSlide();
+});
+
+showSlide(0);
+</script>
+
+</body>
+</html>
