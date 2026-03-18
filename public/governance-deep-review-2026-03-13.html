@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Governance System — 深度審查報告 2026-03-13</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:#f6f5f1;color:#1a1a1a;line-height:1.7;-webkit-font-smoothing:antialiased}
+code,.mono{font-family:'JetBrains Mono',monospace;font-size:.85em;background:#f0eee6;padding:1px 5px;border-radius:3px}
+
+/* ── Cover ── */
+.cover{background:#1c1b18;color:#f6f5f1;padding:72px 32px 56px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(180,140,90,.12) 0%,transparent 70%);pointer-events:none}
+.cover-eyebrow{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.16em;color:#9d8b72;margin-bottom:18px}
+.cover h1{font-size:2rem;font-weight:700;letter-spacing:-.025em;margin-bottom:10px;line-height:1.25}
+.cover h1 em{font-style:normal;color:#c8a96e}
+.cover .subtitle{font-size:.95rem;color:#9a9488;margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto}
+.cover-verdict{display:inline-flex;align-items:center;gap:10px;border:1.5px solid #4a9e6a;border-radius:6px;padding:9px 22px;color:#4a9e6a;font-weight:600;font-size:.95rem;letter-spacing:.03em}
+.cover-verdict .dot{width:8px;height:8px;border-radius:50%;background:#4a9e6a;flex-shrink:0}
+.cover-meta{margin-top:28px;font-size:.78rem;color:#5c574f;letter-spacing:.04em}
+.cover-meta span{margin:0 10px}
+
+/* ── Nav ── */
+.nav{background:#fff;border-bottom:1px solid #e8e6df;position:sticky;top:0;z-index:100}
+.nav-inner{max-width:960px;margin:0 auto;display:flex;overflow-x:auto;padding:0 24px;gap:0}
+.nav-inner::-webkit-scrollbar{height:0}
+.nav-link{padding:13px 16px;font-size:.8rem;font-weight:500;color:#7a7870;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.nav-link:hover,.nav-link.active{color:#1a1a1a;border-bottom-color:#c8a96e}
+
+/* ── Page layout ── */
+.main{max-width:960px;margin:0 auto;padding:48px 24px 100px}
+
+/* ── Section ── */
+.section{margin-bottom:60px;scroll-margin-top:56px}
+.section-eyebrow{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#c8a96e;margin-bottom:8px}
+.section h2{font-size:1.35rem;font-weight:700;letter-spacing:-.015em;margin-bottom:6px}
+.section-desc{font-size:.88rem;color:#6a685f;margin-bottom:24px}
+.section h3{font-size:1rem;font-weight:600;margin:24px 0 10px;color:#2a2a28}
+.section p{font-size:.92rem;color:#3d3d38;margin-bottom:10px}
+
+/* ── Summary stats ── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0 28px}
+@media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:18px 16px;text-align:center}
+.stat-card .stat-label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#9a9488;margin-bottom:8px}
+.stat-card .stat-num{font-size:2rem;font-weight:700;line-height:1;margin-bottom:4px}
+.stat-card .stat-sub{font-size:.75rem;color:#8a8880}
+.stat-num.green{color:#3d8a5a}
+.stat-num.orange{color:#c86430}
+.stat-num.red{color:#b83434}
+.stat-num.blue{color:#3060a0}
+.stat-num.gray{color:#8a8880}
+
+/* ── Verdict banner ── */
+.verdict-banner{background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;gap:16px}
+.verdict-icon{width:44px;height:44px;border-radius:8px;background:#e8f5ee;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.verdict-icon svg{width:22px;height:22px}
+.verdict-text h4{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.verdict-text p{font-size:.85rem;color:#5a5850}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto;margin:12px 0 20px;border-radius:8px;border:1px solid #e8e6df}
+table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:480px}
+th{background:#f3f1eb;font-weight:600;text-align:left;padding:10px 14px;color:#3a3a36;white-space:nowrap;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e8e6df}
+td{padding:10px 14px;border-top:1px solid #eceae3;color:#3d3d38;vertical-align:top}
+tr:hover td{background:#faf9f5}
+td.center,th.center{text-align:center}
+td code{font-size:.82em}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.badge-green{background:#e4f2e8;color:#2a7a48}
+.badge-orange{background:#fef0e4;color:#c05828}
+.badge-red{background:#fde8e8;color:#b83434}
+.badge-blue{background:#e4eeff;color:#2850a0}
+.badge-gray{background:#efede6;color:#6a6860}
+.badge-gold{background:#fdf3dc;color:#966820}
+
+/* ── Risk row ── */
+.risk-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #eceae3}
+.risk-row:last-child{border-bottom:none}
+.risk-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.risk-dot.high{background:#d94f4f}
+.risk-dot.medium{background:#e08040}
+.risk-dot.low{background:#5a9e6a}
+.risk-body{}
+.risk-title{font-size:.9rem;font-weight:600;margin-bottom:3px}
+.risk-desc{font-size:.83rem;color:#5a5850}
+.risk-fix{font-size:.8rem;color:#3d7050;margin-top:4px;font-style:italic}
+
+/* ── Fixed/pending marker ── */
+.marker{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:3px;border:1px solid}
+.marker-fixed{color:#2a7a48;border-color:#8ac89a;background:#ecf7ef}
+.marker-pending{color:#7a5820;border-color:#d4b06a;background:#fdf5e4}
+.marker-roadmap{color:#3858a0;border-color:#a0b4d8;background:#eef2fc}
+
+/* ── Cards ── */
+.card{background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:18px 22px;margin-bottom:14px}
+.card h4{font-size:.92rem;font-weight:600;margin-bottom:6px}
+.card p,.card li{font-size:.87rem;color:#4a4a45}
+.card ul{margin-left:18px}
+.card li{margin-bottom:4px}
+
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media(max-width:560px){.card-grid{grid-template-columns:1fr}}
+
+/* ── Action card ── */
+.action-card{border-left:4px solid #c8a96e;background:#fff;padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;border:1px solid #e8e6df;border-left-width:4px;border-left-color:#c8a96e}
+.action-card.green{border-left-color:#5a9e6a}
+.action-card.blue{border-left-color:#5080c0}
+.action-card.red{border-left-color:#c05050}
+.action-card h4{font-size:.88rem;font-weight:600;margin-bottom:5px}
+.action-card p{font-size:.83rem;color:#4a4a45}
+
+/* ── Divider ── */
+.divider{border:none;border-top:1px solid #e8e6df;margin:32px 0}
+
+/* ── File list ── */
+.file-list{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.file-item{background:#fff;border:1px solid #e8e6df;border-radius:8px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px}
+.file-item-path{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#2a5898;font-weight:500;flex-shrink:0;min-width:220px}
+.file-item-desc{font-size:.83rem;color:#4a4a45}
+
+/* ── Roadmap ── */
+.roadmap-item{padding:14px 0;border-bottom:1px solid #eceae3;display:flex;align-items:flex-start;gap:14px}
+.roadmap-item:last-child{border-bottom:none}
+.roadmap-priority{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:3px;flex-shrink:0;margin-top:2px}
+.prio-high{background:#fde8e8;color:#b03030}
+.prio-medium{background:#fef0e0;color:#b06020}
+.prio-low{background:#edf5ee;color:#3a7048}
+.roadmap-body h4{font-size:.9rem;font-weight:600;margin-bottom:3px}
+.roadmap-body p{font-size:.83rem;color:#5a5850}
+
+/* ── Positive list ── */
+.ok-list{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.ok-item{background:#f4faf6;border:1px solid #c8dece;border-radius:7px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px}
+.ok-item svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;color:#3a7a50}
+.ok-item-body{}
+.ok-item-title{font-size:.88rem;font-weight:600;color:#2a5a3a;margin-bottom:2px}
+.ok-item-desc{font-size:.82rem;color:#4a6850}
+
+/* ── Footer ── */
+.footer{text-align:center;padding:40px 24px;color:#9a9488;font-size:.78rem;border-top:1px solid #e8e6df;margin-top:60px}
+.footer span{margin:0 8px}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<header class="cover">
+  <div class="cover-eyebrow">Deep Review Report &mdash; 2026-03-13</div>
+  <h1>AI Governance System<br><em>深度審查報告</em></h1>
+  <p class="subtitle">Quill Code Review + Scout Architecture Analysis + 即時修復紀錄</p>
+  <div class="cover-verdict">
+    <span class="dot"></span>
+    通過（有條件） &mdash; 0 BLOCKER &nbsp;|&nbsp; 11 Warnings 全部修復 &nbsp;|&nbsp; 12 建議已記錄
+  </div>
+  <p class="cover-meta">
+    <span>審查方：Quill（Layer 1）+ Scout（Phase 2 架構）</span>
+    <span>日期：2026-03-13</span>
+  </p>
+</header>
+
+<!-- Sticky nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-link" href="#s1">審查結論</a>
+    <a class="nav-link" href="#s2">Quill — 已修復</a>
+    <a class="nav-link" href="#s3">Scout — 已修復</a>
+    <a class="nav-link" href="#s4">Architecture Gaps</a>
+    <a class="nav-link" href="#s5">Remaining Risks</a>
+    <a class="nav-link" href="#s6">正向驗證</a>
+    <a class="nav-link" href="#s7">修改檔案</a>
+    <a class="nav-link" href="#s8">v2 Roadmap</a>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- S1: 審查結論 -->
+  <section class="section" id="s1">
+    <div class="section-eyebrow">Slide 1</div>
+    <h2>審查結論</h2>
+    <p class="section-desc">整體評估：核心邏輯正確，所有高優先問題已在本次 session 內即時修復。</p>
+
+    <div class="verdict-banner">
+      <div class="verdict-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3a7a50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="verdict-text">
+        <h4>整體結論：通過（有條件）</h4>
+        <p>0 BLOCKER。核心邏輯正確。11 項 Warning 已全部修復，12 項未來建議已記錄 roadmap。</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">BLOCKER</div>
+        <div class="stat-num gray">0</div>
+        <div class="stat-sub">無阻塞問題</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">WARNING（Quill）</div>
+        <div class="stat-num green">7</div>
+        <div class="stat-sub">全部已修復</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">RISK（Scout）</div>
+        <div class="stat-num orange">9</div>
+        <div class="stat-sub">4 修復 / 5 low 待處理</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">GAP（Scout）</div>
+        <div class="stat-num blue">12</div>
+        <div class="stat-sub">Roadmap 記錄</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">SUGGESTION</div>
+        <div class="stat-num gray">5</div>
+        <div class="stat-sub">1 修復 / 4 cosmetic</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>類別</th>
+            <th class="center">發現</th>
+            <th class="center">已修復</th>
+            <th class="center">待處理</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>BLOCKER</strong></td>
+            <td class="center">0</td>
+            <td class="center">—</td>
+            <td class="center">—</td>
+            <td><span class="badge badge-gray">N/A</span></td>
+          </tr>
+          <tr>
+            <td><strong>WARNING（Quill）</strong></td>
+            <td class="center">7</td>
+            <td class="center">7</td>
+            <td class="center">0</td>
+            <td><span class="badge badge-green">全部修復</span></td>
+          </tr>
+          <tr>
+            <td><strong>RISK（Scout）</strong></td>
+            <td class="center">9</td>
+            <td class="center">4</td>
+            <td class="center">5 (low)</td>
+            <td><span class="badge badge-orange">部分修復</span></td>
+          </tr>
+          <tr>
+            <td><strong>GAP（Scout）</strong></td>
+            <td class="center">12</td>
+            <td class="center">0</td>
+            <td class="center">12 (roadmap)</td>
+            <td><span class="badge badge-blue">Roadmap</span></td>
+          </tr>
+          <tr>
+            <td><strong>SUGGESTION（Quill）</strong></td>
+            <td class="center">5</td>
+            <td class="center">1</td>
+            <td class="center">4 (cosmetic)</td>
+            <td><span class="badge badge-gray">低優先</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-grid">
+      <div class="action-card green">
+        <h4>Quill（Layer 1 程式碼審查 / Sonnet）</h4>
+        <p>7 Warning + 5 Suggestion。所有 Warning 已在本次 session 完成修復；4 個純外觀建議列為低優先。</p>
+      </div>
+      <div class="action-card blue">
+        <h4>Scout（Phase 2 架構分析 / Sonnet）</h4>
+        <p>9 Risk + 12 Gap。高優先 Risk 已修復；5 個 low-risk 項目評估後可延後；12 個 Gap 進入 v2 Roadmap。</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S2: Quill 已修復 -->
+  <section class="section" id="s2">
+    <div class="section-eyebrow">Slide 2</div>
+    <h2>Quill — 已修復 Warnings</h2>
+    <p class="section-desc">7 個 Warning 均已在 session 內即時修復，S1 同步完成。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:48px">ID</th>
+            <th>問題描述</th>
+            <th>嚴重度</th>
+            <th>修復方式</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>W1</code></td>
+            <td>JSONL append 無 file lock，並行寫入可能損壞 audit 與 autofix 兩處</td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>加入 <code>fcntl.flock</code>（audit + autofix 兩處均已處理）</td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W2</code></td>
+            <td>L2/L3 threshold 計算為原始數量而非 distinct days，多次同日任務重複計入</td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>改為計算 distinct calendar days（<code>set</code> dedup）</td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W3</code></td>
+            <td>H4 只取 50 筆任務，漏掉歷史舊任務導致合規計算偏低</td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>改為 <code>limit=200&amp;sort=newest</code></td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W4</code></td>
+            <td><code>governance.py</code> <code>_refresh_in_progress</code> flag 非 thread-safe</td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>加入 single-worker assumption 文件註解，說明使用場景與限制</td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W5</code></td>
+            <td>Module I 讀 autofix log 時無 <code>JSONDecodeError</code> 處理，單行損壞可中斷整個模組</td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>加入 per-line <code>try/except JSONDecodeError</code></td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W6</code></td>
+            <td>H2 git 指令非零 returncode 無回報，靜默失敗難以排查</td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>捕獲 <code>stderr</code>，將錯誤寫入 <code>result["error"]</code></td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>W7</code></td>
+            <td><code>_VALID_SEVERITY</code> 在多處重複定義（DRY 違反）</td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>提升為模組級常數 <code>VALID_SEVERITY_LEVELS</code>，統一來源</td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+          <tr>
+            <td><code>S1</code></td>
+            <td><code>import re</code> 置於函數內（deferred import），可讀性差</td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>移至檔案頂部標準 import 區塊</td>
+            <td><span class="marker marker-fixed">已修復</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="action-card green">
+      <h4>剩餘 Suggestion（S2–S5）— 未修復，低優先</h4>
+      <p>S2–S5 均為純外觀/可讀性調整（函數命名、行長度、空白格式），不影響功能正確性，列入下次 cosmetic pass 處理。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S3: Scout 已修復 -->
+  <section class="section" id="s3">
+    <div class="section-eyebrow">Slide 3</div>
+    <h2>Scout — 已修復 Risks（4 項）</h2>
+    <p class="section-desc">9 個架構風險中，高/中優先的 4 項已即時處理。</p>
+
+    <div style="margin:0 0 8px">
+      <div class="risk-row">
+        <div class="risk-dot high"></div>
+        <div class="risk-body">
+          <div class="risk-title">
+            <code>R7</code> — L3 <code>_fix_scheduler_unregistered_job</code> 缺 job_key 驗證
+            <span class="badge badge-red" style="margin-left:8px">High</span>
+            <span class="marker marker-fixed" style="margin-left:6px">已修復</span>
+          </div>
+          <div class="risk-desc">未驗證的 job_key 可寫入任意排程設定，存在注入風險。</div>
+          <div class="risk-fix">修復：加入 <code>re.match(r'^[\w.-]+$', job_key)</code> guard；驗證失敗時 fallback 並記錄 warning，不執行 fix。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot medium"></div>
+        <div class="risk-body">
+          <div class="risk-title">
+            <code>R2</code> — 審查快取非原子寫入，kill 可能損壞快取檔
+            <span class="badge badge-orange" style="margin-left:8px">Medium</span>
+            <span class="marker marker-fixed" style="margin-left:6px">已修復</span>
+          </div>
+          <div class="risk-desc">直接 <code>open(path, 'w')</code> 寫入，若程序在中途被中止，快取檔案變成半殘廢 JSON。</div>
+          <div class="risk-fix">修復：改為先寫 <code>.tmp</code> 暫存檔，完成後 <code>os.rename()</code> 原子替換。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot low"></div>
+        <div class="risk-body">
+          <div class="risk-title">
+            <code>R5</code> — Module H timeout 60s 可能不夠
+            <span class="badge badge-gray" style="margin-left:8px">Low</span>
+            <span class="marker marker-fixed" style="margin-left:6px">已修復</span>
+          </div>
+          <div class="risk-desc">健康檢查在高負載時可能超時，導致夜班報告缺少 H 模組資料。</div>
+          <div class="risk-fix">修復：timeout 提升為 120s。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot low"></div>
+        <div class="risk-body">
+          <div class="risk-title">
+            <code>R6</code> — Module I 只顯示最後 5 筆 autofix 記錄
+            <span class="badge badge-gray" style="margin-left:8px">Low</span>
+            <span class="marker marker-fixed" style="margin-left:6px">已修復</span>
+          </div>
+          <div class="risk-desc">密集修復期一夜可超過 5 筆，報告截斷。</div>
+          <div class="risk-fix">修復：提升為 last 20 筆。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S4: Architecture Gaps -->
+  <section class="section" id="s4">
+    <div class="section-eyebrow">Slide 4</div>
+    <h2>Scout — Architecture Gaps（v2 Roadmap）</h2>
+    <p class="section-desc">12 個架構缺口本次均未修復，按優先順序進入 v2 Roadmap。</p>
+
+    <h3>高優先（建議 v2 優先處理）</h3>
+    <div style="margin:0 0 8px">
+      <div class="risk-row">
+        <div class="risk-dot high"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G1</code> — <code>verified=True</code> 用來代表審查完成不可靠 <span class="badge badge-red" style="margin-left:8px">High</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">H4 以 <code>verified</code> 欄位判斷任務是否通過審查，但 <code>verified</code> 也可由其他流程設定，語義不精確。建議：新增 <code>review_evidence</code> 欄位，記錄審查者 + 時間戳。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot high"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G6</code> — 無 API 端點觸發 autofix on-demand <span class="badge badge-red" style="margin-left:8px">High</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">目前 autofix 只能排程觸發，無法在問題發現後立即修復。建議：加入 <code>POST /api/governance/autofix</code> 端點，支援選擇性執行特定修復層。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot high"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G9</code> — 無 Sentinel Hook 運作審查 <span class="badge badge-red" style="margin-left:8px">High</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">Governance 系統未涵蓋 Sentinel git hook 的健康狀態，Hook 失效可能被忽視。建議：新增 H9 模組，每日驗證 Sentinel hook 是否掛載且可執行。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot high"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G10</code> — 無 3-Phase Planning 合規審查 <span class="badge badge-red" style="margin-left:8px">High</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">Major/Critical 任務要求完整三階段規劃，但 Governance 目前無驗證機制。建議：加入 Phase 規劃合規度到 governance roadmap。</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>中優先</h3>
+    <div style="margin:0 0 8px">
+      <div class="risk-row">
+        <div class="risk-dot medium"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G2</code> — H4 跳過 Standard 任務的 Quill/Forge 審查 <span class="badge badge-orange" style="margin-left:8px">Medium</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">只審 Major+ 的 verified 欄位，Standard 任務是否完整通過 Quill + Forge 無從確認。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot medium"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G3</code> — 高 unknown_severity 可膨脹合規率 <span class="badge badge-orange" style="margin-left:8px">Medium</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc"><code>unknown_severity</code> 任務被計入分母，拉高合規百分比，但這些任務實際上未受嚴格管控。建議分開報告。</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-dot medium"></div>
+        <div class="risk-body">
+          <div class="risk-title"><code>G8</code> — 審查合規僅夜間偵測，無即時 hook <span class="badge badge-orange" style="margin-left:8px">Medium</span> <span class="marker marker-roadmap" style="margin-left:6px">Roadmap</span></div>
+          <div class="risk-desc">問題最早在第二天早晨才被偵測，高優先違規有 8–16 小時延遲窗口。</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>低優先</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4><code>G4</code> — 無反向掃描</h4>
+        <p>無從確認 agent 目錄是否與 team.json 完全對齊，ghost agent 目錄未偵測。</p>
+      </div>
+      <div class="card">
+        <h4><code>G5</code> — Module H 超時後無 cache 存在檢查</h4>
+        <p>超時後報告顯示空白，而非回落到上次快取資料。</p>
+      </div>
+      <div class="card">
+        <h4><code>G7</code> — 無 per-module 獨立 API 端點</h4>
+        <p>無法只執行特定模組（如只跑 H5），除錯與維護不便。</p>
+      </div>
+      <div class="card">
+        <h4><code>G11</code> — 無 frozen agent 活動偵測</h4>
+        <p>Milo/Sage 已凍結，但若被誤用也不會觸發告警。</p>
+      </div>
+      <div class="card">
+        <h4><code>G12</code> — 無模型成本層級升級偵測</h4>
+        <p>Sonnet 任務若被路由到 Opus 不會觸發告警，成本無法控管。</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S5: Remaining Risks -->
+  <section class="section" id="s5">
+    <div class="section-eyebrow">Slide 5</div>
+    <h2>Scout — Remaining Risks（已評估，可延後）</h2>
+    <p class="section-desc">5 個風險已評估為可接受或短期可緩解，延後處理。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:48px">ID</th>
+            <th>嚴重度</th>
+            <th>描述</th>
+            <th>決定</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>R1</code></td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>API 回應無 cache 時效欄位，前端無法判斷資料新鮮度</td>
+            <td>v2 加 <code>cache_age_seconds</code> 欄位</td>
+          </tr>
+          <tr>
+            <td><code>R3</code></td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>gooayeai / gooaye-ai 目錄名稱解析脆弱，normalize match 靠字串猜測</td>
+            <td>目前 normalize match 可用，記錄為 tech debt；建議標準化目錄命名</td>
+          </tr>
+          <tr>
+            <td><code>R4</code></td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>Ghost agent 檔案（<code>planner</code>、<code>code-reviewer</code>、<code>security-reviewer</code>）無偵測</td>
+            <td>與 G4 合併，加 H1b 反向掃描後一起解決</td>
+          </tr>
+          <tr>
+            <td><code>R8</code></td>
+            <td><span class="badge badge-gray">Low</span></td>
+            <td>L3 aggregate count 可能造成 burst fix（短時間大量觸發修復）</td>
+            <td>W2 改用 distinct-day 計算後已大幅緩解，觀察一週</td>
+          </tr>
+          <tr>
+            <td><code>R9</code></td>
+            <td><span class="badge badge-orange">Medium</span></td>
+            <td>H5/H6 limit=200 在任務量極大時仍可能 undercount</td>
+            <td>v2 加入 <code>created_after</code> 日期過濾，確保只統計近期任務</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S6: 正向驗證 -->
+  <section class="section" id="s6">
+    <div class="section-eyebrow">Slide 6</div>
+    <h2>正向驗證（Quill OK 清單）</h2>
+    <p class="section-desc">以下區域經 Quill Full Review 驗證為正確實作，無需修改。</p>
+
+    <div class="ok-list">
+      <div class="ok-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="ok-item-body">
+          <div class="ok-item-title">Injection 防護</div>
+          <div class="ok-item-desc">autofix 全程使用 JSON POST，無 <code>shell=True</code>，regex guard 到位（R7 修復後全鏈安全）。</div>
+        </div>
+      </div>
+      <div class="ok-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="ok-item-body">
+          <div class="ok-item-title">verified 欄位傳遞完整性</div>
+          <div class="ok-item-desc"><code>complete_task</code> → <code>_transition</code> → DB → <code>_to_dict</code> 全鏈完整，欄位不遺失。</div>
+        </div>
+      </div>
+      <div class="ok-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="ok-item-body">
+          <div class="ok-item-title">severity_level 雙重驗證</div>
+          <div class="ok-item-desc"><code>create_task</code> + <code>update_task</code> 兩處均已驗證。<code>force_complete</code> 不接受該欄位（正確設計，避免後門修改嚴重度）。</div>
+        </div>
+      </div>
+      <div class="ok-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="ok-item-body">
+          <div class="ok-item-title">Module H/I 失敗隔離</div>
+          <div class="ok-item-desc">所有模組已用 <code>try/except</code> 包裹，單模組失敗不影響其他夜班模組繼續執行。</div>
+        </div>
+      </div>
+      <div class="ok-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <div class="ok-item-body">
+          <div class="ok-item-title">_auto_assign fallback</div>
+          <div class="ok-item-desc">未知任務類型 → fallback 到 <code>klay</code>，確保任何任務都有兜底 assignee，不出現孤兒任務。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S7: 修改檔案 -->
+  <section class="section" id="s7">
+    <div class="section-eyebrow">Slide 7</div>
+    <h2>修改檔案清單</h2>
+    <p class="section-desc">本次深度審查修復涉及 5 個檔案，共解決 11 個 Warning/Risk。</p>
+
+    <div class="file-list">
+      <div class="file-item">
+        <div class="file-item-path">governance-audit.py</div>
+        <div class="file-item-desc">
+          <span class="marker marker-fixed">W1</span> fcntl.flock file lock &nbsp;
+          <span class="marker marker-fixed">W3</span> limit=200 &nbsp;
+          <span class="marker marker-fixed">W6</span> returncode check + stderr capture &nbsp;
+          <span class="marker marker-fixed">R2</span> atomic write via .tmp + os.rename
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-item-path">governance-autofix.py</div>
+        <div class="file-item-desc">
+          <span class="marker marker-fixed">W2</span> distinct-day count &nbsp;
+          <span class="marker marker-fixed">S1</span> import re 移頂部 &nbsp;
+          <span class="marker marker-fixed">R7</span> L3 job_key re.match guard + fallback &nbsp;
+          <span class="marker marker-fixed">W1</span> fcntl.flock file lock
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-item-path">night-shift-comprehensive.py</div>
+        <div class="file-item-desc">
+          <span class="marker marker-fixed">W5</span> per-line JSONDecodeError handling &nbsp;
+          <span class="marker marker-fixed">R5</span> timeout 60s → 120s &nbsp;
+          <span class="marker marker-fixed">R6</span> last 5 → last 20 autofix lines
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-item-path">governance.py</div>
+        <div class="file-item-desc">
+          <span class="marker marker-fixed">W4</span> single-worker assumption 文件註解（thread-safety scope clarified）
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-item-path">agent_task_service.py</div>
+        <div class="file-item-desc">
+          <span class="marker marker-fixed">W7</span> 提升 <code>_VALID_SEVERITY</code> 為模組級常數 <code>VALID_SEVERITY_LEVELS</code>，消除重複定義
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S8: v2 Roadmap -->
+  <section class="section" id="s8">
+    <div class="section-eyebrow">Slide 8</div>
+    <h2>下一步建議（v2 Roadmap）</h2>
+    <p class="section-desc">依優先順序排列，建議 v2 版本按此序列執行。</p>
+
+    <div style="margin:0">
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-high">P0</div>
+        <div class="roadmap-body">
+          <h4>新增 <code>review_evidence</code> 欄位（G1）</h4>
+          <p>解決 H4 合規可靠性問題。記錄審查者 ID + 時間戳，取代靠 <code>verified</code> 欄位猜測的現狀。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-high">P0</div>
+        <div class="roadmap-body">
+          <h4>新增 <code>POST /api/governance/autofix</code> 端點（G6）</h4>
+          <p>支援 on-demand 觸發 autofix，並可選擇性執行特定修復層（L1/L2/L3）。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-high">P1</div>
+        <div class="roadmap-body">
+          <h4>新增 H9 Sentinel Hook 審查模組（G9）</h4>
+          <p>每日驗證 Sentinel hook 是否掛載、可執行，並整合入夜班綜合報告。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-high">P1</div>
+        <div class="roadmap-body">
+          <h4>H5/H6 加入 <code>created_after</code> 日期過濾（R9）</h4>
+          <p>解決大量任務時 limit=200 可能 undercount 的問題，確保統計範圍可控。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-medium">P2</div>
+        <div class="roadmap-body">
+          <h4>新增 H10 Frozen Agent 活動偵測（G11）</h4>
+          <p>偵測 Milo/Sage 等已凍結 agent 是否有非預期活動，防止誤用。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-medium">P2</div>
+        <div class="roadmap-body">
+          <h4>標準化 gooayeai 目錄命名（R3）</h4>
+          <p>統一為單一名稱，消除 normalize match 的脆弱性，避免未來重構 break。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-low">P3</div>
+        <div class="roadmap-body">
+          <h4>加入 3-Phase Planning 合規審查（G10）</h4>
+          <p>Major/Critical 任務是否確實完成三階段規劃，補齊目前的合規盲區。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-low">P3</div>
+        <div class="roadmap-body">
+          <h4>H1b 反向掃描（R4 + G4）</h4>
+          <p>掃描 agent 目錄，找出 team.json 中不存在的目錄（ghost agents），防止僵屍設定累積。</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-priority prio-low">P3</div>
+        <div class="roadmap-body">
+          <h4>API 回應加入 <code>cache_age_seconds</code>（R1）</h4>
+          <p>讓前端能顯示資料新鮮度，提升 Governance Dashboard 可信度。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-card" style="margin-top:28px">
+      <h4>未排入 Roadmap 的低優先項目</h4>
+      <p>G5（Module H cache fallback）、G7（per-module API 端點）、G8（即時合規 hook）、G12（模型成本層級升級偵測）— 記錄為 tech debt，視需求決定是否排期。</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>AI Governance System — 深度審查報告</span>
+  <span>審查方：Quill (Layer 1 / Sonnet) + Scout (Phase 2 / Sonnet)</span>
+  <span>日期：2026-03-13</span>
+  <span>狀態：通過（有條件）</span>
+</footer>
+
+</body>
+</html>

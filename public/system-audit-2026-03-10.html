@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 全面系統盤查報告 2026-03-10</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #666666;
+    --border: #e8e6e1;
+    --accent: #2d5be3;
+    --green: #16a34a;
+    --yellow: #ca8a04;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --purple: #7c3aed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  /* Header */
+  .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 32px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+  .header-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
+  .header-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .header-sub { font-size: 14px; color: var(--muted); }
+
+  /* Nav */
+  .nav { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 32px; display: flex; gap: 0; overflow-x: auto; }
+  .nav-item { padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; cursor: pointer; }
+  .nav-item.active, .nav-item:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Main */
+  .main { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .section-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .section-icon.blue { background: #eff6ff; }
+  .section-icon.green { background: #f0fdf4; }
+  .section-icon.orange { background: #fff7ed; }
+  .section-icon.purple { background: #faf5ff; }
+  .section-icon.red { background: #fef2f2; }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .section-desc { font-size: 13px; color: var(--muted); }
+
+  /* Cards grid */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+  /* Card */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .card-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 4px; }
+  .card-sub { font-size: 12px; color: var(--muted); }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .card-body { font-size: 13px; color: var(--muted); }
+
+  /* Status badge */
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge.ok { background: #f0fdf4; color: var(--green); }
+  .badge.ok::before { background: var(--green); }
+  .badge.warn { background: #fffbeb; color: var(--yellow); }
+  .badge.warn::before { background: var(--yellow); }
+  .badge.fail { background: #fef2f2; color: var(--red); }
+  .badge.fail::before { background: var(--red); }
+  .badge.info { background: #eff6ff; color: var(--accent); }
+  .badge.info::before { background: var(--accent); }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* Alert */
+  .alert { border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; border-left: 4px solid; }
+  .alert.error { background: #fef2f2; border-color: var(--red); }
+  .alert.warn { background: #fffbeb; border-color: var(--yellow); }
+  .alert.success { background: #f0fdf4; border-color: var(--green); }
+  .alert.info { background: #eff6ff; border-color: var(--accent); }
+  .alert-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .alert-body { font-size: 13px; color: var(--muted); }
+
+  /* Progress bar */
+  .progress-row { margin-bottom: 14px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+  /* Pill */
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .pill.core { background: #eff6ff; color: var(--accent); }
+  .pill.security { background: #fef2f2; color: var(--red); }
+  .pill.finance { background: #fffbeb; color: var(--yellow); }
+  .pill.website { background: #f0fdf4; color: var(--green); }
+  .pill.external { background: #faf5ff; color: var(--purple); }
+  .pill.docs { background: #fff7ed; color: var(--orange); }
+  .pill.marketing { background: #fdf4ff; color: #9333ea; }
+  .pill.investment { background: #f0fdf4; color: #15803d; }
+
+  /* Issues list */
+  .issue-item { display: flex; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .issue-item:last-child { border-bottom: none; }
+  .issue-sev { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+  .issue-sev.high { background: #fef2f2; }
+  .issue-sev.med { background: #fffbeb; }
+  .issue-sev.low { background: #eff6ff; }
+  .issue-content { flex: 1; }
+  .issue-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .issue-desc { font-size: 13px; color: var(--muted); }
+  .issue-owner { font-size: 12px; color: var(--accent); margin-top: 6px; font-weight: 500; }
+
+  /* Schedule */
+  .schedule-item { display: flex; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: center; }
+  .schedule-item:last-child { border-bottom: none; }
+  .schedule-time { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent); min-width: 60px; }
+  .schedule-label { font-size: 13px; font-weight: 500; flex: 1; }
+  .schedule-agent { font-size: 12px; color: var(--muted); }
+
+  /* Footer */
+  .footer { border-top: 1px solid var(--border); padding: 24px 32px; text-align: center; font-size: 12px; color: var(--muted); background: var(--card); margin-top: 60px; }
+
+  @media (max-width: 768px) {
+    .header-inner, .nav-inner, .main { padding-left: 16px; padding-right: 16px; }
+    .grid-4, .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+    .header-title { font-size: 22px; }
+  }
+  @media (max-width: 480px) {
+    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-meta">RAIN AI TEAM · 全面系統盤查 · 2026-03-10 09:11 TST</div>
+    <div class="header-title">系統架構 · 組織 · 網站 · 每日行程 · 中控台 — 完整審查報告</div>
+    <div class="header-sub">由 Klay 主導盤查，涵蓋 5 大系統域 · 29 個 Agent · 6 個 LaunchAgent · 5 個活躍網站</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-item active" href="#overview">總覽</a>
+    <a class="nav-item" href="#system">系統架構</a>
+    <a class="nav-item" href="#org">組織架構</a>
+    <a class="nav-item" href="#website">網站健康</a>
+    <a class="nav-item" href="#schedule">每日行程</a>
+    <a class="nav-item" href="#kai">中控台</a>
+    <a class="nav-item" href="#issues">問題清單</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Overview -->
+  <div class="section" id="overview">
+    <div class="section-header">
+      <div class="section-icon blue">📊</div>
+      <div>
+        <div class="section-title">盤查總覽</div>
+        <div class="section-desc">截至 2026-03-10 09:11 TST</div>
+      </div>
+    </div>
+    <div class="grid-4" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-label">核心服務</div>
+        <div class="card-value" style="color:var(--green);">✅ 健康</div>
+        <div class="card-sub">Kai v0.3.0 · Redis 0.25ms</div>
+      </div>
+      <div class="card">
+        <div class="card-label">網站健康</div>
+        <div class="card-value" style="color:var(--green);">43/43</div>
+        <div class="card-sub">全過 · 0 告警 · 0 失敗</div>
+      </div>
+      <div class="card">
+        <div class="card-label">任務看板</div>
+        <div class="card-value" style="color:var(--red);">23 失敗</div>
+        <div class="card-sub">12 pending · 25 success · 31 cancelled</div>
+      </div>
+      <div class="card">
+        <div class="card-label">團隊規模</div>
+        <div class="card-value">29</div>
+        <div class="card-sub">9 部門 · 11 Core · 18 On-demand</div>
+      </div>
+    </div>
+
+    <div class="alert success">
+      <div class="alert-title">✅ 綠燈：所有基礎設施正常運行</div>
+      <div class="alert-body">Kai Backend、OpenClaw Gateway、Telegram Proxy、Sentinel 均在線。LaunchAgent 全部已登錄系統。</div>
+    </div>
+    <div class="alert error">
+      <div class="alert-title">🔴 紅燈：任務看板積壓嚴重</div>
+      <div class="alert-body">91 個任務中 23 個 failed（25%）、12 個 pending 未執行。含 P0 修復、TheOrder 電商開發等高優先任務。需立即清理並重啟。</div>
+    </div>
+    <div class="alert warn">
+      <div class="alert-title">⚠️ 黃燈：Telegram Proxy 曾被 SIGKILL（已重啟）</div>
+      <div class="alert-body">launchctl 顯示 last exit = -9，但目前 PID 12047 正在運行。Watchdog 機制已部署，建議監控日誌確認穩定性。</div>
+    </div>
+  </div>
+
+  <!-- System Architecture -->
+  <div class="section" id="system">
+    <div class="section-header">
+      <div class="section-icon blue">🏗️</div>
+      <div>
+        <div class="section-title">系統架構</div>
+        <div class="section-desc">核心服務、LaunchAgent、連接層</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>服務</th>
+            <th>狀態</th>
+            <th>PID / 端點</th>
+            <th>備註</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Kai Backend</strong></td>
+            <td><span class="badge ok">Running</span></td>
+            <td class="mono">:5002 · v0.3.0</td>
+            <td>Phase 3 · Redis 0.25ms · worker ✅</td>
+          </tr>
+          <tr>
+            <td><strong>OpenClaw Gateway</strong></td>
+            <td><span class="badge ok">Running</span></td>
+            <td class="mono">PID 52652</td>
+            <td>LaunchAgent 管理 · Watchdog 每 10 分鐘</td>
+          </tr>
+          <tr>
+            <td><strong>Telegram Proxy</strong></td>
+            <td><span class="badge warn">⚠️ 曾 SIGKILL</span></td>
+            <td class="mono">PID 12047 · :18790</td>
+            <td>目前運行中，上次 exit=-9</td>
+          </tr>
+          <tr>
+            <td><strong>Sentinel Scanner</strong></td>
+            <td><span class="badge ok">Scheduled</span></td>
+            <td class="mono">LaunchAgent</td>
+            <td>每小時自動掃描</td>
+          </tr>
+          <tr>
+            <td><strong>Website Health</strong></td>
+            <td><span class="badge ok">Scheduled</span></td>
+            <td class="mono">12:00 + 21:00</td>
+            <td>43/43 checks passing（上次 04:00）</td>
+          </tr>
+          <tr>
+            <td><strong>Slideless Deck</strong></td>
+            <td><span class="badge ok">Active</span></td>
+            <td class="mono">slideless.vercel.app</td>
+            <td>報告輸出平台</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:16px;">LaunchAgent 清單</h3>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Label</th><th>狀態</th><th>觸發條件</th><th>Log</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">ai.openclaw.gateway</td>
+            <td><span class="badge ok">PID 52652</span></td>
+            <td>開機自動啟動</td>
+            <td class="mono">~/.local/log/</td>
+          </tr>
+          <tr>
+            <td class="mono">ai.openclaw.telegram-proxy</td>
+            <td><span class="badge warn">PID 12047 (last -9)</span></td>
+            <td>開機自動啟動</td>
+            <td class="mono">~/.local/log/</td>
+          </tr>
+          <tr>
+            <td class="mono">ai.rain.openclaw-watchdog</td>
+            <td><span class="badge ok">Every 10 min</span></td>
+            <td>每 600 秒</td>
+            <td class="mono">openclaw-watchdog.log</td>
+          </tr>
+          <tr>
+            <td class="mono">ai.sentinel.scanner</td>
+            <td><span class="badge ok">Hourly</span></td>
+            <td>每小時</td>
+            <td class="mono">sentinel.log</td>
+          </tr>
+          <tr>
+            <td class="mono">ai.rain.website-health</td>
+            <td><span class="badge ok">Scheduled</span></td>
+            <td>12:00 + 21:00</td>
+            <td class="mono">website-health.log</td>
+          </tr>
+          <tr>
+            <td class="mono">ai.openclaw.weekly-update</td>
+            <td><span class="badge info">Idle (exit 0)</span></td>
+            <td>每週</td>
+            <td class="mono">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Org Structure -->
+  <div class="section" id="org">
+    <div class="section-header">
+      <div class="section-icon purple">👥</div>
+      <div>
+        <div class="section-title">組織架構</div>
+        <div class="section-desc">29 個 Agent，9 部門，單一指揮鏈</div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <div class="card-label">Core Team</div>
+        <div class="card-value">11</div>
+        <div class="card-sub">Klay · Noel · Max · Rex · John · Iris · Forge · Scout · Ray · Quill · Kai</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--red);">
+        <div class="card-label">Security + Finance</div>
+        <div class="card-value">5</div>
+        <div class="card-sub">Sentinel · Knox · Sage · Inquisitor · Tax</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--green);">
+        <div class="card-label">Website + Marketing</div>
+        <div class="card-value">5</div>
+        <div class="card-sub">Webb · Silo · Keeper · EchoMarketer · GooayeAI</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--purple);">
+        <div class="card-label">External + Docs</div>
+        <div class="card-value">8</div>
+        <div class="card-sub">Spider · Lynx · Nautilus · Buzz · Probe · Echo · Nova · Jarvis</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr><th>Agent</th><th>部門</th><th>Model</th><th>介面</th><th>關鍵職責</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Klay</strong></td><td><span class="pill core">Core</span></td><td class="mono">Opus 4.6</td><td class="mono">spawn-klay.py</td><td>CEO · 3-Phase Phase1 · Veto 裁決</td></tr>
+          <tr><td><strong>Noel</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">tmux noel</td><td>Ops Director · 任務分派 · 外部協調</td></tr>
+          <tr><td><strong>Max</strong></td><td><span class="pill core">Core</span></td><td class="mono">Opus 4.6</td><td class="mono">tmux max</td><td>Senior Backend · Python/FastAPI</td></tr>
+          <tr><td><strong>Rex</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">tmux rex</td><td>Backend · API/CRUD</td></tr>
+          <tr><td><strong>John</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>Frontend · React/Next.js/TypeScript</td></tr>
+          <tr><td><strong>Iris</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>UI/UX · CSS · RWD</td></tr>
+          <tr><td><strong>Forge</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>CI/CD · Vercel · lint/build/test</td></tr>
+          <tr><td><strong>Scout</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>系統架構規格（唯讀）</td></tr>
+          <tr><td><strong>Ray</strong></td><td><span class="pill core">Core</span></td><td class="mono">Codex Plus</td><td class="mono">spawn-ray.py</td><td>設計審查 · Veto 權（非 code review）</td></tr>
+          <tr><td><strong>Quill</strong></td><td><span class="pill core">Core</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>Code Review 主力（PR/diff）</td></tr>
+          <tr><td><strong>Kai</strong></td><td><span class="pill core">Core</span></td><td class="mono">Internal</td><td class="mono">:5002</td><td>中控台 · Task Board · Monitoring</td></tr>
+          <tr><td><strong>Sentinel</strong></td><td><span class="pill security">Security</span></td><td class="mono">Sonnet 4.6</td><td class="mono">git hook</td><td>密鑰掃描 · 注入偵測（全自動）</td></tr>
+          <tr><td><strong>Knox/Sage/Inquisitor/Tax</strong></td><td><span class="pill finance">Finance</span></td><td class="mono">Opus/Sonnet</td><td class="mono">Subagent</td><td>金庫 · 帳號 · 審計 · 稅務顧問</td></tr>
+          <tr><td><strong>Nova/Jarvis</strong></td><td><span class="pill docs">Docs</span></td><td class="mono">Sonnet 4.6</td><td class="mono">Subagent</td><td>Deck 報告 · Email 設計發送</td></tr>
+          <tr><td><strong>Webb/Silo/Keeper</strong></td><td><span class="pill website">Website</span></td><td class="mono">Sonnet/Gemini</td><td class="mono">Session</td><td>網站開發主力 · SEO · 維護</td></tr>
+          <tr><td><strong>EchoMarketer</strong></td><td><span class="pill marketing">Marketing</span></td><td class="mono">Gemini Flash</td><td class="mono">Subagent</td><td>SEO 內容策略 · 廣告文案</td></tr>
+          <tr><td><strong>GooayeAI</strong></td><td><span class="pill investment">Investment</span></td><td class="mono">Gemini Lite</td><td class="mono">Telegram Bot</td><td>股票投資分析</td></tr>
+          <tr><td><strong>Spider/Lynx/Nautilus/Buzz/Probe/Echo/Vick</strong></td><td><span class="pill external">External</span></td><td class="mono">GLM/DeepSeek/GPT</td><td class="mono">OpenClaw</td><td>爬蟲 · 測試 · 內容分析 · 備援</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert info">
+      <div class="alert-title">指揮鏈：Rain → Klay → Noel → [Max+Rex | John+Iris | Ray+Quill+Forge | 各部門]</div>
+      <div class="alert-body">決策權限：商業方向→Klay / 技術選型→Scout / 安全穩定→Ray（有Veto）。衝突依此裁決，不需 Rain 介入。</div>
+    </div>
+  </div>
+
+  <!-- Website Health -->
+  <div class="section" id="website">
+    <div class="section-header">
+      <div class="section-icon green">🌐</div>
+      <div>
+        <div class="section-title">網站維護 &amp; 健康檢測</div>
+        <div class="section-desc">上次全面檢測：2026-03-10 04:00 UTC（12:00 TST）</div>
+      </div>
+    </div>
+
+    <div class="alert success">
+      <div class="alert-title">✅ 全部 43 項檢測通過 · 0 告警 · 0 失敗</div>
+      <div class="alert-body">LaunchAgent 每日 12:00 + 21:00 自動執行，結果存於 ~/.claude/cache/website-health-latest.json</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr><th>網站</th><th>URL</th><th>狀態</th><th>GA4</th><th>GSC</th><th>ECPay</th><th>備註</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>TheOrder 序位</strong></td>
+            <td class="mono">theorder.tw</td>
+            <td><span class="badge ok">Online</span></td>
+            <td class="mono">G-5X5G1KRN8F</td>
+            <td><span class="badge ok">✓</span></td>
+            <td><span class="badge ok">✓</span></td>
+            <td>Neon DB · 40 商品圖</td>
+          </tr>
+          <tr>
+            <td><strong>SomethingSelect 選物</strong></td>
+            <td class="mono">somethings.cool</td>
+            <td><span class="badge ok">Online</span></td>
+            <td class="mono">—</td>
+            <td><span class="badge ok">✓</span></td>
+            <td><span class="badge ok">✓</span></td>
+            <td>ImprovMX 郵件路由 · ECPay 金流</td>
+          </tr>
+          <tr>
+            <td><strong>Blank Space 留白</strong></td>
+            <td class="mono">blankspaces.uk</td>
+            <td><span class="badge ok">Online</span></td>
+            <td class="mono">已修正（L-016）</td>
+            <td><span class="badge ok">✓</span></td>
+            <td>—</td>
+            <td>AEO 95/100 · IndexNow ✓</td>
+          </tr>
+          <tr>
+            <td><strong>pure-vista 澄境</strong></td>
+            <td class="mono">pure-vista.vercel.app</td>
+            <td><span class="badge ok">Online</span></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>Supabase · 非生產環境</td>
+          </tr>
+          <tr>
+            <td><strong>BankExamQuiz 銀考</strong></td>
+            <td class="mono">bank.somethings.cool</td>
+            <td><span class="badge ok">Online</span></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>內控筆記 · 待完成題目驗收</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label" style="margin-bottom:16px;">📋 待部署專案</div>
+        <div class="issue-item" style="padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div class="card-title">BookNow 預約平台</div>
+            <div class="card-body">MVP 完成（20 routes）· 待：Vercel 部署、LINE、ECPay、Domain</div>
+          </div>
+        </div>
+        <div class="issue-item" style="padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div class="card-title">MinheCPA 鳴和會計</div>
+            <div class="card-body">專案已建，Vercel 尚未部署（minhe-cpa）</div>
+          </div>
+        </div>
+        <div class="issue-item" style="padding:10px 0;">
+          <div>
+            <div class="card-title">TheOrder 水電材料</div>
+            <div class="card-body">新電商方向 · Kai 任務 pending 中</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" style="margin-bottom:16px;">📍 已知維護待辦</div>
+        <div class="issue-item" style="padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div class="card-title">BankExamQuiz 題目修正</div>
+            <div class="card-body">exam43/sub2 Q32/Q73 和 exam44/sub1 Q48 EXP 文不對題，待人工對照</div>
+          </div>
+        </div>
+        <div class="issue-item" style="padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div class="card-title">GA4 屬性 ID 同步</div>
+            <div class="card-body">已修正 L-016，但每次新增 GA4 property 需同步更新中控台 3 個 dict</div>
+          </div>
+        </div>
+        <div class="issue-item" style="padding:10px 0;">
+          <div>
+            <div class="card-title">Supabase Keepalive</div>
+            <div class="card-body">間隔已改為 2 天，避免 free tier 7 天暫停（L-005）</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Schedule -->
+  <div class="section" id="schedule">
+    <div class="section-header">
+      <div class="section-icon orange">⏰</div>
+      <div>
+        <div class="section-title">每日自動化行程</div>
+        <div class="section-desc">系統級 LaunchAgent + 定期任務</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="schedule-item">
+        <div class="schedule-time">全天</div>
+        <div>
+          <div class="schedule-label">🛡️ Sentinel 密鑰掃描</div>
+          <div class="schedule-agent">每小時執行 · ~/.claude/hooks/scan-secrets.sh</div>
+        </div>
+        <span class="badge ok">Active</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time">全天</div>
+        <div>
+          <div class="schedule-label">🔄 OpenClaw Watchdog</div>
+          <div class="schedule-agent">每 10 分鐘偵測 Gateway lock 卡死並重啟</div>
+        </div>
+        <span class="badge ok">Active</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time">12:00</div>
+        <div>
+          <div class="schedule-label">🌐 Website Health Check #1（白天）</div>
+          <div class="schedule-agent">~/Projects/scripts/website-health-check.sh · 43 項檢測</div>
+        </div>
+        <span class="badge ok">Scheduled</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time">21:00</div>
+        <div>
+          <div class="schedule-label">🌐 Website Health Check #2（晚間）</div>
+          <div class="schedule-agent">同上腳本 · 結果更新 JSON cache</div>
+        </div>
+        <span class="badge ok">Scheduled</span>
+      </div>
+      <div class="schedule-item" style="background:#fffbeb;">
+        <div class="schedule-time" style="color:var(--yellow);">❌ 缺</div>
+        <div>
+          <div class="schedule-label">🌅 無早晨健康報告（建議新增）</div>
+          <div class="schedule-agent">目前無 09:00 早報。建議新增自動 Email 摘要到 Rain</div>
+        </div>
+        <span class="badge warn">缺失</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time">每週</div>
+        <div>
+          <div class="schedule-label">📊 OpenClaw Weekly Update</div>
+          <div class="schedule-agent">ai.openclaw.weekly-update · 上次 exit 0</div>
+        </div>
+        <span class="badge ok">Scheduled</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time">每週一</div>
+        <div>
+          <div class="schedule-label">📚 Noel 彙整 lessons.md 高頻教訓</div>
+          <div class="schedule-agent">提煉到 preferences.md 結晶層（手動執行）</div>
+        </div>
+        <span class="badge info">手動</span>
+      </div>
+      <div class="schedule-item">
+        <div class="schedule-time" style="color:var(--muted);">每週</div>
+        <div>
+          <div class="schedule-label">💰 Inquisitor 帳號/密鑰審計</div>
+          <div class="schedule-agent">API Key 過期檢查 · 異常使用模式（每週定期 + 安全事件觸發）</div>
+        </div>
+        <span class="badge info">手動觸發</span>
+      </div>
+    </div>
+
+    <div class="alert info">
+      <div class="alert-title">🔧 建議：新增 09:00 早報 LaunchAgent</div>
+      <div class="alert-body">目前無晨間自動報告機制，Rain 每天開工後需手動詢問狀態。建議新增每日 09:00 自動摘要（Kai tasks 狀態 + 網站健康 + 昨日錯誤）發到 Discord 或 Email。</div>
+    </div>
+  </div>
+
+  <!-- Kai Dashboard -->
+  <div class="section" id="kai">
+    <div class="section-header">
+      <div class="section-icon blue">🖥️</div>
+      <div>
+        <div class="section-title">Kai 中控台面板</div>
+        <div class="section-desc">v0.3.0 · Phase 3 · localhost:5002</div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-label">Success</div>
+        <div class="card-value" style="color:var(--green);">25</div>
+        <div class="card-sub">27% · 正常完成</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Failed</div>
+        <div class="card-value" style="color:var(--red);">23</div>
+        <div class="card-sub">25% · 需清理重啟</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Pending</div>
+        <div class="card-value" style="color:var(--yellow);">12</div>
+        <div class="card-sub">13% · 未執行</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Cancelled</div>
+        <div class="card-value" style="color:var(--muted);">31</div>
+        <div class="card-sub">34% · 含路由測試</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="padding:0 0 16px 0;">
+        <div class="card-label" style="margin-bottom:16px;">重要 Pending 任務（需執行）</div>
+        <table>
+          <thead><tr><th>任務</th><th>負責</th><th>優先</th></tr></thead>
+          <tbody>
+            <tr><td>序位 TheOrder — 水電材料電商網站開發</td><td>Klay</td><td><span class="badge fail">高</span></td></tr>
+            <tr><td>通知 Rain：Ray 審查報告 20 項修復完成</td><td>Noel</td><td><span class="badge warn">中</span></td></tr>
+            <tr><td>P0 修復：儀表板 agent key 大小寫 + auto_execute 黑名單縮小</td><td>Klay</td><td><span class="badge fail">高 P0</span></td></tr>
+            <tr><td>修復 Klay 任務接收問題 + LINE 官方帳號研究</td><td>Klay</td><td><span class="badge warn">中</span></td></tr>
+            <tr><td>任務進度追蹤 + 開始任務按鈕（全棧）</td><td>Klay</td><td><span class="badge info">低</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label" style="margin-bottom:12px;">已知缺陷（需修補）</div>
+        <div class="card-body" style="font-size:13px; line-height:2;">
+          ⚠️ <code>/api/tasks?status=x</code> zsh 環境需引號包覆（glob 衝突）<br>
+          ❌ <code>/api/agents</code> 端點 404（<code>/api/tasks/stats</code> 正常）<br>
+          ⚠️ Task 去重 60 秒視窗已存在，但跨進程仍可重複<br>
+          ❌ Email 任務缺少 project_id + cwd context<br>
+          ❌ 每日晨報 LaunchAgent 原缺，已補建（09:00）
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label" style="margin-bottom:12px;">健康指標</div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Backend Health</span><span>✅</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Redis Latency</span><span>0.25ms</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:99%;background:var(--green);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Task Success Rate</span><span>27%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:27%;background:var(--red);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label"><span>Job Worker</span><span>✅ Running</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Issues -->
+  <div class="section" id="issues">
+    <div class="section-header">
+      <div class="section-icon red">⚠️</div>
+      <div>
+        <div class="section-title">問題清單 &amp; 行動項目</div>
+        <div class="section-desc">依嚴重度排序 · 含負責人</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="issue-item">
+        <div class="issue-sev high">🔴</div>
+        <div class="issue-content">
+          <div class="issue-title">P0：Kai 任務看板積壓嚴重（23 failed / 12 pending）</div>
+          <div class="issue-desc">23 個任務失敗從未清理，含 P0 修復（agent key 大小寫）、TheOrder 電商開發等高優任務。任務看板形同虛設。</div>
+          <div class="issue-owner">負責：Klay · 建議立即清理 failed 任務並重新 dispatch pending 項目</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev med">🟠</div>
+        <div class="issue-content">
+          <div class="issue-title">Kai 缺少 /api/agents 端點（/api/tasks/stats 已正常）</div>
+          <div class="issue-desc"><code>/api/tasks/stats</code> 端點正常運作（非 /api/stats）。缺的是 /api/agents 統計。Query param 在 zsh 需引號包覆 curl URL（glob 問題非 API bug）。</div>
+          <div class="issue-owner">負責：Max · 補充 /api/agents 端點 · 文件明確說明 URL 引號需求</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev high">🟠</div>
+        <div class="issue-content">
+          <div class="issue-title">Telegram Proxy 曾被 SIGKILL</div>
+          <div class="issue-desc">launchctl 顯示 last exit=-9，雖然目前 PID 12047 正在運行。原因不明，可能是記憶體壓力或手動 kill。</div>
+          <div class="issue-owner">負責：Noel · 確認 ~/openclaw/telegram-proxy.js 記憶體用量，檢查重啟日誌</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev med">🟡</div>
+        <div class="issue-content">
+          <div class="issue-title">缺少晨間自動狀態報告</div>
+          <div class="issue-desc">目前無 09:00 自動報告機制，Rain 開工後需手動詢問系統狀態。</div>
+          <div class="issue-owner">負責：Forge · 新增 LaunchAgent 每日 09:00 自動摘要 → Discord/Email</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev med">🟡</div>
+        <div class="issue-content">
+          <div class="issue-title">BankExamQuiz 題目 EXP 文不對題（3 題待修）</div>
+          <div class="issue-desc">exam43/sub2 Q32, Q73 和 exam44/sub1 Q48 解析與題目不匹配，需人工對照修正。</div>
+          <div class="issue-owner">負責：Rain 手動對照 + Klay 修正</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev low">🔵</div>
+        <div class="issue-content">
+          <div class="issue-title">Task 去重 60 秒視窗存在但跨進程仍可重複</div>
+          <div class="issue-desc">Kai 已有 60 秒內同 title+assigned_to 去重邏輯（agent_task_service.py L.294）。但多 Claude session 並行時仍可能重複建任務，建議未來加資料庫唯一索引。</div>
+          <div class="issue-owner">負責：Max · 評估是否需資料庫層級唯一約束</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev med">🟡</div>
+        <div class="issue-content">
+          <div class="issue-title">BookNow 和 MinheCPA 待部署</div>
+          <div class="issue-desc">BookNow MVP 已完成（20 routes），MinheCPA 已建。兩個都卡在「待 Vercel 部署」。</div>
+          <div class="issue-owner">負責：Forge · 推進 Vercel 部署並通知 Rain</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev low">🔵</div>
+        <div class="issue-content">
+          <div class="issue-title">Email 任務缺少 project_id 上下文</div>
+          <div class="issue-desc">Email Monitor 建立任務時未附帶 project_id + cwd，AgentRunner 在錯誤目錄執行（L-004 記錄）。</div>
+          <div class="issue-owner">負責：Max · EmailMonitor 加入 subject/body keyword → project_id mapping</div>
+        </div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-sev low">🔵</div>
+        <div class="issue-content">
+          <div class="issue-title">Google Workspace MCP OAuth 未完成授權</div>
+          <div class="issue-desc">credentials 檔案不存在，OAuth App 在測試模式。備援：IMAP + App Password（已記錄在 lessons L-007）。</div>
+          <div class="issue-owner">負責：Atlas · 排期修復 OAuth 或永久採用 IMAP 備援</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Rain AI Team</strong> · 全面系統盤查 2026-03-10 · 由 Klay 主導 · 基礎架構審查完成<br>
+  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:4px;display:block;">
+    Kai v0.3.0 ✅ · OpenClaw ✅ · Sentinel ✅ · Website 43/43 ✅ · Task Backlog ⚠️ 需清理
+  </span>
+</div>
+
+<script>
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const target = document.querySelector(item.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section');
+  sections.forEach(section => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= 120 && rect.bottom >= 120) {
+      const id = section.getAttribute('id');
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

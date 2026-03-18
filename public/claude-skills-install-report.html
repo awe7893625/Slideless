@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Skills 安裝報告 — Rain AI Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #121212; --white: #ffffff; --cream: #f6f5f1;
+  --grey-01: #f0eee6; --grey-02: #8b877c; --grey-03: #6c6a62;
+  --accent: #a8cde8; --accent-warm: #eb8054;
+  --green: #85a268; --danger: #d94f4f;
+  --font-main: 'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono: 'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--black);font-family:var(--font-main);font-size:15px;line-height:1.65}
+
+/* Progress bar */
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:1000;transition:width 0.1s}
+
+/* Nav */
+nav{position:fixed;top:3px;left:0;right:0;background:rgba(246,245,241,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--grey-01);z-index:999;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:52px}
+.nav-brand{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--grey-03)}
+.nav-links{display:flex;gap:28px}
+.nav-links a{font-size:12px;font-weight:500;color:var(--grey-02);text-decoration:none;transition:color 0.2s}
+.nav-links a:hover{color:var(--black)}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:100px 40px 72px;text-align:center}
+.eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.cover h1{font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:16px;color:rgba(255,255,255,0.45);max-width:520px;margin:0 auto 40px;line-height:1.6}
+.cover-stats{display:flex;justify-content:center;gap:0;max-width:600px;margin:0 auto 32px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden}
+.stat-block{flex:1;padding:20px 16px;border-right:1px solid rgba(255,255,255,0.1);text-align:center}
+.stat-block:last-child{border-right:none}
+.stat-num{font-family:var(--font-mono);font-size:28px;font-weight:700;color:var(--white);display:block}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.cover-meta{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.25);margin-top:8px}
+
+/* Main content */
+.main{max-width:720px;margin:0 auto;padding:64px 40px 80px}
+
+/* Section */
+.section-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px;color:var(--black)}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:14px;color:var(--grey-02);margin-bottom:32px;line-height:1.6}
+.section-block{margin-bottom:64px}
+
+/* Cards */
+.card{background:var(--white);border-radius:12px;padding:24px 28px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:16px}
+.card-label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);margin-bottom:10px}
+.card-title{font-size:15px;font-weight:700;color:var(--black);margin-bottom:6px}
+.card-desc{font-size:13px;color:var(--grey-03);line-height:1.6}
+
+/* Badge */
+.badge{display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;text-transform:uppercase}
+.badge-green{background:#e8f0e4;color:var(--green)}
+.badge-orange{background:#fdf0ea;color:var(--accent-warm)}
+.badge-red{background:#fce9e9;color:var(--danger)}
+.badge-blue{background:#e8f2f9;color:#4a8ab5}
+.badge-grey{background:var(--grey-01);color:var(--grey-02)}
+
+/* Table */
+.table-wrap{overflow-x:auto;margin-bottom:16px;border-radius:10px;border:1px solid var(--grey-01)}
+table{width:100%;border-collapse:collapse;min-width:520px;background:var(--white)}
+th{font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--grey-02);padding:12px 16px;text-align:left;border-bottom:1px solid var(--grey-01);background:#faf9f7}
+td{font-size:13px;color:var(--grey-03);padding:12px 16px;border-bottom:1px solid var(--grey-01);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--black);font-weight:500;font-family:var(--font-mono);font-size:12px}
+tr:hover td{background:#faf9f7}
+
+/* Grid 2 col */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+
+/* Risk items */
+.risk-item{background:var(--white);border-radius:10px;padding:18px 22px;border:1px solid var(--grey-01);border-left:3px solid var(--grey-01);margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
+.risk-item.high{border-left-color:var(--danger)}
+.risk-item.medium{border-left-color:var(--accent-warm)}
+.risk-item.low{border-left-color:var(--green)}
+.risk-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.risk-content{}
+.risk-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:4px}
+.risk-desc{font-size:12px;color:var(--grey-03);line-height:1.6}
+
+/* Priority items */
+.priority-item{background:var(--white);border-radius:10px;padding:18px 22px;border:1px solid var(--grey-01);margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
+.priority-num{width:36px;height:36px;border-radius:8px;background:var(--black);color:var(--white);font-family:var(--font-mono);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.priority-num.p1{background:var(--accent-warm)}
+.priority-num.p2{background:var(--black)}
+.priority-num.p3{background:var(--grey-03)}
+
+/* Dark band */
+.dark-band{background:var(--black);color:var(--white);padding:60px 40px;text-align:center;margin:0 calc(-50vw + 50%)}
+.dark-band h2{font-size:24px;font-weight:700;margin-bottom:12px}
+.dark-band p{font-size:14px;color:rgba(255,255,255,0.5);max-width:500px;margin:0 auto 28px}
+.dark-band code{font-family:var(--font-mono);font-size:13px;background:rgba(255,255,255,0.08);padding:10px 20px;border-radius:8px;display:inline-block;color:var(--accent)}
+
+/* Footer */
+footer{background:var(--black);color:rgba(255,255,255,0.4);text-align:center;padding:32px;font-family:var(--font-mono);font-size:11px;letter-spacing:1px}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--grey-01);margin:48px 0}
+
+/* Inset */
+.inset{background:var(--white);border-radius:10px;padding:20px 24px;border:1px solid var(--grey-01);margin-bottom:24px}
+.inset ul{padding-left:18px}
+.inset li{font-size:13px;color:var(--grey-03);margin-bottom:6px;line-height:1.6}
+.inset li strong{color:var(--black)}
+.inset li:last-child{margin-bottom:0}
+
+/* Responsive */
+@media(max-width:900px){
+  nav{padding:0 24px}
+  .nav-links{display:none}
+  .cover{padding:80px 24px 56px}
+  .cover-stats{flex-wrap:wrap}
+  .stat-block{min-width:50%}
+  .main{padding:48px 24px 60px}
+  .grid-2{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .cover{padding:72px 20px 48px}
+  .main{padding:40px 20px 48px}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <div class="nav-brand">Rain AI Team</div>
+  <div class="nav-links">
+    <a href="#overview">概覽</a>
+    <a href="#installed">安裝清單</a>
+    <a href="#ray-review">Ray 審查</a>
+    <a href="#assignment">Agent 分配</a>
+    <a href="#next">後續行動</a>
+  </div>
+</nav>
+
+<section class="cover">
+  <div class="eyebrow">Skill Upgrade Report · 2026-03-14</div>
+  <h1>Claude Skills <span>安裝報告</span></h1>
+  <p class="subtitle">從 alirezarezvani/claude-skills 精選 14 個 skills 安裝至 ~/.claude/skills/，附 Ray 架構審查結果</p>
+  <div class="cover-stats">
+    <div class="stat-block">
+      <span class="stat-num">177</span>
+      <div class="stat-label">Repo 總 Skills</div>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num">14</span>
+      <div class="stat-label">本次安裝</div>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num">45</span>
+      <div class="stat-label">系統總 Skills</div>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num">6</span>
+      <div class="stat-label">直接可用</div>
+    </div>
+  </div>
+  <div class="cover-meta">來源：github.com/alirezarezvani/claude-skills · 安裝路徑：~/.claude/skills/</div>
+</section>
+
+<div class="main">
+
+  <!-- Section 01: Overview -->
+  <section class="section-block" id="overview">
+    <div class="section-eyebrow">01 — 概覽</div>
+    <h2 class="section-title">Repo 包含 <span>177 個 Skills</span>，分 9 個領域</h2>
+    <p class="section-desc">alirezarezvani/claude-skills 是目前 GitHub 最大的 Claude Code skill 庫，支援 11 個 AI Agent 平台。我們從中挑選 14 個與 Rain AI Team 技術棧最相關的 engineering skills。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>領域</th><th>數量</th><th>代表 Skills</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>engineering/</td><td>25</td><td>pr-review-expert, database-schema-designer, mcp-server-builder...</td></tr>
+          <tr><td>engineering-team/</td><td>24</td><td>self-improving-agent, incident-commander, senior-architect...</td></tr>
+          <tr><td>marketing-skill/</td><td>43</td><td>content-creator, seo-optimizer, brand-voice-analyzer...</td></tr>
+          <tr><td>c-level-advisor/</td><td>28</td><td>ceo-advisor, cto-advisor, cfo-advisor...</td></tr>
+          <tr><td>product-team/</td><td>12</td><td>product-manager-toolkit, ui-design-system, user-research...</td></tr>
+          <tr><td>orchestration/</td><td>4</td><td>Solo Sprint, Domain Deep-Dive, Multi-Agent Handoff, Skill Chain</td></tr>
+          <tr><td>agents/</td><td>16</td><td>預配置多 Agent persona（8 個領域）</td></tr>
+          <tr><td>finance/</td><td>2</td><td>DCF 分析、SaaS 指標</td></tr>
+          <tr><td>ra-qm-team/</td><td>12</td><td>ISO 13485、GDPR、CAPA</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-label">安裝方式</div>
+      <div class="card-desc">手動 git clone → 挑選目標 skills → cp 至 <code style="background:#f6f5f1;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:12px">~/.claude/skills/</code>。14 個 skills 均通過 SKILL.md 格式驗證，Claude Code 已自動載入。</div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Section 02: Installed -->
+  <section class="section-block" id="installed">
+    <div class="section-eyebrow">02 — 安裝清單</div>
+    <h2 class="section-title">14 個 Skills <span>分類說明</span></h2>
+    <p class="section-desc">按功能分為：記憶升級、程式碼審查、資料庫、Agent 設計、安全、可觀測性、MCP、CI/CD、Monorepo、測試、效能、技術債、事件響應。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Skill</th><th>來源</th><th>核心功能</th><th>Ray 判定</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>self-improving-agent</td>
+            <td>engineering-team</td>
+            <td>MEMORY.md → CLAUDE.md → .claude/rules/ 升級管線，/si:review, /si:promote, /si:extract</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>pr-review-expert</td>
+            <td>engineering</td>
+            <td>Blast Radius + Security Scan + Breaking Change + Coverage Delta</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>database-schema-designer</td>
+            <td>engineering</td>
+            <td>Supabase RLS + Prisma migration + ERD 視覺化（Mermaid）</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>agent-designer</td>
+            <td>engineering</td>
+            <td>5 種 Multi-Agent 架構 pattern（supervisor/swarm/hierarchical/pipeline/single）</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>agent-workflow-designer</td>
+            <td>engineering</td>
+            <td>5 種 Workflow（sequential/parallel/router/orchestrator/evaluator）</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>env-secrets-manager</td>
+            <td>engineering</td>
+            <td>環境變數深度審計 + 密鑰洩漏偵測 + CI 整合（手動觸發）</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>observability-designer</td>
+            <td>engineering</td>
+            <td>SLI/SLO 設計 + Golden Signals + Grafana Dashboard + Alert 最佳化</td>
+            <td><span class="badge badge-grey">暫緩</span></td>
+          </tr>
+          <tr>
+            <td>mcp-server-builder</td>
+            <td>engineering</td>
+            <td>從 OpenAPI spec 自動生成 MCP server（Python/TypeScript）</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>ci-cd-pipeline-builder</td>
+            <td>engineering</td>
+            <td>偵測 tech stack 自動生成 GitHub Actions pipeline（新專案用）</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+          <tr>
+            <td>monorepo-navigator</td>
+            <td>engineering</td>
+            <td>Turborepo/pnpm workspaces 管理 + 跨 package 影響分析</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>api-test-suite-builder</td>
+            <td>engineering</td>
+            <td>FastAPI + Next.js App Router API 測試套件自動生成</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>performance-profiler</td>
+            <td>engineering</td>
+            <td>CPU/Memory/Bundle/DB 效能剖析（Node.js/Python）</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>tech-debt-tracker</td>
+            <td>engineering</td>
+            <td>技術債識別 + cost-of-delay 優先排序 + 與 tech-debt.md 互補</td>
+            <td><span class="badge badge-green">直接可用</span></td>
+          </tr>
+          <tr>
+            <td>incident-commander</td>
+            <td>engineering-team</td>
+            <td>SEV1-4 事件響應框架 + PIR 報告生成（需客製化到 Discord/Kai）</td>
+            <td><span class="badge badge-orange">有條件</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Section 03: Ray Review -->
+  <section class="section-block" id="ray-review">
+    <div class="section-eyebrow">03 — Ray 架構審查</div>
+    <h2 class="section-title">Phase 3 設計審查：<span>有條件通過</span></h2>
+    <p class="section-desc">Ray 對 14 個 skills 的架構風險、角色重疊、Edge Cases 進行完整評估。整體判定：NEEDS_FIX（有條件通過），6 個直接可用，5 個有條件，1 個暫緩。</p>
+
+    <div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:12px;">🔴 高風險（需立即處置）</div>
+
+    <div class="risk-item high">
+      <div class="risk-icon">⚠️</div>
+      <div class="risk-content">
+        <div class="risk-title">self-improving-agent — 對 CLAUDE.md 有寫入能力</div>
+        <div class="risk-desc"><strong>/si:promote</strong> 會直接修改全團隊共用的 CLAUDE.md（Global Constitution）。<strong>決策</strong>：/si:promote 必須由 Klay/Rain 人工確認後執行；error-capture.sh hook 目前路徑錯誤（相對路徑在 ~/.claude/skills/ 環境下無效），暫不啟用。</div>
+      </div>
+    </div>
+
+    <div class="risk-item high">
+      <div class="risk-icon">🔄</div>
+      <div class="risk-content">
+        <div class="risk-title">pr-review-expert vs Quill / review-loop — 角色重疊</div>
+        <div class="risk-desc">與現有 Quill Layer 1 審查及 review-loop 完全重疊。<strong>決策</strong>：整合為 Quill 的 checklist 參考工具書，不作為獨立管線觸發。</div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--black);margin:20px 0 12px;">🟡 中風險（需配置調整）</div>
+
+    <div class="risk-item medium">
+      <div class="risk-icon">🏗️</div>
+      <div class="risk-content">
+        <div class="risk-title">ci-cd-pipeline-builder vs Forge 既有管線</div>
+        <div class="risk-desc">TheOrder 已有 vercel.json + Turborepo 部署策略，若對現有專案跑 pipeline_generator.py 會與 Vercel 部署衝突。<strong>決策</strong>：僅限新專案初始化使用。</div>
+      </div>
+    </div>
+
+    <div class="risk-item medium">
+      <div class="risk-icon">📊</div>
+      <div class="risk-content">
+        <div class="risk-title">observability-designer — 基礎設施不存在</div>
+        <div class="risk-desc">Kai 中控台目前無 Prometheus exporter，Grafana-compatible 輸出無法消化。<strong>決策</strong>：暫緩，等 Kai 監控基礎設施到位後再啟用。</div>
+      </div>
+    </div>
+
+    <div class="risk-item medium">
+      <div class="risk-icon">🚨</div>
+      <div class="risk-content">
+        <div class="risk-title">incident-commander — 角色假設不符</div>
+        <div class="risk-desc">框架假設 PagerDuty/Slack/Zoom，但 Rain AI Team 用 Discord + Kai task board。<strong>決策</strong>：模板有參考價值，需客製化 SEV 分級和溝通管道。</div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--black);margin:20px 0 12px;">💬 Ray Skeptic Check</div>
+    <div class="inset">
+      <ul>
+        <li><strong>「如果不裝這些 skills，Rain AI Team 會有什麼損失？」</strong> — 損失有限。真正填補空缺的只有 3 個：api-test-suite-builder（無系統化 API 測試）、performance-profiler（無正式效能剖析流程）、mcp-server-builder（未來 MCP 擴展需求）。</li>
+        <li><strong>「裝了 14 個但每個都淺用，不如深用 3 個」</strong> — 這是此次安裝的核心風險。Skills 不會自動被使用，需要明確分配到具體 Agent 並在任務中觸發。</li>
+        <li><strong>「沒有 skill → Agent 分配規劃」前置步驟」</strong> — Ray 指出：安裝前缺少「這個 skill 給哪個 Agent 在哪種情境下用」的規劃，這次補上。</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Section 04: Agent Assignment -->
+  <section class="section-block" id="assignment">
+    <div class="section-eyebrow">04 — Agent 分配</div>
+    <h2 class="section-title">Skills <span>→ Agent 指派表</span></h2>
+    <p class="section-desc">Ray 建議每個 skill 明確對應一個主要 Agent，避免「裝了但沒人用」。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Skill</th><th>指派 Agent</th><th>觸發情境</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>database-schema-designer</td><td>Scout / Max</td><td>Phase 2 架構設計時，DB schema + Prisma migration 草稿</td></tr>
+          <tr><td>api-test-suite-builder</td><td>Max / Rex</td><td>Kai API（FastAPI）或 TheOrder API（Next.js）需補測試時</td></tr>
+          <tr><td>performance-profiler</td><td>Max</td><td>TheOrder SSR 效能問題，或 Kai API 延遲分析</td></tr>
+          <tr><td>monorepo-navigator</td><td>Forge / John</td><td>TheOrder pnpm build，--filter=...[HEAD~1] 取代全量 rebuild</td></tr>
+          <tr><td>tech-debt-tracker</td><td>Quill / Noel（夜班）</td><td>補充 memory/tech-debt.md 的自動掃描</td></tr>
+          <tr><td>mcp-server-builder</td><td>Scout / Rex</td><td>Kai API 需要對外開放 MCP 介面時</td></tr>
+          <tr><td>self-improving-agent</td><td>Klay（限讀操作）</td><td>/si:review + /si:status 由 Klay 跑；/si:promote 需 Rain 確認</td></tr>
+          <tr><td>pr-review-expert</td><td>Quill（checklist 參考）</td><td>整合為 Quill Full Review 的 30-item checklist，不獨立觸發</td></tr>
+          <tr><td>env-secrets-manager</td><td>Sentinel / Klay</td><td>深度審計（手動），不取代 scan-secrets.sh hook</td></tr>
+          <tr><td>incident-commander</td><td>Noel（夜班）</td><td>SEV1-2 緊急事件，先參考模板再客製化到 Discord</td></tr>
+          <tr><td>agent-designer</td><td>Scout</td><td>Phase 2 新 Agent 架構設計參考</td></tr>
+          <tr><td>agent-workflow-designer</td><td>Scout / Klay</td><td>Phase 1 任務分解時，workflow pattern 選型</td></tr>
+          <tr><td>ci-cd-pipeline-builder</td><td>Forge</td><td>新專案初始化 GitHub Actions，禁用於 TheOrder 現有管線</td></tr>
+          <tr><td>observability-designer</td><td>Max（未來）</td><td>暫緩。等 Kai 有 Prometheus exporter 後啟用</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Section 05: Top 3 Priority -->
+  <section class="section-block">
+    <div class="section-eyebrow">05 — 優先使用</div>
+    <h2 class="section-title">Ray 推薦的 <span>Top 3 立即啟動</span></h2>
+    <p class="section-desc">這 3 個填補了 Rain AI Team 目前最明顯的空缺，且技術棧完全符合，立即可用。</p>
+
+    <div class="priority-item">
+      <div class="priority-num p1">1</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">api-test-suite-builder → Max / Rex</div>
+        <div style="font-size:13px;color:var(--grey-03);">Kai API（FastAPI :5002）和 TheOrder API（Next.js App Router）都缺乏系統化的 auth/input validation 測試。注意：需分離 <code style="font-family:var(--font-mono);font-size:11px;background:#f0f0ec;padding:1px 5px;border-radius:3px">/api/admin/</code> 和 public routes 的測試環境（admin JWT 問題）。</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num p2">2</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">performance-profiler → Max</div>
+        <div style="font-size:13px;color:var(--grey-03);">TheOrder product page 有 SSR，市場晨報腳本跑多個 HTTP fetch，都是候選目標。注意：py-spy 在 macOS ARM 需 sudo，改用 <code style="font-family:var(--font-mono);font-size:11px;background:#f0f0ec;padding:1px 5px;border-radius:3px">--nonblocking</code> 模式可避免。</div>
+      </div>
+    </div>
+
+    <div class="priority-item">
+      <div class="priority-num p3">3</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">monorepo-navigator → Forge / John</div>
+        <div style="font-size:13px;color:var(--grey-03);">TheOrder 是 pnpm + Turborepo monorepo，CI 改用 <code style="font-family:var(--font-mono);font-size:11px;background:#f0f0ec;padding:1px 5px;border-radius:3px">--filter=...[HEAD~1]</code> 取代全量 rebuild，立即改善 Forge CI 效率。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Section 06: Next Actions -->
+  <section class="section-block" id="next">
+    <div class="section-eyebrow">06 — 後續行動</div>
+    <h2 class="section-title">Ray 指定的 <span>4 個後續動作</span></h2>
+    <p class="section-desc">按優先順序執行，確保 skills 真正被使用，不只是「裝了但放著」。</p>
+
+    <div class="card">
+      <div class="card-label" style="color:var(--danger)">Action 1 — 立即</div>
+      <div class="card-title">確認 self-improving-agent hook 路徑問題</div>
+      <div class="card-desc">settings.json 中 <code style="font-family:var(--font-mono);font-size:11px;background:#f6f5f1;padding:1px 5px;border-radius:3px">hooks/error-capture.sh</code> 是相對路徑，在 ~/.claude/skills/ 環境下無效。解決前不啟用此 hook（不加入全局 ~/.claude/settings.json）。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="color:var(--accent-warm)">Action 2 — 本週</div>
+      <div class="card-title">在 Kai 建立 3 個任務讓 skills 真正被觸發</div>
+      <div class="card-desc">① Max 用 api-test-suite-builder 補 Kai API 測試 ② Max 用 performance-profiler 做 TheOrder SSR 剖析 ③ Forge 用 monorepo-navigator 優化 TheOrder CI filter 策略</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="color:var(--accent-warm)">Action 3 — 本週</div>
+      <div class="card-title">pr-review-expert checklist 同步給 Quill</div>
+      <div class="card-desc">不作為獨立管線，將其 30-item 審查清單和 blast radius 分析腳本整合為 Quill Full Review 時的參考工具書。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="color:var(--grey-02)">Action 4 — 未來</div>
+      <div class="card-title">observability-designer 暫緩，等待基礎設施</div>
+      <div class="card-desc">需先在 Kai 後端建立 Prometheus exporter，才有意義使用 dashboard_generator 和 slo_designer 的輸出。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="dark-band">
+  <h2>Skills 總計：31 → 45 個</h2>
+  <p>Rain AI Team 的 Claude Code skill 庫從 31 個擴充至 45 個。新增涵蓋多 Agent 設計、DB schema、API 測試、效能剖析、技術債追蹤等工程核心領域。</p>
+  <code>~/.claude/skills/ · 45 skills installed</code>
+</div>
+
+<footer>
+  Rain AI Team · Klay (Claude Opus 4.6) × Ray (Codex Plus) · 2026-03-14
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = scrolled + '%';
+});
+</script>
+</body>
+</html>

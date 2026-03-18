@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Platform — MVP 完整交付</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --orange: #eb8054;
+      --orange-light: #fde8dc;
+      --dark: #121212;
+      --dark2: #1e1e1e;
+      --white: #ffffff;
+      --gray: #6b6b6b;
+      --gray-light: #e8e7e3;
+      --green: #2d7d46;
+      --green-light: #d4edda;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--cream);
+      font-family: var(--sans);
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--dark);
+      color: var(--white);
+      padding: 56px 24px 48px;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    header .subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.62);
+      font-family: var(--mono);
+    }
+    .header-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .meta-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .meta-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    /* MAIN */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* SECTION CARD */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 36px 40px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .section-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 24px;
+      color: var(--dark);
+    }
+
+    /* SPRINT GRID */
+    .sprint-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .sprint-item {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 20px 22px;
+      border-left: 3px solid var(--orange);
+    }
+    .sprint-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 6px;
+    }
+    .sprint-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .sprint-desc {
+      font-size: 12px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+
+    /* CI RESULTS */
+    .ci-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ci-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--cream);
+      border-radius: 10px;
+    }
+    .ci-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ci-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .ci-detail {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray);
+    }
+    .ci-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-light);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* API TABLE */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--gray-light);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead {
+      background: var(--dark2);
+      color: var(--white);
+    }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--gray-light);
+    }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+    tbody tr:hover {
+      background: #fafaf8;
+    }
+    tbody td {
+      padding: 12px 16px;
+      vertical-align: top;
+    }
+    td.group-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--orange);
+      white-space: nowrap;
+    }
+    td.endpoints {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--dark);
+      line-height: 1.8;
+    }
+
+    /* SECURITY */
+    .security-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .security-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px 20px;
+      background: var(--cream);
+      border-radius: 10px;
+    }
+    .security-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .security-content .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+    .security-content .detail {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+
+    /* IMPROVEMENT LIST */
+    .improvement-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .improvement-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 18px;
+      background: var(--cream);
+      border-radius: 10px;
+    }
+    .improvement-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--white);
+      background: var(--gray);
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .improvement-text {
+      font-size: 13px;
+      color: var(--dark);
+      line-height: 1.55;
+      padding-top: 3px;
+    }
+
+    /* QUICK START */
+    .quickstart-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .qs-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    .qs-step:last-child {
+      border-bottom: none;
+    }
+    .qs-num {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--orange);
+      width: 28px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .qs-content {
+      flex: 1;
+    }
+    .qs-cmd {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--dark2);
+      color: #e8e8e8;
+      padding: 8px 14px;
+      border-radius: 7px;
+      margin-top: 6px;
+      letter-spacing: 0.01em;
+    }
+    .qs-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .qs-note {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.45);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    footer .inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    footer .brand {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--orange);
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    footer p {
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 24px 20px; }
+      .sprint-grid { grid-template-columns: 1fr; }
+      .header-meta { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">Nova · AI Agent Platform · 2026-03-15</div>
+    <h1>AI Agent Platform<br>MVP 完整交付</h1>
+    <div class="subtitle">5 Sprints · 14 Commits · 49 Tests · Full Security Review</div>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="meta-label">Sprints</span>
+        <span class="meta-value">5</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Commits</span>
+        <span class="meta-value">14</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Tests</span>
+        <span class="meta-value">49</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">API Routes</span>
+        <span class="meta-value">9</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- SECTION 1: 交付總覽 -->
+  <div class="card">
+    <div class="section-eyebrow">Section 01</div>
+    <div class="section-title">交付總覽</div>
+    <div class="sprint-grid">
+      <div class="sprint-item">
+        <div class="sprint-label">Sprint 1</div>
+        <div class="sprint-name">Walking Skeleton</div>
+        <div class="sprint-desc">FastAPI + Next.js + Python Template 架構初建，確立端到端可運行骨架</div>
+      </div>
+      <div class="sprint-item">
+        <div class="sprint-label">Sprint 2</div>
+        <div class="sprint-name">Backend Hardening</div>
+        <div class="sprint-desc">Pagination、Race condition 修復、Auth rate limit、BLOCKING 測試補齊</div>
+      </div>
+      <div class="sprint-item">
+        <div class="sprint-label">Sprint 3</div>
+        <div class="sprint-name">Providers + SDK</div>
+        <div class="sprint-desc">Providers list API、Task cancel、SDK package 發布、README quick-start</div>
+      </div>
+      <div class="sprint-item">
+        <div class="sprint-label">Sprint 4</div>
+        <div class="sprint-name">Marketplace</div>
+        <div class="sprint-desc">Webhook notifications、Template registry、Template marketplace UI</div>
+      </div>
+      <div class="sprint-item">
+        <div class="sprint-label">Sprint 5</div>
+        <div class="sprint-name">Admin + CI + Security</div>
+        <div class="sprint-desc">Admin stats、Task retry、GitHub Actions CI（3 jobs）、Security hardening</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: CI 結果 -->
+  <div class="card">
+    <div class="section-eyebrow">Section 02</div>
+    <div class="section-title">最終 CI 結果</div>
+    <div class="ci-list">
+      <div class="ci-item">
+        <div class="ci-left">
+          <div class="ci-name">Backend Tests</div>
+          <div class="ci-detail">pytest · apps/api-server/tests/</div>
+        </div>
+        <div class="ci-badge">✓ 49 / 49 PASS</div>
+      </div>
+      <div class="ci-item">
+        <div class="ci-left">
+          <div class="ci-name">TypeScript Typecheck</div>
+          <div class="ci-detail">tsc --noEmit · apps/web/</div>
+        </div>
+        <div class="ci-badge">✓ PASS</div>
+      </div>
+      <div class="ci-item">
+        <div class="ci-left">
+          <div class="ci-name">Next.js Build</div>
+          <div class="ci-detail">next build · 9 routes generated</div>
+        </div>
+        <div class="ci-badge">✓ PASS</div>
+      </div>
+      <div class="ci-item">
+        <div class="ci-left">
+          <div class="ci-name">Template Tests</div>
+          <div class="ci-detail">pytest · sdk/provider-worker-python/</div>
+        </div>
+        <div class="ci-badge">✓ 12 / 12 PASS</div>
+      </div>
+      <div class="ci-item">
+        <div class="ci-left">
+          <div class="ci-name">GitHub Actions CI</div>
+          <div class="ci-detail">3 jobs: backend + frontend + template</div>
+        </div>
+        <div class="ci-badge">✓ ALL GREEN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: API 端點 -->
+  <div class="card">
+    <div class="section-eyebrow">Section 03</div>
+    <div class="section-title">完整 API 端點</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Endpoints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="group-label">Auth</td>
+            <td class="endpoints">POST /api/auth/register<br>POST /api/auth/login<br>GET /api/auth/me</td>
+          </tr>
+          <tr>
+            <td class="group-label">Tasks</td>
+            <td class="endpoints">GET/POST /api/tasks<br>GET/PUT/DELETE /api/tasks/{id}<br>POST /api/tasks/{id}/cancel<br>POST /api/tasks/{id}/retry<br>GET /api/tasks/match</td>
+          </tr>
+          <tr>
+            <td class="group-label">Providers</td>
+            <td class="endpoints">POST /api/providers/register<br>GET /api/providers<br>GET /api/providers/{id}<br>POST /api/providers/{id}/heartbeat</td>
+          </tr>
+          <tr>
+            <td class="group-label">Worker</td>
+            <td class="endpoints">POST /api/worker/poll<br>POST /api/worker/{id}/accept<br>POST /api/worker/{id}/result<br>POST /api/worker/{id}/error</td>
+          </tr>
+          <tr>
+            <td class="group-label">Templates</td>
+            <td class="endpoints">GET /api/templates<br>GET /api/templates/{slug}</td>
+          </tr>
+          <tr>
+            <td class="group-label">Platform</td>
+            <td class="endpoints">GET /api/platform/stats</td>
+          </tr>
+          <tr>
+            <td class="group-label">Health</td>
+            <td class="endpoints">GET /health</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: 安全問題修復 -->
+  <div class="card">
+    <div class="section-eyebrow">Section 04</div>
+    <div class="section-title">安全問題修復紀錄</div>
+    <div class="security-list">
+      <div class="security-item">
+        <div class="security-icon">🛡</div>
+        <div class="security-content">
+          <div class="title">Path Traversal 防護</div>
+          <div class="detail">template slug 使用 resolve() + is_relative_to() 確保路徑不逃出 templates 目錄</div>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-icon">⚡</div>
+        <div class="security-content">
+          <div class="title">Rate Limit Race Condition</div>
+          <div class="detail">INCR/EXPIRE 改為原子操作：SET NX + INCR，消除 TOCTOU 競態</div>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-icon">🔒</div>
+        <div class="security-content">
+          <div class="title">Task Retry 所有權驗證</div>
+          <div class="detail">加入 403 守衛：only requester can retry，防止任意用戶重試他人任務</div>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-icon">🗝</div>
+        <div class="security-content">
+          <div class="title">Docker Secret Hardening</div>
+          <div class="detail">移除 hardcoded SECRET_KEY，改為 ${SECRET_KEY:?required}，部署時強制注入</div>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-icon">🏷</div>
+        <div class="security-content">
+          <div class="title">Admin 路徑語義修正</div>
+          <div class="detail">/api/admin → /api/platform，消除誤導性前綴，統一命名語義</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: 可繼續改進 -->
+  <div class="card">
+    <div class="section-eyebrow">Section 05</div>
+    <div class="section-title">可繼續改進項目（Medium 級）</div>
+    <div class="improvement-list">
+      <div class="improvement-item">
+        <div class="improvement-num">1</div>
+        <div class="improvement-text">Webhook SSRF 防護：HttpUrl validator + 私有 IP 封鎖（127.x、10.x、192.168.x）</div>
+      </div>
+      <div class="improvement-item">
+        <div class="improvement-num">2</div>
+        <div class="improvement-text">Input bounds 限制：task fields 加 max_length、timeout range 驗證，防止超長輸入</div>
+      </div>
+      <div class="improvement-item">
+        <div class="improvement-num">3</div>
+        <div class="improvement-text">Provider token cache 改為 hash 比對（bcrypt/argon2），避免 timing attack</div>
+      </div>
+      <div class="improvement-item">
+        <div class="improvement-num">4</div>
+        <div class="improvement-text">check_task_timeouts 移 deadline filter 至 SQL 層，減少 Python 層全表掃描</div>
+      </div>
+      <div class="improvement-item">
+        <div class="improvement-num">5</div>
+        <div class="improvement-text">WorkerErrorResponse status 欄位語義修正，確保 HTTP 4xx/5xx 與業務狀態碼一致</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Quick Start -->
+  <div class="card">
+    <div class="section-eyebrow">Section 06</div>
+    <div class="section-title">使用方式（Quick Start）</div>
+    <div class="quickstart-steps">
+      <div class="qs-step">
+        <div class="qs-num">01</div>
+        <div class="qs-content">
+          <div class="qs-label">啟動基礎設施</div>
+          <div class="qs-note">需先設定 SECRET_KEY 環境變數</div>
+          <div class="qs-cmd">cd infra &amp;&amp; docker compose up -d</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">02</div>
+        <div class="qs-content">
+          <div class="qs-label">執行資料庫 Migration</div>
+          <div class="qs-note">建立所有 schema 及初始資料</div>
+          <div class="qs-cmd">cd apps/api-server &amp;&amp; alembic upgrade head</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">03</div>
+        <div class="qs-content">
+          <div class="qs-label">開啟前端介面</div>
+          <div class="qs-note">瀏覽器開啟本地開發伺服器</div>
+          <div class="qs-cmd">open http://localhost:3000</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">04</div>
+        <div class="qs-content">
+          <div class="qs-label">安裝 Worker SDK</div>
+          <div class="qs-note">讓外部 Provider 接入平台</div>
+          <div class="qs-cmd">pip install agent-platform-worker</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <div class="brand">AI AGENT PLATFORM · MVP COMPLETE</div>
+    <p>Generated by Nova · 2026-03-15 · Keftek Style · All systems green</p>
+  </div>
+</footer>
+
+</body>
+</html>

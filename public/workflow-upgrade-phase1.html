@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 全面工作流程升級 Phase 1 商業規劃</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6}
+
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.95);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-weight:700;font-size:14px;color:var(--grey-03)}
+.nav-links{display:flex;gap:20px;flex-wrap:wrap}
+.nav-links a{font-size:13px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--black)}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .3s}
+
+section{min-height:100vh;padding:100px 80px 80px}
+@media(max-width:768px){section{padding:80px 24px 48px}.nav{padding:12px 16px}.nav-links{gap:12px}}
+
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.cover h1{font-size:clamp(28px,4vw,48px);font-weight:700;margin-bottom:16px;letter-spacing:-0.5px}
+.cover .subtitle{font-size:18px;color:var(--accent);margin-bottom:8px}
+.cover .date{font-size:14px;color:var(--grey-02)}
+.cover .badge{display:inline-block;margin-top:24px;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600}
+.badge-major{background:rgba(168,205,232,0.2);color:var(--accent)}
+.badge-warn{background:rgba(235,128,84,0.2);color:var(--accent-warm)}
+.badge-p0{background:rgba(217,79,79,0.15);color:var(--danger);font-size:12px;padding:4px 12px;border-radius:12px;font-weight:700}
+.badge-p1{background:rgba(235,128,84,0.15);color:var(--accent-warm);font-size:12px;padding:4px 12px;border-radius:12px;font-weight:700}
+.badge-p2{background:rgba(168,205,232,0.15);color:#5b8fb9;font-size:12px;padding:4px 12px;border-radius:12px;font-weight:700}
+.badge-p3{background:rgba(133,162,104,0.15);color:var(--green);font-size:12px;padding:4px 12px;border-radius:12px;font-weight:700}
+
+.card{background:var(--white);border-radius:12px;padding:32px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card h3{font-size:18px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+h2{font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:32px;letter-spacing:-0.3px}
+h2 span{color:var(--accent-warm)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
+.stat{background:var(--white);border-radius:12px;padding:24px;text-align:center}
+.stat .num{font-size:36px;font-weight:700;font-family:var(--font-mono)}
+.stat .label{font-size:13px;color:var(--grey-02);margin-top:4px}
+.stat.green .num{color:var(--green)}
+.stat.warn .num{color:var(--accent-warm)}
+.stat.danger .num{color:var(--danger)}
+.stat.blue .num{color:#5b8fb9}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:12px 16px;background:var(--grey-01);font-weight:600;font-size:13px;color:var(--grey-03);border-bottom:2px solid var(--grey-01)}
+td{padding:10px 16px;border-bottom:1px solid var(--grey-01)}
+tr:hover td{background:rgba(168,205,232,0.08)}
+
+.issue{display:flex;gap:12px;padding:16px;border-radius:8px;margin-bottom:12px}
+.issue.critical{background:rgba(217,79,79,0.06);border-left:3px solid var(--danger)}
+.issue.high{background:rgba(235,128,84,0.06);border-left:3px solid var(--accent-warm)}
+.issue.medium{background:rgba(168,205,232,0.06);border-left:3px solid var(--accent)}
+.issue.low{background:rgba(133,162,104,0.06);border-left:3px solid var(--green)}
+.issue-tag{font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;white-space:nowrap;height:fit-content}
+.issue.critical .issue-tag{background:rgba(217,79,79,0.15);color:var(--danger)}
+.issue.high .issue-tag{background:rgba(235,128,84,0.15);color:var(--accent-warm)}
+.issue.medium .issue-tag{background:rgba(168,205,232,0.15);color:#5b8fb9}
+.issue.low .issue-tag{background:rgba(133,162,104,0.15);color:var(--green)}
+.issue-body h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.issue-body p{font-size:13px;color:var(--grey-03)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.two-col{grid-template-columns:1fr}}
+
+.arch-diagram{background:var(--white);border-radius:12px;padding:32px;margin:24px 0;font-family:var(--font-mono);font-size:13px;line-height:1.8;overflow-x:auto;white-space:pre}
+
+.scope-item{background:var(--white);border-radius:12px;padding:24px;margin-bottom:16px;border-left:4px solid var(--grey-01)}
+.scope-item.p0{border-left-color:var(--danger)}
+.scope-item.p1{border-left-color:var(--accent-warm)}
+.scope-item.p2{border-left-color:var(--accent)}
+.scope-item.p3{border-left-color:var(--green)}
+.scope-item h4{font-size:15px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.scope-item .meta{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.scope-item .meta span{font-size:12px;color:var(--grey-02);font-weight:500}
+.scope-item p{font-size:13px;color:var(--grey-03)}
+
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--grey-01)}
+.cost-row:last-child{border-bottom:none}
+.cost-row .name{font-weight:500;font-size:14px}
+.cost-row .price{font-family:var(--font-mono);font-weight:600;font-size:15px}
+.cost-row .price.free{color:var(--green)}
+.cost-row .price.paid{color:var(--accent-warm)}
+
+.timeline{position:relative;padding-left:40px}
+.timeline::before{content:'';position:absolute;left:15px;top:0;bottom:0;width:2px;background:var(--grey-01)}
+.timeline-item{position:relative;margin-bottom:32px}
+.timeline-item::before{content:'';position:absolute;left:-33px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent-warm);border:3px solid var(--cream)}
+.timeline-item.done::before{background:var(--green)}
+.timeline-item h4{font-size:15px;font-weight:600}
+.timeline-item .week{font-size:12px;color:var(--accent-warm);font-weight:600;margin-bottom:4px}
+.timeline-item p{font-size:13px;color:var(--grey-03)}
+
+.exclude-list{list-style:none;padding:0}
+.exclude-list li{padding:10px 16px;font-size:14px;color:var(--grey-03);border-bottom:1px solid var(--grey-01);display:flex;align-items:center;gap:8px}
+.exclude-list li::before{content:'';display:inline-block;width:20px;height:20px;background:var(--danger);mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center/contain no-repeat;flex-shrink:0}
+
+.risk-card{background:var(--white);border-radius:12px;padding:24px;margin-bottom:16px;border-left:4px solid var(--danger)}
+.risk-card h4{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--danger)}
+.risk-card p{font-size:13px;color:var(--grey-03)}
+.risk-card .mitigation{font-size:13px;color:var(--green);margin-top:8px;font-weight:500}
+
+.closing{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.closing h2{color:var(--white);margin-bottom:16px}
+.closing p{color:var(--grey-02);font-size:16px;max-width:600px}
+.closing .sig{margin-top:40px;color:var(--accent);font-size:14px}
+
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav">
+  <div class="nav-brand">Rain AI Team</div>
+  <div class="nav-links">
+    <a href="#cover">首頁</a>
+    <a href="#goal">目標</a>
+    <a href="#pain">痛點</a>
+    <a href="#arch">架構</a>
+    <a href="#scope">Scope</a>
+    <a href="#exclude">排除</a>
+    <a href="#impact">影響</a>
+    <a href="#risk">風險</a>
+    <a href="#timeline">時程</a>
+  </div>
+</nav>
+
+<!-- ===== COVER ===== -->
+<section class="cover" id="cover">
+  <div class="subtitle">Phase 1 Business Plan</div>
+  <h1>全面工作流程升級</h1>
+  <div class="date">2026-03-10 | Klay (CEO) | Major 等級</div>
+  <div class="badge badge-major">從人工派發到事件驅動自動化</div>
+  <div style="margin-top:32px;font-size:14px;color:var(--grey-02);max-width:560px">
+    整合 n8n 自動化引擎 + Cloudflare 免費基建 + MCP Server，<br>
+    將團隊 9 大部門從「Rain 說 → Agent 做」升級為「事件觸發 → 自動執行 → 結果回報」
+  </div>
+</section>
+
+<!-- ===== 1. PROJECT GOAL ===== -->
+<section id="goal">
+  <h2><span>1.</span> Project Goal</h2>
+  <div class="card fade-up">
+    <h3>一句話目標</h3>
+    <p style="font-size:20px;font-weight:600;line-height:1.5;color:var(--black)">
+      建立 n8n 事件驅動中樞 + Cloudflare 免費基建層，將團隊 80% 的重複性人工派發任務轉為自動化工作流，使 Rain 從「逐一下指令」升級為「看儀表板 + 處理例外」。
+    </p>
+  </div>
+
+  <div class="stats fade-up">
+    <div class="stat danger"><div class="num">88</div><div class="label">Kai 看板累計任務</div></div>
+    <div class="stat warn"><div class="num">25%</div><div class="label">任務失敗率</div></div>
+    <div class="stat blue"><div class="num">5</div><div class="label">上線中網站</div></div>
+    <div class="stat green"><div class="num">29</div><div class="label">團隊 Agent 數</div></div>
+  </div>
+
+  <div class="two-col fade-up">
+    <div class="card">
+      <h3>現在（Before）</h3>
+      <ul style="font-size:14px;color:var(--grey-03);list-style:disc;padding-left:20px;line-height:2">
+        <li>Rain 口頭/文字下指令 → Klay 分析 → 手動 dispatch</li>
+        <li>爬蟲/發文/監控全靠手動觸發</li>
+        <li>網站健康靠 LaunchAgent shell script</li>
+        <li>GA4 數據要手動跑 API</li>
+        <li>報告/日報/週報靠紀律（經常忘記）</li>
+        <li>無統一檔案儲存，散落各處</li>
+        <li>無短網址/UTM 追蹤</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>目標（After）</h3>
+      <ul style="font-size:14px;color:var(--grey-03);list-style:disc;padding-left:20px;line-height:2">
+        <li>Webhook/Cron 事件觸發 → n8n 工作流自動執行</li>
+        <li>爬蟲排程化、發文自動排程+圖片附加</li>
+        <li>Webhook 即時告警，不只定時巡檢</li>
+        <li>MCP Server 讓 Atlas 即時查 GA4</li>
+        <li>日報自動生成 + 自動寄送（n8n Cron）</li>
+        <li>Cloudflare R2 統一儲存</li>
+        <li>Cloudflare Worker 短網址 + UTM 自動追蹤</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 2. CONSTRAINTS ===== -->
+<section id="constraints">
+  <h2><span>2.</span> Constraints 約束條件</h2>
+
+  <div class="card fade-up">
+    <h3>預算</h3>
+    <table>
+      <tr><th>項目</th><th>現有月費</th><th>新增月費</th><th>說明</th></tr>
+      <tr><td>Claude Code Max 200</td><td>$200/月</td><td>$0</td><td>已有，不變</td></tr>
+      <tr><td>Vercel</td><td>~$20/月</td><td>$0</td><td>已有方案</td></tr>
+      <tr><td>Cloudflare</td><td>$0</td><td>$0</td><td>DNS 已有；Worker/KV/R2 免費額度足夠</td></tr>
+      <tr><td>n8n（Zeabur 自架）</td><td>—</td><td style="color:var(--accent-warm);font-weight:600">$5/月</td><td>最便宜可靠方案</td></tr>
+      <tr><td>OpenClaw</td><td>不確定</td><td>$0</td><td>已有，不變</td></tr>
+      <tr><th colspan="2" style="text-align:right">新增成本</th><th style="color:var(--accent-warm)">$5/月</th><th>僅 n8n 託管</th></tr>
+    </table>
+  </div>
+
+  <div class="two-col fade-up">
+    <div class="card">
+      <h3>技術約束</h3>
+      <ul style="font-size:14px;color:var(--grey-03);list-style:disc;padding-left:20px;line-height:2">
+        <li>Cloudflare Worker 免費：10 萬次/天（足夠）</li>
+        <li>Cloudflare R2 免費：10 GB/月（足夠）</li>
+        <li>n8n 自架需持續運行（Zeabur 解決）</li>
+        <li>MCP Server 需 Python 環境（Mac 已有）</li>
+        <li>Kai 中控台必須在線（Redis + SQLite）</li>
+        <li>OpenClaw Gateway 偶有 lock 問題（已有 watchdog）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>人力 / 時間約束</h3>
+      <ul style="font-size:14px;color:var(--grey-03);list-style:disc;padding-left:20px;line-height:2">
+        <li>Rain 是唯一人類，不能同時測試多個系統</li>
+        <li>Agent 各司其職，跨域能力有限</li>
+        <li>估計整體實施：<strong>4-6 週</strong>（分階段上線）</li>
+        <li>每週可投入的 Agent session 時間有上限</li>
+        <li>要維持現有網站營運不中斷</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3. PAIN POINT ANALYSIS ===== -->
+<section id="pain">
+  <h2><span>3.</span> Pain Point Analysis 痛點分析</h2>
+  <p style="font-size:14px;color:var(--grey-02);margin-bottom:24px">按嚴重度排序：Critical → High → Medium → Low</p>
+
+  <div class="issue critical fade-up">
+    <div class="issue-tag">Critical</div>
+    <div class="issue-body">
+      <h4>任務派發全靠人工指令，無事件驅動</h4>
+      <p><strong>影響</strong>：Rain 必須在線下指令，爬蟲/發文/監控/報告才會執行。Rain 不在 = 團隊停擺。<br>
+      <strong>數據</strong>：Kai 看板 88 任務中 22 個 failed（25%），12 個永遠 pending。主因是沒有自動重試和排程機制。<br>
+      <strong>解法</strong>：n8n 作為事件中樞，Webhook + Cron 驅動常規任務。</p>
+    </div>
+  </div>
+
+  <div class="issue critical fade-up">
+    <div class="issue-tag">Critical</div>
+    <div class="issue-body">
+      <h4>日報/週報從未穩定執行過</h4>
+      <p><strong>影響</strong>：lesson.md 記錄「5 區塊日報太重，沒人執行」（L-2026-03-06）。Rain 無法掌握每日進度。<br>
+      <strong>數據</strong>：日報 SOP 存在但執行率接近 0%。三問制改進後仍不穩定。<br>
+      <strong>解法</strong>：n8n 每日 21:00 Cron 自動拉數據 → 生成報告 → Kai Email 寄出。</p>
+    </div>
+  </div>
+
+  <div class="issue high fade-up">
+    <div class="issue-tag">High</div>
+    <div class="issue-body">
+      <h4>爬蟲/發文零排程，全靠手動觸發</h4>
+      <p><strong>影響</strong>：TheOrder 商品價格/庫存可能過時數週。Buzz 社群發文靠 Rain 指派才動。<br>
+      <strong>現況</strong>：Spider/Lynx/Nautilus 有能力但沒有排程引擎。Buzz 有帳號但沒有內容排程。<br>
+      <strong>解法</strong>：n8n 排程驅動爬蟲 pipeline，結果自動寫入 DB + 通知。Buzz 發文排程佇列。</p>
+    </div>
+  </div>
+
+  <div class="issue high fade-up">
+    <div class="issue-tag">High</div>
+    <div class="issue-body">
+      <h4>無統一檔案/圖片儲存層</h4>
+      <p><strong>影響</strong>：圖片散落 Supabase Storage / 本機 / Vercel；報告在 Slideless / /tmp / Email。無法統一管理、備份、CDN 加速。<br>
+      <strong>解法</strong>：Cloudflare R2 作為統一儲存層（S3 API 相容），免費 10 GB/月。</p>
+    </div>
+  </div>
+
+  <div class="issue medium fade-up">
+    <div class="issue-tag">Medium</div>
+    <div class="issue-body">
+      <h4>GA4/GSC 數據查詢費時，非即時</h4>
+      <p><strong>影響</strong>：Atlas 查數據需要手動跑 API 腳本，Rain 想看流量要等。中控台 15 分鐘快取但需手動刷新。<br>
+      <strong>解法</strong>：GA4 MCP Server 讓 Atlas 在 Claude Code 內即時查詢。n8n 排程每日自動拉數據存 cache。</p>
+    </div>
+  </div>
+
+  <div class="issue medium fade-up">
+    <div class="issue-tag">Medium</div>
+    <div class="issue-body">
+      <h4>無短網址 / 無 UTM 追蹤 / 無行銷連結管理</h4>
+      <p><strong>影響</strong>：EchoMarketer 做 SEO 策略但無法追蹤連結效果。社群發文連結無法追蹤轉換。<br>
+      <strong>解法</strong>：Cloudflare Worker + KV 短網址服務，自動附加 UTM 參數。每日 10 萬次免費。</p>
+    </div>
+  </div>
+
+  <div class="issue medium fade-up">
+    <div class="issue-tag">Medium</div>
+    <div class="issue-body">
+      <h4>網站監控靠 shell script + LaunchAgent，不夠即時</h4>
+      <p><strong>影響</strong>：每日 12:00/21:00 才巡檢，中間 9-12 小時的停機無法發現。Uptime Kuma 在線但 alert 機制脆弱。<br>
+      <strong>解法</strong>：Vercel Deploy Hook → n8n Webhook → 部署後自動健康檢查 + Discord 告警。R2 作為健康報告歸檔。</p>
+    </div>
+  </div>
+
+  <div class="issue low fade-up">
+    <div class="issue-tag">Low</div>
+    <div class="issue-body">
+      <h4>GooayeAI 投資 pipeline 偶爾需手動重啟</h4>
+      <p><strong>影響</strong>：相對輕微，pipeline 已經 semi-auto。偶爾 RSS 抓取失敗需人介入。<br>
+      <strong>解法</strong>：n8n 加入健康監控 + 自動重啟邏輯。低優先。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. ARCHITECTURE ===== -->
+<section id="arch">
+  <h2><span>4.</span> Target Architecture 目標架構</h2>
+
+  <div class="card fade-up">
+    <h3>升級後系統架構圖</h3>
+    <div class="arch-diagram">
+┌──────────────────────────────────────────────────────────┐
+│                    EVENT SOURCES（事件源）                  │
+│  Vercel Deploy Hook | Cron 排程 | Kai Webhook | GitHub    │
+│  Email Inbound | Discord Command | RSS Feed               │
+└──────────────┬───────────────────────────────────────────┘
+               │ Webhook / Cron
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│              n8n 自動化引擎（Zeabur, $5/月）                │
+│                                                           │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐   │
+│  │ 日報自動生成  │  │ 爬蟲排程管理   │  │ 部署後健康檢查  │   │
+│  │ Cron 21:00   │  │ Cron 每週 x2  │  │ Webhook 觸發    │   │
+│  └──────┬──────┘  └──────┬───────┘  └───────┬────────┘   │
+│         │                │                   │             │
+│  ┌──────┴────────────────┴───────────────────┴──────────┐ │
+│  │          HTTP Request Node → 呼叫各 Agent API         │ │
+│  │  Kai /api/tasks | /api/email/send | OpenClaw agents   │ │
+│  └──────────────────────────────────────────────────────┘ │
+└──────────────┬───────────────────────────────────────────┘
+               │
+       ┌───────┴────────┐
+       ▼                ▼
+┌──────────────┐  ┌─────────────────────────────────────┐
+│ Cloudflare   │  │          Kai 中控台 :5002             │
+│              │  │  任務板 | Email | GA4/GSC | 安全監控    │
+│  Worker+KV   │  └─────────────────────────────────────┘
+│  短網址+UTM   │            ↕
+│              │  ┌─────────────────────────────────────┐
+│  R2 Storage  │  │         Claude Code Agents           │
+│  圖片/報告    │  │  Klay|Max|Rex|John|Iris|Forge|...    │
+│  歸檔備份     │  │                                      │
+└──────────────┘  │  MCP Servers:                        │
+                  │   GA4 MCP → Atlas 即時查數據           │
+                  │   FastMCP → 自訂工具                   │
+                  └─────────────────────────────────────┘
+    </div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>核心設計原則（from Darrell EP20）</h3>
+    <div class="two-col">
+      <div>
+        <p style="font-size:14px;font-weight:600;color:var(--accent-warm);margin-bottom:8px">Workflow > Agent</p>
+        <p style="font-size:13px;color:var(--grey-03)">能用確定性工作流解決的事，絕不用 AI Agent。Agent 耗 3-6x token。日報生成、健康檢查、爬蟲排程都是確定性流程，應該用 n8n workflow。</p>
+      </div>
+      <div>
+        <p style="font-size:14px;font-weight:600;color:var(--accent-warm);margin-bottom:8px">Observability First</p>
+        <p style="font-size:13px;color:var(--grey-03)">n8n 的核心優勢是每一步可視化。所有自動化工作流都能在 n8n UI 看到執行狀態、輸入輸出、錯誤點。取代 shell script 的黑箱執行。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5. SUCCESS METRICS ===== -->
+<section id="metrics">
+  <h2><span>5.</span> Success Metrics 成功指標</h2>
+
+  <div class="card fade-up">
+    <table>
+      <tr><th>指標</th><th>現況</th><th>目標</th><th>衡量方式</th></tr>
+      <tr>
+        <td><strong>Rain 手動派發頻率</strong></td>
+        <td style="color:var(--danger)">100%（每件事都要說）</td>
+        <td style="color:var(--green)">≤ 20%（只管例外）</td>
+        <td>n8n 自動觸發的任務數 / 總任務數</td>
+      </tr>
+      <tr>
+        <td><strong>日報執行率</strong></td>
+        <td style="color:var(--danger)">~0%</td>
+        <td style="color:var(--green)">≥ 95%</td>
+        <td>過去 30 天收到日報 Email 的天數</td>
+      </tr>
+      <tr>
+        <td><strong>任務失敗率</strong></td>
+        <td style="color:var(--danger)">25%（22/88）</td>
+        <td style="color:var(--green)">≤ 10%</td>
+        <td>Kai 看板 failed / total</td>
+      </tr>
+      <tr>
+        <td><strong>爬蟲數據新鮮度</strong></td>
+        <td style="color:var(--accent-warm)">不定（手動觸發）</td>
+        <td style="color:var(--green)">≤ 7 天</td>
+        <td>ProductItem.crawled_at vs now</td>
+      </tr>
+      <tr>
+        <td><strong>網站停機偵測延遲</strong></td>
+        <td style="color:var(--accent-warm)">最長 12 小時</td>
+        <td style="color:var(--green)">≤ 5 分鐘</td>
+        <td>Uptime Kuma + n8n webhook 偵測時間</td>
+      </tr>
+      <tr>
+        <td><strong>新增月成本</strong></td>
+        <td>—</td>
+        <td style="color:var(--green)">≤ $5/月</td>
+        <td>Zeabur n8n 費用</td>
+      </tr>
+      <tr>
+        <td><strong>統一儲存覆蓋率</strong></td>
+        <td style="color:var(--danger)">0%（散落各處）</td>
+        <td style="color:var(--green)">≥ 80% 新產生檔案走 R2</td>
+        <td>新爬蟲圖片/報告是否存 R2</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 6. SCOPE P0-P3 ===== -->
+<section id="scope" style="min-height:auto;padding-bottom:40px">
+  <h2><span>6.</span> Scope 範圍（P0 → P3）</h2>
+
+  <!-- P0 -->
+  <h3 style="margin-bottom:16px;display:flex;align-items:center;gap:8px"><span class="badge-p0">P0</span> 立即執行（Week 1-2）</h3>
+
+  <div class="scope-item p0 fade-up">
+    <h4>6.1 n8n 基礎建設 — Zeabur 部署</h4>
+    <div class="meta">
+      <span>負責：Forge</span>
+      <span>成本：$5/月</span>
+      <span>耗時：2-3 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：在 Zeabur 部署 n8n（Docker），設定持久化儲存、環境變數、域名（n8n.blankspaces.uk 或類似）。<br>
+    <strong>預期效果</strong>：團隊有一個 24/7 運行的自動化引擎，所有後續工作流都建在上面。<br>
+    <strong>關鍵配置</strong>：webhook URL、Kai API 連線、Discord webhook、Email SMTP。</p>
+  </div>
+
+  <div class="scope-item p0 fade-up">
+    <h4>6.2 日報自動化工作流</h4>
+    <div class="meta">
+      <span>負責：Max + Forge</span>
+      <span>成本：$0</span>
+      <span>耗時：4-6 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：n8n Cron 每日 21:00 TST → 拉 Kai 看板 API（今日完成/失敗/pending）→ 拉 website-health-latest.json → 拉 GA4 API 日數據 → 用 Structured Output Parser 組合報告 → Kai Email 寄出。<br>
+    <strong>預期效果</strong>：Rain 每天 21:00 自動收到日報 Email，不需要任何人工觸發。執行率從 ~0% → 95%+。<br>
+    <strong>關鍵設計</strong>：用 n8n 的 HTTP Request node 直接呼叫 Kai API，不經過 Claude Agent（省 token）。失敗 → Discord @Rain 告警。</p>
+  </div>
+
+  <div class="scope-item p0 fade-up">
+    <h4>6.3 部署後自動健康檢查</h4>
+    <div class="meta">
+      <span>負責：Forge + Keeper</span>
+      <span>成本：$0</span>
+      <span>耗時：3-4 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：Vercel Deploy Hook → n8n Webhook → 自動 ping 5 個網站所有健康端點 → 結果寫入 cache JSON → 異常 → Discord 即時告警。<br>
+    <strong>預期效果</strong>：每次部署後 30 秒內完成健康檢查。停機偵測從 12 小時 → 5 分鐘以內。<br>
+    <strong>增強現有</strong>：不取代 LaunchAgent 定時巡檢，而是在每次部署後「加一層」即時驗證。</p>
+  </div>
+
+  <!-- P1 -->
+  <h3 style="margin:32px 0 16px;display:flex;align-items:center;gap:8px"><span class="badge-p1">P1</span> 高價值（Week 2-4）</h3>
+
+  <div class="scope-item p1 fade-up">
+    <h4>6.4 Cloudflare R2 統一儲存層</h4>
+    <div class="meta">
+      <span>負責：Forge + Max</span>
+      <span>成本：$0（免費 10 GB/月）</span>
+      <span>耗時：4-5 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：建立 Cloudflare R2 bucket（rain-ai-storage）→ 寫 Python 上傳工具（S3 API）→ 爬蟲圖片、報告 PDF、健康檢查歸檔統一存 R2 → CDN URL 取代本機路徑。<br>
+    <strong>預期效果</strong>：所有新產生的檔案走統一路徑。備份安全、CDN 加速、任何 Agent 可存取。<br>
+    <strong>n8n 整合</strong>：n8n S3 Node 直接操作 R2（API 相容），工作流可直接上傳/下載。</p>
+  </div>
+
+  <div class="scope-item p1 fade-up">
+    <h4>6.5 Cloudflare Worker 短網址 + UTM 追蹤</h4>
+    <div class="meta">
+      <span>負責：Rex + Forge</span>
+      <span>成本：$0（免費 10 萬次/天）</span>
+      <span>耗時：3-4 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：部署 Cloudflare Worker + KV → 短網址 API（go.blankspaces.uk/xxx）→ 自動附加 UTM 參數（source/medium/campaign）→ 點擊統計寫入 KV。<br>
+    <strong>預期效果</strong>：Buzz 發社群文時自動生成追蹤短連結。EchoMarketer 可看連結效果數據。行銷可衡量。<br>
+    <strong>管理介面</strong>：Kai 中控台新增「連結管理」頁面（John 前端）。</p>
+  </div>
+
+  <div class="scope-item p1 fade-up">
+    <h4>6.6 爬蟲排程自動化</h4>
+    <div class="meta">
+      <span>負責：Max + Spider/Lynx（OpenClaw）</span>
+      <span>成本：$0</span>
+      <span>耗時：6-8 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：n8n Cron → 週二/週五觸發 → HTTP Request 呼叫 Kai API 建立爬蟲任務 → Spider/Lynx 執行 → 結果寫入 TheOrder DB → 價格/庫存變動 → Discord 通知。<br>
+    <strong>預期效果</strong>：TheOrder 商品資料每週自動更新 2 次。Rain 只處理「價格異常波動」的例外通知。<br>
+    <strong>關鍵細節</strong>：n8n 只負責「排程 + 建任務」，實際爬蟲仍由 Spider/Lynx 的現有代碼執行（Workflow > Agent 原則）。</p>
+  </div>
+
+  <div class="scope-item p1 fade-up">
+    <h4>6.7 GA4 MCP Server</h4>
+    <div class="meta">
+      <span>負責：Atlas + Max</span>
+      <span>成本：$0</span>
+      <span>耗時：3-4 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：用 FastMCP Python 建 GA4 MCP Server → 註冊到 Claude Code → Atlas 可在 session 內直接查詢 GA4 數據（流量、事件、轉換）。<br>
+    <strong>預期效果</strong>：Rain 問「今天流量？」→ Atlas 即時回答，不用手動跑腳本。<br>
+    <strong>已有基礎</strong>：SA 已有 GA4 Viewer 權限（5 個 property），API 已啟用，Python 環境就緒。</p>
+  </div>
+
+  <!-- P2 -->
+  <h3 style="margin:32px 0 16px;display:flex;align-items:center;gap:8px"><span class="badge-p2">P2</span> 效率提升（Week 3-5）</h3>
+
+  <div class="scope-item p2 fade-up">
+    <h4>6.8 Buzz 發文排程自動化</h4>
+    <div class="meta">
+      <span>負責：Buzz（OpenClaw）+ n8n</span>
+      <span>成本：$0</span>
+      <span>耗時：5-6 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：建立發文佇列表（Kai DB 或 R2 JSON）→ n8n 排程每天指定時段觸發 → 從佇列取內容 → OpenClaw Buzz 執行發文 → 自動附加短連結 + 圖片。<br>
+    <strong>預期效果</strong>：Rain/Noel 批次排好一週內容，自動依排程發出。免除每次手動派發。<br>
+    <strong>前置</strong>：依賴 P1 短網址（6.5）。</p>
+  </div>
+
+  <div class="scope-item p2 fade-up">
+    <h4>6.9 任務失敗自動重試 + 告警升級</h4>
+    <div class="meta">
+      <span>負責：Max + Kai</span>
+      <span>成本：$0</span>
+      <span>耗時：3-4 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：Kai Task API 加入 Webhook 機制 → 任務 failed → n8n 收到 webhook → 判斷重試策略（max 2 次）→ 仍失敗 → Discord @Rain + Email 告警。<br>
+    <strong>預期效果</strong>：任務失敗率從 25% 降到 ≤10%（transient error 自動恢復）。Rain 只收到「真正需要人介入」的告警。<br>
+    <strong>數據</strong>：目前 22 個 failed 任務中估計 40% 是暫時性錯誤（API timeout、lock 競爭）。</p>
+  </div>
+
+  <div class="scope-item p2 fade-up">
+    <h4>6.10 週報自動生成</h4>
+    <div class="meta">
+      <span>負責：Noel + n8n</span>
+      <span>成本：$0</span>
+      <span>耗時：3-4 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：n8n 每週一 09:00 Cron → 聚合過去 7 天日報數據 → 統計高頻錯誤 / Agent 任務量 / 成功率 → 用 Structured Output Parser 生成結構化週報 → Deck 格式 → Email URL。<br>
+    <strong>預期效果</strong>：Noel 週報從「應該做但沒做」變成「自動生成 + Noel 審閱潤飾」。<br>
+    <strong>前置</strong>：依賴 P0 日報自動化（6.2）穩定運行 1 週以上。</p>
+  </div>
+
+  <!-- P3 -->
+  <h3 style="margin:32px 0 16px;display:flex;align-items:center;gap:8px"><span class="badge-p3">P3</span> 長期優化（Week 5-6+）</h3>
+
+  <div class="scope-item p3 fade-up">
+    <h4>6.11 MCP Inspector 本地測試環境</h4>
+    <div class="meta">
+      <span>負責：Forge</span>
+      <span>成本：$0</span>
+      <span>耗時：1-2 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：安裝 MCP Inspector → 本地測試所有自訂 MCP Server → 建立測試 SOP。<br>
+    <strong>預期效果</strong>：新 MCP Server 開發效率提升，上線前可本地驗證。</p>
+  </div>
+
+  <div class="scope-item p3 fade-up">
+    <h4>6.12 n8n 工作流監控儀表板整合</h4>
+    <div class="meta">
+      <span>負責：John + Kai</span>
+      <span>成本：$0</span>
+      <span>耗時：4-5 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：Kai 中控台新增 n8n 工作流狀態頁面（n8n API → 執行歷史 / 錯誤 / 排程狀態）。<br>
+    <strong>預期效果</strong>：Rain 在中控台一站式看到所有自動化工作流的執行狀態。Observability 完整覆蓋。</p>
+  </div>
+
+  <div class="scope-item p3 fade-up">
+    <h4>6.13 GooayeAI Pipeline 遷移至 n8n</h4>
+    <div class="meta">
+      <span>負責：Max</span>
+      <span>成本：$0</span>
+      <span>耗時：4-6 小時</span>
+    </div>
+    <p><strong>做什麼</strong>：將 gooaye_pipeline.py 的 RSS → Vocus/Whisper → Gemini → Telegram 流程遷移到 n8n workflow，保留 gooaye_bot.py 的 Telegram 介面。<br>
+    <strong>預期效果</strong>：pipeline 出錯時 n8n 自動重試 + 可視化除錯，不再需要手動重啟。<br>
+    <strong>低優先</strong>：現有 pipeline 已 semi-auto，痛點不大。</p>
+  </div>
+</section>
+
+<!-- ===== 7. EXCLUSIONS ===== -->
+<section id="exclude">
+  <h2><span>7.</span> 不做什麼（排除清單）</h2>
+
+  <div class="card fade-up">
+    <ul class="exclude-list">
+      <li><strong>不建新的 AI Agent</strong> — 團隊已有 29 個 Agent，問題不是人不夠，是自動化不夠。本次只加「調度層」不加「執行層」。</li>
+      <li><strong>不遷移現有 Supabase 到其他 DB</strong> — Supabase 免費層足夠（已有 keepalive），遷移 ROI 不合理。</li>
+      <li><strong>不建自訂 Dashboard 取代 n8n UI</strong> — n8n 自帶的工作流 UI 足夠好，不需要額外開發。Kai 中控台只做「狀態嵌入」。</li>
+      <li><strong>不做 LINE Bot 整合</strong> — 雖然 n8n 有 LINE Community Node，但團隊通訊走 Discord + Telegram，LINE 是客戶端（等專案需要時再做）。</li>
+      <li><strong>不換 Claude Code Max 方案</strong> — $200/月已是固定成本，n8n 的意義是「減少不必要的 Agent 呼叫」而非換模型。</li>
+      <li><strong>不做 n8n 高可用（HA）架構</strong> — 單實例 Zeabur 足夠。流量不大，不需要 worker + queue 分離。</li>
+      <li><strong>不遷移 Vercel 到 Cloudflare Pages</strong> — Vercel 已有多站部署，遷移成本高且沒有明確收益。</li>
+      <li><strong>不做 AI Agent 自動決策</strong> — n8n 工作流是確定性流程（workflow），不讓 AI 在中間自行決策。AI 只在端點執行（Claude Code Agent）。遵循 Workflow > Agent 原則。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 8. CROSS-DEPT IMPACT ===== -->
+<section id="impact">
+  <h2><span>8.</span> 跨部門影響評估</h2>
+
+  <div class="card fade-up">
+    <table>
+      <tr><th>部門 / 角色</th><th>影響程度</th><th>具體變化</th><th>需要的配合</th></tr>
+      <tr>
+        <td><strong>Forge（CI/DevOps）</strong></td>
+        <td style="color:var(--danger);font-weight:600">高</td>
+        <td>主要執行者。負責 n8n 部署、R2 設定、Worker 部署、Deploy Hook 串接</td>
+        <td>學習 n8n workflow 建立、Zeabur 管理、Cloudflare API</td>
+      </tr>
+      <tr>
+        <td><strong>Max（Backend）</strong></td>
+        <td style="color:var(--danger);font-weight:600">高</td>
+        <td>日報工作流建模、R2 上傳工具、GA4 MCP Server、Task API webhook 機制</td>
+        <td>Kai API 增加 webhook event 端點、FastMCP 開發</td>
+      </tr>
+      <tr>
+        <td><strong>Kai（中控台）</strong></td>
+        <td style="color:var(--accent-warm);font-weight:600">中高</td>
+        <td>Task API 需增加 webhook notify、新增連結管理和 n8n 狀態端點</td>
+        <td>Backend route 擴展（Max 負責實作）</td>
+      </tr>
+      <tr>
+        <td><strong>Spider/Lynx（爬蟲）</strong></td>
+        <td style="color:var(--accent-warm);font-weight:600">中</td>
+        <td>從「手動觸發」變成「n8n 排程觸發」。爬蟲代碼不變，只是啟動方式變了</td>
+        <td>確保爬蟲腳本可被 HTTP API 呼叫</td>
+      </tr>
+      <tr>
+        <td><strong>Buzz（社群）</strong></td>
+        <td style="color:var(--accent-warm);font-weight:600">中</td>
+        <td>發文從「手動指派」變成「佇列排程」。內容仍需人準備</td>
+        <td>配合短網址 API 產生追蹤連結</td>
+      </tr>
+      <tr>
+        <td><strong>Atlas（GA4）</strong></td>
+        <td style="color:#5b8fb9;font-weight:600">中</td>
+        <td>獲得 MCP Server，可在 Claude Code session 內即時查數據</td>
+        <td>測試 MCP Server 穩定性</td>
+      </tr>
+      <tr>
+        <td><strong>Noel（Ops）</strong></td>
+        <td style="color:#5b8fb9;font-weight:600">中</td>
+        <td>週報從手動撰寫 → 自動生成 + 審閱。派發工作量降低</td>
+        <td>定義週報模板、驗收自動化流程</td>
+      </tr>
+      <tr>
+        <td><strong>Keeper（維護）</strong></td>
+        <td style="color:#5b8fb9;font-weight:600">中</td>
+        <td>健康檢查從定時 → 事件觸發。結果自動歸檔到 R2</td>
+        <td>更新健康檢查腳本的輸出格式，配合 n8n</td>
+      </tr>
+      <tr>
+        <td><strong>EchoMarketer</strong></td>
+        <td style="color:var(--green);font-weight:600">低</td>
+        <td>獲得短網址 + UTM 追蹤數據，SEO 策略可量化</td>
+        <td>定義 UTM 命名規範</td>
+      </tr>
+      <tr>
+        <td><strong>John/Iris（前端）</strong></td>
+        <td style="color:var(--green);font-weight:600">低</td>
+        <td>P3 階段才需要做中控台新頁面（連結管理、n8n 狀態）</td>
+        <td>無即時配合需求</td>
+      </tr>
+      <tr>
+        <td><strong>Ray/Quill（審查）</strong></td>
+        <td style="color:var(--green);font-weight:600">低</td>
+        <td>審查對象從「純 code」擴展到「n8n workflow 設計」</td>
+        <td>理解 n8n workflow 結構</td>
+      </tr>
+      <tr>
+        <td><strong>Knox/Sage/Sentinel（安全財務）</strong></td>
+        <td style="color:var(--green);font-weight:600">低</td>
+        <td>新增 Cloudflare R2 API Key + n8n webhook secret 需入 vault</td>
+        <td>Knox 登記新憑證</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 9. RISK FLAGS FOR RAY ===== -->
+<section id="risk">
+  <h2><span>9.</span> Risk Flags for Ray Phase 3 審查</h2>
+  <p style="font-size:14px;color:var(--grey-02);margin-bottom:24px">以下是設計層面的風險，需要 Ray 在 Phase 3 做架構簽核時逐項審查。</p>
+
+  <div class="risk-card fade-up">
+    <h4>R1: n8n 單點故障 — Zeabur 掛了所有自動化停擺</h4>
+    <p>n8n 是所有自動化的中樞。如果 Zeabur 停機，日報/爬蟲排程/健康檢查/告警全部失效。目前設計是單實例無 HA。</p>
+    <div class="mitigation">緩解：LaunchAgent 保留為 fallback（不刪現有 shell script），n8n 只是「增強層」。n8n 本身加入 Uptime Kuma 監控。Zeabur SLA 99.9%。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R2: Webhook 安全 — n8n webhook URL 暴露可能被惡意觸發</h4>
+    <p>n8n webhook 是公開 URL，任何人知道 URL 都可以觸發工作流。惡意觸發可能導致垃圾任務、API 額度浪費。</p>
+    <div class="mitigation">緩解：所有 webhook 加入 Header Token 驗證（n8n 支援 Header Auth）。Vercel Deploy Hook 用 secret。限制 webhook 來源 IP（Cloudflare、Vercel IP range）。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R3: Cloudflare R2 存取權限 — API Key 洩露 = 所有檔案被刪</h4>
+    <p>R2 API Key 有完整讀寫刪權限。如果洩露在 git commit 或 env 檔中，攻擊者可刪除所有儲存的檔案。</p>
+    <div class="mitigation">緩解：API Key 只存在 n8n 環境變數 + Kai .env（不進 git）。Knox vault 登記。Sentinel hook 掃描。R2 開啟版本管理（可恢復刪除檔案）。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R4: n8n → Kai API 的認證 — 中控台目前無 API 認證</h4>
+    <p>Kai 中控台 API（127.0.0.1:5002）目前沒有認證機制，任何能存取 localhost 的進程都可以呼叫。當 n8n 在外部（Zeabur）時，需要暴露 Kai API 到公網或透過 tunnel。</p>
+    <div class="mitigation">緩解：方案 A（推薦）：Cloudflare Tunnel 將 Kai API 暴露到 n8n，加 Bearer Token 認證。方案 B：n8n 改為本地部署（Docker on Mac），免去公網暴露。Ray 需決定走哪個方案。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R5: 爬蟲自動排程可能對目標網站產生壓力</h4>
+    <p>自動化排程如果設錯間隔（例如每小時而非每週兩次），可能對 Rakuten 等目標網站產生過大壓力，導致 IP 被封或法律問題。</p>
+    <div class="mitigation">緩解：n8n Cron 設定需經 Ray 審查。最小間隔 = 12 小時。加入 rate limiter。爬蟲腳本已有 Rakuten WAF 規避邏輯。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R6: Workflow > Agent 邊界模糊 — 什麼該放 n8n、什麼留給 Claude</h4>
+    <p>如果邊界不清楚，可能出現「n8n 也做 AI 決策」或「Agent 做應該是 workflow 的事」，造成 token 浪費和維護困難。</p>
+    <div class="mitigation">緩解：硬性規則 — n8n 只做確定性流程（HTTP call、data transform、conditional route、schedule）。任何需要「理解語意」或「生成內容」的步驟留給 Claude Agent。邊界寫入 CLAUDE.md。</div>
+  </div>
+
+  <div class="risk-card fade-up">
+    <h4>R7: 遷移期間兩套系統並行 — LaunchAgent + n8n 可能重複執行</h4>
+    <p>P0 上線後到 P1 穩定前，LaunchAgent（健康檢查、keepalive）和 n8n 會同時存在。可能出現重複觸發（兩份日報、兩次健康檢查）。</p>
+    <div class="mitigation">緩解：嚴格分階段切換。n8n workflow 驗證穩定（連續 3 天正常）後才停用對應的 LaunchAgent。並行期間用 flag 標記來源（launchagent vs n8n），去重。</div>
+  </div>
+</section>
+
+<!-- ===== 10. TIMELINE ===== -->
+<section id="timeline">
+  <h2><span>10.</span> Implementation Timeline 時程規劃</h2>
+
+  <div class="card fade-up">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="week">Week 1（3/10 - 3/16）</div>
+        <h4>P0 基礎建設</h4>
+        <p>Forge 部署 n8n on Zeabur → Max 建日報工作流 → Forge 建 Deploy Hook 健康檢查工作流 → 驗證 3 天穩定性</p>
+      </div>
+      <div class="timeline-item">
+        <div class="week">Week 2（3/17 - 3/23）</div>
+        <h4>P0 穩定 + P1 啟動</h4>
+        <p>日報工作流穩定 → 停用 LaunchAgent 日報 → Forge 建 R2 bucket + 上傳工具 → Rex 建 Worker 短網址 → Max 建 GA4 MCP Server</p>
+      </div>
+      <div class="timeline-item">
+        <div class="week">Week 3（3/24 - 3/30）</div>
+        <h4>P1 完成 + P2 啟動</h4>
+        <p>爬蟲排程工作流上線 → Buzz 發文佇列設計 → Max 加 Task API webhook 機制 → 任務失敗自動重試上線</p>
+      </div>
+      <div class="timeline-item">
+        <div class="week">Week 4（3/31 - 4/6）</div>
+        <h4>P2 完成</h4>
+        <p>Buzz 發文排程上線 → 週報自動化上線 → 全流程驗收 → Noel 週報審閱流程建立</p>
+      </div>
+      <div class="timeline-item">
+        <div class="week">Week 5-6（4/7 - 4/20）</div>
+        <h4>P3 收尾</h4>
+        <p>MCP Inspector 環境 → John 中控台新頁面（連結管理 + n8n 狀態）→ GooayeAI pipeline 評估遷移 → 全面文件更新</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>成本匯總</h3>
+    <div class="cost-row"><div class="name">n8n 自架（Zeabur）</div><div class="price paid">$5/月</div></div>
+    <div class="cost-row"><div class="name">Cloudflare Worker + KV</div><div class="price free">$0 免費</div></div>
+    <div class="cost-row"><div class="name">Cloudflare R2（10 GB）</div><div class="price free">$0 免費</div></div>
+    <div class="cost-row"><div class="name">FastMCP / MCP Inspector</div><div class="price free">$0 開源</div></div>
+    <div class="cost-row"><div class="name">GA4 MCP Server</div><div class="price free">$0 自建</div></div>
+    <div class="cost-row" style="background:var(--grey-01);border-radius:8px;margin-top:8px">
+      <div class="name" style="font-weight:700">月增成本合計</div>
+      <div class="price paid" style="font-size:20px">$5/月</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CLOSING ===== -->
+<section class="closing" id="closing">
+  <h2>Ready for Ray Phase 3 Review</h2>
+  <p>本規劃定義了從「人工驅動」到「事件驅動」的完整升級路徑。<br>
+  13 個 scope item、7 個風險項、6 週實施時程、月增 $5 成本。<br>
+  待 Ray 架構簽核後即可進入 Scout Phase 2 系統設計。</p>
+  <div class="sig">
+    Klay（CEO）| Rain AI Team | 2026-03-10<br>
+    Phase 1 Business Plan — Workflow Upgrade v1.0
+  </div>
+</section>
+
+<script>
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  document.getElementById('progressBar').style.width=pct+'%';
+});
+
+// Fade up on scroll
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

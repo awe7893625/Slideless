@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBGroupPosterPro 多平台擴充 — 交付報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s;width:0}
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--black)}
+section{padding:80px 120px 60px;max-width:1400px;margin:0 auto;width:100%}
+section:first-child{max-width:none;padding:0;width:100%}
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:72px 120px 60px}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(28px,4.5vw,54px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;line-height:1.1}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:17px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:640px}
+.cover-stats{display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center}
+.cover-stat{text-align:center}
+.cover-stat .num{font-size:40px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
+.cover-stat .label{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
+.cover-meta{margin-top:48px;font-size:13px;color:rgba(255,255,255,0.3);font-family:var(--font-mono)}
+.section-header{margin-bottom:40px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:clamp(22px,3vw,36px);font-weight:700;letter-spacing:-0.5px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:700px}
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
+.card h3{font-size:16px;font-weight:600;margin-bottom:12px}
+.card p{font-size:14px;color:var(--grey-02);line-height:1.7}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{min-width:600px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
+td{padding:10px 14px;border-bottom:1px solid var(--grey-01)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(168,205,232,0.05)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--font-mono)}
+.badge-red{background:#fde8e8;color:#c0392b}
+.badge-orange{background:#fef3e2;color:#d35400}
+.badge-green{background:#e8f5e9;color:#2e7d32}
+.badge-blue{background:#e3f2fd;color:#1565c0}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-bottom:40px}
+.stat{background:var(--white);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--grey-01)}
+.stat .num{font-size:32px;font-weight:800;font-family:var(--font-mono)}
+.stat .label{font-size:12px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.stat.warm .num{color:var(--accent-warm)}
+.stat.green .num{color:var(--green)}
+.stat.blue .num{color:#5b8fb9}
+.dark-band{background:var(--black);color:var(--white);width:100vw;margin-left:calc(50% - 50vw);padding:60px 120px}
+.dark-band .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-family:var(--font-mono)}
+.dark-band h2{font-size:clamp(20px,2.5vw,30px);font-weight:700;margin-bottom:12px}
+.dark-band h2 span{color:var(--accent-warm)}
+.dark-band p{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:700px}
+.code-block{background:#1e1e1e;border-radius:8px;padding:20px 24px;font-family:var(--font-mono);font-size:12px;line-height:1.8;color:#d4d4d4;overflow-x:auto;margin-top:12px}
+.code-block .kw{color:#569cd6}
+.code-block .str{color:#ce9178}
+.code-block .cm{color:#6a9955}
+.platform-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.platform-card{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);position:relative;overflow:hidden}
+.platform-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.platform-card.fb::before{background:#1877f2}
+.platform-card.threads::before{background:#000}
+.platform-card.x::before{background:#1da1f2}
+.platform-card.ig::before{background:linear-gradient(90deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+.platform-card .platform-name{font-size:16px;font-weight:700;margin-bottom:6px}
+.platform-card .platform-timeout{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent-warm);margin:8px 0}
+.platform-card .platform-desc{font-size:13px;color:var(--grey-02);line-height:1.6}
+.risk-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px}
+.risk-low{background:#e8f5e9;color:#2e7d32}
+.risk-med{background:#fff8e1;color:#f57f17}
+.risk-high{background:#fde8e8;color:#c62828}
+.risk-xhigh{background:#f3e5f5;color:#6a1b9a}
+.fix-list{list-style:none;padding:0}
+.fix-list li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--grey-01);font-size:14px}
+.fix-list li:last-child{border-bottom:none}
+.fix-icon{flex-shrink:0;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.fix-icon.blocker{background:#fde8e8;color:#c62828}
+.fix-icon.required{background:#fff8e1;color:#f57f17}
+.fix-icon.ok{background:#e8f5e9;color:#2e7d32}
+footer{background:var(--black);text-align:center;padding:40px 20px;font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.3)}
+footer a{color:rgba(255,255,255,0.4);text-decoration:none}
+@media(max-width:1100px){section{padding:80px 60px 60px}.dark-band{padding:60px 60px}}
+@media(max-width:900px){section{padding:72px 32px 48px}.dark-band{padding:48px 32px}.grid-2{grid-template-columns:1fr}.platform-grid{grid-template-columns:1fr}.nav{padding:12px 20px}.cover{padding:72px 32px 48px}}
+@media(max-width:600px){section{padding:64px 20px 40px}.dark-band{padding:40px 20px}.cover{padding:64px 20px 40px}.cover-stats{gap:24px}}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="pb"></div>
+<nav class="nav">
+  <span class="nav-brand">FBGroupPosterPro ◆ 多平台報告</span>
+  <div class="nav-links">
+    <a href="#overview">總覽</a>
+    <a href="#ray-fixes">Ray 修復</a>
+    <a href="#files">檔案清單</a>
+    <a href="#arch">架構設計</a>
+    <a href="#platforms">平台評估</a>
+    <a href="#verify">驗證結果</a>
+  </div>
+</nav>
+
+<section>
+  <div class="cover">
+    <div class="eyebrow">FBGroupPosterPro · 2026-03-18</div>
+    <h1>多平台擴充<br><span>Threads · X · Instagram</span></h1>
+    <p class="subtitle">在 Facebook 自動發文引擎基礎上，擴充三個新平台支援。採用完整 3-Phase 規劃流程（Scout → Ray → 實作）。</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><div class="num">3</div><div class="label">新平台</div></div>
+      <div class="cover-stat"><div class="num">8</div><div class="label">修改檔案</div></div>
+      <div class="cover-stat"><div class="num">5</div><div class="label">Ray 修復項</div></div>
+      <div class="cover-stat"><div class="num">0</div><div class="label">語法錯誤</div></div>
+    </div>
+    <div class="cover-meta">3-Phase: Scout Phase 2 → Ray Phase 3 (⚠️ 條件通過) → Max 後端 + John 前端</div>
+  </div>
+</section>
+
+<section id="overview">
+  <div class="section-header">
+    <div class="section-eyebrow">OVERVIEW</div>
+    <h2 class="section-title">任務背景：<span>在現有引擎加三個平台</span></h2>
+    <p class="section-desc">FBGroupPosterPro 原本只支援 Facebook 群組發文。本次擴充加入 Threads、X（Twitter）、Instagram，採用 platform dispatch dict 架構，可繼續擴充新平台而無需重寫核心邏輯。</p>
+  </div>
+  <div class="stats-row">
+    <div class="stat warm"><div class="num">FB</div><div class="label">原有，生產就緒</div></div>
+    <div class="stat blue"><div class="num">Threads</div><div class="label">新增，中風險</div></div>
+    <div class="stat blue"><div class="num">X</div><div class="label">新增，高風險</div></div>
+    <div class="stat"><div class="num" style="color:#6a1b9a">IG</div><div class="label">新增，spike 待驗</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>3-Phase 執行流程</h3>
+      <ul style="list-style:none;padding:0;font-size:14px;line-height:2">
+        <li>📐 <strong>Phase 1 (Klay)</strong> — 商業規劃，確認三平台並行實作</li>
+        <li>🏗️ <strong>Phase 2 (Scout)</strong> — DB schema + platform dispatch 架構設計</li>
+        <li>⚠️ <strong>Phase 3 (Ray)</strong> — 識別 2 個 Blocker + 3 個 Required 修改</li>
+        <li>⚡ <strong>並行實作</strong> — Max 後端 + John 前端，同時進行</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>DB Schema 新增欄位</h3>
+      <ul style="list-style:none;padding:0;font-size:13px;line-height:2;font-family:var(--font-mono)">
+        <li><span style="color:var(--accent-warm)">groups</span>.platform <span style="color:var(--grey-02)">TEXT DEFAULT 'fb'</span></li>
+        <li><span style="color:var(--accent-warm)">groups</span>.platform_entity_id <span style="color:var(--grey-02)">TEXT NULL</span></li>
+        <li><span style="color:var(--accent-warm)">post_records</span>.post_url <span style="color:var(--grey-02)">TEXT NULL</span></li>
+      </ul>
+      <p style="margin-top:12px;font-size:12px;color:var(--grey-02)">v2 / v2b / v3 migration 自動套用（SQLite ALTER TABLE + try/except 模式）</p>
+    </div>
+  </div>
+</section>
+
+<section id="ray-fixes">
+  <div class="section-header">
+    <div class="section-eyebrow">RAY PHASE 3</div>
+    <h2 class="section-title">Ray 識別的問題：<span>全部修復</span></h2>
+    <p class="section-desc">Ray 審查給出「⚠️ 有條件通過」，識別 2 個 Blocker 和 3 個 Required 修改。所有項目在實作中均已解決。</p>
+  </div>
+  <div class="card">
+    <ul class="fix-list">
+      <li>
+        <div class="fix-icon blocker">B</div>
+        <div>
+          <strong>Blocker 1：event loop 阻塞</strong>
+          <p class="card p" style="margin-top:4px">Scout 原規格用 <code>await handler()</code>，會讓 blocking Selenium 呼叫跑在 event loop 上，癱瘓整個 aiohttp server。</p>
+          <p style="font-size:13px;color:var(--green);margin-top:4px">✅ 修復：所有 <code>_do_post_*</code> 改為同步方法，透過 <code>run_in_executor</code> 呼叫</p>
+        </div>
+      </li>
+      <li>
+        <div class="fix-icon blocker">B</div>
+        <div>
+          <strong>Blocker 2：Instagram spike 未驗證</strong>
+          <p class="card p" style="margin-top:4px"><code>execute_script</code> 顯示隱藏 file input 的方法成功率不確定，需在真實帳號測試。</p>
+          <p style="font-size:13px;color:var(--accent-warm);margin-top:4px">⚠️ 決策：實作 stub + guard，spike test 完成後才開放；Threads + X 可立即使用</p>
+        </div>
+      </li>
+      <li>
+        <div class="fix-icon required">R</div>
+        <div>
+          <strong>Required 1：PLATFORM_TIMEOUT 未套用</strong>
+          <p class="card p" style="margin-top:4px">timeout dict 定義了但 <code>post_to_group</code> 呼叫沒有包 <code>wait_for</code>，導致每個 group 都可能等到 1 小時全局 timeout。</p>
+          <p style="font-size:13px;color:var(--green);margin-top:4px">✅ 修復：<code>asyncio.wait_for(post_to_group(...), timeout=PLATFORM_TIMEOUT[platform])</code></p>
+        </div>
+      </li>
+      <li>
+        <div class="fix-icon required">R</div>
+        <div>
+          <strong>Required 2：Instagram 無圖片未 guard</strong>
+          <p class="card p" style="margin-top:4px">Instagram web UI 不支援純文字發文，無圖片時 Selenium 流程會卡住或報錯。</p>
+          <p style="font-size:13px;color:var(--green);margin-top:4px">✅ 修復：posts.py dispatch 前 + <code>_do_post_instagram</code> 內部雙層 guard</p>
+        </div>
+      </li>
+      <li>
+        <div class="fix-icon required">R</div>
+        <div>
+          <strong>Required 3：fb_group_id 語義污染</strong>
+          <p class="card p" style="margin-top:4px">非 FB 平台不存在「fb_group_id」概念，強塞 URL 會讓資料模型語義混亂。</p>
+          <p style="font-size:13px;color:var(--green);margin-top:4px">✅ 修復：新增 <code>platform_entity_id</code> 欄位存 X Community ID / Instagram handle 等</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="files">
+  <div class="section-header">
+    <div class="section-eyebrow">DELIVERABLES</div>
+    <h2 class="section-title">修改檔案清單：<span>8 個檔案</span></h2>
+    <p class="section-desc">後端 5 個 Python 檔案 + 前端 3 個 TypeScript 檔案。</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>檔案</th>
+          <th>類型</th>
+          <th>主要變更</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>backend/models.py</code></td>
+          <td>DB Model</td>
+          <td>Group: +platform, +platform_entity_id；PostRecord: +post_url</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>backend/database.py</code></td>
+          <td>Migration</td>
+          <td>v2 / v2b / v3 三個 ALTER TABLE migration</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>backend/selenium_engine.py</code></td>
+          <td>Core Engine</td>
+          <td>post_to_group + platform dispatch + 3 個同步 handler</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>backend/routes/posts.py</code></td>
+          <td>API Route</td>
+          <td>PLATFORM_TIMEOUT 套用、exception guard、Instagram skip guard</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>backend/routes/groups.py</code></td>
+          <td>API Route</td>
+          <td>platform 欄位接收 + VALID_PLATFORMS 驗證</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>frontend/src/lib/api.ts</code></td>
+          <td>TypeScript</td>
+          <td>Group / CreateGroupInput interface 加 platform 欄位</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>frontend/src/app/groups/page.tsx</code></td>
+          <td>React UI</td>
+          <td>平台 select + ⚠️ 警告文字 + PlatformBadge 欄位</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+        <tr>
+          <td><code>frontend/src/app/posts/page.tsx</code></td>
+          <td>React UI</td>
+          <td>群組 checkbox 旁 PlatformBadge + Instagram 需圖片警告</td>
+          <td><span class="badge badge-green">✅ 完成</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="arch">
+  <div class="section-header">
+    <div class="section-eyebrow">ARCHITECTURE</div>
+    <h2 class="section-title">平台 Dispatch 架構：<span>同步 Handler + run_in_executor</span></h2>
+    <p class="section-desc">核心設計原則：所有 Selenium 操作都是 blocking I/O，必須透過 run_in_executor 推到 thread pool，讓 aiohttp event loop 保持回應。</p>
+  </div>
+  <div class="card">
+    <h3>Dispatch Flow</h3>
+    <div class="code-block">
+<span class="cm"># selenium_engine.py — post_to_group()</span>
+_POST_HANDLERS = {
+    <span class="str">"fb"</span>:        self._do_post,           <span class="cm"># 生產就緒</span>
+    <span class="str">"threads"</span>:   self._do_post_threads,   <span class="cm"># 中等風險</span>
+    <span class="str">"x"</span>:         self._do_post_x,         <span class="cm"># 高風險（長延遲）</span>
+    <span class="str">"instagram"</span>: self._do_post_instagram,  <span class="cm"># 極高風險（spike test 需先跑）</span>
+}
+handler = _POST_HANDLERS.get(platform, self._do_post)
+
+<span class="cm"># 關鍵：所有 handler 都是 def（同步），透過 executor 呼叫</span>
+result = <span class="kw">await</span> loop.run_in_executor(
+    <span class="kw">None</span>,
+    <span class="kw">lambda</span>: handler(session.driver, group_url, content, images or [], post_record_id)
+)
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h3>posts.py — Per-Group 呼叫（含 timeout + exception guard）</h3>
+    <div class="code-block">
+<span class="cm"># posts.py — _run_post() group loop</span>
+PLATFORM_TIMEOUT = {<span class="str">"fb"</span>: 300, <span class="str">"threads"</span>: 180, <span class="str">"x"</span>: 240, <span class="str">"instagram"</span>: 300}
+
+<span class="kw">try</span>:
+    timeout = PLATFORM_TIMEOUT.get(platform, 300)
+    result = <span class="kw">await</span> asyncio.wait_for(
+        selenium_engine.post_to_group(..., platform=platform),
+        timeout=timeout,
+    )
+<span class="kw">except</span> asyncio.TimeoutError:
+    result = {<span class="str">"success"</span>: <span class="kw">False</span>, <span class="str">"error"</span>: <span class="str">f"Timeout after {timeout}s"</span>}
+<span class="kw">except</span> Exception <span class="kw">as</span> exc:
+    result = {<span class="str">"success"</span>: <span class="kw">False</span>, <span class="str">"error"</span>: str(exc)}
+    </div>
+  </div>
+</section>
+
+<section id="platforms">
+  <div class="section-header">
+    <div class="section-eyebrow">PLATFORM ASSESSMENT</div>
+    <h2 class="section-title">各平台評估：<span>封帳風險 × Timeout × 建議</span></h2>
+    <p class="section-desc">Selenium 自動化對各平台的難度和風險差異很大。以下是實際可行性評估。</p>
+  </div>
+  <div class="platform-grid">
+    <div class="platform-card fb">
+      <div class="platform-name">🔵 Facebook</div>
+      <div class="platform-timeout">300s</div>
+      <div class="platform-desc">原有引擎，已在生產環境驗證。undetected-chromedriver + navigator.webdriver 偽裝已套用。群組 compose UI 多個 selector fallback。</div>
+      <span class="risk-pill risk-low">封帳風險：低</span>
+    </div>
+    <div class="platform-card threads">
+      <div class="platform-name">⚫ Threads</div>
+      <div class="platform-timeout">180s</div>
+      <div class="platform-desc">Meta 2023 年推出，UI 仍在迭代。aria-label 'New thread' compose button + contenteditable text area。UI 改版頻率中等，需監控 selector 有效性。</div>
+      <span class="risk-pill risk-med">封帳風險：中</span>
+    </div>
+    <div class="platform-card x">
+      <div class="platform-name">🔷 X (Twitter)</div>
+      <div class="platform-timeout">240s</div>
+      <div class="platform-desc">data-testid="tweetTextarea_0" 較穩定。個人 timeline + Community URL 雙模式支援。輸入延遲加長（0.05-0.15s/char）降低被偵測機率。</div>
+      <span class="risk-pill risk-high">封帳風險：高</span>
+    </div>
+    <div class="platform-card ig">
+      <div class="platform-name">🌈 Instagram</div>
+      <div class="platform-timeout">300s</div>
+      <div class="platform-desc">execute_script 顯示隱藏 file input 方法需 spike test 確認。3 步驟流程（選圖→裁切→說明）。必填圖片。建議先在測試帳號跑一次再開放。</div>
+      <span class="risk-pill risk-xhigh">封帳風險：極高（spike 待驗）</span>
+    </div>
+  </div>
+  <div class="card" style="margin-top:24px">
+    <h3>⚠️ Instagram Spike Test 步驟</h3>
+    <ol style="font-size:14px;line-height:2;padding-left:20px;color:var(--grey-02)">
+      <li>用真實 Instagram 帳號啟動 browser session</li>
+      <li>準備一張本機圖片（JPG/PNG）</li>
+      <li>呼叫 POST /api/posts，指定 platform=instagram 的群組，帶入 images 路徑</li>
+      <li>觀察是否能成功上傳圖片並完成發文流程</li>
+      <li>成功 → 可開放使用；失敗 → 需研究 Instagram CSP 變化</li>
+    </ol>
+  </div>
+</section>
+
+<section id="verify">
+  <div class="section-header">
+    <div class="section-eyebrow">VERIFICATION</div>
+    <h2 class="section-title">驗證結果：<span>全部通過</span></h2>
+    <p class="section-desc">Python syntax check + TypeScript 編譯 + SQLAlchemy model 欄位驗證。</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>後端驗證</h3>
+      <ul style="list-style:none;padding:0;font-size:14px;line-height:2.2">
+        <li>✅ <code>backend/models.py</code> — syntax OK</li>
+        <li>✅ <code>backend/database.py</code> — syntax OK</li>
+        <li>✅ <code>backend/selenium_engine.py</code> — syntax OK</li>
+        <li>✅ <code>backend/routes/posts.py</code> — syntax OK</li>
+        <li>✅ <code>backend/routes/groups.py</code> — syntax OK</li>
+        <li>✅ SQLAlchemy: Group.platform ∈ 欄位清單</li>
+        <li>✅ SQLAlchemy: Group.platform_entity_id ∈ 欄位清單</li>
+        <li>✅ SQLAlchemy: PostRecord.post_url ∈ 欄位清單</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>架構驗證</h3>
+      <ul style="list-style:none;padding:0;font-size:14px;line-height:2.2">
+        <li>✅ TypeScript: <code>npx tsc --noEmit</code> 0 errors</li>
+        <li>✅ <code>_do_post_threads</code> — 同步方法（非 async）</li>
+        <li>✅ <code>_do_post_x</code> — 同步方法（非 async）</li>
+        <li>✅ <code>_do_post_instagram</code> — 同步方法（非 async）</li>
+        <li>✅ <code>post_to_group</code> 有 platform 參數</li>
+        <li>✅ PLATFORM_TIMEOUT 正確套用（asyncio.wait_for）</li>
+        <li>✅ Instagram 空圖片雙層 guard</li>
+        <li>⚠️ Instagram spike test — 待真實帳號驗證</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="dark-band">
+  <div class="eyebrow">NEXT STEPS</div>
+  <h2>下一步：<span>Spike Test + 打包 + 上架</span></h2>
+  <p>多平台架構已就緒，以下是建議的後續動作。</p>
+  <div class="grid-2" style="margin-top:0">
+    <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-family:var(--font-mono)">SHORT TERM</div>
+      <ul style="list-style:none;padding:0;font-size:14px;line-height:2;color:rgba(255,255,255,0.7)">
+        <li>1. Instagram spike test（真實帳號）</li>
+        <li>2. Threads + X 手動發文測試</li>
+        <li>3. 重建 macOS .app bundle（含新 handlers）</li>
+        <li>4. Windows PyInstaller 打包</li>
+      </ul>
+    </div>
+    <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-family:var(--font-mono)">LONG TERM</div>
+      <ul style="list-style:none;padding:0;font-size:14px;line-height:2;color:rgba(255,255,255,0.7)">
+        <li>5. Chrome Web Store 上架 Extension v2.0</li>
+        <li>6. 社團資料庫擴充（→ 10,000 社團）</li>
+        <li>7. License 購買頁面上線</li>
+        <li>8. X/Instagram API 替代方案評估</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>FBGroupPosterPro 多平台報告 · 2026-03-18 · Rain AI Team</p>
+  <p style="margin-top:8px"><a href="https://slideless.vercel.app">slideless.vercel.app</a></p>
+</footer>
+
+<script>
+const pb = document.getElementById('pb');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  pb.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 團隊 Tier 1 升級路線圖 — Ray 方案架構審查 2026-03-14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --white:#ffffff;
+  --black:#1a1a1a;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --accent:#d4651a;
+  --accent-dark:#b85516;
+  --accent-light:#f0e4d8;
+  --accent-blue:#a8cde8;
+  --green:#5a9e40;
+  --green-bg:#eaf4e3;
+  --green-text:#3d7a1c;
+  --yellow:#c9a73a;
+  --yellow-bg:#fef9e5;
+  --danger:#d94f4f;
+  --danger-bg:#fdeaea;
+  --danger-text:#b03030;
+  --warn:#c97a00;
+  --warn-bg:#fff3e0;
+  --font:'Inter','Noto Sans TC',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* ─── Sticky Header ─── */
+.sticky-header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(246,245,241,0.92);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--grey-01);
+  padding:10px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sticky-header .sh-title{font-size:13px;font-weight:700;color:var(--black);letter-spacing:-0.01em}
+.sticky-header .sh-meta{font-size:11px;font-weight:600;color:var(--grey-02);font-family:var(--mono);letter-spacing:0.5px}
+.sticky-header .sh-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:4px;
+  background:var(--warn-bg);
+  border:1px solid #e8c875;
+  color:var(--warn);
+  font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:0.5px;
+}
+@media(max-width:600px){
+  .sticky-header{padding:8px 16px}
+  .sticky-header .sh-meta{display:none}
+}
+
+/* ─── Cover ─── */
+.cover{
+  background:var(--black);color:var(--white);
+  padding:88px 32px 68px;text-align:center;
+}
+.cover .eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--accent-blue);margin-bottom:14px;font-family:var(--mono);
+}
+.cover h1{
+  font-size:clamp(26px,5vw,46px);font-weight:800;
+  letter-spacing:-0.025em;line-height:1.1;margin-bottom:14px;
+}
+.cover h1 span{color:var(--accent)}
+.cover .subtitle{
+  font-size:15px;color:rgba(255,255,255,0.5);
+  margin-bottom:28px;max-width:540px;margin-left:auto;margin-right:auto;
+}
+.cover-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.cover-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 18px;border-radius:5px;
+  font-weight:700;font-size:12px;letter-spacing:0.04em;font-family:var(--mono);
+}
+.cover-badge.warn{border:1.5px solid #c97a00;color:#c97a00}
+.cover-badge.pass{border:1.5px solid #5a9e40;color:#5a9e40}
+.cover-badge.info{border:1.5px solid #6eaad4;color:#6eaad4}
+.cover .meta{font-size:11px;color:rgba(255,255,255,0.25);font-family:var(--mono);letter-spacing:1px;margin-top:8px}
+.cover .signers{display:flex;justify-content:center;gap:40px;margin-top:32px;flex-wrap:wrap}
+.cover .signer{text-align:center}
+.cover .signer .role{font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px}
+.cover .signer .name{font-size:14px;font-weight:600;color:rgba(255,255,255,0.75)}
+
+/* ─── Layout ─── */
+.main{max-width:780px;margin:0 auto;padding:60px 28px 88px}
+@media(max-width:600px){
+  .main{padding:40px 18px 64px}
+  .cover{padding:64px 22px 52px}
+  .cover .signers{flex-direction:column;gap:14px;align-items:center}
+}
+
+/* ─── Section ─── */
+.section{margin-bottom:64px}
+.section-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px;font-family:var(--mono);
+}
+.section h2{font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px;color:var(--black)}
+.section .section-desc{font-size:14px;color:var(--grey-02);margin-bottom:28px;font-family:var(--mono)}
+.section p{font-size:15px;color:#333;margin-bottom:14px;line-height:1.7}
+.section ul{margin:0 0 14px 20px;color:#333;font-size:15px}
+.section li{margin-bottom:7px;line-height:1.65}
+
+/* ─── Divider ─── */
+.section-divider{height:1px;background:var(--grey-01);margin:0 0 64px}
+
+/* ─── SCQA Cards ─── */
+.scqa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:28px}
+.scqa-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.scqa-card .scqa-label{
+  font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px;font-family:var(--mono);
+}
+.scqa-card .scqa-title{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--black)}
+.scqa-card p{font-size:14px;color:#444;line-height:1.65;margin-bottom:0}
+
+/* ─── Answer highlight ─── */
+.answer-highlight{
+  background:var(--accent-light);
+  border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0;
+  padding:18px 20px;
+  margin-bottom:0;
+}
+.answer-highlight p{margin-bottom:0;font-size:15px;color:var(--black);font-weight:500}
+.answer-highlight strong{color:var(--accent-dark)}
+
+/* ─── Summary Stats ─── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:28px}
+.stat-box{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:18px 14px;text-align:center;
+}
+.stat-box .s-num{font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:var(--black);margin-bottom:4px}
+.stat-box .s-num.orange{color:var(--accent)}
+.stat-box .s-num.red{color:var(--danger)}
+.stat-box .s-num.green{color:var(--green-text)}
+.stat-box .s-label{font-size:10px;font-weight:700;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);line-height:1.4}
+
+/* ─── Tables ─── */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;margin-bottom:14px;border:1px solid var(--grey-01)}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-track{background:var(--cream-alt);border-radius:3px}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--grey-02);border-radius:3px}
+table.deck-tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:480px}
+table.deck-tbl thead tr{background:var(--cream-alt)}
+table.deck-tbl thead th{
+  padding:11px 14px;text-align:left;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--grey-02);font-family:var(--mono);border-bottom:1px solid var(--grey-01);
+  white-space:nowrap;
+}
+table.deck-tbl tbody tr{background:var(--white);transition:background .15s}
+table.deck-tbl tbody tr:nth-child(even){background:var(--cream-alt)}
+table.deck-tbl tbody tr:hover{background:#ede8e0}
+table.deck-tbl tbody td{
+  padding:11px 14px;color:#333;
+  border-bottom:1px solid var(--grey-01);vertical-align:top;line-height:1.55;
+}
+table.deck-tbl tbody tr:last-child td{border-bottom:none}
+.tbl-score-high{color:var(--green-text);font-weight:700;font-family:var(--mono)}
+.tbl-score-mid{color:var(--warn);font-weight:700;font-family:var(--mono)}
+.tbl-score-low{color:var(--danger-text);font-weight:700;font-family:var(--mono)}
+.tag-gap-red{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--danger-bg);color:var(--danger-text);
+  padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;
+}
+.tag-gap-yellow{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--yellow-bg);color:#8a6b00;
+  padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;
+}
+.tag-gap-orange{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--warn-bg);color:var(--warn);
+  padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;
+}
+.tag-strength{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--green-bg);color:var(--green-text);
+  padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;
+}
+
+/* ─── SPOF Alert ─── */
+.spof-alert{
+  background:var(--danger-bg);
+  border:1.5px solid #e8a0a0;
+  border-radius:10px;
+  padding:22px 24px;
+  margin-bottom:24px;
+}
+.spof-alert .spof-title{
+  font-size:14px;font-weight:800;color:var(--danger-text);
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.spof-alert ul{margin-left:18px;color:#4a1a1a}
+.spof-alert li{margin-bottom:7px;font-size:14px;line-height:1.6}
+
+/* ─── Route Cards ─── */
+.route-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:12px;
+  padding:26px 26px 22px;margin-bottom:18px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.route-card.featured{
+  border:2px solid var(--accent);
+  background:#fffaf6;
+  box-shadow:0 2px 12px rgba(212,101,26,0.1);
+}
+.route-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.route-name{display:flex;align-items:center;gap:10px}
+.route-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:6px;
+  font-weight:800;font-size:13px;font-family:var(--mono);
+  background:var(--cream-alt);color:var(--grey-03);
+  flex-shrink:0;
+}
+.route-card.featured .route-badge{background:var(--accent);color:var(--white)}
+.route-title{font-size:17px;font-weight:700;color:var(--black)}
+.route-card.featured .route-title{color:var(--accent-dark)}
+.route-roi{display:flex;align-items:center;gap:4px}
+.route-roi .roi-label{font-size:10px;font-weight:700;color:var(--grey-02);font-family:var(--mono);letter-spacing:1px;margin-right:4px}
+.route-desc{font-size:14px;color:#444;margin-bottom:16px;line-height:1.65}
+.featured-ribbon{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--accent);color:var(--white);
+  padding:4px 12px;border-radius:4px;
+  font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:0.5px;
+  margin-bottom:14px;
+}
+.skeptic-note{
+  background:var(--cream-alt);border-radius:7px;
+  padding:12px 14px;margin-top:14px;
+}
+.skeptic-note .sn-label{
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--grey-02);font-family:var(--mono);margin-bottom:4px;
+}
+.skeptic-note p{font-size:13px;color:#555;margin-bottom:0;line-height:1.6}
+
+/* ─── Phase Table (inside route) ─── */
+table.phase-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:360px}
+table.phase-tbl thead th{
+  padding:8px 12px;text-align:left;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--grey-02);font-family:var(--mono);
+  border-bottom:1px solid var(--grey-01);background:var(--cream-alt);
+}
+table.phase-tbl tbody tr{background:var(--white)}
+table.phase-tbl tbody tr:nth-child(even){background:#faf9f7}
+table.phase-tbl tbody td{
+  padding:9px 12px;color:#333;
+  border-bottom:1px solid var(--grey-01);line-height:1.55;
+}
+table.phase-tbl tbody tr:last-child td{border-bottom:none}
+table.phase-tbl .phase-label{font-family:var(--mono);font-weight:600;color:var(--accent);white-space:nowrap}
+.phase-tbl-wrap{border-radius:8px;border:1px solid var(--grey-01);overflow:hidden;overflow-x:auto;margin-bottom:14px}
+
+/* ─── ROI Priority Table ─── */
+.roi-rank-1 td:first-child{border-left:3px solid var(--accent)}
+.roi-rank-2 td:first-child{border-left:3px solid var(--warn)}
+.roi-rank-3 td:first-child{border-left:3px solid var(--grey-02)}
+
+/* ─── Timeline ─── */
+.timeline{margin-bottom:8px}
+.tl-row{
+  display:grid;grid-template-columns:64px 1fr 100px 180px;gap:0;
+  border-bottom:1px solid var(--grey-01);
+}
+.tl-row:last-child{border-bottom:none}
+.tl-row:first-child{background:var(--cream-alt)}
+.tl-row:nth-child(even):not(:first-child){background:#faf9f7}
+.tl-row .tl-cell{padding:11px 14px;font-size:13px;color:#333;line-height:1.5}
+.tl-row .tl-cell.header{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-02);font-family:var(--mono)}
+.tl-row .tl-cell.month{font-weight:700;font-family:var(--mono);color:var(--accent);white-space:nowrap}
+.tl-row .tl-cell.milestone{font-size:12px;color:var(--green-text);font-weight:600}
+.tl-wrap{border-radius:10px;border:1px solid var(--grey-01);overflow:hidden;overflow-x:auto;margin-bottom:14px}
+.tl-wrap .tl-inner{min-width:520px}
+@media(max-width:600px){
+  .tl-row{grid-template-columns:50px 1fr 80px}
+}
+
+/* ─── Risk Cards ─── */
+.risk-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:20px 22px;margin-bottom:12px;
+  display:flex;align-items:flex-start;gap:14px;
+}
+.risk-num{
+  flex-shrink:0;width:28px;height:28px;border-radius:50%;
+  background:var(--accent);color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;font-family:var(--mono);
+  margin-top:1px;
+}
+.risk-body .risk-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--black)}
+.risk-body p{font-size:14px;color:#444;margin-bottom:0;line-height:1.65}
+
+/* ─── Start Order ─── */
+.order-list{counter-reset:order}
+.order-item{
+  counter-increment:order;
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 0;border-bottom:1px solid var(--grey-01);
+}
+.order-item:last-child{border-bottom:none}
+.order-item::before{
+  content:counter(order);
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;
+  background:var(--accent-light);color:var(--accent-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:12px;font-family:var(--mono);
+  margin-top:1px;
+}
+.order-item .oi-when{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.order-item .oi-what{font-size:14px;color:var(--black);font-weight:500;line-height:1.6}
+
+/* ─── CTA Box ─── */
+.cta-box{
+  background:var(--accent-light);
+  border:2px solid var(--accent);
+  border-radius:12px;
+  padding:32px 28px 28px;
+  margin-top:48px;
+}
+.cta-box .cta-label{
+  font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--accent);font-family:var(--mono);margin-bottom:10px;
+}
+.cta-box h3{font-size:20px;font-weight:800;color:var(--black);margin-bottom:16px;letter-spacing:-0.01em}
+.cta-box .cta-steps{margin:0;padding:0;list-style:none}
+.cta-box .cta-steps li{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid rgba(212,101,26,0.15);
+  font-size:14px;color:#333;line-height:1.6;
+}
+.cta-box .cta-steps li:last-child{border-bottom:none}
+.cta-steps .step-num{
+  flex-shrink:0;width:20px;height:20px;border-radius:4px;
+  background:var(--accent);color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;font-family:var(--mono);
+  margin-top:2px;
+}
+.cta-box .cta-payoff{
+  margin-top:18px;padding-top:16px;border-top:1px solid rgba(212,101,26,0.2);
+  font-size:15px;font-weight:600;color:var(--accent-dark);line-height:1.65;
+}
+.cta-box .cta-cost{
+  margin-top:10px;
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--accent);color:var(--white);
+  padding:8px 18px;border-radius:6px;
+  font-size:13px;font-weight:700;font-family:var(--mono);
+}
+
+/* ─── Footer ─── */
+.footer{
+  text-align:center;padding:40px 0 20px;
+  color:var(--grey-02);font-size:12px;font-family:var(--mono);
+  border-top:1px solid var(--grey-01);
+  margin-top:16px;
+}
+.footer .f-sig{font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px}
+.footer .f-role{font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.footer .f-note{font-size:11px;color:var(--grey-02);max-width:480px;margin:0 auto;line-height:1.7}
+
+/* ─── Utility ─── */
+.bold-accent{font-weight:700;color:var(--accent)}
+.code-inline{
+  font-family:var(--mono);font-size:13px;
+  background:var(--cream-alt);color:var(--grey-03);
+  padding:1px 6px;border-radius:3px;
+}
+.verdict-box{
+  background:var(--warn-bg);border:1.5px solid #e8c875;border-radius:10px;
+  padding:18px 22px;margin-bottom:24px;display:flex;align-items:center;gap:12px;
+}
+.verdict-icon{font-size:20px;flex-shrink:0}
+.verdict-text{font-size:15px;font-weight:700;color:var(--black)}
+.verdict-text span{color:var(--warn)}
+</style>
+</head>
+<body>
+
+<!-- Sticky Header -->
+<header class="sticky-header">
+  <div class="sh-title">AI 團隊 Tier 1 升級路線圖</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="sh-meta">RAY REVIEW · 2026-03-14</div>
+    <div class="sh-badge">⚠ 有條件通過</div>
+  </div>
+</header>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Architecture Review · Phase 3</div>
+  <h1>AI 團隊 <span>Tier 1</span> 升級路線圖</h1>
+  <div class="subtitle">Ray 方案架構審查 — 2026-03-14</div>
+  <div class="cover-badges">
+    <div class="cover-badge warn">⚠ 有條件通過</div>
+    <div class="cover-badge pass">✓ ROI 路線確認</div>
+    <div class="cover-badge info">6 個月計畫</div>
+  </div>
+  <div class="meta">RAIN AI TEAM · INTERNAL · CONFIDENTIAL</div>
+  <div class="signers">
+    <div class="signer">
+      <div class="role">Architect Review</div>
+      <div class="name">Ray</div>
+    </div>
+    <div class="signer">
+      <div class="role">Current Stage</div>
+      <div class="name">Tier 1.5</div>
+    </div>
+    <div class="signer">
+      <div class="role">Target Stage</div>
+      <div class="name">Tier 1.0</div>
+    </div>
+    <div class="signer">
+      <div class="role">First Action</div>
+      <div class="name">LangFuse + agent_steps</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Section 1: Executive Summary -->
+  <section class="section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2>執行摘要（SCQA）</h2>
+    <div class="section-desc">Situation → Complication → Question → Answer</div>
+
+    <div class="scqa-grid">
+      <div class="scqa-card">
+        <div class="scqa-label">Situation · 現況</div>
+        <div class="scqa-title">全球前 5%</div>
+        <p>Rain AI Team 目前擁有 28 個專職 agent、三階段規劃流程、多層記憶系統，與夜班自主執行能力。以個人/小團隊標準衡量，已進入全球前 5%。</p>
+      </div>
+      <div class="scqa-card">
+        <div class="scqa-label">Complication · 問題</div>
+        <div class="scqa-title">人工協調成本指數成長</div>
+        <p>系統核心仍依賴 Markdown 文件 + Klay 人工理解驅動流程，無狀態機、無 call-level tracing、無自動錯誤恢復。系統規模越大，協調成本呈指數成長。</p>
+      </div>
+      <div class="scqa-card">
+        <div class="scqa-label">Question · 核心問題</div>
+        <div class="scqa-title">如何升級而不破壞優勢？</div>
+        <p>如何在不破壞現有規模優勢的前提下，引入企業級基礎設施——狀態機、可觀測性、自動恢復——並按 ROI 排序推進？</p>
+      </div>
+    </div>
+
+    <div class="answer-highlight">
+      <p>
+        <strong>Answer：</strong>按 ROI 排序，優先推進三條路線：
+        <strong>B（Observability）→ A（圖引擎）→ C（雲端化）</strong>。
+        最小有效動作是 <strong>30 天內將 LangFuse 接入 Kai 中控台</strong>，成本 2.5 週，讓整個系統從「看不見」變成「可被觀測」。
+      </p>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Section 2: Diagnosis -->
+  <section class="section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2>現狀診斷</h2>
+    <div class="section-desc">Tier 1.5 強弱分析 · 12 個維度評估</div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="s-num orange">28</div>
+        <div class="s-label">Active Agents</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-num green">5</div>
+        <div class="s-label">優勢維度 5/5</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-num red">2</div>
+        <div class="s-label">嚴重差距 🔴</div>
+      </div>
+      <div class="stat-box">
+        <div class="s-num" style="color:var(--warn)">5</div>
+        <div class="s-label">中度差距</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="deck-tbl">
+        <thead>
+          <tr>
+            <th>維度</th>
+            <th>類型</th>
+            <th>說明</th>
+            <th>評分</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>組織深度</strong></td>
+            <td><span class="tag-strength">優勢</span></td>
+            <td>28 agent + 指揮鏈 + 部門制 + review pipeline</td>
+            <td><span class="tbl-score-high">5/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>規劃品質</strong></td>
+            <td><span class="tag-strength">優勢</span></td>
+            <td>3-Phase 跨模型驗證（Klay → Scout → Ray）</td>
+            <td><span class="tbl-score-high">5/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>記憶持久化</strong></td>
+            <td><span class="tag-strength">優勢</span></td>
+            <td>MEMORY.md + lessons.md，跨 session 累積</td>
+            <td><span class="tbl-score-high">4/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>自主夜班</strong></td>
+            <td><span class="tag-strength">優勢</span></td>
+            <td>Noel 自動巡檢 + 任務建立 + 晨報</td>
+            <td><span class="tbl-score-high">4/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>交叉驗證</strong></td>
+            <td><span class="tag-strength">優勢</span></td>
+            <td>Vick（Grok）非 Claude 視角</td>
+            <td><span class="tbl-score-high">4/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>流程引擎</strong></td>
+            <td><span class="tag-gap-red">差距 🔴</span></td>
+            <td>無狀態機，靠人工解讀 Markdown</td>
+            <td><span class="tbl-score-low">1/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>Observability</strong></td>
+            <td><span class="tag-gap-red">差距 🔴</span></td>
+            <td>無 call-level tracing，出錯無法回溯</td>
+            <td><span class="tbl-score-low">1/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>A2A 協定</strong></td>
+            <td><span class="tag-gap-yellow">差距 🟡</span></td>
+            <td>無標準化 Agent-to-Agent 介面</td>
+            <td><span class="tbl-score-low">2/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>錯誤恢復</strong></td>
+            <td><span class="tag-gap-yellow">差距 🟡</span></td>
+            <td>subagent 掛掉只能手動 fallback</td>
+            <td><span class="tbl-score-low">2/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>Agent 評估</strong></td>
+            <td><span class="tag-gap-yellow">差距 🟡</span></td>
+            <td>無自動 benchmark，KPI 仍依賴人工閱讀</td>
+            <td><span class="tbl-score-low">2/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>擴展性</strong></td>
+            <td><span class="tag-gap-orange">差距 🟠</span></td>
+            <td>單機 Mac Mini，無水平擴展</td>
+            <td><span class="tbl-score-mid">2/5</span></td>
+          </tr>
+          <tr>
+            <td><strong>模型路由</strong></td>
+            <td><span class="tag-gap-orange">差距 🟠</span></td>
+            <td>routing 粒度粗，無動態成本優化</td>
+            <td><span class="tbl-score-mid">3/5</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="spof-alert">
+      <div class="spof-title">🚨 最高風險：Klay 是系統 SPOF（單點故障）</div>
+      <p style="font-size:14px;color:#4a1a1a;margin-bottom:10px;line-height:1.65">整個協調邏輯存在 Klay 的「理解」中，而非可驗證的狀態機。三個具體後果：</p>
+      <ul>
+        <li><strong>規模天花板</strong>：agent 數超過 40+ 時，Klay 的 context window 將開始漏掉任務與依賴關係</li>
+        <li><strong>無法審計</strong>：出錯時無法重播 agent 決策路徑，只能人工讀 session log</li>
+        <li><strong>競爭威脅</strong>：LangGraph Cloud 已提供開箱即用的 time-travel debugging</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Section 3: Three Routes -->
+  <section class="section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2>三大升級路線</h2>
+    <div class="section-desc">Route A · Route B · Route C — 完整方案規格</div>
+
+    <!-- Route B — Featured -->
+    <div class="route-card featured">
+      <div class="featured-ribbon">★ 最高 ROI · 建議優先啟動</div>
+      <div class="route-header">
+        <div class="route-name">
+          <div class="route-badge">B</div>
+          <div class="route-title">加 Observability（LangFuse）</div>
+        </div>
+        <div class="route-roi">
+          <div class="roi-label">ROI</div>
+          <span style="color:var(--accent);font-size:16px">★★★★★</span>
+        </div>
+      </div>
+      <p class="route-desc"><strong>解決：</strong>看不見 agent 內部狀態、無法定位錯誤根因。推薦方案：LangFuse 自建（Docker，本機部署），工作量最小，是其他路線的前提。</p>
+      <div class="phase-tbl-wrap">
+        <table class="phase-tbl">
+          <thead>
+            <tr><th>Phase</th><th>內容</th><th>時間</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="phase-label">Phase 1</td><td>部署 LangFuse Docker（localhost:3010）</td><td>3 天</td></tr>
+            <tr><td class="phase-label">Phase 2</td><td>Kai 接入 LangFuse SDK，trace 所有 agent call</td><td>1 週</td></tr>
+            <tr><td class="phase-label">Phase 3</td><td>Dashboard + Discord 告警（P95 延遲、錯誤率）</td><td>1 週</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="skeptic-note">
+        <div class="sn-label">Skeptic Check</div>
+        <p>最小版是 Kai 加 <span class="code-inline">agent_steps</span> 記錄（1 天）。LangFuse 作為完整解決方案跟進。<strong>最小版解決 60% 問題，可先單獨啟動。</strong></p>
+      </div>
+    </div>
+
+    <!-- Route A -->
+    <div class="route-card">
+      <div class="route-header">
+        <div class="route-name">
+          <div class="route-badge">A</div>
+          <div class="route-title">引入圖引擎（狀態機）</div>
+        </div>
+        <div class="route-roi">
+          <div class="roi-label">ROI</div>
+          <span style="color:var(--yellow);font-size:16px">★★★★</span><span style="color:var(--grey-01);font-size:16px">★</span>
+        </div>
+      </div>
+      <p class="route-desc"><strong>解決：</strong>流程脆弱、無自動重試、無時間旅行 debugging。建議自建輕量 DAG 引擎（非 LangGraph），對齊 Kai task schema。</p>
+      <div class="phase-tbl-wrap">
+        <table class="phase-tbl">
+          <thead>
+            <tr><th>Phase</th><th>內容</th><th>時間</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="phase-label">Phase 1</td><td>設計 DAG schema，擴充 Kai task model（加 <span class="code-inline">depends_on</span>）</td><td>2 週</td></tr>
+            <tr><td class="phase-label">Phase 2</td><td>實作 DAG executor（checkpoint + retry 機制）</td><td>3 週</td></tr>
+            <tr><td class="phase-label">Phase 3</td><td>接入 3-Phase flow，所有 Major+ 任務走 DAG</td><td>2 週</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="skeptic-note">
+        <div class="sn-label">Skeptic Check</div>
+        <p>最小替代方案是加 <span class="code-inline">depends_on</span> 欄位（1 週），解決 70% 的依賴問題。完整 DAG 作為長期目標，不需要一次全上。</p>
+      </div>
+    </div>
+
+    <!-- Route C -->
+    <div class="route-card">
+      <div class="route-header">
+        <div class="route-name">
+          <div class="route-badge">C</div>
+          <div class="route-title">雲端化（混合模式）</div>
+        </div>
+        <div class="route-roi">
+          <div class="roi-label">ROI</div>
+          <span style="color:var(--grey-02);font-size:16px">★★★</span><span style="color:var(--grey-01);font-size:16px">★★</span>
+        </div>
+      </div>
+      <p class="route-desc"><strong>解決：</strong>單機瓶頸、無法水平擴展。推薦混合模式：Mac Mini 保留 Klay/Kai/記憶系統，雲端處理高並發 subagent。</p>
+      <div class="phase-tbl-wrap">
+        <table class="phase-tbl">
+          <thead>
+            <tr><th>Phase</th><th>內容</th><th>時間</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="phase-label">Phase 1</td><td>GitHub Codespaces 範本 + 測試並行 subagent</td><td>2 週</td></tr>
+            <tr><td class="phase-label">Phase 2</td><td>Kai 加 cloud dispatch 選項，雙軌執行</td><td>3 週</td></tr>
+            <tr><td class="phase-label">Phase 3</td><td>評估 Modal/Fly.io，加 auto-scaling 策略</td><td>4 週</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="skeptic-note">
+        <div class="sn-label">Skeptic Check</div>
+        <p>Mac Mini 升級到 64GB RAM（≈$300）可解決 60% 並行瓶頸，ROI 遠高於雲端化。<strong>月任務量 &lt;500 時，硬體升級比雲端化划算。</strong>本路線延後到 M5 重新評估。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Section 4: Priority & Roadmap -->
+  <section class="section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2>優先級與 6 個月路線圖</h2>
+    <div class="section-desc">ROI 排序 · 月份里程碑</div>
+
+    <div class="table-wrap" style="margin-bottom:28px">
+      <table class="deck-tbl">
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>路線</th>
+            <th>ROI</th>
+            <th>工作量</th>
+            <th>選擇理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="roi-rank-1">
+            <td><strong style="color:var(--accent)">1</strong></td>
+            <td><strong>B — Observability</strong></td>
+            <td style="white-space:nowrap"><span style="color:var(--accent)">★★★★★</span></td>
+            <td style="white-space:nowrap;font-family:var(--mono);font-size:13px">2.5 週</td>
+            <td>工作量最小，解決「看不見」問題，是其他路線的前提</td>
+          </tr>
+          <tr class="roi-rank-2">
+            <td><strong style="color:var(--warn)">2</strong></td>
+            <td><strong>A — 圖引擎</strong></td>
+            <td style="white-space:nowrap"><span style="color:var(--yellow)">★★★★</span></td>
+            <td style="white-space:nowrap;font-family:var(--mono);font-size:13px">6–7 週</td>
+            <td>解決流程脆弱性，先做最小版（depends_on），觀測後才全建</td>
+          </tr>
+          <tr class="roi-rank-3">
+            <td><strong style="color:var(--grey-02)">3</strong></td>
+            <td><strong>C — 雲端化</strong></td>
+            <td style="white-space:nowrap"><span style="color:var(--grey-02)">★★★</span></td>
+            <td style="white-space:nowrap;font-family:var(--mono);font-size:13px">8–9 週</td>
+            <td>月任務量 &lt;500 時，硬體升級比雲端化划算，延後評估</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tl-wrap">
+      <div class="tl-inner">
+        <div class="tl-row">
+          <div class="tl-cell header">月份</div>
+          <div class="tl-cell header">重點工作</div>
+          <div class="tl-cell header">負責</div>
+          <div class="tl-cell header">里程碑</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M1</div>
+          <div class="tl-cell">Kai <span class="code-inline">agent_steps</span> 欄位 + LangFuse Docker 部署</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Max</div>
+          <div class="tl-cell milestone">所有 agent call 可追蹤</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M2</div>
+          <div class="tl-cell">LangFuse 全接入 + Dashboard + Discord 告警</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Max</div>
+          <div class="tl-cell milestone">每週 agent 品質自動報告</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M3</div>
+          <div class="tl-cell">Kai 加 <span class="code-inline">depends_on</span>（最小版圖引擎）</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Max + Scout</div>
+          <div class="tl-cell milestone">依賴關係自動 blocking</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M4</div>
+          <div class="tl-cell">完整 DAG executor（checkpoint + retry）</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Max</div>
+          <div class="tl-cell milestone">任務失敗自動恢復</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M5</div>
+          <div class="tl-cell">評估硬體升級 vs 雲端化，產出決策文件</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Forge + Klay</div>
+          <div class="tl-cell milestone">方向決策確認</div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-cell month">M6</div>
+          <div class="tl-cell">雲端化 Phase 1 或硬體升級（依 M5 決策）</div>
+          <div class="tl-cell" style="font-family:var(--mono);font-size:12px;color:var(--grey-03)">Forge</div>
+          <div class="tl-cell milestone">並行能力提升 3x</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Section 5: Architecture Sign-off -->
+  <section class="section">
+    <div class="section-eyebrow">Section 05</div>
+    <h2>架構簽核</h2>
+    <div class="section-desc">Ray 審查結論 · 風險 · 啟動順序</div>
+
+    <div class="verdict-box">
+      <div class="verdict-icon">⚠</div>
+      <div class="verdict-text">審查結論：<span>有條件通過</span> — 三大技術風險需於開工前確認方案</div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-num">1</div>
+      <div class="risk-body">
+        <div class="risk-title">DAG 引擎的 CLI 整合問題</div>
+        <p>Claude Code CLI 無原生 callback，DAG 需 polling Kai API，最長可能產生 30 秒延遲。必須先設計 signal 機制（webhook 或輪詢間隔策略），才能開工路線 A。</p>
+      </div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-num">2</div>
+      <div class="risk-body">
+        <div class="risk-title">Observability 的 Prompt 完整性限制</div>
+        <p>LangFuse 只能記錄任務描述，非完整 prompt（Claude Code CLI 不暴露原始 prompt）。需每個 subagent 回傳結構化的 <span class="code-inline">prompt_summary</span> 欄位，才能達到有效 tracing。</p>
+      </div>
+    </div>
+
+    <div class="risk-card">
+      <div class="risk-num">3</div>
+      <div class="risk-body">
+        <div class="risk-title">Schema 向後相容性要求</div>
+        <p>任何 Kai schema 變更必須向後相容 30 天，舊欄位不得直接刪除。新增欄位（<span class="code-inline">agent_steps</span>、<span class="code-inline">depends_on</span>）需設計 migration 版本與 nullable 策略，避免破壞既有夜班任務查詢。</p>
+      </div>
+    </div>
+
+    <p style="font-size:15px;color:#333;margin-bottom:20px;margin-top:24px;font-weight:600">建議啟動順序</p>
+    <div style="background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:8px 20px">
+      <div class="order-list">
+        <div class="order-item">
+          <div>
+            <div class="oi-when">本週</div>
+            <div class="oi-what">Max 評估 LangFuse Docker 可行性（確認 Mac Mini 記憶體空間 + Docker compose 相容性）</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div>
+            <div class="oi-when">本月</div>
+            <div class="oi-what">Kai 加入 <span class="code-inline">agent_steps</span> 記錄欄位（最小版，1 天工作量，向後相容）</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div>
+            <div class="oi-when">M1 底</div>
+            <div class="oi-what">LangFuse 完整接入，trace 覆蓋率 &gt; 80%，Dashboard 上線</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div>
+            <div class="oi-when">M3</div>
+            <div class="oi-what">Scout Phase 2 設計 DAG signal 機制，Ray 審核後才開工路線 A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- CTA Box -->
+  <div class="cta-box">
+    <div class="cta-label">立即行動 · First Step</div>
+    <h3>你現在要做的第一件事</h3>
+    <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.65">建立 Kai 任務，指派給 Max：「Kai agent_steps 追蹤欄位 + LangFuse 評估」</p>
+    <ul class="cta-steps">
+      <li>
+        <div class="step-num">1</div>
+        <div>Kai <span class="code-inline">/api/tasks/{id}/done</span> 加入 <span class="code-inline">agent_steps</span> 欄位（每步驟：timestamp + action + result）</div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div>部署 LangFuse Docker 在 localhost:3010，測試 trace ingestion</div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div>產出技術可行性報告（1 頁 Deck）——確認 Mac Mini 規格、記憶體、網路埠設定</div>
+      </li>
+    </ul>
+    <div class="cta-payoff">
+      成本：Max 3 天。收益：整個系統從「看不見」變成「可被觀測」，是所有後續升級的地基。
+    </div>
+    <div class="cta-cost">Max · 預估 3 天 · 高優先</div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="f-sig">Ray</div>
+  <div class="f-role">方案架構審查官 · Architecture Review</div>
+  <div class="f-note">審查完畢。此企劃書有效期 90 天（2026-06-12），建議 M3 時重新評估路線 C 的時機。Rain AI Team · Internal · 2026-03-14</div>
+</footer>
+
+</body>
+</html>

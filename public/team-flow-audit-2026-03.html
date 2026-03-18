@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 接案執行流程審查 2026-03</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6}
+
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.95);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-weight:700;font-size:14px;color:var(--grey-03)}
+.nav-links{display:flex;gap:20px;flex-wrap:wrap}
+.nav-links a{font-size:13px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--black)}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .3s}
+
+section{min-height:100vh;padding:100px 80px 80px}
+@media(max-width:768px){section{padding:80px 24px 48px}.nav{padding:12px 16px}.nav-links{gap:12px}}
+
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.cover h1{font-size:clamp(28px,4vw,48px);font-weight:700;margin-bottom:16px;letter-spacing:-0.5px}
+.cover .subtitle{font-size:18px;color:var(--accent);margin-bottom:8px}
+.cover .date{font-size:14px;color:var(--grey-02)}
+.cover .badge{display:inline-block;margin-top:24px;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600}
+.badge-warn{background:rgba(235,128,84,0.2);color:var(--accent-warm)}
+
+.card{background:var(--white);border-radius:12px;padding:32px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card h3{font-size:18px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+h2{font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:32px;letter-spacing:-0.3px}
+h2 span{color:var(--accent-warm)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
+.stat{background:var(--white);border-radius:12px;padding:24px;text-align:center}
+.stat .num{font-size:36px;font-weight:700;font-family:var(--font-mono)}
+.stat .label{font-size:13px;color:var(--grey-02);margin-top:4px}
+.stat.green .num{color:var(--green)}
+.stat.warn .num{color:var(--accent-warm)}
+.stat.danger .num{color:var(--danger)}
+.stat.blue .num{color:#5b8fb9}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:12px 16px;background:var(--grey-01);font-weight:600;font-size:13px;color:var(--grey-03);border-bottom:2px solid var(--grey-01)}
+td{padding:10px 16px;border-bottom:1px solid var(--grey-01)}
+tr:hover td{background:rgba(168,205,232,0.08)}
+.status-ok{color:var(--green);font-weight:600}
+.status-warn{color:var(--accent-warm);font-weight:600}
+.status-fail{color:var(--danger);font-weight:600}
+
+.flow-container{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.flow-step{display:flex;align-items:stretch;gap:0}
+.flow-num{width:48px;min-height:48px;background:var(--accent-warm);color:var(--white);font-weight:700;font-size:18px;border-radius:8px 0 0 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.flow-num.alt{background:var(--accent)}
+.flow-content{flex:1;background:var(--white);padding:16px 20px;border-radius:0 8px 8px 0;border:1px solid var(--grey-01);border-left:none}
+.flow-content strong{font-size:14px}
+.flow-content p{font-size:13px;color:var(--grey-03);margin-top:2px}
+.flow-arrow{text-align:center;color:var(--grey-02);font-size:20px;padding:4px 0}
+
+.issue{display:flex;gap:12px;padding:16px;border-radius:8px;margin-bottom:12px}
+.issue.critical{background:rgba(217,79,79,0.06);border-left:3px solid var(--danger)}
+.issue.medium{background:rgba(235,128,84,0.06);border-left:3px solid var(--accent-warm)}
+.issue.low{background:rgba(168,205,232,0.06);border-left:3px solid var(--accent)}
+.issue.fixed{background:rgba(133,162,104,0.06);border-left:3px solid var(--green)}
+.issue-tag{font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;white-space:nowrap;height:fit-content}
+.issue.critical .issue-tag{background:rgba(217,79,79,0.15);color:var(--danger)}
+.issue.medium .issue-tag{background:rgba(235,128,84,0.15);color:var(--accent-warm)}
+.issue.low .issue-tag{background:rgba(168,205,232,0.15);color:#5b8fb9}
+.issue-body h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.issue-body p{font-size:13px;color:var(--grey-03)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+.priority-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-right:8px}
+.p0{background:rgba(217,79,79,0.15);color:var(--danger)}
+.p1{background:rgba(235,128,84,0.15);color:var(--accent-warm)}
+.p2{background:rgba(168,205,232,0.15);color:#5b8fb9}
+.p3{background:rgba(139,135,124,0.15);color:var(--grey-03)}
+
+.rec-item{padding:16px;border-radius:8px;margin-bottom:12px;background:var(--white);border:1px solid var(--grey-01)}
+.rec-item h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.rec-item p{font-size:13px;color:var(--grey-03)}
+.rec-item .meta{font-size:12px;color:var(--grey-02);margin-top:8px;font-family:var(--font-mono)}
+
+.footer{background:var(--black);color:var(--grey-02);padding:60px 80px;text-align:center;font-size:13px;min-height:auto}
+.footer strong{color:var(--white)}
+
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
+.fade-up.visible{opacity:1;transform:none}
+
+.code-block{background:var(--black);color:#e0e0e0;padding:16px 20px;border-radius:8px;font-family:var(--font-mono);font-size:13px;line-height:1.8;overflow-x:auto;margin:12px 0}
+.code-block .comment{color:var(--grey-02)}
+.code-block .highlight{color:var(--accent-warm)}
+.code-block .ok{color:var(--green)}
+.code-block .warn{color:#e8c547}
+
+.vs-table{margin:24px 0}
+.vs-table td:first-child{font-weight:600;width:180px;color:var(--grey-03)}
+.vs-table .good{background:rgba(133,162,104,0.08)}
+.vs-table .bad{background:rgba(217,79,79,0.06)}
+.vs-table .mid{background:rgba(235,128,84,0.06)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.tag-green{background:rgba(133,162,104,0.15);color:var(--green)}
+.tag-red{background:rgba(217,79,79,0.15);color:var(--danger)}
+.tag-orange{background:rgba(235,128,84,0.15);color:var(--accent-warm)}
+.tag-blue{background:rgba(168,205,232,0.25);color:#4a8ab5}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="nav">
+  <div class="nav-brand">Rain AI Team</div>
+  <div class="nav-links">
+    <a href="#cover">封面</a>
+    <a href="#context">背景</a>
+    <a href="#path-a">路徑 A</a>
+    <a href="#path-b">路徑 B</a>
+    <a href="#compare">對比</a>
+    <a href="#blindspots">盲點</a>
+    <a href="#recs">建議</a>
+    <a href="#roadmap">路線圖</a>
+  </div>
+</nav>
+
+<!-- ═══ 封面 ═══ -->
+<section class="cover" id="cover">
+  <div class="subtitle">Rain AI Team — 流程審查報告</div>
+  <h1>接案執行流程審查<br>2026 年 3 月</h1>
+  <div class="date">2026-03-09 &middot; 審查人：Klay（CEO / Claude Opus）</div>
+  <div class="badge badge-warn">發現 8 項盲點，4 項需立即修復</div>
+</section>
+
+<!-- ═══ 背景 & SCQA ═══ -->
+<section id="context">
+  <h2>審查<span>背景</span></h2>
+
+  <div class="card fade-up">
+    <h3>Situation — 現況</h3>
+    <p>Rain AI Team 目前有 <strong>兩條任務下達路徑</strong>並行運作：Rain 透過 <strong>Noel Telegram</strong> 遠端派發（異步），以及在 <strong>Klay Claude Code 互動 Session</strong> 直接下指令（同步）。兩條路徑共用 Kai 看板作為任務追蹤中樞，但執行機制截然不同。</p>
+  </div>
+
+  <div class="card fade-up">
+    <h3>Complication — 問題</h3>
+    <p>隨著專案規模增長（5+ 活躍專案、19 位 Agent），兩條路徑的<strong>能力落差</strong>逐漸擴大。Telegram 路徑無法執行 3-Phase Planning、無法並行 dispatch、且缺乏進度回報機制。安全防護水準也不一致（spawn-ray.py 落後 spawn-klay.py 至少 4 項防護）。</p>
+  </div>
+
+  <div class="card fade-up">
+    <h3>Question — 核心問題</h3>
+    <p>兩條路徑各有什麼<strong>盲點、斷點、延遲點</strong>？如何在不增加 Rain 操作負擔的前提下，提升整體執行效率與可靠性？</p>
+  </div>
+
+  <div class="card fade-up">
+    <h3>Answer — 結論</h3>
+    <p>共識別出 <strong>8 項盲點</strong>，其中 4 項為 P0/P1 需立即修復。最關鍵的是：Telegram 路徑缺乏超時機制（殭屍任務風險）、spawn-ray.py 安全防護不足、以及完成通知缺失。建議按 4 階段路線圖逐步強化。</p>
+  </div>
+</section>
+
+<!-- ═══ 路徑 A：Noel Telegram ═══ -->
+<section id="path-a">
+  <h2>路徑 A：<span>Noel Telegram</span> 派發</h2>
+
+  <div class="flow-container fade-up">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <strong>Rain → Telegram 訊息</strong>
+        <p>Rain 在 Telegram 向 Noel 下達指令（自然語言）</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <strong>Noel 任務分類 & 路由</strong>
+        <p>Noel 讀取 AGENTS.md 路由表，判斷任務級別（簡單/艱難），決定指派 Agent</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <strong>spawn-klay.py / spawn-ray.py 啟動</strong>
+        <p>安全檢查 → 重複偵測 → 建立 Kai 看板任務 → 寫 prompt 到檔案 → 啟動 tmux session</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <strong>Agent 獨立執行</strong>
+        <p>在 tmux 中以 <code>claude --dangerously-skip-permissions</code> 執行，輸出寫入 log 檔</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num">5</div>
+      <div class="flow-content">
+        <strong>完成回報</strong>
+        <p>Agent 執行完畢後，呼叫 Kai API 標記任務完成 + openclaw event 通知</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>關鍵程式碼分析：spawn-klay.py</h3>
+    <div class="code-block">
+<span class="comment"># 安全防護（✅ 已實作）</span>
+<span class="ok">✅ 危險指令偵測</span>（12 種模式：rm -rf、DROP TABLE、sudo、fork bomb…）
+<span class="ok">✅ Prompt Injection 防護</span>（截斷 4000 字 + 移除 system/assistant/user 標籤）
+<span class="ok">✅ 重複任務偵測</span>（依標題比對 executing/pending 狀態）
+<span class="ok">✅ 私有目錄 700 權限</span>（prompt/log/pid 檔案隔離）
+<span class="ok">✅ 早期失敗偵測</span>（4 秒後讀 log 檢查錯誤訊號）
+<span class="ok">✅ Kai 任務失敗回報</span>（啟動失敗時自動標記 fail）
+
+<span class="comment"># 缺失（❌ 未實作）</span>
+<span class="highlight">❌ 無執行超時機制</span>
+<span class="highlight">❌ 無中途進度回報</span>
+<span class="highlight">❌ 無完成通知（Discord/Email）</span>
+<span class="highlight">❌ 重複偵測僅依標題精確比對</span>
+    </div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>關鍵程式碼分析：spawn-ray.py</h3>
+    <div class="code-block">
+<span class="comment"># 與 spawn-klay.py 的差距</span>
+<span class="highlight">❌ 無危險指令偵測</span>
+<span class="highlight">❌ 無 Prompt Injection 防護</span>（未消毒輸入）
+<span class="highlight">❌ 無私有目錄權限控制</span>（用 os.makedirs 但未設 700）
+<span class="highlight">❌ 無早期失敗偵測</span>
+<span class="highlight">❌ 無啟動失敗回報</span>（Kai 任務會卡在 executing）
+<span class="highlight">❌ 重複偵測只查 executing</span>（遺漏 pending 狀態）
+
+<span class="ok">✅ 基本功能可運作</span>（建 Kai 任務 → tmux → codex exec）
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 路徑 B：Klay 互動 Session ═══ -->
+<section id="path-b">
+  <h2>路徑 B：<span>Klay 互動 Session</span></h2>
+
+  <div class="flow-container fade-up">
+    <div class="flow-step">
+      <div class="flow-num alt">1</div>
+      <div class="flow-content">
+        <strong>Rain → Claude Code 終端</strong>
+        <p>Rain 在終端開啟 Claude Code，直接輸入任務描述</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num alt">2</div>
+      <div class="flow-content">
+        <strong>Klay 自動分級 & 規劃</strong>
+        <p>判斷 Tiny/Standard/Major/Critical → 必要時執行 3-Phase Planning Protocol</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num alt">3</div>
+      <div class="flow-content">
+        <strong>並行 Dispatch（Agent Tool + Worktree）</strong>
+        <p>Scout 架構設計 + Ray 風險審查 → Max 後端 + John 前端 並行實作</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num alt">4</div>
+      <div class="flow-content">
+        <strong>即時互動 & Review Loop</strong>
+        <p>可即時向 Rain 確認、自動執行 /review-loop、/verify</p>
+      </div>
+    </div>
+    <div class="flow-arrow">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-num alt">5</div>
+      <div class="flow-content">
+        <strong>統一報告 & 完成</strong>
+        <p>匯總所有 Agent 結果 → Kai 看板更新 → Git commit → 報告</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>路徑 B 能力全景</h3>
+    <div class="code-block">
+<span class="ok">✅ 完整 3-Phase Planning</span>（Klay → Scout → Ray → Dispatch）
+<span class="ok">✅ 並行 Agent Dispatch</span>（Agent tool + isolation: worktree）
+<span class="ok">✅ 即時互動</span>（可向 Rain 確認需求、報告進度）
+<span class="ok">✅ 全工具鏈</span>（Glob/Grep/Edit/Write/Bash/Skill 全可用）
+<span class="ok">✅ Review Loop 整合</span>（Ray + Vick 並行審查）
+<span class="ok">✅ Kai 看板同步</span>
+
+<span class="comment"># 限制</span>
+<span class="warn">⚠️ 需 Rain 終端開啟</span>（關閉即中斷）
+<span class="warn">⚠️ Context Window 有上限</span>（長任務觸發壓縮）
+<span class="warn">⚠️ 單一 Session 瓶頸</span>（同時只能一個對話）
+<span class="warn">⚠️ Session 崩潰 = 工作遺失</span>（需 handoff 機制補救）
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 對比分析 ═══ -->
+<section id="compare">
+  <h2>兩條路徑<span>對比</span></h2>
+
+  <div class="card fade-up">
+    <table class="vs-table">
+      <thead>
+        <tr><th style="width:180px">比較維度</th><th>路徑 A：Noel Telegram</th><th>路徑 B：Klay 互動</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>觸發方式</td>
+          <td>Telegram 訊息（異步）</td>
+          <td>終端直接輸入（同步）</td>
+        </tr>
+        <tr>
+          <td>任務路由</td>
+          <td class="mid">Noel 依路由表判斷</td>
+          <td class="good">Klay 自主分級 + dispatch</td>
+        </tr>
+        <tr>
+          <td>3-Phase Planning</td>
+          <td class="bad"><span class="tag tag-red">不支援</span> 只能 spawn 單一 Agent</td>
+          <td class="good"><span class="tag tag-green">完整支援</span> Scout + Ray 交叉驗證</td>
+        </tr>
+        <tr>
+          <td>並行執行</td>
+          <td class="bad"><span class="tag tag-red">不支援</span> 一次一個 tmux</td>
+          <td class="good"><span class="tag tag-green">完整支援</span> Agent tool + worktree</td>
+        </tr>
+        <tr>
+          <td>即時互動</td>
+          <td class="bad"><span class="tag tag-red">Fire & Forget</span></td>
+          <td class="good"><span class="tag tag-green">可確認 / 可追問</span></td>
+        </tr>
+        <tr>
+          <td>背景執行</td>
+          <td class="good"><span class="tag tag-green">tmux 背景執行</span></td>
+          <td class="bad"><span class="tag tag-red">需終端開啟</span></td>
+        </tr>
+        <tr>
+          <td>進度可見度</td>
+          <td class="bad"><span class="tag tag-red">僅 log 檔</span></td>
+          <td class="good"><span class="tag tag-green">即時可見</span></td>
+        </tr>
+        <tr>
+          <td>錯誤恢復</td>
+          <td class="bad"><span class="tag tag-red">無自動重試</span></td>
+          <td class="mid"><span class="tag tag-orange">手動介入</span></td>
+        </tr>
+        <tr>
+          <td>安全防護</td>
+          <td class="mid"><span class="tag tag-orange">Klay 有 / Ray 缺</span></td>
+          <td class="good"><span class="tag tag-green">權限模式控制</span></td>
+        </tr>
+        <tr>
+          <td>Review 整合</td>
+          <td class="bad"><span class="tag tag-red">需手動觸發</span></td>
+          <td class="good"><span class="tag tag-green">自動 /review-loop</span></td>
+        </tr>
+        <tr>
+          <td>適用場景</td>
+          <td>Rain 不在電腦前、異步派發</td>
+          <td>Rain 在線、複雜任務、需互動</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="stats fade-up">
+    <div class="stat green"><div class="num">6</div><div class="label">路徑 B 優勢項</div></div>
+    <div class="stat warn"><div class="num">1</div><div class="label">路徑 A 優勢項</div></div>
+    <div class="stat danger"><div class="num">3</div><div class="label">路徑 A 缺失項</div></div>
+    <div class="stat blue"><div class="num">2</div><div class="label">雙方共有限制</div></div>
+  </div>
+</section>
+
+<!-- ═══ 盲點分析 ═══ -->
+<section id="blindspots">
+  <h2>盲點 &<span> 斷點</span>分析</h2>
+
+  <h3 style="margin-bottom:16px;color:var(--grey-03)">路徑 A 盲點（Noel Telegram）</h3>
+
+  <div class="issue critical fade-up">
+    <div><span class="issue-tag">P0 Critical</span></div>
+    <div class="issue-body">
+      <h4>B1：殭屍任務 — 無超時機制</h4>
+      <p>spawn-klay.py 啟動 tmux 後，若 Claude 卡住或靜默失敗，Kai 看板任務永遠停留在 "executing"。沒有 watchdog、沒有超時中斷。長期累積會造成看板失真，Rain 無法判斷真實工作負載。</p>
+    </div>
+  </div>
+
+  <div class="issue critical fade-up">
+    <div><span class="issue-tag">P0 Critical</span></div>
+    <div class="issue-body">
+      <h4>B2：spawn-ray.py 安全防護不足</h4>
+      <p>相比 spawn-klay.py 缺少 5 項防護：無危險指令偵測、無 Prompt Injection 消毒、無私有目錄權限、無早期失敗偵測、無失敗回報。Ray 處理的是 code review 任務，可能接收到含攻擊性內容的程式碼片段，風險不低於 Klay。</p>
+    </div>
+  </div>
+
+  <div class="issue medium fade-up">
+    <div><span class="issue-tag">P1 Medium</span></div>
+    <div class="issue-body">
+      <h4>B3：完成通知黑洞</h4>
+      <p>任務完成後僅更新 Kai 看板 + openclaw event（可能離線）。Rain 除非主動查看 Kai Dashboard 或 tmux log，否則不知道任務已完成。需要主動推播到 Discord。</p>
+    </div>
+  </div>
+
+  <div class="issue medium fade-up">
+    <div><span class="issue-tag">P1 Medium</span></div>
+    <div class="issue-body">
+      <h4>B4：無法觸發 3-Phase Planning</h4>
+      <p>spawn-klay.py 產生的 prompt 只告訴 Klay「你是 Klay，執行這個任務」，沒有明確指示走 3-Phase Protocol。Klay 在 tmux 中雖然可以使用 Agent tool，但 CLAUDE.md 中的 3-Phase 規範是否被正確載入取決於 workdir 的 .claude 配置。</p>
+    </div>
+  </div>
+
+  <div class="issue low fade-up">
+    <div><span class="issue-tag">P2 Low</span></div>
+    <div class="issue-body">
+      <h4>B5：重複偵測過度簡化</h4>
+      <p>以任務標題精確比對作為去重依據。「重構購物車」和「購物車重構」會被視為不同任務。需改為模糊比對或加入任務指紋（hash of description）。</p>
+    </div>
+  </div>
+
+  <h3 style="margin:32px 0 16px;color:var(--grey-03)">路徑 B 盲點（Klay 互動 Session）</h3>
+
+  <div class="issue medium fade-up">
+    <div><span class="issue-tag">P1 Medium</span></div>
+    <div class="issue-body">
+      <h4>B6：Session 中斷 = 工作遺失</h4>
+      <p>若 Claude Code 崩潰或 Rain 意外關閉終端，所有進行中的 subagent 工作會中斷。雖然有 handoff 機制，但依賴 Session 正常結束時才觸發。異常關閉時不會自動 handoff。</p>
+    </div>
+  </div>
+
+  <div class="issue low fade-up">
+    <div><span class="issue-tag">P2 Low</span></div>
+    <div class="issue-body">
+      <h4>B7：單一 Session 瓶頸</h4>
+      <p>Rain 同時只能有一個 Claude Code 互動 Session。若正在執行大型任務，新的緊急任務只能等待或走 Telegram 路徑。兩條路徑之間沒有任務佇列做負載均衡。</p>
+    </div>
+  </div>
+
+  <div class="issue low fade-up">
+    <div><span class="issue-tag">P3 Low</span></div>
+    <div class="issue-body">
+      <h4>B8：Kai 看板同步斷點</h4>
+      <p>路徑 A 由 spawn script 自動建立 Kai 任務，但路徑 B 依賴 Klay 手動呼叫 API。兩條路徑的 task_type、priority 格式不完全一致，可能造成看板統計失真。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 改善建議 ═══ -->
+<section id="recs">
+  <h2>改善<span>建議</span></h2>
+
+  <div class="two-col">
+    <div>
+      <h3 style="margin-bottom:16px">P0 — 立即修復</h3>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p0">P0</span>R1：spawn-ray.py 安全強化</h4>
+        <p>從 spawn-klay.py 移植所有安全機制：危險指令偵測、sanitize_for_prompt、私有目錄 700 權限、早期失敗偵測、fail_kai_task 回報。</p>
+        <div class="meta">effort: 1h | owner: Max | files: spawn-ray.py</div>
+      </div>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p0">P0</span>R2：任務超時 Watchdog</h4>
+        <p>新增 watchdog 腳本，每 10 分鐘掃描 Kai 看板 "executing" 狀態的任務。超過 2 小時且 tmux session 已結束者 → 自動標記 fail + Discord 通知。</p>
+        <div class="meta">effort: 2h | owner: Forge | files: watchdog script + LaunchAgent</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:16px">P1 — 本週內</h3>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p1">P1</span>R3：完成通知推播</h4>
+        <p>在 spawn prompt 的完成指令中加入 Discord webhook 呼叫。任務完成時同步推播到 #task-complete 頻道，包含摘要和耗時。</p>
+        <div class="meta">effort: 1h | owner: Noel | files: spawn-klay.py, spawn-ray.py</div>
+      </div>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p1">P1</span>R4：Spawn Prompt 加載 3-Phase</h4>
+        <p>在 build_prompt 中加入明確指示：若任務符合 Major/Critical 條件，必須執行 3-Phase Planning Protocol。確保 workdir 設定正確以載入 CLAUDE.md。</p>
+        <div class="meta">effort: 1h | owner: Max | files: spawn-klay.py</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:8px">
+    <div>
+      <h3 style="margin-bottom:16px">P2 — 兩週內</h3>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p2">P2</span>R5：Crash-safe Handoff</h4>
+        <p>Klay 互動 Session 每完成一個子任務就寫入 checkpoint 到 handoff 檔案。即使 Session 異常中斷，下次啟動時可從最近的 checkpoint 恢復。</p>
+        <div class="meta">effort: 3h | owner: Klay | files: session-protocol, CLAUDE.md</div>
+      </div>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p2">P2</span>R6：模糊重複偵測</h4>
+        <p>將 check_duplicate 改為：標題 Levenshtein distance &lt; 5 或 description hash 相同即視為重複。防止同任務不同措辭被重複執行。</p>
+        <div class="meta">effort: 1h | owner: Max | files: spawn-klay.py, spawn-ray.py</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-bottom:16px">P3 — 下月</h3>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p3">P3</span>R7：統一任務佇列</h4>
+        <p>在 Kai 中建立 priority queue，兩條路徑統一匯入。支援任務優先級排序、自動分配到可用 Agent、避免單路徑瓶頸。</p>
+        <div class="meta">effort: 8h | owner: Max + Forge | files: Kai backend</div>
+      </div>
+
+      <div class="rec-item fade-up">
+        <h4><span class="priority-badge p3">P3</span>R8：Kai 看板欄位標準化</h4>
+        <p>統一兩條路徑的 task_type、priority、source 欄位格式。加入 path_origin 欄位（telegram / claude_code）方便追蹤。</p>
+        <div class="meta">effort: 2h | owner: Rex | files: Kai task API</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 路線圖 ═══ -->
+<section id="roadmap">
+  <h2>修復<span>路線圖</span></h2>
+
+  <div class="card fade-up">
+    <table>
+      <thead>
+        <tr><th>階段</th><th>時間</th><th>項目</th><th>負責</th><th>效果</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Phase 1</strong></td>
+          <td>本週</td>
+          <td>R1 spawn-ray.py 強化<br>R2 Watchdog 超時</td>
+          <td>Max + Forge</td>
+          <td>消除安全漏洞 + 殭屍任務</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2</strong></td>
+          <td>下週</td>
+          <td>R3 Discord 通知<br>R4 3-Phase Prompt</td>
+          <td>Noel + Max</td>
+          <td>完成通知閉環 + Telegram 路徑品質提升</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 3</strong></td>
+          <td>兩週內</td>
+          <td>R5 Crash-safe Handoff<br>R6 模糊去重</td>
+          <td>Klay + Max</td>
+          <td>Session 容錯 + 防重複執行</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 4</strong></td>
+          <td>下月</td>
+          <td>R7 統一佇列<br>R8 欄位標準化</td>
+          <td>Max + Rex + Forge</td>
+          <td>兩條路徑融合，看板準確度提升</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="stats fade-up">
+    <div class="stat danger"><div class="num">2</div><div class="label">P0 本週修復</div></div>
+    <div class="stat warn"><div class="num">2</div><div class="label">P1 下週完成</div></div>
+    <div class="stat blue"><div class="num">2</div><div class="label">P2 兩週內</div></div>
+    <div class="stat green"><div class="num">2</div><div class="label">P3 下月規劃</div></div>
+  </div>
+
+  <div class="card fade-up">
+    <h3>預期效益</h3>
+    <table>
+      <thead>
+        <tr><th>指標</th><th>修復前</th><th>修復後（預估）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>殭屍任務風險</td><td class="status-fail">HIGH — 無偵測機制</td><td class="status-ok">LOW — Watchdog 每 10 min 掃描</td></tr>
+        <tr><td>spawn-ray.py 安全等級</td><td class="status-fail">1/6 項防護</td><td class="status-ok">6/6 項防護</td></tr>
+        <tr><td>完成通知延遲</td><td class="status-warn">Rain 需主動查看</td><td class="status-ok">即時 Discord 推播</td></tr>
+        <tr><td>Telegram 路徑品質</td><td class="status-warn">Standard only</td><td class="status-ok">支援 3-Phase Planning</td></tr>
+        <tr><td>Session 容錯</td><td class="status-fail">崩潰即遺失</td><td class="status-ok">Checkpoint 恢復</td></tr>
+        <tr><td>重複執行率</td><td class="status-warn">僅標題精確比對</td><td class="status-ok">模糊 + hash 比對</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ Footer ═══ -->
+<section class="footer">
+  <strong>Rain AI Team — 接案執行流程審查 2026-03</strong><br>
+  Generated by Klay（Claude Opus）&middot; 2026-03-09<br><br>
+  審查範圍：AGENTS.md &middot; task-dispatch.md &middot; spawn-klay.py &middot; spawn-ray.py<br>
+  報告格式：Deck v2（Keftek Style）
+</section>
+
+<script>
+// 進度條
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  const p=h>0?(window.scrollY/h)*100:0;
+  document.getElementById('progress').style.width=p+'%';
+});
+
+// Fade-up on scroll
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

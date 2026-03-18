@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>byCrawl 逆向拆解報告 — Rain AI Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f6f5f1;
+    --white:#ffffff;
+    --grey-01:#f0eee6;
+    --grey-02:#8b877c;
+    --grey-03:#6c6a62;
+    --ink:#1a1a1a;
+    --accent:#eb8054;
+    --accent-light:#fdf0e8;
+    --blue:#a8cde8;
+    --blue-light:#eef6fc;
+    --green:#85a268;
+    --green-light:#f0f5ec;
+    --red:#d94f4f;
+    --red-light:#fdf0f0;
+    --cover:#121212;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans TC','Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;font-size:15px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* ── Cover ── */
+  .cover{background:var(--cover);color:#fff;padding:80px 40px 60px;text-align:center}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+  .cover h1{font-size:clamp(26px,5vw,44px);font-weight:800;letter-spacing:-1px;line-height:1.15;margin-bottom:12px}
+  .cover .sub{font-size:16px;color:rgba(255,255,255,.5);margin-bottom:8px}
+  .cover .date{font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(255,255,255,.3);margin-top:20px}
+
+  /* ── Main ── */
+  .main{max-width:720px;margin:0 auto;padding:56px 32px 80px}
+
+  /* ── Section ── */
+  .sec{margin-bottom:56px}
+  .sec-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .sec-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:24px;color:var(--ink)}
+  .sec-body{color:var(--grey-03);line-height:1.75}
+
+  /* ── Card ── */
+  .card{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:12px}
+  .card-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .card-title{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .card-body{font-size:14px;color:var(--grey-03);line-height:1.65}
+
+  /* ── Highlight box ── */
+  .hl{background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:16px}
+  .hl-blue{background:var(--blue-light);border-left:3px solid var(--blue)}
+  .hl-green{background:var(--green-light);border-left:3px solid var(--green)}
+  .hl-red{background:var(--red-light);border-left:3px solid var(--red)}
+  .hl p{font-size:14px;color:var(--grey-03);line-height:1.65}
+  .hl strong{color:var(--ink)}
+
+  /* ── Code block ── */
+  pre{background:#1e1e1e;color:#e8e8e8;border-radius:10px;padding:20px 24px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;margin-bottom:12px}
+  .inline-code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--grey-01);padding:2px 6px;border-radius:4px;color:var(--grey-03)}
+
+  /* ── Table ── */
+  .tbl-wrap{overflow-x:auto;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--grey-01);padding:10px 14px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--grey-02)}
+  td{padding:10px 14px;border-bottom:1px solid var(--grey-01);color:var(--grey-03)}
+  tr:last-child td{border-bottom:none}
+  td.accent{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px}
+  td.green{color:var(--green);font-weight:600}
+  td.red{color:var(--red);font-weight:600}
+
+  /* ── Badge ── */
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;vertical-align:middle}
+  .badge-orange{background:var(--accent-light);color:var(--accent)}
+  .badge-blue{background:var(--blue-light);color:#2a7ab5}
+  .badge-green{background:var(--green-light);color:#4d7a35}
+  .badge-red{background:var(--red-light);color:var(--red)}
+  .badge-grey{background:var(--grey-01);color:var(--grey-02)}
+
+  /* ── Grid ── */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.grid-2{grid-template-columns:1fr}}
+
+  /* ── Platform tag strip ── */
+  .platform-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .plat{display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--grey-01);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500}
+  .plat .ep{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--grey-02)}
+
+  /* ── Flow diagram ── */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0}
+  .flow-box{background:var(--white);border:1px solid var(--grey-01);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:500;text-align:center;min-width:90px}
+  .flow-box.accent{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:700}
+  .flow-box.blue{background:var(--blue-light);border-color:var(--blue);color:#2a7ab5;font-weight:700}
+  .flow-box.green{background:var(--green-light);border-color:var(--green);color:#4d7a35;font-weight:700}
+  .flow-arr{color:var(--grey-02);font-size:18px}
+
+  /* ── Agent card ── */
+  .agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.agent-grid{grid-template-columns:1fr}}
+  .agent-card{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:20px}
+  .agent-name{font-size:16px;font-weight:700;margin-bottom:4px}
+  .agent-role{font-size:12px;color:var(--grey-02);margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+  .agent-tasks{font-size:13px;color:var(--grey-03)}
+  .agent-tasks li{margin-bottom:4px;padding-left:8px}
+
+  /* ── Pricing comparison ── */
+  .price-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--grey-01)}
+  .price-row:last-child{border-bottom:none}
+  .price-name{font-weight:600;font-size:14px}
+  .price-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent)}
+
+  /* ── Footer ── */
+  .footer{text-align:center;padding:40px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--grey-02)}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Reverse Engineering Report · 2026-03-11</div>
+  <h1>byCrawl 逆向拆解<br>＆ Rain AI Team 整合方案</h1>
+  <div class="sub">完整 API 結構 · 技術棧推斷 · 自建路線圖</div>
+  <div class="date">Klay · Rain AI Team · Confidential</div>
+</div>
+
+<div class="main">
+
+  <!-- 01 TL;DR -->
+  <div class="sec">
+    <div class="sec-eyebrow">01 · 結論摘要</div>
+    <div class="sec-title">一句話：我們可以完整複製</div>
+
+    <div class="hl">
+      <p><strong>byCrawl</strong> 是一個多平台社群資料代理 API。核心架構為：Playwright 瀏覽器自動化（抓封閉平台）+ 直接 API 呼叫（抓公開平台）+ FastAPI 統一閘道層。Rain AI Team 已具備 <strong>Nautilus</strong>（Playwright）+ <strong>Spider</strong>（Scrapy）+ <strong>Rex/Max</strong>（FastAPI）的完整技術棧，可以 100% 自建等效服務，不需要付費訂閱。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">關鍵數字</div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><td>支援平台數</td><td class="accent">11 個</td></tr>
+          <tr><td>API 端點總數</td><td class="accent">~40+</td></tr>
+          <tr><td>最貴方案</td><td>$159/月 · 30,000 credits</td></tr>
+          <tr><td>最便宜方案</td><td>$9/月 · 1,000 credits</td></tr>
+          <tr><td>每 credit 成本（Elite）</td><td>$0.006</td></tr>
+          <tr><td>公司名稱</td><td>signalsurf.ai（kyle@signalsurf.ai）</td></tr>
+          <tr><td>MCP 套件</td><td class="mono">npx -y @bycrawl/mcp</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 API 結構 -->
+  <div class="sec">
+    <div class="sec-eyebrow">02 · API 結構完整解析</div>
+    <div class="sec-title">URL Pattern + Auth + Credit 系統</div>
+
+    <div class="hl hl-blue">
+      <p><strong>Base URL：</strong><span class="mono">https://api.bycrawl.com</span><br>
+      <strong>認證：</strong>Header <span class="mono">x-api-key: sk_byc_xxx</span><br>
+      <strong>格式：</strong>純 JSON，無外層 wrapper object（直接回傳 data）</p>
+    </div>
+
+    <div class="card-label" style="margin-bottom:10px">統一 URL Pattern</div>
+    <pre>GET /{platform}/users/{username}         # 用戶資料
+GET /{platform}/users/{id}/posts         # 用戶貼文
+GET /{platform}/posts/{id}               # 單篇貼文
+GET /{platform}/posts/search?q=keyword   # 搜尋
+GET /{platform}/feed/public              # 公開 Feed
+GET /{platform}/bulk/{jobId}             # 批次操作</pre>
+
+    <div class="card-label" style="margin:16px 0 10px">Credit 消耗一覽</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>操作類型</th><th>Credit 消耗</th><th>說明</th></tr>
+        <tr><td>基本查詢（用戶/貼文）</td><td class="accent">2 credits</td><td>最常見操作</td></tr>
+        <tr><td>搜尋（Threads/Reddit）</td><td class="accent">3 credits</td><td>Flat rate 每次</td></tr>
+        <tr><td>X/Twitter 查詢</td><td class="accent">3–4 credits</td><td>平台成本較高</td></tr>
+        <tr><td>Full mode（含 views）</td><td class="accent">4 credits</td><td>mode=full 參數</td></tr>
+        <tr><td>LinkedIn 深層資料</td><td class="accent">4 credits</td><td>公司/用戶完整頁</td></tr>
+        <tr><td>批次操作（bulk start）</td><td class="accent">20 credits</td><td>批次提交</td></tr>
+      </table>
+    </div>
+
+    <div class="card-label" style="margin:16px 0 10px">分頁機制</div>
+    <div class="card">
+      <div class="card-body">
+        使用 <span class="mono">cursor</span> 參數做 cursor-based 分頁。回應包含 <span class="mono">pageInfo.endCursor</span> 或 <span class="mono">nextCursor</span>，帶入下一次請求即可取得下一頁。Python SDK 的 <span class="mono">iter_*()</span> 方法自動處理分頁。
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 平台矩陣 -->
+  <div class="sec">
+    <div class="sec-eyebrow">03 · 平台支援矩陣</div>
+    <div class="sec-title">11 個平台的端點清單</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>平台</th><th>Prefix</th><th>Posts</th><th>Users</th><th>Search</th><th>特殊</th></tr>
+        <tr>
+          <td><strong>Threads</strong></td><td class="mono">/threads</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Feed / Bulk / Replies</td>
+        </tr>
+        <tr>
+          <td><strong>Instagram</strong></td><td class="mono">/instagram</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Hashtags / Feed</td>
+        </tr>
+        <tr>
+          <td><strong>Facebook</strong></td><td class="mono">/facebook</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Page / Comments / Marketplace</td>
+        </tr>
+        <tr>
+          <td><strong>X / Twitter</strong></td><td class="mono">/x</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>3–4 credits / 最貴</td>
+        </tr>
+        <tr>
+          <td><strong>Reddit</strong></td><td class="mono">/reddit</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Subreddits / Sort</td>
+        </tr>
+        <tr>
+          <td><strong>TikTok</strong></td><td class="mono">/tiktok</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Videos / Subtitles / 20–40s</td>
+        </tr>
+        <tr>
+          <td><strong>YouTube</strong></td><td class="mono">/youtube</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Channels / Comments</td>
+        </tr>
+        <tr>
+          <td><strong>LinkedIn</strong></td><td class="mono">/linkedin</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Companies / Job Search</td>
+        </tr>
+        <tr>
+          <td><strong>Dcard</strong></td><td class="mono">/dcard</td>
+          <td class="green">✓</td><td class="green">✓</td><td class="green">✓</td>
+          <td>Forums / 台灣最大論壇</td>
+        </tr>
+        <tr>
+          <td><strong>Job104</strong></td><td class="mono">/job104</td>
+          <td class="red">—</td><td class="red">—</td><td class="green">✓</td>
+          <td>台灣職缺搜尋</td>
+        </tr>
+        <tr>
+          <td><strong>Google Maps</strong></td><td class="mono">/gmaps</td>
+          <td class="red">—</td><td class="red">—</td><td class="green">✓</td>
+          <td>地點 / 評論</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 04 技術棧推斷 -->
+  <div class="sec">
+    <div class="sec-eyebrow">04 · 技術棧逆向推斷</div>
+    <div class="sec-title">他們怎麼做到的</div>
+
+    <div class="hl">
+      <p>byCrawl 文件明確提到 TikTok 端點「使用瀏覽器自動化，需要 20–40 秒」，這洩漏了核心技術：<strong>Playwright</strong> 或 Puppeteer。再結合 Threads/Instagram/Facebook 的資料豐富度，可以確認這些封閉平台也走瀏覽器自動化路線。</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>平台群組</th><th>推測技術</th><th>理由</th></tr>
+        <tr>
+          <td><strong>TikTok / Instagram<br>Threads / Facebook</strong></td>
+          <td><span class="badge badge-orange">Playwright</span></td>
+          <td>TikTok 官方說明「瀏覽器自動化」；Meta 系封閉 API</td>
+        </tr>
+        <tr>
+          <td><strong>X / Twitter</strong></td>
+          <td><span class="badge badge-orange">Playwright</span></td>
+          <td>3–4 credits（成本高）= 瀏覽器；官方 API 貴且有限制</td>
+        </tr>
+        <tr>
+          <td><strong>LinkedIn</strong></td>
+          <td><span class="badge badge-orange">Playwright</span></td>
+          <td>4 credits = 高難度抓取；LinkedIn 封鎖 Scrapy</td>
+        </tr>
+        <tr>
+          <td><strong>Reddit</strong></td>
+          <td><span class="badge badge-blue">直接 API</span></td>
+          <td>Reddit 有公開 JSON API（old.reddit.com/r/xxx.json）</td>
+        </tr>
+        <tr>
+          <td><strong>YouTube</strong></td>
+          <td><span class="badge badge-blue">直接 API</span></td>
+          <td>YouTube Data API v3 公開免費（每日 10,000 units）</td>
+        </tr>
+        <tr>
+          <td><strong>Dcard / Job104</strong></td>
+          <td><span class="badge badge-green">Scrapy</span></td>
+          <td>台灣平台，反爬弱，Scrapy 即可</td>
+        </tr>
+        <tr>
+          <td><strong>Google Maps</strong></td>
+          <td><span class="badge badge-blue">直接 API</span></td>
+          <td>Google Maps API / Places API</td>
+        </tr>
+        <tr>
+          <td><strong>閘道層</strong></td>
+          <td><span class="badge badge-grey">FastAPI + Redis</span></td>
+          <td>高效 Python 框架 + credit 計數快取</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card-label" style="margin:16px 0 10px">架構推斷圖</div>
+    <div class="flow">
+      <div class="flow-box">Client</div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box accent">FastAPI Gateway<br><span style="font-size:11px">API Key + Credits</span></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box blue">Playwright Pool<br><span style="font-size:11px">封閉平台</span></div>
+      <div class="flow-arr">+</div>
+      <div class="flow-box green">Direct API<br><span style="font-size:11px">開放平台</span></div>
+    </div>
+  </div>
+
+  <!-- 05 Python SDK 設計 -->
+  <div class="sec">
+    <div class="sec-eyebrow">05 · Python SDK 設計分析</div>
+    <div class="sec-title">官方 SDK 的優秀設計值得借鑑</div>
+
+    <pre>from bycrawl import ByCrawl
+
+client = ByCrawl()  # 讀 BYCRAWL_API_KEY 環境變數
+
+# 統一 pattern：client.{platform}.{action}()
+user = client.threads.get_user("zuck")
+print(user.data.username)       # 型別化 autocomplete
+print(user.credit.remaining)    # 剩餘 credits
+
+# 自動分頁 iterator
+for post in client.threads.iter_user_posts("zuck"):
+    print(post.text)
+
+# 跨平台一致
+jobs = client.linkedin.search_jobs("AI engineer", location="Taiwan")
+posts = client.reddit.get_subreddit_posts("taiwan", sort="hot")
+tweets = client.x.get_user_posts("elonmusk", count=40)</pre>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">SDK 亮點</div>
+        <div class="card-body">
+          ✓ 型別化回應（APIResponse[T]）<br>
+          ✓ <span class="mono">iter_*()</span> 自動分頁<br>
+          ✓ Async 支援（AsyncByCrawl）<br>
+          ✓ 自動 retry + exponential backoff<br>
+          ✓ credit / rate limit metadata<br>
+          ✓ <span class="mono">BYCRAWL_API_KEY</span> 環境變數
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">MCP 整合</div>
+        <div class="card-body">
+          他們有 MCP 套件：<br>
+          <span class="mono">npx -y @bycrawl/mcp</span><br><br>
+          代表 Claude / AI 工具可以直接呼叫 byCrawl 端點，不需要寫程式碼。這是他們的 AI 市場切入點。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 定價分析 -->
+  <div class="sec">
+    <div class="sec-eyebrow">06 · 定價分析</div>
+    <div class="sec-title">付費 vs 自建成本比較</div>
+
+    <div class="card">
+      <div class="card-label">byCrawl 定價</div>
+      <div class="price-row"><div class="price-name">Lite</div><div class="price-val">$9/月 · 1,000 credits</div></div>
+      <div class="price-row"><div class="price-name">Pro</div><div class="price-val">$29/月 · 5,000 credits</div></div>
+      <div class="price-row"><div class="price-name">Power</div><div class="price-val">$79/月 · 15,000 credits</div></div>
+      <div class="price-row"><div class="price-name">Elite</div><div class="price-val">$159/月 · 30,000 credits</div></div>
+    </div>
+
+    <div class="hl hl-green" style="margin-top:16px">
+      <p><strong>換算：</strong>Pro 方案 5,000 credits × 平均 2 credits/call = <strong>2,500 次 API 呼叫/月</strong>，要 $29 USD。我們自建後邊際成本幾乎為 0（僅伺服器電費）。<br><br>
+      <strong>建議：</strong>先申請試用帳號測試效果，確認有商業價值再自建，避免白費工程時間。</p>
+    </div>
+  </div>
+
+  <!-- 07 自建方案 -->
+  <div class="sec">
+    <div class="sec-eyebrow">07 · 自建方案設計</div>
+    <div class="sec-title">Rain AI Crawl — 我們的版本</div>
+
+    <div class="hl">
+      <p>核心原則：<strong>100% 複製 byCrawl 的 REST URL pattern</strong>，讓現有接入 byCrawl 的工具可以無縫切換到我們自建版本。</p>
+    </div>
+
+    <div class="card-label" style="margin-bottom:12px">Rain AI Team 角色對應</div>
+    <div class="agent-grid">
+      <div class="agent-card">
+        <div class="agent-name">🤖 Nautilus</div>
+        <div class="agent-role">Playwright + GPT-4.1</div>
+        <div class="agent-tasks">
+          抓取所有需要瀏覽器的平台：<br>
+          ✦ Threads / Instagram / Facebook<br>
+          ✦ Twitter / X（繞過反爬）<br>
+          ✦ LinkedIn（登入態抓取）<br>
+          ✦ TikTok（JS 渲染）
+        </div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">🕷️ Spider</div>
+        <div class="agent-role">Scrapy / Requests</div>
+        <div class="agent-tasks">
+          抓取公開 API 平台：<br>
+          ✦ Reddit（reddit.com/r/*.json）<br>
+          ✦ Dcard（公開 API）<br>
+          ✦ Job104（職缺搜尋）<br>
+          ✦ YouTube（Data API v3）
+        </div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">🔗 Rex + Max</div>
+        <div class="agent-role">FastAPI / Python</div>
+        <div class="agent-tasks">
+          建立統一閘道層：<br>
+          ✦ 複製 byCrawl URL pattern<br>
+          ✦ x-api-key 認證中介層<br>
+          ✦ Credit 計數（Redis）<br>
+          ✦ Response 格式標準化
+        </div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">⚙️ Kai</div>
+        <div class="agent-role">監控 / 中控台</div>
+        <div class="agent-tasks">
+          維運支援：<br>
+          ✦ API Key 管理（Knox）<br>
+          ✦ Credit 用量監控<br>
+          ✦ 錯誤告警（Discord）<br>
+          ✦ 任務板同步
+        </div>
+      </div>
+    </div>
+
+    <div class="card-label" style="margin:20px 0 12px">實作架構圖</div>
+    <pre>Rain AI Crawl Gateway
+├── POST /api/keys              # 建立 API Key（Kai）
+├── GET  /{platform}/users/:id  # 複製 byCrawl URL
+├── GET  /{platform}/posts/:id
+├── GET  /{platform}/posts/search
+│
+├── adapters/
+│   ├── nautilus_adapter.py     # Playwright 系（Nautilus）
+│   │   ├── threads.py
+│   │   ├── instagram.py
+│   │   ├── facebook.py
+│   │   ├── twitter.py
+│   │   ├── linkedin.py
+│   │   └── tiktok.py
+│   └── spider_adapter.py       # Scrapy / Direct API 系
+│       ├── reddit.py           # old.reddit.com/r/*.json
+│       ├── youtube.py          # YouTube Data API v3
+│       ├── dcard.py
+│       └── job104.py
+│
+└── middleware/
+    ├── auth.py                 # x-api-key 驗證
+    ├── credits.py              # credit 計數 + Redis
+    └── response.py             # 統一格式轉換</pre>
+  </div>
+
+  <!-- 08 實作路線圖 -->
+  <div class="sec">
+    <div class="sec-eyebrow">08 · 實作路線圖</div>
+    <div class="sec-title">三個 Phase 逐步交付</div>
+
+    <div class="card">
+      <div class="card-label">Phase 1 — 閘道 + Reddit + YouTube（1 週）</div>
+      <div class="card-body">
+        <strong>Rex</strong> 建立 FastAPI 閘道層（API Key 認證 + Credit 計數）<br>
+        <strong>Spider</strong> 實作 Reddit adapter（公開 JSON API）<br>
+        <strong>Spider</strong> 實作 YouTube adapter（Data API v3）<br>
+        → 驗證整個 pipeline 跑通後進 Phase 2
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Phase 2 — Playwright 系平台（2–3 週）</div>
+      <div class="card-body">
+        <strong>Nautilus</strong> 實作 Threads / Instagram adapter<br>
+        <strong>Nautilus</strong> 實作 Twitter/X adapter（繞過反爬）<br>
+        <strong>Nautilus</strong> 實作 LinkedIn adapter<br>
+        <strong>Nautilus</strong> 實作 TikTok adapter（需要 headless + 等待 20–40s）<br>
+        → 每個平台完成後獨立測試驗收
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Phase 3 — Python SDK + MCP（1 週）</div>
+      <div class="card-body">
+        <strong>Rex</strong> 發布 <span class="mono">pip install rain-crawl</span> Python SDK<br>
+        複製 byCrawl SDK 的 API 設計（<span class="mono">client.threads.get_user()</span>）<br>
+        <strong>Max</strong> 建立 MCP 套件，讓 AI agents 可直接呼叫<br>
+        → 對接 GooayeAI / EchoMarketer / Buzz 使用
+      </div>
+    </div>
+
+    <div class="hl hl-red" style="margin-top:8px">
+      <p><strong>⚠️ 重要風險提示：</strong>Threads/Instagram/Facebook（Meta 系）、LinkedIn 有嚴格反爬機制，Playwright 方案需要持續維護（帳號池、IP 輪換、反指紋）。Twitter/X 同樣有封禁風險。建議 Phase 2 先做 Dcard/Job104 確認 pipeline 正確，再攻 Meta 系。</p>
+    </div>
+  </div>
+
+  <!-- 09 團隊整合 -->
+  <div class="sec">
+    <div class="sec-eyebrow">09 · 團隊整合應用場景</div>
+    <div class="sec-title">建好之後，誰來用</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">GooayeAI · 投資情報</div>
+        <div class="card-body">
+          搜尋 Twitter/X + Reddit 上的股票關鍵字，輸入 GooayeAI pipeline 做情緒分析，補充股癌聲音以外的市場信號。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">EchoMarketer · 競品監控</div>
+        <div class="card-body">
+          每日抓取競品 LinkedIn 公司發文、Twitter 最新貼文、Reddit 討論，自動生成競品動態報告。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Buzz · 內容分析</div>
+        <div class="card-body">
+          爬取目標客群活躍的社群（Reddit / Dcard / Threads）貼文，分析內容趨勢，輸入 EchoMarketer 做 SEO 關鍵字規劃。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Milo · 招募情報</div>
+        <div class="card-body">
+          搜尋 LinkedIn 職缺 + Job104，追蹤競品公司招募動態（AI 工程師 surge = 他們在做什麼），輸入 GooayeAI 作為 sales signal。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 建議行動 -->
+  <div class="sec">
+    <div class="sec-eyebrow">10 · 建議行動</div>
+    <div class="sec-title">下一步</div>
+
+    <div class="card">
+      <div class="card-body" style="font-size:14px">
+        <p style="margin-bottom:12px"><strong>短期（本週）：</strong></p>
+        <p>1. 申請 byCrawl 帳號（Join Waitlist）或 Book a Demo，取得真實 API key 測試</p>
+        <p>2. 用 Pro 方案（$29/月）試跑真實資料，確認品質符合需求</p>
+        <p>3. 確認後開啟 Phase 1 自建任務（Klay dispatch → Rex 閘道 + Spider Reddit）</p>
+        <br>
+        <p><strong>中期（1 個月）：</strong></p>
+        <p>4. Phase 2 Nautilus 平台 adapter（從 Threads 開始，測試帳號準備好）</p>
+        <p>5. 對接 GooayeAI 做 Twitter 情緒分析 POC</p>
+        <br>
+        <p><strong>長期選項：</strong></p>
+        <p>6. 若自建穩定，可考慮對外提供 API 服務（Rain AI Crawl as SaaS）</p>
+        <p>7. 或持續付費 byCrawl Pro，專注其他核心任務</p>
+      </div>
+    </div>
+
+    <div class="hl" style="margin-top:12px">
+      <p><strong>Rain 決策點：</strong>要「現在直接付費用 byCrawl」還是「排入 Klay 任務啟動自建」？<br>
+      建議：<strong>先試 byCrawl 7 天免費試用 → 確認有業務用途 → 再自建</strong>，避免工程浪費。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Rain AI Team · Klay · 2026-03-11 · Confidential
+</div>
+
+</body>
+</html>

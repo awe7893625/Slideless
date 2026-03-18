@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kai Flows v2 — AI 工作流引擎完整整合報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.6}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:80px 40px 60px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-family:var(--mono)}
+.cover h1{font-size:clamp(26px,5vw,46px);font-weight:800;letter-spacing:-1px;line-height:1.15}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:14px;color:rgba(255,255,255,0.5);margin-top:14px;line-height:1.7;max-width:520px;margin-left:auto;margin-right:auto}
+.cover .date{font-size:12px;color:rgba(255,255,255,0.3);margin-top:16px;font-family:var(--mono)}
+
+/* Main */
+.main{max-width:720px;margin:0 auto;padding:48px 40px 60px}
+@media(max-width:600px){.main{padding:32px 20px 40px}.cover{padding:60px 24px 48px}}
+
+/* Section */
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:6px;font-family:var(--mono)}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:24px}
+
+/* Card */
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.card-label{font-size:12px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;font-family:var(--mono)}
+
+/* KPI Grid */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.kpi-card{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.kpi-num{font-family:var(--mono);font-size:44px;font-weight:800;line-height:1;margin-bottom:6px}
+.kpi-label{font-size:13px;color:var(--grey-02);font-weight:500}
+.kpi-sub{font-size:11px;color:var(--grey-03);margin-top:4px;font-family:var(--mono)}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+
+/* Comparison Table */
+.compare-tbl{width:100%;border-collapse:collapse}
+.compare-tbl th{padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grey-02);text-align:left;border-bottom:2px solid var(--grey-01);font-family:var(--mono)}
+.compare-tbl td{padding:12px;font-size:13px;border-bottom:1px solid var(--grey-01);vertical-align:top}
+.compare-tbl tr:last-child td{border-bottom:none}
+.compare-tbl .col-n8n{color:var(--grey-03)}
+.compare-tbl .col-kai{color:var(--black);font-weight:600}
+.compare-tbl .col-label{color:var(--grey-03);font-weight:500;font-size:12px}
+.winner-badge{display:inline-block;background:var(--green);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:var(--mono);letter-spacing:0.5px}
+
+/* Action tags */
+.action-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.action-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono);letter-spacing:0.3px}
+.tag-comm{background:#e8f4fd;color:#3a6f94}
+.tag-ai{background:#fde8d8;color:#a0441a}
+.tag-data{background:#e8f0e8;color:#3a6a32}
+.tag-msg{background:#f5e8fd;color:#6a3a94}
+.tag-ctrl{background:#fdf5e8;color:#8a6a00}
+.tag-flow{background:#e8fdf0;color:#1a7a42}
+.tag-store{background:#fde8f5;color:#9a1a6a}
+.tag-new{background:var(--accent-warm);color:white;padding:1px 6px;border-radius:3px;font-size:9px;font-family:var(--mono);font-weight:700}
+
+/* Group header */
+.group-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--grey-02);margin-bottom:8px;margin-top:16px;font-family:var(--mono)}
+.group-header:first-child{margin-top:0}
+
+/* Integration cards */
+.integration-card{background:var(--white);border-radius:12px;padding:24px;margin-bottom:16px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.int-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.int-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.int-name{font-size:17px;font-weight:700}
+.int-new{display:inline-block;background:var(--accent-warm);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:var(--mono);margin-left:8px;vertical-align:middle}
+.int-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:13px}
+.int-meta-label{color:var(--grey-02);font-weight:600;font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;padding-top:2px;white-space:nowrap}
+.int-meta-val{color:var(--black)}
+.int-ops{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.op-badge{display:inline-block;background:var(--grey-01);color:var(--grey-03);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;font-family:var(--mono)}
+
+/* Security fix cards */
+.fix-block{margin-bottom:24px}
+.fix-level{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;font-family:var(--mono);margin-bottom:12px;letter-spacing:0.5px}
+.fix-critical{background:#fde8e8;color:#9a1a1a}
+.fix-high{background:#fdf5e8;color:#8a5a00}
+.fix-medium{background:#f0eee6;color:#6c6a62}
+.fix-item{background:var(--white);border-radius:10px;padding:20px;margin-bottom:10px;border:1px solid var(--grey-01);box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+.fix-item-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.resolved-badge{display:inline-block;background:#e8f5e8;color:#2a6a2a;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:var(--mono);flex-shrink:0}
+.fix-title{font-size:14px;font-weight:600}
+.fix-desc{font-size:13px;color:var(--grey-03);line-height:1.6;margin-bottom:6px}
+.fix-detail{font-size:12px;color:var(--grey-02);background:var(--grey-01);border-radius:6px;padding:8px 12px;font-family:var(--mono);line-height:1.8;margin-top:8px}
+
+/* Code block */
+.code-block{background:var(--black);color:#e8e8e0;border-radius:10px;padding:20px;font-family:var(--mono);font-size:12px;line-height:1.9;overflow-x:auto;margin:0;white-space:pre}
+.code-comment{color:#6c7a6c}
+.code-key{color:#a8cde8}
+.code-val{color:#eb8054}
+.code-str{color:#85a268}
+.code-num{color:#d4b06a}
+
+/* Bug fix comparison */
+.bug-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:520px){.bug-grid{grid-template-columns:1fr}}
+.bug-before{background:#fde8e8;border-radius:8px;padding:14px;font-size:12px;line-height:1.7}
+.bug-after{background:#e8f5e8;border-radius:8px;padding:14px;font-size:12px;line-height:1.7}
+.bug-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:var(--mono)}
+.bug-before .bug-label{color:#9a1a1a}
+.bug-after .bug-label{color:#2a6a2a}
+.bug-code{font-family:var(--mono);font-size:11px;color:var(--black);word-break:break-word;white-space:pre-wrap}
+
+/* History feature */
+.feature-row{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.feature-icon{width:32px;height:32px;border-radius:8px;background:var(--grey-01);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:2px}
+.feature-content{flex:1}
+.feature-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.feature-desc{font-size:13px;color:var(--grey-02)}
+
+/* Roadmap */
+.roadmap-section{margin-bottom:20px}
+.roadmap-phase{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grey-02);font-family:var(--mono);margin-bottom:10px}
+.roadmap-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:14px}
+.roadmap-done{color:var(--green)}
+.roadmap-todo{color:var(--grey-02)}
+.roadmap-dot-done{width:18px;height:18px;border-radius:50%;background:#e8f5e8;border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--green);flex-shrink:0;margin-top:2px;font-weight:700}
+.roadmap-dot-todo{width:18px;height:18px;border-radius:50%;background:var(--grey-01);border:2px solid #ccc;flex-shrink:0;margin-top:2px}
+
+/* Divider */
+.section-gap{height:40px}
+
+.footer{text-align:center;padding:32px 0;color:var(--grey-02);font-size:11px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Kai Flows v2 · Integration Report</div>
+  <h1>AI 工作流引擎<br><span>完整整合報告</span></h1>
+  <div class="subtitle">從 0 到 24 種 Action、4 項安全修正、執行歷史追蹤</div>
+  <div class="date">2026-03-10</div>
+</div>
+
+<div class="main">
+
+  <!-- 01 KPI -->
+  <div class="section-eyebrow">01</div>
+  <div class="section-title">今日成果 KPI</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--accent-warm);">24</div>
+      <div class="kpi-label">種 Action 類型</div>
+      <div class="kpi-sub">vs 昨日 20 種 (+4)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--green);">4</div>
+      <div class="kpi-label">新整合服務</div>
+      <div class="kpi-sub">Notion / Airtable / Slack / Sheets</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--black);">$0</div>
+      <div class="kpi-label">月營運成本</div>
+      <div class="kpi-sub">vs n8n Zeabur $5/月</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" style="color:var(--danger);">5</div>
+      <div class="kpi-label">安全問題修復</div>
+      <div class="kpi-sub">CRITICAL×2 / HIGH×3</div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 02 Why not n8n -->
+  <div class="section-eyebrow">02</div>
+  <div class="section-title">為什麼不用 n8n？</div>
+
+  <div class="card">
+    <table class="compare-tbl">
+      <thead>
+        <tr>
+          <th style="width:26%">比較項目</th>
+          <th>n8n (Zeabur)</th>
+          <th>Kai Flows &nbsp;<span class="winner-badge">WIN</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">費用</td>
+          <td class="col-n8n">$5 / 月</td>
+          <td class="col-kai">$0 / 月</td>
+        </tr>
+        <tr>
+          <td class="col-label">服務依賴</td>
+          <td class="col-n8n">外部服務（停機風險）</td>
+          <td class="col-kai">原生 Kai 中控台</td>
+        </tr>
+        <tr>
+          <td class="col-label">整合深度</td>
+          <td class="col-n8n">有限（無 agent / openclaw 支援）</td>
+          <td class="col-kai">完全整合（agent / openclaw / 記憶 / Redis）</td>
+        </tr>
+        <tr>
+          <td class="col-label">客製化空間</td>
+          <td class="col-n8n">受外部 API 限制</td>
+          <td class="col-kai">完全掌控，可任意擴充</td>
+        </tr>
+        <tr>
+          <td class="col-label">程式碼基礎</td>
+          <td class="col-n8n">外部黑盒，無法審計</td>
+          <td class="col-kai">659 行 Python + APScheduler，完全透明</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 03 24 Actions -->
+  <div class="section-eyebrow">03</div>
+  <div class="section-title">24 種 Action 完整清單</div>
+
+  <div class="card">
+    <div class="group-header">基礎通訊（5 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-comm">http_request</span>
+      <span class="action-tag tag-comm">email</span>
+      <span class="action-tag tag-comm">discord</span>
+      <span class="action-tag tag-comm">telegram</span>
+      <span class="action-tag tag-comm">notify</span>
+    </div>
+
+    <div class="group-header">AI 整合（2 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-ai">agent</span>
+      <span class="action-tag tag-ai">openclaw</span>
+    </div>
+
+    <div class="group-header">資料操作（6 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-data">redis</span>
+      <span class="action-tag tag-data">supabase</span>
+      <span class="action-tag tag-data">rss</span>
+      <span class="action-tag tag-data">github</span>
+      <span class="action-tag tag-data">notion <span class="tag-new">NEW</span></span>
+      <span class="action-tag tag-data">airtable <span class="tag-new">NEW</span></span>
+    </div>
+
+    <div class="group-header">訊息服務（1 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-msg">slack <span class="tag-new">NEW</span></span>
+    </div>
+
+    <div class="group-header">執行控制（5 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-ctrl">command</span>
+      <span class="action-tag tag-ctrl">code ⚠️</span>
+      <span class="action-tag tag-ctrl">wait</span>
+      <span class="action-tag tag-ctrl">noop</span>
+      <span class="action-tag tag-ctrl">set_var</span>
+    </div>
+
+    <div class="group-header">流程控制（3 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-flow">condition</span>
+      <span class="action-tag tag-flow">parallel</span>
+      <span class="action-tag tag-flow">sub_workflow</span>
+    </div>
+
+    <div class="group-header">物件儲存（1 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-store">r2_upload</span>
+    </div>
+
+    <div class="group-header">雲端試算表（1 種）</div>
+    <div class="action-grid">
+      <span class="action-tag tag-data">sheets <span class="tag-new">NEW</span></span>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 04 New Integrations -->
+  <div class="section-eyebrow">04</div>
+  <div class="section-title">今日新增 4 大整合</div>
+
+  <!-- Notion -->
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon" style="background:#f5f0e8;">📝</div>
+      <div>
+        <div class="int-name">Notion<span class="int-new">NEW</span></div>
+        <div style="font-size:12px;color:var(--grey-02);font-family:var(--mono);">Notion API 2022-06-28</div>
+      </div>
+    </div>
+    <div class="int-meta">
+      <span class="int-meta-label">功能描述</span>
+      <span class="int-meta-val">資料庫查詢、頁面建立與讀取，可串接團隊知識庫與任務管理</span>
+      <span class="int-meta-label" style="margin-top:8px">認證方式</span>
+      <span class="int-meta-val" style="margin-top:8px"><span style="font-family:var(--mono);background:var(--grey-01);padding:2px 8px;border-radius:4px;font-size:12px;">NOTION_API_KEY</span> 環境變數 或 step.api_key</span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="card-label" style="margin-bottom:8px">支援操作</div>
+      <div class="int-ops">
+        <span class="op-badge">query（資料庫查詢）</span>
+        <span class="op-badge">create（建立頁面）</span>
+        <span class="op-badge">retrieve（取得頁面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Airtable -->
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon" style="background:#e8f0f8;">📊</div>
+      <div>
+        <div class="int-name">Airtable<span class="int-new">NEW</span></div>
+        <div style="font-size:12px;color:var(--grey-02);font-family:var(--mono);">REST API v0</div>
+      </div>
+    </div>
+    <div class="int-meta">
+      <span class="int-meta-label">功能描述</span>
+      <span class="int-meta-val">低代碼資料庫 CRUD，支援篩選與最大筆數限制，適合客戶資料管理與表單串接</span>
+      <span class="int-meta-label" style="margin-top:8px">認證方式</span>
+      <span class="int-meta-val" style="margin-top:8px"><span style="font-family:var(--mono);background:var(--grey-01);padding:2px 8px;border-radius:4px;font-size:12px;">AIRTABLE_API_KEY</span> + <span style="font-family:var(--mono);background:var(--grey-01);padding:2px 8px;border-radius:4px;font-size:12px;">AIRTABLE_BASE_ID</span></span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="card-label" style="margin-bottom:8px">支援操作</div>
+      <div class="int-ops">
+        <span class="op-badge">list（篩選列表）</span>
+        <span class="op-badge">create（新增紀錄）</span>
+        <span class="op-badge">update（更新紀錄）</span>
+        <span class="op-badge">delete（刪除紀錄）</span>
+      </div>
+      <div style="font-size:12px;color:var(--grey-02);margin-top:10px;font-family:var(--mono);">支援 filterByFormula + maxRecords 參數</div>
+    </div>
+  </div>
+
+  <!-- Slack -->
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon" style="background:#f0e8f8;">💬</div>
+      <div>
+        <div class="int-name">Slack<span class="int-new">NEW</span></div>
+        <div style="font-size:12px;color:var(--grey-02);font-family:var(--mono);">Incoming Webhook / Bot API</div>
+      </div>
+    </div>
+    <div class="int-meta">
+      <span class="int-meta-label">功能描述</span>
+      <span class="int-meta-val">發送訊息至 Slack 頻道，支援 Block Kit 富文本格式，雙模式認證靈活部署</span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="card-label" style="margin-bottom:10px">認證模式</div>
+      <div style="font-size:13px;margin-bottom:8px"><span style="font-weight:700;color:var(--accent-warm);">模式 A</span>&nbsp;&nbsp;Incoming Webhook：<span style="font-family:var(--mono);background:var(--grey-01);padding:1px 8px;border-radius:4px;font-size:11px;">SLACK_WEBHOOK_URL</span></div>
+      <div style="font-size:13px"><span style="font-weight:700;color:var(--accent-warm);">模式 B</span>&nbsp;&nbsp;Bot API：<span style="font-family:var(--mono);background:var(--grey-01);padding:1px 8px;border-radius:4px;font-size:11px;">SLACK_BOT_TOKEN</span> + channel</div>
+    </div>
+  </div>
+
+  <!-- Google Sheets -->
+  <div class="integration-card">
+    <div class="int-header">
+      <div class="int-icon" style="background:#e8f5e8;">📈</div>
+      <div>
+        <div class="int-name">Google Sheets<span class="int-new">NEW</span></div>
+        <div style="font-size:12px;color:var(--grey-02);font-family:var(--mono);">Sheets API v4</div>
+      </div>
+    </div>
+    <div class="int-meta">
+      <span class="int-meta-label">功能描述</span>
+      <span class="int-meta-val">讀寫 Google 試算表，支援 A1 notation 範圍指定，適合報告自動化與數據同步</span>
+      <span class="int-meta-label" style="margin-top:8px">認證方式</span>
+      <span class="int-meta-val" style="margin-top:8px">access_token 或 <span style="font-family:var(--mono);background:var(--grey-01);padding:2px 8px;border-radius:4px;font-size:12px;">GOOGLE_SA_JSON</span>（Service Account，僅從 env 讀取）</span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="card-label" style="margin-bottom:8px">支援操作</div>
+      <div class="int-ops">
+        <span class="op-badge">read（讀取範圍）</span>
+        <span class="op-badge">append（追加列）</span>
+        <span class="op-badge">update（更新範圍）</span>
+        <span class="op-badge">clear（清空範圍）</span>
+      </div>
+      <div style="font-size:12px;color:var(--grey-02);margin-top:10px;font-family:var(--mono);">範圍格式：A1 notation（如 Sheet1!A1:Z100）</div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 05 Security Fixes -->
+  <div class="section-eyebrow">05</div>
+  <div class="section-title">技術修正（Quill 審查通過）</div>
+
+  <!-- CRITICAL -->
+  <div class="fix-block">
+    <span class="fix-level fix-critical">CRITICAL — 2/2 已修復</span>
+
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">_action_code 沙盒安全：__builtins__ 白名單限制</span>
+      </div>
+      <div class="fix-desc">任何 workflow 使用者都可透過 <code style="font-family:var(--mono);background:var(--grey-01);padding:1px 6px;border-radius:3px;font-size:12px;">import os</code> 執行任意 shell 命令，權限逃逸風險極高。</div>
+      <div class="fix-detail">修正後：__import__ 已阻擋；白名單 20 個安全函數
+abs / len / str / int / float / bool / list / dict / tuple / set
+sum / min / max / sorted / range / enumerate / zip / map / filter / round</div>
+    </div>
+
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">workflow/create 端點 API Key 認證保護確認</span>
+      </div>
+      <div class="fix-desc">確認 workflow 建立端點已正確啟用 API Key 驗證中介層，未授權請求無法建立惡意 workflow。</div>
+    </div>
+  </div>
+
+  <!-- HIGH -->
+  <div class="fix-block">
+    <span class="fix-level fix-high">HIGH — 3/3 已修復</span>
+
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">proc.kill() 後加 await proc.wait() — 清除殭屍程序</span>
+      </div>
+      <div class="fix-desc">子程序 timeout 後直接 kill 但不等待回收，長期累積導致殭屍程序（zombie process）佔用系統資源。</div>
+      <div class="fix-detail">kill() → kill() + await proc.wait()  — 確保子程序完全回收</div>
+    </div>
+
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">asyncio.get_event_loop() → asyncio.get_running_loop()</span>
+      </div>
+      <div class="fix-desc">Python 3.10+ 棄用 get_event_loop()，在協程中呼叫會產生 DeprecationWarning，未來版本將直接報錯。</div>
+      <div class="fix-detail">全面替換為 asyncio.get_running_loop()，符合 Python 3.10+ 規範</div>
+    </div>
+
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">fetchHistory 加 res.ok 檢查 — 前端 HTTP 錯誤處理</span>
+      </div>
+      <div class="fix-desc">前端 fetchHistory 函數未檢查 HTTP response 狀態碼，伺服器 4xx/5xx 錯誤時仍嘗試解析 JSON，導致靜默失敗難以除錯。</div>
+      <div class="fix-detail">加入 if (!res.ok) throw new Error(`HTTP ${res.status}`) 前置檢查</div>
+    </div>
+  </div>
+
+  <!-- MEDIUM -->
+  <div class="fix-block">
+    <span class="fix-level fix-medium">MEDIUM — 已修復</span>
+    <div class="fix-item">
+      <div class="fix-item-header">
+        <span class="resolved-badge">RESOLVED</span>
+        <span class="fix-title">_action_sheets：sa_json 禁止從 step 傳入</span>
+      </div>
+      <div class="fix-desc">防止 Google Service Account 私鑰被存入 workflow JSON 定義或執行日誌，避免私鑰洩露至資料庫或日誌系統。</div>
+      <div class="fix-detail">sa_json 僅允許從 GOOGLE_SA_JSON 環境變數讀取
+step 層傳入的 sa_json 欄位將被忽略並記錄警告</div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 06 P0 Bug Fix -->
+  <div class="section-eyebrow">06</div>
+  <div class="section-title">P0 Bug Fix：_action_command &amp; r2_upload</div>
+
+  <div class="card">
+    <div class="card-label">_action_command — asyncio 化</div>
+    <div class="bug-grid">
+      <div class="bug-before">
+        <div class="bug-label">之前（阻塞 event loop）</div>
+        <div class="bug-code">subprocess.run(cmd, shell=True)
+
+# 同步阻塞，整個 asyncio
+# event loop 卡死期間無法
+# 處理其他請求</div>
+      </div>
+      <div class="bug-after">
+        <div class="bug-label">之後（真非同步）</div>
+        <div class="bug-code">proc = await asyncio
+  .create_subprocess_shell(cmd)
+await asyncio.wait_for(
+  proc.wait(), timeout=t)
+# timeout 後：
+proc.kill(); await proc.wait()</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">_action_r2_upload — SigV4 修正</div>
+    <div class="bug-grid">
+      <div class="bug-before">
+        <div class="bug-label">之前（永遠 403）</div>
+        <div class="bug-code">httpx.put(url,
+  auth=BasicAuth(id, secret))
+
+# R2 不支援 HTTP Basic Auth
+# → 永遠回傳 403 Forbidden</div>
+      </div>
+      <div class="bug-after">
+        <div class="bug-label">之後（boto3 SigV4）</div>
+        <div class="bug-code">s3 = boto3.client('s3',
+  endpoint_url=endpoint,
+  region_name="auto",
+  config=Config(
+    signature_version="s3v4"))
+loop.run_in_executor(
+  None, _upload)  # 非同步包裝</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 07 Execution History -->
+  <div class="section-eyebrow">07</div>
+  <div class="section-title">執行歷史 Dashboard（新前端功能）</div>
+
+  <div class="card">
+    <div class="card-label" style="margin-bottom:20px">FlowsPage 新增「執行歷史」Tab</div>
+
+    <div class="feature-row">
+      <div class="feature-icon">📡</div>
+      <div class="feature-content">
+        <div class="feature-title">API 資料來源</div>
+        <div class="feature-desc">呼叫 <span style="font-family:var(--mono);background:var(--grey-01);padding:1px 8px;border-radius:4px;font-size:12px;">GET /api/workflows/logs?limit=50</span> 取得全部執行記錄</div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon">📋</div>
+      <div class="feature-content">
+        <div class="feature-title">記錄顯示欄位</div>
+        <div class="feature-desc">workflow 名稱、成功/失敗狀態、steps ok/total 比例、duration_ms 執行耗時</div>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-content">
+        <div class="feature-title">展開 Step 詳情</div>
+        <div class="feature-desc">點擊記錄可展開顯示 step 層級詳情：step_id、輸出內容、錯誤訊息、各步耗時</div>
+      </div>
+    </div>
+
+    <div class="feature-row" style="margin-bottom:0">
+      <div class="feature-icon">🔎</div>
+      <div class="feature-content">
+        <div class="feature-title">互動功能</div>
+        <div class="feature-desc">名稱篩選 input 即時過濾 + 重新整理按鈕手動更新執行記錄列表</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 08 Workflow Example -->
+  <div class="section-eyebrow">08</div>
+  <div class="section-title">工作流示例 — RSS → AI → Email 每日報告</div>
+
+  <div class="card">
+    <div class="card-label" style="margin-bottom:16px">daily_ai_digest — 週一至週五 09:00 自動執行</div>
+    <pre class="code-block"><span style="color:#a8cde8">name:</span> <span style="color:#85a268">daily_ai_digest</span>
+<span style="color:#a8cde8">schedule:</span> <span style="color:#85a268">"0 9 * * 1-5"</span>  <span style="color:#6c7a6c"># 週一至週五 09:00</span>
+
+<span style="color:#a8cde8">steps:</span>
+  <span style="color:#d4b06a">01.</span> <span style="color:#a8cde8">rss</span>
+      <span style="color:#a8cde8">url:</span> <span style="color:#85a268">https://techcrunch.com/feed/</span>
+      <span style="color:#a8cde8">limit:</span> <span style="color:#d4b06a">5</span>
+
+  <span style="color:#d4b06a">02.</span> <span style="color:#a8cde8">agent</span>
+      <span style="color:#a8cde8">prompt:</span> <span style="color:#85a268">"根據以下 RSS 摘要，產生 3 句重點：{{s1}}"</span>
+
+  <span style="color:#d4b06a">03.</span> <span style="color:#a8cde8">sheets</span>
+      <span style="color:#a8cde8">op:</span> <span style="color:#85a268">append</span>
+      <span style="color:#a8cde8">spreadsheet_id:</span> <span style="color:#85a268">xxxx</span>
+      <span style="color:#a8cde8">values:</span> [[<span style="color:#eb8054">{{s2}}</span>]]
+
+  <span style="color:#d4b06a">04.</span> <span style="color:#a8cde8">slack</span>
+      <span style="color:#a8cde8">webhook_url:</span> <span style="color:#eb8054">{{SLACK_WEBHOOK_URL}}</span>
+      <span style="color:#a8cde8">message:</span> <span style="color:#eb8054">{{s2}}</span>
+
+  <span style="color:#d4b06a">05.</span> <span style="color:#a8cde8">email</span>
+      <span style="color:#a8cde8">to:</span> <span style="color:#85a268">asdapper8866@gmail.com</span>
+      <span style="color:#a8cde8">subject:</span> <span style="color:#85a268">"每日 AI 摘要"</span>
+      <span style="color:#a8cde8">body:</span> <span style="color:#eb8054">{{s2}}</span></pre>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 09 Roadmap -->
+  <div class="section-eyebrow">09</div>
+  <div class="section-title">後續路線圖</div>
+
+  <div class="card">
+    <!-- P0 -->
+    <div class="roadmap-section">
+      <div class="roadmap-phase">P0 — 此版本已完成</div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-done">✓</div>
+        <div class="roadmap-done">asyncio 化 _action_command（非同步子程序）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-done">✓</div>
+        <div class="roadmap-done">_action_r2_upload 改用 boto3 SigV4 認證</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-done">✓</div>
+        <div class="roadmap-done">沙盒 CRITICAL 修復（__builtins__ 白名單 + API Key 保護）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-done">✓</div>
+        <div class="roadmap-done">4 大整合上線（Notion / Airtable / Slack / Sheets）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-done">✓</div>
+        <div class="roadmap-done">執行歷史 Dashboard 前端介面</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--grey-01);margin:20px 0"></div>
+
+    <!-- P1 -->
+    <div class="roadmap-section">
+      <div class="roadmap-phase">P1 — 下期（高優先）</div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">執行日誌加入 run_id（唯一識別，改善前端 React key 警告）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">Redis 連線池（目前每次 action 新建連線，效能損耗）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">_action_sub_workflow 防止無限遞迴（call stack 深度檢查）</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--grey-01);margin:20px 0"></div>
+
+    <!-- P2 -->
+    <div class="roadmap-section" style="margin-bottom:0">
+      <div class="roadmap-phase">P2 — 未來（中優先）</div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">Workflow UI Visual Editor（拖拉式節點編輯介面）</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">更多整合：Notion DB 同步、Airtable automation、Google Calendar</div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-dot-todo"></div>
+        <div class="roadmap-todo">執行次數統計 Dashboard（每日/每週 workflow 運行概覽）</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Rain AI Team &nbsp;·&nbsp; Kai Control Center &nbsp;·&nbsp; Nova &nbsp;·&nbsp; 2026-03-10</div>
+
+</div>
+</body>
+</html>

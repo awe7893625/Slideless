@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI 團隊優化分析 — 源自 Wilson Huang 觀點</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=Noto+Serif+TC:wght@600;700&display=swap');
+
+:root {
+  --ink: #0f172a;
+  --ink2: #334155;
+  --ink3: #64748b;
+  --blue: #1d4ed8;
+  --blue-bg: #eff6ff;
+  --blue-light: #dbeafe;
+  --green: #15803d;
+  --green-bg: #f0fdf4;
+  --red: #b91c1c;
+  --red-bg: #fef2f2;
+  --amber: #92400e;
+  --amber-bg: #fffbeb;
+  --purple: #6d28d9;
+  --purple-bg: #f5f3ff;
+  --border: #e2e8f0;
+  --page: 210mm;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.7;
+  color: var(--ink);
+  background: #f1f5f9;
+}
+
+.page {
+  width: var(--page);
+  margin: 0 auto 20px;
+  background: white;
+  padding: 15mm 14mm 16mm;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.07);
+}
+
+@media print {
+  body { background: white; font-size: 10pt; }
+  .page { width: 100%; margin: 0; padding: 12mm 12mm 14mm; box-shadow: none; page-break-after: always; }
+  .page:last-child { page-break-after: avoid; }
+  .no-print { display: none !important; }
+}
+
+.print-btn {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--blue); color: white; border: none;
+  padding: 11px 22px; border-radius: 8px; font-size: 10.5pt; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(29,78,216,0.3);
+  z-index: 999; font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* ── headings ── */
+h1 { font-family: 'Noto Serif TC', serif; font-size: 24pt; font-weight: 700; line-height: 1.25; color: var(--ink); }
+h2 { font-size: 13pt; font-weight: 700; color: var(--blue); border-bottom: 2.5px solid var(--blue); padding-bottom: 4px; margin: 18px 0 10px; }
+h3 { font-size: 11pt; font-weight: 700; color: var(--ink); margin: 14px 0 6px; }
+h4 { font-size: 10pt; font-weight: 600; color: var(--ink2); margin: 8px 0 4px; }
+
+.pg { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 5px; border-bottom: 1px solid var(--border); font-size: 8pt; color: var(--ink3); }
+.pg strong { color: var(--blue); }
+
+/* ── badges ── */
+.badge { display: inline-block; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.06em; padding: 2px 9px; border-radius: 20px; text-transform: uppercase; }
+.badge.blue { background: var(--blue-bg); color: var(--blue); }
+.badge.green { background: var(--green-bg); color: var(--green); }
+.badge.red { background: var(--red-bg); color: var(--red); }
+.badge.amber { background: var(--amber-bg); color: var(--amber); }
+.badge.purple { background: var(--purple-bg); color: var(--purple); }
+
+.sub { font-size: 9pt; font-weight: 700; color: var(--blue); border-left: 3px solid var(--blue); padding-left: 7px; margin: 12px 0 5px; letter-spacing: 0.02em; }
+.sub.red { color: var(--red); border-color: var(--red); }
+.sub.green { color: var(--green); border-color: var(--green); }
+
+/* ── boxes ── */
+.box { border-radius: 7px; padding: 9px 13px; margin: 8px 0; font-size: 9.5pt; }
+.box.info { background: var(--blue-bg); border-left: 4px solid #3b82f6; color: #1e3a8a; }
+.box.warn { background: var(--red-bg); border-left: 4px solid #ef4444; color: #7f1d1d; }
+.box.tip { background: var(--green-bg); border-left: 4px solid #22c55e; color: #14532d; }
+.box.idea { background: var(--amber-bg); border-left: 4px solid #f59e0b; color: #78350f; }
+.box.purple { background: var(--purple-bg); border-left: 4px solid #8b5cf6; color: #3b0764; }
+
+/* ── tables ── */
+table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 9.5pt; }
+th { background: var(--blue-bg); color: var(--blue); font-weight: 700; padding: 6px 9px; border: 1px solid #bfdbfe; text-align: left; }
+td { padding: 5px 9px; border: 1px solid var(--border); vertical-align: top; }
+tr:nth-child(even) td { background: #fafbff; }
+
+/* ── grids ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 8px 0; }
+.card { border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; font-size: 9.5pt; }
+.card.blue { border-color: #bfdbfe; background: #f8fbff; }
+.card.green { border-color: #bbf7d0; background: #f8fff9; }
+.card.red { border-color: #fecaca; background: #fff8f8; }
+.card.amber { border-color: #fde68a; background: #fffdf3; }
+
+ul { list-style: none; padding: 0; }
+ul li { padding: 2px 0 2px 16px; position: relative; font-size: 9.5pt; }
+ul li::before { content: '·'; position: absolute; left: 4px; color: var(--blue); font-weight: 900; font-size: 14pt; top: -1px; }
+
+.hl { color: var(--blue); font-weight: 700; }
+.hl-r { color: var(--red); font-weight: 700; }
+.hl-g { color: var(--green); font-weight: 700; }
+.hl-a { color: var(--amber); font-weight: 700; }
+
+/* ── priority badge ── */
+.p0 { display: inline-block; background: #dc2626; color: white; font-size: 7.5pt; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+.p1 { display: inline-block; background: #ea580c; color: white; font-size: 7.5pt; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+.p2 { display: inline-block; background: #ca8a04; color: white; font-size: 7.5pt; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+
+/* ── flow ── */
+.flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; font-size: 9.5pt; }
+.fs { border: 1.5px solid var(--blue); border-radius: 5px; padding: 4px 9px; color: var(--blue); font-weight: 600; white-space: nowrap; }
+.fa { color: #93c5fd; font-size: 13pt; }
+
+.quote { border-left: 4px solid #e2e8f0; padding: 8px 12px; color: var(--ink2); font-style: italic; font-size: 9.5pt; margin: 10px 0; background: #f8fafc; border-radius: 0 6px 6px 0; }
+
+.score { font-size: 20pt; font-weight: 900; color: var(--blue); }
+.score-label { font-size: 8pt; color: var(--ink3); }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ 列印 / 存 PDF</button>
+
+<!-- ══ 封面 ══ -->
+<div class="page">
+  <div style="display:flex; flex-direction:column; justify-content:space-between; min-height:235mm;">
+    <div>
+      <div style="font-size:8pt; color:var(--ink3); margin-bottom:28px; display:flex; justify-content:space-between;">
+        <span>Rain AI Team Internal Report</span>
+        <span>2026-03-12　機密</span>
+      </div>
+
+      <span class="badge blue">競品情報 × 自我優化</span>
+      <h1 style="margin-top:12px; margin-bottom:8px; font-size:26pt;">Rain AI 團隊<br>優化分析報告</h1>
+      <p style="font-size:12pt; color:var(--ink2); margin-bottom:32px;">
+        源自 Wilson Huang (@wilsonhuangxyz) 最新內容觀察<br>
+        Nat Eliason Felix 模型 × Heartbeat Protocol × OODA Loop
+      </p>
+
+      <div class="g3" style="margin-top:16px;">
+        <div class="card blue" style="text-align:center;">
+          <div class="score">5</div>
+          <div class="score-label">核心優化方向</div>
+        </div>
+        <div class="card blue" style="text-align:center;">
+          <div class="score">3</div>
+          <div class="score-label">可立即執行項目</div>
+        </div>
+        <div class="card blue" style="text-align:center;">
+          <div class="score">$0</div>
+          <div class="score-label">需要額外成本</div>
+        </div>
+      </div>
+
+      <div class="box info" style="margin-top:20px;">
+        <strong>分析來源</strong>：Wilson Huang 近期 Threads 帖子（3 組主題，共 30+ 則 thread）。
+        Wilson 是 XY.Finance &amp; Steaker.com 創辦人，深耕區塊鏈十年，近期轉型研究 AI Agent 架構。
+        其觀察角度：<strong>實戰型創業者</strong>，聚焦「AI Agent 怎麼取代人力 + 怎麼省錢」。
+      </div>
+    </div>
+
+    <div>
+      <h2>目錄</h2>
+      <table>
+        <tr><th>#</th><th>章節</th><th>核心問題</th></tr>
+        <tr><td>1</td><td>Wilson 的核心觀點提煉</td><td>他在關注什麼？產業在走向哪？</td></tr>
+        <tr><td>2</td><td>Rain 團隊現況 Gap 分析</td><td>我們缺什麼？哪裡已走在前面？</td></tr>
+        <tr><td>3</td><td>五大優化方向</td><td>具體要改什麼？誰來做？何時完成？</td></tr>
+        <tr><td>4</td><td>行動計劃</td><td>本週可以執行的第一步</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 第 1 頁：Wilson 觀點提煉 ══ -->
+<div class="page">
+  <div class="pg"><strong>一、Wilson Huang 核心觀點提煉</strong><span>Rain AI Team Optimization Report　2026-03-12</span></div>
+
+  <span class="badge blue">內容分析</span>
+  <h2>他在關注什麼：三組主題</h2>
+
+  <div class="sub">主題 A — Nat Eliason 的 Felix 模型（月賺 $80K，成本 $1,500）</div>
+  <div class="box info">
+    <strong>核心模型</strong>：Nat Eliason 用 Claude 建了一個叫 Felix 的 AI Agent，底下有兩個 sub-agent（客服 + 銷售），Felix 每晚自動 review 當天所有對話，找一個可以改進的地方，然後<strong>自己修改自己的 system prompt</strong>。60 天的 1% 複利改善，人類只負責透過 Discord 溝通，不寫一行 code。
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h4>架構關鍵點</h4>
+      <ul>
+        <li><span class="hl">Sub-agent 分工</span>：客服 Agent + 銷售 Agent，各有明確角色</li>
+        <li><span class="hl">Nightly cron job</span>：每晚自動 review + 自我優化</li>
+        <li><span class="hl">1% 複利</span>：60 天 × 1% = 79% 改善（e^0.6 ≈ 1.82x）</li>
+        <li><span class="hl">Discord 介面</span>：人類與 Agent 的唯一接觸點</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>商業數字</h4>
+      <ul>
+        <li>月營收：<span class="hl">$80,000+</span></li>
+        <li>月成本：<span class="hl">$1,500</span>（API + infra）</li>
+        <li>毛利率：<span class="hl">~98%</span></li>
+        <li>人力投入：<span class="hl">每天零碎時間</span>，有全職工作</li>
+        <li>Crypto 角色：Agent 間支付、micropayment、身份驗證</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub">主題 B — Heartbeat Protocol（取代 Agile 站會）</div>
+  <div class="box idea">
+    <strong>Tremaine Grant 提出</strong>：Agent 時代兩週一個 sprint 太慢。改用<strong>每小時一次 telemetry check</strong>——自動報告 Agent 的執行狀態，取代人工站會。同時給每個 Agent 明確的角色定位 + 一個「北極星目標」，再加一個專門唱反調的 <strong>Skeptic Agent</strong>，整體輸出品質大幅提升。
+  </div>
+
+  <table>
+    <tr><th>傳統 Agile</th><th>Heartbeat Protocol</th></tr>
+    <tr><td>每兩週 Sprint Review</td><td>每小時自動 telemetry check</td></tr>
+    <tr><td>人工站會（15-30 分鐘）</td><td>自動摘要推送 Discord</td></tr>
+    <tr><td>人力追蹤進度</td><td>AI 自動生成狀態報告</td></tr>
+    <tr><td>批次回顧</td><td>即時異常告警</td></tr>
+  </table>
+
+  <div class="sub">主題 C — a16z OODA Loop 媒體策略</div>
+  <div class="box purple">
+    <strong>OODA Loop（觀察→定向→決策→行動）</strong>：速度本身就是優勢。「有趣比無害重要」，企業品牌時代結束，人格化品牌才是通行證。創辦人親自出來講話，比任何公關稿都有效。短推文 = 口語文化；長 podcast = 書寫文化，平台特性決定內容策略。
+  </div>
+
+  <h2 style="margin-top:20px;">Wilson 的底層思維模型</h2>
+  <div class="g2">
+    <div class="card green">
+      <h4>他在押注的方向</h4>
+      <ul>
+        <li>AI Agent 經濟：人類 → 指揮者，AI → 執行者</li>
+        <li>Crypto 是 Agent 間支付的基礎層</li>
+        <li>自我優化 Agent 比固定規則 Agent 更有複利效應</li>
+        <li>速度 &gt; 完美（OODA Loop 勝在反應速度）</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h4>對我們的啟示</h4>
+      <ul>
+        <li>我們的 Agent 有沒有<strong>自我優化機制</strong>？</li>
+        <li>我們的 Kai 監控是否達到<strong>每小時心跳</strong>？</li>
+        <li>我們有沒有<strong>Skeptic Agent</strong>角色？</li>
+        <li>Rain 本人的<strong>人格化品牌</strong>在哪？</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 第 2 頁：Gap 分析 ══ -->
+<div class="page">
+  <div class="pg"><strong>二、Rain 團隊現況 Gap 分析</strong><span>Rain AI Team Optimization Report　2026-03-12</span></div>
+
+  <h2>我們走在前面的地方 vs. 明顯缺口</h2>
+
+  <div class="sub green">已做到（比 Wilson 描述的更進階）</div>
+  <table>
+    <tr><th>領域</th><th>我們的現況</th><th>Wilson 的對標</th><th>評估</th></tr>
+    <tr>
+      <td>多 Agent 分工</td>
+      <td>29 個專責 Agent，有明確角色矩陣</td>
+      <td>Felix 有 2 個 sub-agent</td>
+      <td><span class="hl-g">領先</span></td>
+    </tr>
+    <tr>
+      <td>角色定義</td>
+      <td>CLAUDE.md + team-roster.md + SKILL.md 三層定義</td>
+      <td>建議給每個 Agent 明確角色</td>
+      <td><span class="hl-g">領先</span></td>
+    </tr>
+    <tr>
+      <td>Review 機制</td>
+      <td>Ray（設計）+ Quill（程式碼）+ Forge（CI）三層</td>
+      <td>建議有 Skeptic Agent</td>
+      <td><span class="hl-g">部分領先</span></td>
+    </tr>
+    <tr>
+      <td>Session 回顧</td>
+      <td>Session Protocol + lessons.md 存在</td>
+      <td>Nightly cron review</td>
+      <td><span class="hl-a">手動 → 需自動化</span></td>
+    </tr>
+    <tr>
+      <td>Monitoring</td>
+      <td>Kai 後台 + Sentinel 自動掃描</td>
+      <td>Heartbeat Protocol</td>
+      <td><span class="hl-a">存在但粒度不夠</span></td>
+    </tr>
+    <tr>
+      <td>通知系統</td>
+      <td>Discord notifications</td>
+      <td>Discord 作為主要接觸點</td>
+      <td><span class="hl-g">架構一致</span></td>
+    </tr>
+  </table>
+
+  <div class="sub red">明顯缺口（需要改進）</div>
+  <table>
+    <tr><th>Gap</th><th>現況</th><th>理想狀態</th><th>影響</th></tr>
+    <tr>
+      <td><strong>自我優化機制</strong></td>
+      <td>lessons.md 靠人工填寫，無自動更新</td>
+      <td>每個 session 自動 review → 自動更新 SOP</td>
+      <td><span class="hl-r">高</span></td>
+    </tr>
+    <tr>
+      <td><strong>Heartbeat 頻率</strong></td>
+      <td>Kai 監控 + 市場晨報（08:00/20:00）已有固定報告，但 Agent 執行心跳不足</td>
+      <td>每小時 Agent 狀態摘要推送 Discord</td>
+      <td><span class="hl-r">高</span></td>
+    </tr>
+    <tr>
+      <td><strong>North Star 目標</strong></td>
+      <td>有角色定義，但無量化北極星指標</td>
+      <td>每個 Agent SKILL.md 有 1 個 KPI</td>
+      <td><span class="hl-a">中</span></td>
+    </tr>
+    <tr>
+      <td><strong>Skeptic Agent 制度化</strong></td>
+      <td>Ray veto 存在，但 Skeptic 非常態角色</td>
+      <td>Major 任務必有一個唱反調的 review pass</td>
+      <td><span class="hl-a">中</span></td>
+    </tr>
+    <tr>
+      <td><strong>人格化品牌</strong></td>
+      <td>Rain 個人聲音不在系統輸出中</td>
+      <td>EchoMarketer/Buzz 輸出要有 Rain 的語氣</td>
+      <td><span class="hl-a">中（長期）</span></td>
+    </tr>
+    <tr>
+      <td><strong>Agent 成本效益追蹤</strong></td>
+      <td>任務完成後有 token 估算，無整體 ROI 追蹤</td>
+      <td>每週輸出「每個 Agent 的成本 vs 產出」報告</td>
+      <td><span class="hl-a">中</span></td>
+    </tr>
+  </table>
+
+  <div class="box info" style="margin-top:12px;">
+    <strong>結論</strong>：我們的<strong>廣度（Agent 數量 + 角色分工）</strong>已遠超 Wilson 描述的 Felix 模型。
+    最大的缺口在<strong>深度（自動化程度 + 自我優化）</strong>——我們的 Agent 在執行，但不會自己進步。
+  </div>
+</div>
+
+<!-- ══ 第 3 頁：五大優化方向 ══ -->
+<div class="page">
+  <div class="pg"><strong>三、五大優化方向</strong><span>Rain AI Team Optimization Report　2026-03-12</span></div>
+
+  <h2>五大優化方向（依優先級排序）</h2>
+
+  <!-- 優化 1 -->
+  <h3><span class="p0">P0</span> 優化 1：實作 Nightly Self-Optimization Loop</h3>
+  <div class="quote">
+    「Felix 每晚透過 cron job 回顧當天所有對話，找出一個可以改進的地方，然後自己修改自己的系統」— Wilson Huang
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h4>現況痛點</h4>
+      <ul>
+        <li>lessons.md 靠 Klay 手動更新，常常忘記</li>
+        <li>相同的錯誤一再發生（signal 沒有 feedback loop）</li>
+        <li>Session 結束後洞察消失在 context 裡</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>改進方案</h4>
+      <ul>
+        <li>每個 session 結束 → hook 自動 append 錯誤 + 修正到 <code>lessons.md</code></li>
+        <li>每週一 Klay 讀 lessons.md → 更新 CLAUDE.md + 各 Agent SKILL.md</li>
+        <li>負責人：<span class="hl">Kai</span>（監控）+ <span class="hl">Klay</span>（週回顧）</li>
+      </ul>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="fs">Session 結束</div><div class="fa">→</div>
+    <div class="fs">Hook 自動擷取 Q2 錯誤</div><div class="fa">→</div>
+    <div class="fs">append lessons.md</div><div class="fa">→</div>
+    <div class="fs">每週 Klay 審核</div><div class="fa">→</div>
+    <div class="fs">更新 CLAUDE.md/SKILL.md</div>
+  </div>
+
+  <!-- 優化 2 -->
+  <h3><span class="p0">P0</span> 優化 2：Heartbeat Protocol — 每小時 Agent 狀態推送</h3>
+  <div class="g2">
+    <div class="card">
+      <h4>現況痛點</h4>
+      <ul>
+        <li>不知道 background task 是否還在跑</li>
+        <li>Agent 卡住或失敗，Rain 要主動問才知道</li>
+        <li>目前只有 08:00/20:00 市場晨報，無 Agent 心跳</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>改進方案</h4>
+      <ul>
+        <li>Kai 每小時 → 掃描 active tasks → 推送 Discord <code>#agent-heartbeat</code></li>
+        <li>格式：哪些在跑、哪些卡住、哪些完成（3 秒能讀完）</li>
+        <li>卡住超過 30 分鐘 → 自動 ping Rain + 嘗試 restart</li>
+        <li>負責人：<span class="hl">Kai</span>（新增 heartbeat API）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 優化 3 -->
+  <h3><span class="p1">P1</span> 優化 3：制度化 Skeptic Review Pass</h3>
+  <div class="quote">
+    「給每個 Agent 明確的角色定位和一個北極星目標，再加上一個專門唱反調的 Skeptic Agent，整體產出品質會大幅提升」
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h4>現況</h4>
+      <ul>
+        <li>Ray 有 veto 權，但定位是「設計審查」不是 Skeptic</li>
+        <li>Major 任務 Phase 3 沒有強制「最壞情況」分析</li>
+        <li>Vick 是備援角色，沒有常態觸發</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>改進方案</h4>
+      <ul>
+        <li>Ray Phase 3 新增<strong>必填欄位</strong>：「最壞情況 + 如何復原」</li>
+        <li>Major 任務 Scout 輸出後，強制跑一次 Vick 輕量 Skeptic review</li>
+        <li>Skeptic 問題模板：「如果這個假設是錯的？」「3 個月後最可能的失敗點？」</li>
+        <li>負責人：更新 <span class="hl">task-dispatch.md</span> 加入 Skeptic 步驟</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 優化 4 -->
+  <h3><span class="p1">P1</span> 優化 4：每個 Agent 設定北極星 KPI</h3>
+  <div class="g2">
+    <div class="card">
+      <h4>現況</h4>
+      <ul>
+        <li>Agent 有角色定義，但沒有「這個 Agent 做好的衡量標準」</li>
+        <li>很難判斷某個 Agent 是否值得繼續使用</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>改進方案（範例）</h4>
+      <ul>
+        <li><span class="hl">Quill</span>：每週 PR review 率 ≥ 90%，退回率有效（≤ 30% 重做）</li>
+        <li><span class="hl">Forge</span>：部署成功率 ≥ 99%，CI 失敗→修復 &lt; 30 分鐘</li>
+        <li><span class="hl">Scout</span>：架構規格書被實作端 採用率 ≥ 80%（不需大幅修改）</li>
+        <li><span class="hl">Kai</span>：系統 uptime 報告準確率 ≥ 99.5%</li>
+        <li>更新各 Agent <span class="hl">SKILL.md</span> 加一行北極星指標</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 優化 5 -->
+  <h3><span class="p2">P2</span> 優化 5：Rain 人格化品牌語氣系統</h3>
+  <div class="g2">
+    <div class="card">
+      <h4>現況</h4>
+      <ul>
+        <li>Buzz/EchoMarketer 產出的內容是「AI 感」，缺乏 Rain 個人語氣</li>
+        <li>a16z 的觀點：人格化品牌才是長期護城河</li>
+        <li>Wilson 本人就是品牌，不是公司名</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>改進方案</h4>
+      <ul>
+        <li>建立 <code>rain-voice.md</code>：Rain 的寫作風格、慣用詞、觀點立場</li>
+        <li>EchoMarketer/Buzz 所有輸出必須過 rain-voice.md 校準</li>
+        <li>每季更新一次 voice guide（根據 Rain 實際發過的文章）</li>
+        <li>負責人：<span class="hl">Noel</span>（整理）+ <span class="hl">EchoMarketer</span>（執行）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 第 4 頁：行動計劃 ══ -->
+<div class="page">
+  <div class="pg"><strong>四、行動計劃</strong><span>Rain AI Team Optimization Report　2026-03-12</span></div>
+
+  <h2>本週可執行的第一步</h2>
+
+  <table>
+    <tr><th>優先</th><th>行動</th><th>負責人</th><th>完成標準</th><th>預計工時</th></tr>
+    <tr>
+      <td><span class="p0">P0</span></td>
+      <td>在 session-start.sh 或 session-end hook 加入自動 append lessons.md 的邏輯，Q2 有錯誤時強制觸發</td>
+      <td>Klay + Forge</td>
+      <td>下一個 session 結束後，lessons.md 自動有新條目</td>
+      <td>1h</td>
+    </tr>
+    <tr>
+      <td><span class="p0">P0</span></td>
+      <td>Kai 新增 <code>/api/heartbeat/status</code> endpoint，每小時推送 active tasks 狀態到 Discord #agent-heartbeat</td>
+      <td>Max + Kai</td>
+      <td>Discord 能看到每小時一則 Agent 狀態摘要</td>
+      <td>2h</td>
+    </tr>
+    <tr>
+      <td><span class="p1">P1</span></td>
+      <td>更新 task-dispatch.md Phase 3 模板，Ray 必填「最壞情況」 + Scout 後強制 Vick Skeptic pass</td>
+      <td>Klay</td>
+      <td>下一個 Major 任務的 Phase 3 有 Skeptic 分析欄</td>
+      <td>30min</td>
+    </tr>
+    <tr>
+      <td><span class="p1">P1</span></td>
+      <td>選 3 個核心 Agent（Quill/Forge/Scout）寫入北極星 KPI 到各自 SKILL.md</td>
+      <td>Klay</td>
+      <td>3 個 SKILL.md 各有 1 行 KPI 定義</td>
+      <td>30min</td>
+    </tr>
+    <tr>
+      <td><span class="p2">P2</span></td>
+      <td>Noel 整理 Rain 過去發表過的文章/文字，產出初版 rain-voice.md（語氣 + 禁用詞 + 慣用表達）</td>
+      <td>Noel</td>
+      <td>rain-voice.md 有至少 20 條具體語氣規則</td>
+      <td>2h</td>
+    </tr>
+  </table>
+
+  <h2 style="margin-top:20px;">額外觀察：Crypto × AI Agent 交叉機會</h2>
+  <div class="box purple">
+    Wilson 特別強調「<strong>Crypto 在 AI Agent 經濟中的角色愈來愈清晰</strong>：Agent 之間的支付、微支付、身份驗證，這些都是區塊鏈的強項」。
+    XY.Finance 本身是跨鏈 swap 協議，Wilson 的觀察可信度高。<br><br>
+    <strong>Rain 團隊的機會</strong>：BankExamQuiz 是金融教育應用。如果未來 Agent-to-Agent 微支付成熟，「AI 學習助手依完成度按次計費」這類模型是可行的商業方向，值得在 2026 Q3 評估。
+  </div>
+
+  <h2 style="margin-top:20px;">核心結論</h2>
+  <div class="g2">
+    <div class="card blue">
+      <h4>我們的優勢</h4>
+      <ul>
+        <li>Agent 廣度（29 個）遠超業界平均</li>
+        <li>角色分工、審查機制、CI/CD 已成體系</li>
+        <li>3-Phase Planning 已比 Felix 更系統化</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h4>我們的機會</h4>
+      <ul>
+        <li>自動化程度不夠：仍有太多「人工觸發」</li>
+        <li>Agent 不會自己進步（無 self-optimization loop）</li>
+        <li>監控粒度不夠細（heartbeat 缺失）</li>
+        <li>Rain 個人品牌聲音缺席於輸出內容</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box tip" style="margin-top:16px;">
+    <strong>一句話總結</strong>：我們比 Nat Eliason 的 Felix 模型有更多 Agent、更好的分工，但 Felix 會自己進步而我們的 Agent 不會。<strong>下一階段的核心目標是讓 Rain 的 AI 團隊具備自我優化能力</strong>，而不只是執行能力。
+  </div>
+
+  <div style="text-align:center; margin-top:24px; padding-top:14px; border-top:1px solid var(--border); font-size:8pt; color:var(--ink3);">
+    分析者：Klay（Rain AI Team CEO）　　資料來源：@wilsonhuangxyz Threads（2026-03-12 爬取）<br>
+    本報告機密，僅供 Rain 內部使用
+  </div>
+</div>
+
+</body>
+</html>

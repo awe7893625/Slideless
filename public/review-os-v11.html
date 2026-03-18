@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review OS v1.1 整合評估報告 — Rain AI Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:#f6f5f1;color:#121212;line-height:1.7;-webkit-font-smoothing:antialiased}
+code,.mono{font-family:'JetBrains Mono',monospace;font-size:.88em}
+
+/* Cover */
+.cover{background:#121212;color:#fff;padding:80px 32px 64px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 60% 40%,rgba(235,128,84,.12) 0%,transparent 65%);pointer-events:none}
+.cover-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#eb8054;margin-bottom:20px}
+.cover h1{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;margin-bottom:10px;line-height:1.25}
+.cover h1 span{color:#eb8054}
+.cover .subtitle{font-size:1.05rem;color:rgba(255,255,255,.55);margin-bottom:6px}
+.cover .meta{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:12px;letter-spacing:.02em}
+.cover .verdict{display:inline-flex;align-items:center;gap:8px;margin-top:28px;padding:10px 28px;border:2px solid #eb8054;border-radius:6px;color:#eb8054;font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase}
+
+/* Stats row */
+.stats-bar{background:#fff;border-bottom:1px solid #e8e6df;padding:24px 0}
+.stats-inner{max-width:760px;margin:0 auto;padding:0 24px;display:flex;gap:0;justify-content:space-around;flex-wrap:wrap}
+.stat-item{text-align:center;padding:8px 20px}
+.stat-num{font-size:2rem;font-weight:700;color:#121212;letter-spacing:-.04em}
+.stat-num span{color:#eb8054}
+.stat-label{font-size:.75rem;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+/* Main */
+.main{max-width:760px;margin:0 auto;padding:48px 24px 100px}
+
+/* Section */
+.section{margin-bottom:52px}
+.section-eyebrow{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#eb8054;margin-bottom:8px}
+.section h2{font-size:1.5rem;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+.section .section-desc{font-size:.9rem;color:#888;margin-bottom:20px}
+.section h3{font-size:1.05rem;font-weight:600;margin:24px 0 10px;color:#222}
+.section p{margin-bottom:12px;color:#444;font-size:.94rem}
+.section ul{margin:0 0 14px 20px;color:#444;font-size:.94rem}
+.section li{margin-bottom:6px}
+
+/* Divider */
+.divider{height:1px;background:#e8e6df;margin:52px 0}
+
+/* Cards */
+.card{background:#fff;border:1px solid #e8e6df;border-radius:12px;padding:22px 26px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card h4{font-size:.95rem;font-weight:600;margin-bottom:8px;color:#121212}
+.card p,.card li{font-size:.9rem;color:#555}
+.card ul{margin-left:18px}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.card-row{grid-template-columns:1fr}}
+.card-accent{border-left:4px solid #eb8054;border-radius:0 12px 12px 0}
+.card-green{border-left:4px solid #85a268;border-radius:0 12px 12px 0}
+.card-blue{border-left:4px solid #6b9fc9;border-radius:0 12px 12px 0}
+.card-gray{border-left:4px solid #ccc;border-radius:0 12px 12px 0}
+
+/* Verdict banner */
+.verdict-banner{background:#fffbf7;border:2px solid #eb8054;border-radius:12px;padding:22px 26px;margin-bottom:20px}
+.verdict-banner .verdict-label{font-size:.72rem;font-weight:700;color:#eb8054;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.verdict-banner h3{font-size:1.2rem;font-weight:700;color:#121212;margin-bottom:8px}
+.verdict-banner p{font-size:.92rem;color:#555}
+
+/* Status badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.74rem;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.badge-green{background:#e8f5e0;color:#3d7a1c}
+.badge-orange{background:#fff3e0;color:#c45d1a}
+.badge-red{background:#fde8e8;color:#b91c1c}
+.badge-blue{background:#e0f0ff;color:#1a5fb4}
+.badge-gray{background:#f0eee6;color:#6c6a62}
+.badge-yellow{background:#fdf8e1;color:#92710c}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:14px 0 18px;border-radius:10px;border:1px solid #e8e6df;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+table{width:100%;border-collapse:collapse;min-width:480px;font-size:.87rem}
+th{background:#f0eee6;font-weight:600;text-align:left;padding:11px 14px;color:#333;white-space:nowrap;border-bottom:1px solid #e0ddd4}
+td{padding:10px 14px;border-top:1px solid #eee;color:#444;vertical-align:top}
+tr:hover td{background:#faf9f5}
+td:first-child{color:#222;font-weight:500}
+
+/* Code block */
+.code-block{background:#1a1a1a;border-radius:10px;padding:22px 24px;margin:16px 0;overflow-x:auto}
+.code-block pre{color:#e0d8cc;font-family:'JetBrains Mono',monospace;font-size:.83rem;line-height:1.65;white-space:pre}
+.code-block .cm{color:#6b9fc9}
+.code-block .kw{color:#eb8054}
+.code-block .ok{color:#85a268}
+.code-block .warn{color:#f0b429}
+
+/* Architecture flow */
+.flow{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.flow-item{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;background:#fff;border:1px solid #e8e6df;border-radius:10px;margin-bottom:8px;position:relative}
+.flow-item:not(:last-child)::after{content:'↓';position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:1rem;color:#ccc;font-weight:700;z-index:1}
+.flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.flow-icon.orange{background:#fff3e0}
+.flow-icon.green{background:#e8f5e0}
+.flow-icon.blue{background:#e0f0ff}
+.flow-icon.gray{background:#f0eee6}
+.flow-icon.dark{background:#1a1a1a;color:#eb8054}
+.flow-content h4{font-size:.92rem;font-weight:600;margin-bottom:3px;color:#121212}
+.flow-content p{font-size:.84rem;color:#666}
+
+/* Decision row */
+.decision-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-radius:8px;border:1px solid #e8e6df;margin-bottom:8px}
+.decision-row .label{flex:1;font-size:.9rem;font-weight:500;color:#222}
+.decision-row .reason{font-size:.82rem;color:#888;flex:2}
+
+/* Checklist type cards */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media(max-width:600px){.type-grid{grid-template-columns:1fr}}
+.type-card{background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.type-card .type-tag{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:10px;display:inline-block;margin-bottom:10px}
+.type-card .tag-web{background:#e0f0ff;color:#1a5fb4}
+.type-card .tag-app{background:#e8f5e0;color:#2d6a0e}
+.type-card .tag-api{background:#fff3e0;color:#c45d1a}
+.type-card .tag-ai{background:#f3e8ff;color:#6b21a8}
+.type-card .tag-crawler{background:#fde8e8;color:#b91c1c}
+.type-card h4{font-size:.9rem;font-weight:600;margin-bottom:8px;color:#222}
+.type-card ul{margin-left:16px;list-style:none;padding:0}
+.type-card ul li{font-size:.82rem;color:#555;margin-bottom:4px;padding-left:16px;position:relative}
+.type-card ul li::before{content:'·';position:absolute;left:0;color:#eb8054;font-weight:700}
+
+/* Risk table */
+.risk-row td:last-child{font-size:.82rem;color:#666}
+
+/* Metrics */
+.metrics-row{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.metric-card{flex:1;min-width:140px;background:#fff;border:1px solid #e8e6df;border-radius:10px;padding:16px 18px;text-align:center}
+.metric-card .m-num{font-size:1.6rem;font-weight:700;color:#121212;letter-spacing:-.03em}
+.metric-card .m-num .accent{color:#eb8054}
+.metric-card .m-label{font-size:.75rem;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.metric-card .m-sub{font-size:.78rem;color:#aaa;margin-top:4px}
+
+/* Backlog */
+.backlog-item{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;background:#fff;border:1px solid #e8e6df;border-radius:10px;margin-bottom:10px}
+.backlog-item .bi-left{flex-shrink:0}
+.backlog-item .bi-tag{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:10px;background:#fdf8e1;color:#92710c}
+.backlog-item h4{font-size:.92rem;font-weight:600;margin-bottom:4px;color:#222}
+.backlog-item p{font-size:.84rem;color:#666}
+
+/* Footer */
+.footer{margin-top:80px;padding-top:24px;border-top:1px solid #e8e6df;text-align:center}
+.footer p{font-size:.78rem;color:#aaa;letter-spacing:.04em}
+
+/* Highlight box */
+.highlight-box{background:linear-gradient(135deg,#fffbf7 0%,#fff8f4 100%);border:1px solid #f0d8c8;border-radius:12px;padding:20px 24px;margin:16px 0}
+.highlight-box p{font-size:.9rem;color:#444;margin:0}
+.highlight-box strong{color:#eb8054}
+
+/* Coverage tag */
+td .cov-ok{color:#3d7a1c;font-weight:600;font-size:.82rem}
+td .cov-delay{color:#92710c;font-weight:600;font-size:.82rem}
+td .cov-skip{color:#888;font-weight:600;font-size:.82rem}
+
+/* File list */
+.file-list{list-style:none;margin:12px 0}
+.file-list li{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#fff;border:1px solid #e8e6df;border-radius:8px;margin-bottom:8px;font-size:.88rem;color:#444}
+.file-list li .file-num{width:22px;height:22px;border-radius:6px;background:#eb8054;color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.file-list li code{background:#f0eee6;padding:1px 6px;border-radius:4px;font-size:.8rem;color:#555;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="cover-eyebrow">Rain AI Team · Engineering Governance</div>
+  <h1>Review OS <span>v1.1</span><br>整合評估報告</h1>
+  <div class="subtitle">Rain AI Team 工程治理升級</div>
+  <div class="meta">2026-03-14 · Klay + Ray 聯合評估</div>
+  <div class="verdict">⚠️ 有條件通過</div>
+</div>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num">17</div>
+      <div class="stat-label">評估章節數</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span>2</span></div>
+      <div class="stat-label">立即整合</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">2</div>
+      <div class="stat-label">延後實作</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">11</div>
+      <div class="stat-label">現有覆蓋 / 跳過</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span>4</span>/4</div>
+      <div class="stat-label">風險已解決</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- Section 1: Background -->
+  <div class="section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2>評估背景</h2>
+    <div class="section-desc">AI Engineering Review OS v1.1 評估脈絡與現有系統狀態</div>
+
+    <p>Rain 提出 AI Engineering Review OS v1.1，涵蓋 17 個章節的完整工程治理規格，並由 Klay + Ray 聯合評估整合可行性。評估原則：<strong>有效填補空白的整合，過度工程的跳過</strong>。</p>
+
+    <h3>現有審查系統（整合前 v5.0）</h3>
+    <div class="card-row">
+      <div class="card card-accent">
+        <h4>Layer 1 — Quill 程式碼審查</h4>
+        <p>PR/diff review、規格合規、可讀性、DRY、測試缺口</p>
+      </div>
+      <div class="card card-blue">
+        <h4>Layer 2 — Forge CI Gate</h4>
+        <p>Standard / Major / Critical 三級 Evidence Gate<br>lint + typecheck + test + build + deploy</p>
+      </div>
+      <div class="card card-green">
+        <h4>Layer 3 — Ray 設計審查</h4>
+        <p>任務定義、方案架構風險、開工簽核、veto 權（Major/Critical）</p>
+      </div>
+      <div class="card card-gray">
+        <h4>Sentinel 自動掃描</h4>
+        <p>git commit hook 自動密鑰掃描<br>已整合 PRS v1.0：Evidence Gate + Failure Layer Analysis</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 2: Ray's Verdict -->
+  <div class="section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2>Ray 審查結論</h2>
+    <div class="section-desc">Phase 3 設計審查 · 有條件通過</div>
+
+    <div class="verdict-banner">
+      <div class="verdict-label">審查分級</div>
+      <h3>⚠️ 有條件通過</h3>
+      <p>v1.1 的 17 個章節中，真正有效填補空白的新概念只有 2 個。大量章節與現有機制重疊，或整合成本遠超收益。選擇性整合，而非全量採用。</p>
+    </div>
+
+    <div class="card-row">
+      <div class="card">
+        <h4>✅ 真正有效的新概念（2 個）</h4>
+        <ul>
+          <li>Domain Checklist（5 種任務類型）</li>
+          <li>Runtime Watch（Critical 1h 確認）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>⏳ 可延後的概念（2 個）</h4>
+        <ul>
+          <li>Quality Scoring（0-100 評分）</li>
+          <li>Evolution Review 升格</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <p><strong>過度工程部分（11 個章節）</strong>：與現有機制重疊或實作成本過高，包含 Task Intelligence Engine、完整 8 層 Pipeline、Review DB Schema、CI/CD 整合等。現有 3 層審查 + Sentinel hook 已覆蓋核心需求。</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 3: Decision Matrix -->
+  <div class="section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2>整合決策矩陣</h2>
+    <div class="section-desc">17 章節評估後的最終決策</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>概念</th>
+            <th>決策</th>
+            <th>理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Domain Checklist（5 類型）</td>
+            <td><span class="badge badge-green">✅ 立即整合</span></td>
+            <td>真實填補類型漏項的空白</td>
+          </tr>
+          <tr>
+            <td>Runtime Watch（Critical 1h 確認）</td>
+            <td><span class="badge badge-green">✅ 立即整合（縮小版）</span></td>
+            <td>明確 owner，執行成本低</td>
+          </tr>
+          <tr>
+            <td>Quality Scoring（0-100）</td>
+            <td><span class="badge badge-yellow">⏳ 延後 1 個月</span></td>
+            <td>缺乏 rubric 的分數是噪音</td>
+          </tr>
+          <tr>
+            <td>Evolution Review 升格</td>
+            <td><span class="badge badge-yellow">⏳ 夜班穩定後再做</span></td>
+            <td>基礎機制未穩定，不宜加層</td>
+          </tr>
+          <tr>
+            <td>Task Intelligence Engine</td>
+            <td><span class="badge badge-gray">❌ 跳過</span></td>
+            <td>Overhead &gt; Benefit</td>
+          </tr>
+          <tr>
+            <td>完整 8 層 Pipeline</td>
+            <td><span class="badge badge-gray">❌ 跳過</span></td>
+            <td>3 層已夠，5 層多餘</td>
+          </tr>
+          <tr>
+            <td>Review DB Schema</td>
+            <td><span class="badge badge-gray">❌ 跳過</span></td>
+            <td>開發成本過高</td>
+          </tr>
+          <tr>
+            <td>CI/CD 整合</td>
+            <td><span class="badge badge-gray">❌ 跳過</span></td>
+            <td>非現有瓶頸</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 4: Integration 1 - Domain Checklist -->
+  <div class="section">
+    <div class="section-eyebrow">Section 04 · 整合項 1（已完成）</div>
+    <h2>Domain Checklist</h2>
+    <div class="section-desc">5 種任務類型的專屬審查清單 · Ray Phase 3 強制套用</div>
+
+    <p>根據任務的技術域（Website / Web App / Backend API / AI System / Crawler），套用對應的專屬審查 checklist。觸發條件：Ray Phase 3 審查（Major/Critical）。</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="type-tag tag-web">Website</div>
+        <h4>網站類型</h4>
+        <ul>
+          <li>SEO meta（title/desc/H1 唯一）</li>
+          <li>OG 標籤完整</li>
+          <li>Mobile RWD 驗收</li>
+          <li>GA4 追蹤安裝</li>
+          <li>JSON-LD Schema 正確</li>
+          <li>Core Web Vitals 基線</li>
+          <li>robots.txt / sitemap.xml</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="type-tag tag-app">Web App</div>
+        <h4>Web App 類型</h4>
+        <ul>
+          <li>Auth/Authz 邊界清楚</li>
+          <li>Rate limit 保護</li>
+          <li>CSRF 防護</li>
+          <li>Session 安全</li>
+          <li>Input validation 完整</li>
+          <li>Error message 不洩漏</li>
+          <li>敏感操作二次確認</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="type-tag tag-api">Backend API</div>
+        <h4>後端 API 類型</h4>
+        <ul>
+          <li>API 文件（OpenAPI）</li>
+          <li>Health check endpoint</li>
+          <li>結構化 Logging</li>
+          <li>Timeout/Retry 機制</li>
+          <li>Config separation</li>
+          <li>Error response 標準化</li>
+          <li>Pagination 支援</li>
+        </ul>
+      </div>
+      <div class="type-card">
+        <div class="type-tag tag-ai">AI System</div>
+        <h4>AI 系統類型</h4>
+        <ul>
+          <li>Prompt 版本化</li>
+          <li>Fallback model 設定</li>
+          <li>Token limit 保護</li>
+          <li>Cost monitoring</li>
+          <li>Tool failure recovery</li>
+          <li>Prompt injection 防護</li>
+          <li>輸出格式驗證</li>
+        </ul>
+      </div>
+      <div class="type-card" style="grid-column:span 2">
+        <div class="type-tag tag-crawler">Crawler</div>
+        <h4>爬蟲類型</h4>
+        <ul style="columns:2;column-gap:20px">
+          <li>Rate control（請求間隔）</li>
+          <li>Retry + backoff 策略</li>
+          <li>Anti-bot 規避方案</li>
+          <li>資料驗證（Schema）</li>
+          <li>Deduplication 機制</li>
+          <li>失敗率告警閾值</li>
+        </ul>
+      </div>
+    </div>
+    @media(max-width:600px){.type-card[style]{grid-column:span 1}}
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 5: Integration 2 - Runtime Watch -->
+  <div class="section">
+    <div class="section-eyebrow">Section 05 · 整合項 2（已完成）</div>
+    <h2>Runtime Watch</h2>
+    <div class="section-desc">Critical 任務部署後 1 小時確認機制 · Owner：Forge</div>
+
+    <p>新增到 Forge Evidence Gate（Critical 任務），確保部署後核心路徑正常運作。</p>
+
+    <div class="card-row">
+      <div class="card card-accent">
+        <h4>確認項目</h4>
+        <ul>
+          <li>核心路徑 HTTP 200（≥3 條端點）</li>
+          <li>無 500 error log</li>
+          <li>Discord 發送 ✅ 完成確認</li>
+        </ul>
+      </div>
+      <div class="card card-green">
+        <h4>執行規則</h4>
+        <ul>
+          <li>觸發：Critical 任務部署後</li>
+          <li>窗口：部署後 <strong>1 小時內</strong></li>
+          <li>Owner：<strong>Forge</strong>（明確，不可推諉）</li>
+          <li>未確認 = 任務未結案</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 6: Risk Resolution -->
+  <div class="section">
+    <div class="section-eyebrow">Section 06</div>
+    <h2>Ray 指出的關鍵風險</h2>
+    <div class="section-desc">M-01 ~ M-04 全部已解決</div>
+
+    <div class="table-wrap">
+      <table class="risk-row">
+        <thead>
+          <tr>
+            <th>編號</th>
+            <th>風險</th>
+            <th>解決方式</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>M-01</td>
+            <td>Runtime Review 沒有 owner</td>
+            <td>縮小為 1h check，明確 owner = Forge</td>
+            <td><span class="badge badge-green">✅ 已解決</span></td>
+          </tr>
+          <tr>
+            <td>M-02</td>
+            <td>Domain Checklist 未同步 Ray SKILL.md</td>
+            <td>Ray SKILL.md 已加入 Domain Checklist 摘要</td>
+            <td><span class="badge badge-green">✅ 已解決</span></td>
+          </tr>
+          <tr>
+            <td>M-03</td>
+            <td>4 項整合同時推進風險</td>
+            <td>Quality Score 和 Evolution Review 延後</td>
+            <td><span class="badge badge-green">✅ 已解決</span></td>
+          </tr>
+          <tr>
+            <td>M-04</td>
+            <td>Checklist 無 owner 和維護機制</td>
+            <td>明確 owner（Ray 初稿，Klay 決策，Quill 維護）</td>
+            <td><span class="badge badge-green">✅ 已解決</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 7: Files Changed -->
+  <div class="section">
+    <div class="section-eyebrow">Section 07</div>
+    <h2>修改的檔案清單</h2>
+    <div class="section-desc">本次整合共修改 3 個規格檔案</div>
+
+    <ul class="file-list">
+      <li>
+        <div class="file-num">1</div>
+        <div>
+          <code>.claude/rules/task-dispatch.md</code>
+          <div style="margin-top:4px;color:#666;font-size:.86rem">新增 Domain Checklist 全文（5 種類型 × 7 條目）</div>
+        </div>
+      </li>
+      <li>
+        <div class="file-num">2</div>
+        <div>
+          <code>.claude/rules/review-responsibility-matrix.md</code>
+          <div style="margin-top:4px;color:#666;font-size:.86rem">Forge Evidence Gate 新增 Runtime Watch 規則</div>
+        </div>
+      </li>
+      <li>
+        <div class="file-num">3</div>
+        <div>
+          <code>.claude/agents/ray/SKILL.md</code>
+          <div style="margin-top:4px;color:#666;font-size:.86rem">Domain Checklist 摘要同步到 Ray 技能定義</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 8: Coverage Map -->
+  <div class="section">
+    <div class="section-eyebrow">Section 08</div>
+    <h2>v1.1 vs 現有系統 Coverage 對比</h2>
+    <div class="section-desc">17/17 項皆有對應，無遺漏</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>v1.1 章節</th>
+            <th>現有系統 Coverage</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Task Intelligence Engine</td>
+            <td>Klay 人工判斷任務等級（足夠）</td>
+            <td><span class="cov-skip">跳過</span></td>
+          </tr>
+          <tr>
+            <td>8 層 Review Pipeline</td>
+            <td>3 層（Requirements/Arch/Impl/Security/Delivery 已覆蓋）</td>
+            <td><span class="cov-skip">跳過</span></td>
+          </tr>
+          <tr>
+            <td>Domain Modules</td>
+            <td>—</td>
+            <td><span class="cov-ok">✅ 本次新增</span></td>
+          </tr>
+          <tr>
+            <td>Checklist Engine</td>
+            <td>—</td>
+            <td><span class="cov-ok">✅ Domain Checklist 新增</span></td>
+          </tr>
+          <tr>
+            <td>Evidence Verification</td>
+            <td>PRS v1.0 已整合（Evidence Gate）</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>AI Review Agents</td>
+            <td>Ray/Quill/Forge/Sentinel 已承擔</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>AI Review Prompt Library</td>
+            <td>已內嵌各 Agent SKILL.md</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>Quality Scoring</td>
+            <td>—</td>
+            <td><span class="cov-delay">⏳ 延後</span></td>
+          </tr>
+          <tr>
+            <td>Failure Learning</td>
+            <td>PRS v1.0：Failure Layer Analysis + lessons.md</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>Review DB Schema</td>
+            <td>—</td>
+            <td><span class="cov-skip">跳過</span></td>
+          </tr>
+          <tr>
+            <td>Review Engine API</td>
+            <td>Kai /api/tasks 已承擔</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>CI/CD Integration</td>
+            <td>—</td>
+            <td><span class="cov-skip">跳過</span></td>
+          </tr>
+          <tr>
+            <td>Telegram Report</td>
+            <td>Discord 已覆蓋</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>Governance Dashboard</td>
+            <td>Kai 中控台任務看板</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>80 漏項清單</td>
+            <td>—</td>
+            <td><span class="cov-ok">✅ 整合為 Domain Checklist</span></td>
+          </tr>
+          <tr>
+            <td>核心審查原則</td>
+            <td>PRS v1.0 Requirement Traceability 已整合</td>
+            <td><span class="cov-ok">✅ 現有覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>Evolution Review</td>
+            <td>—</td>
+            <td><span class="cov-delay">⏳ 延後</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box">
+      <p><strong>Coverage：17/17 項皆有對應</strong>（整合 / 現有覆蓋 / 延後 / 跳過），無任何章節被遺漏或忽視。</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 9: Architecture v5.1 -->
+  <div class="section">
+    <div class="section-eyebrow">Section 09</div>
+    <h2>整合後完整審查架構（v5.1）</h2>
+    <div class="section-desc">含 Domain Checklist + Runtime Watch 的完整流程</div>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-icon gray">📋</div>
+        <div class="flow-content">
+          <h4>任務建立</h4>
+          <p>Rain 指派 → Kai 任務看板記錄</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon orange">🎯</div>
+        <div class="flow-content">
+          <h4>Klay 任務分級</h4>
+          <p>Tiny / Standard / Major / Critical — 決定後續流程路徑</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon orange">🔍</div>
+        <div class="flow-content">
+          <h4>Ray Phase 3 設計審查</h4>
+          <p><strong style="color:#eb8054">新增：</strong>套用對應 Domain Checklist（Website / Web App / Backend / AI / Crawler）· Major/Critical 觸發</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon blue">⚡</div>
+        <div class="flow-content">
+          <h4>開工簽核 ✅ → 並行實作</h4>
+          <p>John / Max / Rex / Iris 並行開發</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon blue">📝</div>
+        <div class="flow-content">
+          <h4>Quill Layer 1：程式碼審查</h4>
+          <p>PR/diff review、規格合規、可讀性、測試缺口</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon blue">🔧</div>
+        <div class="flow-content">
+          <h4>Forge Layer 2：CI Gate + Evidence Gate</h4>
+          <p>lint + typecheck + test + build + preview deploy · Standard/Major/Critical 三級</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon green">🕐</div>
+        <div class="flow-content">
+          <h4>Forge Runtime Watch <span class="badge badge-blue" style="margin-left:6px;vertical-align:middle;font-size:.7rem">Critical only</span></h4>
+          <p><strong style="color:#3d7a1c">新增：</strong>部署後 1h 內確認核心路徑 HTTP 200（≥3 端點）+ 無 500 log</p>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon green">✅</div>
+        <div class="flow-content">
+          <h4>Discord 通知 + lessons.md 歸檔</h4>
+          <p>Runtime Watch 完成確認 → 任務結案 → 知識歸檔</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 10: Backlog -->
+  <div class="section">
+    <div class="section-eyebrow">Section 10</div>
+    <h2>Backlog（延後實作）</h2>
+    <div class="section-desc">條件觸發，時機成熟後啟動</div>
+
+    <div class="backlog-item">
+      <div class="bi-left">
+        <div class="bi-tag">⏳ 延後</div>
+      </div>
+      <div>
+        <h4>Quality Scoring（0-100，含 rubric）</h4>
+        <p>觸發條件：Domain Checklist 運作滿 1 個月，累積足夠 rubric 基礎後啟動。缺乏明確評分標準的數字是噪音，不宜提前引入。</p>
+      </div>
+    </div>
+    <div class="backlog-item">
+      <div class="bi-left">
+        <div class="bi-tag">⏳ 延後</div>
+      </div>
+      <div>
+        <h4>Evolution Review 升格</h4>
+        <p>觸發條件：夜班 Module A 完成率連續 2 週 > 80%。基礎審查機制未穩定前，不宜加入額外的演進層。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>RAIN AI TEAM · ENGINEERING GOVERNANCE · Review OS v1.1 · 2026-03-14</p>
+    <p style="margin-top:6px">Klay（評估）+ Ray（設計審查）+ Forge（CI Owner）+ Quill（Code Review）</p>
+  </div>
+
+</div>
+</body>
+</html>

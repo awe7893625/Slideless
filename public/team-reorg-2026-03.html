@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kai Flows 28 種整合 — 申請 × 串聯 × 應用</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.6}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:100px 40px 80px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-family:var(--mono)}
+.cover h1{font-size:clamp(32px,6vw,56px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:16px;color:rgba(255,255,255,0.45);font-family:var(--mono);margin-top:8px}
+.cover .date{font-size:13px;color:rgba(255,255,255,0.3);margin-top:20px;font-family:var(--mono);letter-spacing:2px}
+
+/* Main layout */
+.main{max-width:900px;margin:0 auto;padding:56px 40px 80px}
+@media(max-width:640px){.main{padding:36px 20px 60px}.cover{padding:72px 24px 60px}}
+
+/* Section */
+.section{margin-bottom:64px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--mono)}
+.section-title{font-size:24px;font-weight:700;letter-spacing:-0.4px;margin-bottom:28px;color:var(--black)}
+
+/* Card */
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--black)}
+.card-label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;font-family:var(--mono)}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px}
+@media(max-width:720px){.grid-2{grid-template-columns:1fr}.grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.grid-4{grid-template-columns:1fr}}
+
+/* Category card */
+.cat-card{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.cat-card .cat-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono);color:var(--grey-02);margin-bottom:6px}
+.cat-card .cat-count{font-size:28px;font-weight:800;font-family:var(--mono);color:var(--black)}
+.cat-card .cat-name{font-size:14px;font-weight:600;color:var(--grey-03);margin-bottom:12px}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-block;padding:4px 10px;background:var(--grey-01);border-radius:6px;font-size:12px;font-weight:500;font-family:var(--mono);color:var(--grey-03)}
+.tag.ai{background:#f0f5ff;color:#3a5bc7}
+.tag.comm{background:#fff5f0;color:#c45a20}
+.tag.db{background:#f0fff4;color:#2a7a4a}
+.tag.biz{background:#fdfaf0;color:#8a7020}
+
+/* Integration apply card */
+.apply-card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.apply-card .ac-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.apply-card .ac-icon{font-size:24px}
+.apply-card .ac-title{font-size:17px;font-weight:700}
+.apply-card .ac-free{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono);background:#e8f5e9;color:var(--green);margin-left:8px}
+.apply-card .ac-paid{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono);background:#fff3e0;color:#e06020;margin-left:8px}
+.step-list{list-style:none;margin-bottom:16px;counter-reset:step}
+.step-list li{padding:6px 0 6px 28px;position:relative;font-size:14px;border-bottom:1px solid var(--grey-01);color:var(--grey-03)}
+.step-list li:last-child{border-bottom:none}
+.step-list li::before{content:counter(step);counter-increment:step;position:absolute;left:0;top:8px;font-size:10px;font-weight:700;font-family:var(--mono);background:var(--accent-warm);color:var(--white);width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.env-block{background:#1a1a2e;color:#a8cde8;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px;margin-top:12px;line-height:1.8}
+.env-comment{color:#4a6080}
+.fee-line{font-size:13px;color:var(--grey-02);margin-top:10px}
+.fee-line strong{color:var(--black)}
+
+/* Pipeline visual */
+.pipeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:8px}
+.pipe-stage{display:flex;flex-direction:column;gap:10px;min-width:160px}
+.pipe-stage .pipe-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono);color:var(--grey-02);margin-bottom:6px}
+.pipe-box{background:var(--grey-01);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;font-family:var(--mono);color:var(--grey-03);white-space:nowrap}
+.pipe-arrow{font-size:22px;color:var(--accent-warm);padding:0 14px;margin-top:30px;flex-shrink:0}
+@media(max-width:640px){.pipeline{flex-direction:column;align-items:flex-start}.pipe-arrow{transform:rotate(90deg);padding:8px 14px;margin-top:0}}
+
+/* Code block */
+.code-block{background:#1a1a2e;color:#e2e8f0;border-radius:8px;padding:16px;font-family:var(--mono);font-size:13px;overflow-x:auto;line-height:1.8;margin-top:14px}
+.ck{color:#7ec8e3}
+.cv{color:#a8cde8}
+.cc{color:#4a6a8a}
+.ca{color:#eb8054}
+.cs{color:#85a268}
+
+/* Priority cards */
+.priority-card{background:var(--white);border-radius:12px;padding:28px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.priority-badge{font-size:28px;margin-bottom:14px;display:block}
+.priority-title{font-size:16px;font-weight:700;margin-bottom:10px}
+.priority-desc{font-size:14px;color:var(--grey-03);line-height:1.65}
+.priority-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono);margin-top:12px}
+.tag-free{background:#e8f5e9;color:var(--green)}
+.tag-later{background:#f0eee6;color:var(--grey-02)}
+
+/* Reference table */
+.ref-table-wrap{overflow-x:auto}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px}
+.ref-table th{background:var(--black);color:var(--white);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--mono)}
+.ref-table th:first-child{border-radius:8px 0 0 0}
+.ref-table th:last-child{border-radius:0 8px 0 0}
+.ref-table td{padding:10px 14px;border-bottom:1px solid var(--grey-01);vertical-align:top}
+.ref-table tr:nth-child(odd) td{background:#faf9f6}
+.ref-table tr:last-child td{border-bottom:none}
+.ref-table td:first-child{font-family:var(--mono);font-weight:600;color:var(--black);white-space:nowrap}
+.ref-table .req{font-family:var(--mono);font-size:12px;color:var(--grey-03)}
+.ref-table .auth{font-size:12px;color:var(--grey-02)}
+
+/* Checklist */
+.checklist{list-style:none}
+.checklist li{padding:14px 0;border-bottom:1px solid var(--grey-01);font-size:15px;display:flex;align-items:flex-start;gap:12px}
+.checklist li:last-child{border-bottom:none}
+.checklist .box{color:var(--accent-warm);font-size:18px;flex-shrink:0;margin-top:1px;line-height:1}
+.checklist .cl-text{flex:1;line-height:1.5}
+.checklist .cl-link{font-family:var(--mono);font-size:12px;color:var(--accent);display:block;margin-top:3px}
+.checklist .cl-note{font-size:13px;color:var(--grey-02);display:block;margin-top:2px}
+.checklist li.later .cl-text{color:var(--grey-02)}
+.checklist li.later .box{color:var(--grey-02)}
+.inline-code{font-family:var(--mono);font-size:13px;background:var(--grey-01);padding:2px 6px;border-radius:4px}
+
+/* Concept box */
+.concept-box{background:#f8f6f0;border-left:3px solid var(--accent-warm);border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:20px;font-size:15px;line-height:1.7;color:var(--grey-03)}
+
+/* Divider */
+.divider{height:1px;background:var(--grey-01);margin:48px 0}
+
+/* Footer */
+.footer{text-align:center;padding:40px 0;color:var(--grey-02);font-size:11px;font-family:var(--mono);letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">KAI FLOWS · INTEGRATION GUIDE</div>
+  <h1>28 種整合<br><span>申請 × 串聯 × 應用</span></h1>
+  <div class="subtitle">Action Reference &nbsp;·&nbsp; Workflow Recipes &nbsp;·&nbsp; Quick Start</div>
+  <div class="date">2026 / 03 / 10</div>
+</div>
+
+<div class="main">
+
+  <!-- Section 01 -->
+  <div class="section">
+    <div class="section-eyebrow">01 / 現狀</div>
+    <div class="section-title">28 種 Action 分類總覽</div>
+
+    <div class="grid-2">
+      <div class="cat-card">
+        <div class="cat-label">通訊類</div>
+        <div class="cat-count">7</div>
+        <div class="cat-name">即時通訊 / 通知</div>
+        <div class="tag-wrap">
+          <span class="tag comm">discord</span>
+          <span class="tag comm">telegram</span>
+          <span class="tag comm">email</span>
+          <span class="tag comm">slack</span>
+          <span class="tag comm">line</span>
+          <span class="tag comm">twilio</span>
+          <span class="tag comm">notify</span>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="cat-label">資料庫 / 儲存</div>
+        <div class="cat-count">5</div>
+        <div class="cat-name">資料持久化 / 雲端儲存</div>
+        <div class="tag-wrap">
+          <span class="tag db">redis</span>
+          <span class="tag db">supabase</span>
+          <span class="tag db">r2_upload</span>
+          <span class="tag db">sheets</span>
+          <span class="tag db">airtable</span>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="cat-label">商業 SaaS</div>
+        <div class="cat-count">6</div>
+        <div class="cat-name">第三方服務串接</div>
+        <div class="tag-wrap">
+          <span class="tag biz">notion</span>
+          <span class="tag biz">mailchimp</span>
+          <span class="tag biz">stripe</span>
+          <span class="tag biz">github</span>
+          <span class="tag biz">rss</span>
+          <span class="tag biz">http_request</span>
+        </div>
+      </div>
+
+      <div class="cat-card">
+        <div class="cat-label">AI / 執行邏輯</div>
+        <div class="cat-count">10</div>
+        <div class="cat-name">流程控制 / AI 推理</div>
+        <div class="tag-wrap">
+          <span class="tag ai">agent</span>
+          <span class="tag ai">openclaw</span>
+          <span class="tag ai">command</span>
+          <span class="tag ai">code</span>
+          <span class="tag ai">condition</span>
+          <span class="tag ai">parallel</span>
+          <span class="tag ai">wait</span>
+          <span class="tag ai">set_var</span>
+          <span class="tag ai">sub_workflow</span>
+          <span class="tag ai">noop</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 02 -->
+  <div class="section">
+    <div class="section-eyebrow">02 / 申請指南</div>
+    <div class="section-title">4 個新整合 — 怎麼拿到 API Key</div>
+
+    <!-- Line Notify -->
+    <div class="apply-card">
+      <div class="ac-header">
+        <span class="ac-icon">💬</span>
+        <span class="ac-title">Line Notify Token</span>
+        <span class="ac-free">免費</span>
+      </div>
+      <div class="card-label">申請步驟</div>
+      <ol class="step-list">
+        <li>前往 <strong>notify-bot.line.me/my</strong> 並登入 Line 帳號</li>
+        <li>點選「Generate token」</li>
+        <li>命名 token（建議：Kai 通知）→ 選擇接收頻道（1 對 1 或群組）</li>
+        <li>複製生成的 token（只顯示一次，請立即存好）</li>
+      </ol>
+      <div class="env-block">
+        <span class="env-comment"># 加到 backend/.env</span><br>
+        LINE_NOTIFY_TOKEN=<span class="cs">your_token_here</span>
+      </div>
+      <div class="fee-line">費用：<strong>完全免費</strong>，無流量限制</div>
+    </div>
+
+    <!-- Twilio -->
+    <div class="apply-card">
+      <div class="ac-header">
+        <span class="ac-icon">📱</span>
+        <span class="ac-title">Twilio SMS</span>
+        <span class="ac-paid">試用 $15 免費</span>
+      </div>
+      <div class="card-label">申請步驟</div>
+      <ol class="step-list">
+        <li>前往 <strong>twilio.com/try-twilio</strong> 註冊免費試用帳號</li>
+        <li>進入 Console → 取得 Account SID + Auth Token</li>
+        <li>取得測試發送號碼（免費帳號提供 1 組）</li>
+        <li>驗證要發送的目標號碼（試用帳號限制，需先驗證接收方）</li>
+      </ol>
+      <div class="env-block">
+        TWILIO_ACCOUNT_SID=<span class="cs">ACxxxxxxxxxxxxxxxx</span><br>
+        TWILIO_AUTH_TOKEN=<span class="cs">your_auth_token</span><br>
+        TWILIO_FROM=<span class="cs">+1XXXXXXXXXX</span>
+      </div>
+      <div class="fee-line">費用：試用帳號含 <strong>$15 美元額度</strong>，之後 SMS 約 <strong>$0.0079 / 則</strong>（台灣國際簡訊略高）</div>
+    </div>
+
+    <!-- Mailchimp -->
+    <div class="apply-card">
+      <div class="ac-header">
+        <span class="ac-icon">🐵</span>
+        <span class="ac-title">Mailchimp</span>
+        <span class="ac-free">500 聯絡人免費</span>
+      </div>
+      <div class="card-label">申請步驟</div>
+      <ol class="step-list">
+        <li>前往 <strong>mailchimp.com</strong> 選擇免費方案（500 聯絡人 / 1000 封/月）</li>
+        <li>完成帳號設定後，進入 Account → Extras → API Keys</li>
+        <li>點選「Create A Key」→ 複製 API Key</li>
+        <li>注意 Key 尾端的 <strong>-us1</strong>（server prefix），不同帳號可能是 us2、us6 等</li>
+      </ol>
+      <div class="env-block">
+        MAILCHIMP_API_KEY=<span class="cs">xxxxxxxxxxxxxxxx-us1</span><br>
+        <span class="env-comment"># list_id 在 Audience &rarr; Settings &rarr; Audience name and defaults 找到</span>
+      </div>
+      <div class="fee-line">費用：<strong>免費方案</strong>（500 聯絡人 / 月 1000 封）對中小型業務完全夠用</div>
+    </div>
+
+    <!-- Stripe -->
+    <div class="apply-card">
+      <div class="ac-header">
+        <span class="ac-icon">💳</span>
+        <span class="ac-title">Stripe</span>
+        <span class="ac-paid">按交易收費</span>
+      </div>
+      <div class="card-label">申請步驟</div>
+      <ol class="step-list">
+        <li>前往 <strong>stripe.com</strong>（台灣可申請，需填公司或個人資料）</li>
+        <li>完成身份驗證後，進入 Dashboard → Developers → API Keys</li>
+        <li>取得 Secret key（<strong>sk_live_xxx</strong> 正式環境 / sk_test_xxx 測試）</li>
+        <li>Publishable key（pk_live_xxx）供前端使用</li>
+      </ol>
+      <div class="env-block">
+        STRIPE_SECRET_KEY=<span class="cs">sk_live_xxxxxxxxxxxxx</span><br>
+        STRIPE_PUBLISHABLE_KEY=<span class="cs">pk_live_xxxxxxxxxxxxx</span>
+      </div>
+      <div class="fee-line">費用：<strong>每筆 2.9% + $0.30 USD</strong>（無月費，無固定成本）</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 03 -->
+  <div class="section">
+    <div class="section-eyebrow">03 / 串聯邏輯</div>
+    <div class="section-title">Workflow 的思考方式</div>
+
+    <div class="card">
+      <div class="card-label">核心概念</div>
+      <div class="concept-box">
+        Kai Flows 的每個 step 都可以把輸出存到變數，下一個 step 用 <strong>{{變數名}}</strong> 引用。這樣就能把資料從一個 action 傳到下一個，形成完整的自動化管道。每個 step 的 <strong>id</strong> 就是變數名稱，用 <strong>{{step_id.data}}</strong> 或 <strong>{{step_id.output}}</strong> 取得結果。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">三段式管道架構</div>
+      <div class="pipeline">
+        <div class="pipe-stage">
+          <div class="pipe-label">觸發 / 資料來源</div>
+          <div class="pipe-box">RSS</div>
+          <div class="pipe-box">Stripe 訂單</div>
+          <div class="pipe-box">表單資料</div>
+        </div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage">
+          <div class="pipe-label">處理 / 判斷</div>
+          <div class="pipe-box">condition</div>
+          <div class="pipe-box">set_var</div>
+          <div class="pipe-box">agent（AI）</div>
+        </div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage">
+          <div class="pipe-label">通知 / 記錄</div>
+          <div class="pipe-box">Discord + Line</div>
+          <div class="pipe-box">Mailchimp + Email</div>
+          <div class="pipe-box">Notion + SMS</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">變數傳遞範例</div>
+      <div class="code-block">
+<span class="cc"># Step 1 的 id 是 "fetch_data"，結果存在 {{fetch_data.data}}</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">fetch_data</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">http_request</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">url</span>: <span class="cs">https://api.example.com/data</span><br>
+<br>
+<span class="cc"># Step 2 用 {{fetch_data.data}} 取得上一步的結果</span><br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">process</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">agent</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">prompt</span>: <span class="cs">"分析這份資料：{{fetch_data.data}}"</span><br>
+<br>
+<span class="cc"># Step 3 用 {{process.output}} 取得 AI 分析結果</span><br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">notify</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">message</span>: <span class="cs">"分析結果：{{process.output}}"</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 04 -->
+  <div class="section">
+    <div class="section-eyebrow">04 / 電商應用</div>
+    <div class="section-title">TheOrder — 訂單自動化</div>
+
+    <div class="card">
+      <div class="card-title">新訂單 → Line + SMS 雙通知</div>
+      <div class="card-label">Order Notify Workflow</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">order_notify</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">fetch_order</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">http_request</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">method</span>: <span class="cs">GET</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">url</span>: <span class="cs">https://theorder.tw/api/store/orders</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">notify_line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">token</span>: <span class="cs">"{{env.LINE_NOTIFY_TOKEN}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">message</span>: <span class="cs">"&#x1F6CD; 新訂單！{{fetch_order.data.0.id}}"</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">notify_sms</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">twilio</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">to</span>: <span class="cs">"+886912345678"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">body</span>: <span class="cs">"序位電商：收到新訂單，請確認出貨"</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">顧客下單 → 自動加入 Mailchimp 行銷名單</div>
+      <div class="card-label">Customer Subscribe Workflow</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">customer_subscribe</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">add_to_list</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">mailchimp</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">op</span>: <span class="cs">add_member</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">list_id</span>: <span class="cs">"{{env.MC_LIST_ID}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">email</span>: <span class="cs">"{{trigger.customer_email}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">first_name</span>: <span class="cs">"{{trigger.customer_name}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">tags</span>: [<span class="cs">"theorder"</span>, <span class="cs">"新顧客"</span>]<br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">confirm_discord</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">discord</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">message</span>: <span class="cs">"&#x2705; 顧客 {{trigger.customer_email}} 已加入行銷名單"</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">月底 Stripe 收款 → AI 對帳報告</div>
+      <div class="card-label">Monthly Revenue Workflow</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">monthly_revenue</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">fetch_payments</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">stripe</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">op</span>: <span class="cs">list_payments</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">limit</span>: <span class="cv">100</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">report</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">agent</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">prompt</span>: <span class="cs">"分析這些 Stripe 付款記錄，摘要本月收入：{{fetch_payments.data}}"</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">send_report</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">email</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">to</span>: <span class="cs">"asdapper8866@gmail.com"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">subject</span>: <span class="cs">"月收入報告"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">body</span>: <span class="cs">"{{report.output}}"</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 05 -->
+  <div class="section">
+    <div class="section-eyebrow">05 / 教育應用</div>
+    <div class="section-title">BankExamQuiz — 學員自動化</div>
+
+    <div class="card">
+      <div class="card-title">新購買 → Line 歡迎訊息 + Notion 記錄</div>
+      <div class="card-label">Welcome Student Workflow</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">welcome_student</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">send_line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">message</span>: <span class="cs">"&#x1F393; 歡迎加入！你的筆記已開通，點此下載：{{trigger.download_url}}"</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">record_notion</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">notion</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">op</span>: <span class="cs">create_page</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">database_id</span>: <span class="cs">"{{env.NOTION_STUDENTS_DB}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">properties</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">Email</span>: <span class="cs">"{{trigger.email}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">購買日期</span>: <span class="cs">"{{trigger.date}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">方案</span>: <span class="cs">"{{trigger.plan}}"</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">每週一發送學習提醒 Email</div>
+      <div class="card-label">Weekly Reminder Workflow — cron: 0 9 * * 1（每週一 09:00）</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">weekly_reminder</span><br>
+<span class="cc"># cron: 0 9 * * 1  (每週一 09:00)</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">get_students</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">mailchimp</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">op</span>: <span class="cs">list_members</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">list_id</span>: <span class="cs">"{{env.MC_LIST_ID}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">limit</span>: <span class="cv">500</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">remind</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">email</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">to</span>: <span class="cs">"{{get_students.data}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">subject</span>: <span class="cs">"本週銀行考試重點提醒"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">body</span>: <span class="cs">"堅持學習，你離上榜又近了一步！"</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 06 -->
+  <div class="section">
+    <div class="section-eyebrow">06 / 團隊應用</div>
+    <div class="section-title">Kai 內部 — AI 團隊自動化</div>
+
+    <div class="card">
+      <div class="card-title">每日 AI 新聞 → 自動摘要 → Line 推播</div>
+      <div class="card-label">AI News Brief — cron: 0 8 * * *（每天 08:00）</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">ai_news_brief</span><br>
+<span class="cc"># cron: 0 8 * * *  (每天早上 8 點)</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">fetch_news</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">rss</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">url</span>: <span class="cs">https://feeds.feedburner.com/techcrunch</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">limit</span>: <span class="cv">5</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">summarize</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">agent</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">prompt</span>: <span class="cs">"用繁體中文摘要這 5 則 AI 新聞，每則 2 句：{{fetch_news.items}}"</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">push_line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">line</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">message</span>: <span class="cs">"&#x1F4F0; 今日 AI 快訊\n{{summarize.output}}"</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">每日任務完成摘要 → Notion 日誌</div>
+      <div class="card-label">Daily Task Log — cron: 0 23 * * *（每天 23:00）</div>
+      <div class="code-block">
+<span class="ck">name</span>: <span class="cs">daily_task_log</span><br>
+<span class="cc"># cron: 0 23 * * *  (每天 23:00)</span><br>
+<span class="ck">steps</span>:<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">fetch_tasks</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">http_request</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">method</span>: <span class="cs">GET</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">url</span>: <span class="cs">http://127.0.0.1:5002/api/tasks?status=done</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">summarize</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">agent</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">prompt</span>: <span class="cs">"摘要今日完成的任務：{{fetch_tasks.data}}"</span><br>
+<br>
+&nbsp;&nbsp;- <span class="ck">id</span>: <span class="cs">save_notion</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">action</span>: <span class="ca">notion</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">op</span>: <span class="cs">create_page</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">database_id</span>: <span class="cs">"{{env.NOTION_LOG_DB}}"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">properties</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">日期</span>: <span class="cs">"today"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ck">摘要</span>: <span class="cs">"{{summarize.output}}"</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 07 -->
+  <div class="section">
+    <div class="section-eyebrow">07 / 上手路徑</div>
+    <div class="section-title">建議從哪個開始</div>
+
+    <div class="grid-2">
+      <div class="priority-card" style="grid-column:1/-1">
+        <span class="priority-badge">&#x1F947;</span>
+        <div class="priority-title">先做 Line Notify — 最快，5 分鐘搞定</div>
+        <div class="priority-desc">
+          完全免費，不需要信用卡。申請 token → 加到 .env → 建 workflow 測試，全程不超過 5 分鐘。<br><br>
+          建議用途：把所有通知改用 Line 接收，比 Discord 更適合手機即時查看。OrderNotify、AI 新聞快訊、任務完成提醒都可以走 Line。
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:12px">
+          <span class="priority-tag tag-free">免費</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--grey-02)">notify-bot.line.me/my</span>
+        </div>
+      </div>
+
+      <div class="priority-card">
+        <span class="priority-badge">&#x1F948;</span>
+        <div class="priority-title">再做 Mailchimp — TheOrder / 銀行考古題必備</div>
+        <div class="priority-desc">
+          免費方案（500 聯絡人）對目前規模完全夠用。新顧客自動加名單，後續可發行銷郵件。與 Stripe 配合可做完整電商自動化：購買 → 加名單 → 自動歡迎序列。
+        </div>
+        <span class="priority-tag tag-free">免費方案</span>
+      </div>
+
+      <div class="priority-card">
+        <span class="priority-badge">&#x1F949;</span>
+        <div class="priority-title">Stripe — 有需要時再加</div>
+        <div class="priority-desc">
+          目前 TheOrder 已使用 ECPay（台灣在地金流）。Stripe 適合有國際顧客、需要訂閱制管理、或要自動發票的場景。不急，等有國際化需求再申請即可。
+        </div>
+        <span class="priority-tag tag-later">之後</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 08 -->
+  <div class="section">
+    <div class="section-eyebrow">08 / 參考</div>
+    <div class="section-title">28 種 Action 快速參考</div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>用途</th>
+              <th>必填參數</th>
+              <th>認證方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>http_request</td><td>HTTP 請求（GET/POST/PUT）</td><td class="req">method, url</td><td class="auth">—</td></tr>
+            <tr><td>email</td><td>寄送電子郵件</td><td class="req">to, subject, body</td><td class="auth">Gmail env</td></tr>
+            <tr><td>discord</td><td>發送 Discord 訊息</td><td class="req">message</td><td class="auth">Bot token env</td></tr>
+            <tr><td>telegram</td><td>發送 Telegram 訊息</td><td class="req">message</td><td class="auth">Bot token env</td></tr>
+            <tr><td>slack</td><td>發送 Slack 訊息</td><td class="req">message</td><td class="auth">webhook_url 或 token</td></tr>
+            <tr><td>line</td><td>Line Notify 推播</td><td class="req">message</td><td class="auth">token env</td></tr>
+            <tr><td>twilio</td><td>發送 SMS 簡訊</td><td class="req">to, body</td><td class="auth">account_sid, auth_token</td></tr>
+            <tr><td>agent</td><td>呼叫 Claude AI Agent</td><td class="req">prompt</td><td class="auth">Claude API env</td></tr>
+            <tr><td>openclaw</td><td>呼叫 OpenClaw Agent</td><td class="req">agent, message</td><td class="auth">OpenClaw env</td></tr>
+            <tr><td>command</td><td>執行 Shell 指令</td><td class="req">command</td><td class="auth">—</td></tr>
+            <tr><td>code</td><td>執行 Python 程式片段</td><td class="req">code</td><td class="auth">—</td></tr>
+            <tr><td>notion</td><td>讀寫 Notion 資料庫</td><td class="req">op, database_id</td><td class="auth">NOTION_TOKEN env</td></tr>
+            <tr><td>airtable</td><td>讀寫 Airtable 表格</td><td class="req">op, base_id, table</td><td class="auth">AIRTABLE_TOKEN env</td></tr>
+            <tr><td>mailchimp</td><td>郵件行銷名單管理</td><td class="req">op, api_key, list_id</td><td class="auth">api_key</td></tr>
+            <tr><td>stripe</td><td>金流查詢 / 付款管理</td><td class="req">op, secret_key</td><td class="auth">secret_key</td></tr>
+            <tr><td>github</td><td>GitHub API（Issues/PR/Repo）</td><td class="req">op, repo</td><td class="auth">token env</td></tr>
+            <tr><td>redis</td><td>Redis KV 快取讀寫</td><td class="req">op, key</td><td class="auth">Redis env</td></tr>
+            <tr><td>supabase</td><td>Supabase DB 操作</td><td class="req">op, table</td><td class="auth">url, key env</td></tr>
+            <tr><td>sheets</td><td>Google Sheets 讀寫</td><td class="req">op, spreadsheet_id</td><td class="auth">sa_json env</td></tr>
+            <tr><td>r2_upload</td><td>上傳檔案到 Cloudflare R2</td><td class="req">key, content</td><td class="auth">R2 env</td></tr>
+            <tr><td>rss</td><td>抓取 RSS Feed 最新條目</td><td class="req">url</td><td class="auth">—</td></tr>
+            <tr><td>notify</td><td>macOS 桌面通知</td><td class="req">title, message</td><td class="auth">—</td></tr>
+            <tr><td>condition</td><td>條件分支（if/then/else）</td><td class="req">if, then</td><td class="auth">—</td></tr>
+            <tr><td>parallel</td><td>並行執行多個 steps</td><td class="req">steps</td><td class="auth">—</td></tr>
+            <tr><td>wait</td><td>等待 N 秒後繼續</td><td class="req">seconds</td><td class="auth">—</td></tr>
+            <tr><td>set_var</td><td>設定 / 轉換變數值</td><td class="req">var, value</td><td class="auth">—</td></tr>
+            <tr><td>sub_workflow</td><td>呼叫子 Workflow</td><td class="req">workflow</td><td class="auth">—</td></tr>
+            <tr><td>noop</td><td>不做任何事（佔位符）</td><td class="req">—</td><td class="auth">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 09 -->
+  <div class="section">
+    <div class="section-eyebrow">09 / 下一步</div>
+    <div class="section-title">今天就能做的事</div>
+
+    <div class="card">
+      <ul class="checklist">
+        <li>
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            申請 Line Notify Token（5 分鐘，免費）
+            <span class="cl-link">notify-bot.line.me/my</span>
+          </span>
+        </li>
+        <li>
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            把 <span class="inline-code">LINE_NOTIFY_TOKEN</span> 加到 backend/.env
+            <span class="cl-note">Kai backend 重啟後生效</span>
+          </span>
+        </li>
+        <li>
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            在 Kai Flows 建第一個 Line 通知 workflow 做功能測試
+            <span class="cl-note">建議用 order_notify 範例開始</span>
+          </span>
+        </li>
+        <li>
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            申請 Mailchimp 免費帳號，取得 API Key
+            <span class="cl-link">mailchimp.com &rarr; 免費方案</span>
+          </span>
+        </li>
+        <li>
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            建立 <span class="inline-code">customer_subscribe</span> workflow 給 TheOrder
+            <span class="cl-note">新顧客購買自動加入行銷名單</span>
+          </span>
+        </li>
+        <li class="later">
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            （之後）Twilio 試用帳號 → SMS 通知測試
+            <span class="cl-note">有 $15 美元試用額度，不急</span>
+          </span>
+        </li>
+        <li class="later">
+          <span class="box">&#x25A1;</span>
+          <span class="cl-text">
+            （之後）Stripe → 等有國際金流需求再申請
+            <span class="cl-note">目前 TheOrder 使用 ECPay，台灣市場夠用</span>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  KAI FLOWS &nbsp;&middot;&nbsp; INTEGRATION GUIDE &nbsp;&middot;&nbsp; 2026.03.10 &nbsp;&middot;&nbsp; Rain AI Team
+</div>
+
+</body>
+</html>

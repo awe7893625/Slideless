@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黑客松冠軍配置 vs Rain AI Team — 深度分析與升級方案</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-alt: #efeee9;
+    --border: #d8d6cf;
+    --text: #1a1a1a;
+    --text-muted: #6b6960;
+    --accent: #3b5bdb;
+    --accent-dim: rgba(59,91,219,0.08);
+    --red: #e03131;
+    --red-dim: rgba(224,49,49,0.08);
+    --amber: #e67700;
+    --amber-dim: rgba(230,119,0,0.08);
+    --green: #2b8a3e;
+    --green-dim: rgba(43,138,62,0.08);
+    --cyan: #0c8599;
+    --cyan-dim: rgba(12,133,153,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans TC', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1.25rem;
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
+  .header-tag { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); padding: 0.25rem 0.75rem; border-radius: 999px; margin-bottom: 0.75rem; }
+  h1 { font-size: 1.6rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.35rem; }
+  .subtitle { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* Section */
+  h2 { font-size: 1.15rem; font-weight: 700; margin: 2.25rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+  h3 { font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.5rem; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 0.75rem; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-red { border-left: 3px solid var(--red); }
+  .card-green { border-left: 3px solid var(--green); }
+  .card-amber { border-left: 3px solid var(--amber); }
+
+  /* Stat Grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+  .stat-value { font-size: 1.8rem; font-weight: 800; line-height: 1.2; }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .v-accent { color: var(--accent); }
+  .v-green { color: var(--green); }
+  .v-red { color: var(--red); }
+  .v-amber { color: var(--amber); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin-bottom: 1rem; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 600px; }
+  th { background: var(--surface-alt); font-weight: 700; text-align: left; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(59,91,219,0.03); }
+
+  /* Tags */
+  .tag { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+  .tag-win { background: var(--green-dim); color: var(--green); }
+  .tag-lose { background: var(--red-dim); color: var(--red); }
+  .tag-tie { background: var(--amber-dim); color: var(--amber); }
+  .tag-veto { background: var(--red-dim); color: var(--red); font-weight: 800; }
+  .tag-pass { background: var(--green-dim); color: var(--green); }
+  .tag-cond { background: var(--amber-dim); color: var(--amber); }
+
+  /* Badge / Verdict */
+  .verdict { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin: 1rem 0; }
+  .verdict-pass { background: var(--green-dim); color: var(--green); border: 1px solid rgba(43,138,62,0.2); }
+  .verdict-cond { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(230,119,0,0.2); }
+  .verdict-veto { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,49,49,0.15); }
+
+  /* Phase timeline */
+  .timeline { position: relative; padding-left: 1.75rem; margin: 1rem 0; }
+  .timeline::before { content:''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem; width: 2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 1rem; }
+  .tl-item::before { content:''; position: absolute; left: -1.45rem; top: 0.45rem; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg); }
+  .tl-item.done::before { background: var(--accent); }
+  .tl-title { font-weight: 700; font-size: 0.85rem; }
+  .tl-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Bar chart */
+  .bar-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .bar-label { font-size: 0.78rem; width: 110px; flex-shrink: 0; text-align: right; color: var(--text-muted); }
+  .bar-track { flex: 1; height: 22px; background: var(--surface-alt); border-radius: 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 0.5rem; font-size: 0.7rem; font-weight: 700; color: #fff; transition: width 0.6s ease; }
+  .bar-rain { background: var(--accent); }
+  .bar-champ { background: var(--cyan); }
+
+  /* Quote */
+  blockquote { border-left: 3px solid var(--accent); padding: 0.75rem 1rem; background: var(--accent-dim); border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.85rem; color: var(--text-muted); }
+  blockquote strong { color: var(--text); }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    body { padding: 1.25rem 1rem; }
+    h1 { font-size: 1.3rem; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-value { font-size: 1.4rem; }
+    .bar-label { width: 80px; font-size: 0.72rem; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card { break-inside: avoid; }
+  }
+
+  .section-intro { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+  .footnote { font-size: 0.75rem; color: var(--text-muted); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul, ol { padding-left: 1.25rem; margin: 0.5rem 0; }
+  li { margin-bottom: 0.25rem; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-tag">Architecture Analysis</span>
+  <h1>黑客松冠軍配置 vs Rain AI Team</h1>
+  <div class="subtitle">深度解析 everything-claude-code 架構 &middot; Ray Phase 3 設計審查 &middot; 升級路線圖 &middot; 2026-03-13</div>
+</div>
+
+<!-- ===== 概覽 ===== -->
+<h2>Executive Summary</h2>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value v-accent">74K+</div><div class="stat-label">冠軍 Repo Stars</div></div>
+  <div class="stat"><div class="stat-value v-green">28</div><div class="stat-label">Rain 團隊 Agents</div></div>
+  <div class="stat"><div class="stat-value v-amber">3</div><div class="stat-label">可升級項目</div></div>
+  <div class="stat"><div class="stat-value v-green">&lt;120</div><div class="stat-label">行程式碼即可完成</div></div>
+</div>
+
+<div class="card card-accent">
+  <strong>結論</strong>：冠軍贏在「自動化學習閉環」，但 Rain 團隊在組織架構、審查流程、任務管理上已遠超。Ray 否決了直接移植 Observer daemon，改用輕量方案修補現有管線斷裂點 — 只需 &lt;120 行程式碼、2-3 小時即可完成。
+</div>
+
+<!-- ===== 冠軍架構 ===== -->
+<h2>冠軍配置架構拆解</h2>
+<p class="section-intro">Affaan Mustafa — Anthropic x Forum Ventures 黑客松冠軍（$15K API credits），10+ 月持續迭代</p>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value">16</div><div class="stat-label">Specialized Agents</div></div>
+  <div class="stat"><div class="stat-value">65+</div><div class="stat-label">Skills</div></div>
+  <div class="stat"><div class="stat-value">40+</div><div class="stat-label">Slash Commands</div></div>
+  <div class="stat"><div class="stat-value">997</div><div class="stat-label">Tests Passing</div></div>
+</div>
+
+<h3>核心創新：Continuous Learning v2</h3>
+<div class="card">
+  <p style="font-size:0.85rem;">冠軍的殺手級功能 — 自動學習系統，將 session 工作轉化為可復用知識：</p>
+  <div class="timeline" style="margin-top:1rem;">
+    <div class="tl-item done"><div class="tl-title">Hook 自動捕捉</div><div class="tl-meta">PostToolUse hook 記錄 Edit/Write/Read/Bash events → observations.jsonl</div></div>
+    <div class="tl-item done"><div class="tl-title">Observer Agent 分析</div><div class="tl-meta">Haiku daemon 背景執行，SIGUSR1 觸發，提取重複模式</div></div>
+    <div class="tl-item done"><div class="tl-title">Instinct 提取</div><div class="tl-meta">原子行為單位 + confidence score + domain tag（code-style/testing/git/debugging）</div></div>
+    <div class="tl-item done"><div class="tl-title">Confidence Decay</div><div class="tl-meta">instinct 被反駁時信心分數下降，自動淘汰過時模式</div></div>
+    <div class="tl-item"><div class="tl-title">/evolve 聚類</div><div class="tl-meta">累積 instincts → 自動生成新 skill，可 import/export 團隊共享</div></div>
+  </div>
+</div>
+
+<h3>其他特色</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>功能</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Hook Profiles</strong></td><td><code>minimal|standard|strict</code> 三級切換 + <code>ECC_DISABLED_HOOKS</code> 臨時停用</td></tr>
+    <tr><td><strong>Dynamic Contexts</strong></td><td><code>contexts/</code> 目錄：dev.md / review.md / research.md，按任務類型載入</td></tr>
+    <tr><td><strong>NanoClaw v2</strong></td><td>Model routing + hot-load skills，跨 harness 相容</td></tr>
+    <tr><td><strong>PM2 Orchestration</strong></td><td>多 agent 進程管理，6 個新 commands</td></tr>
+    <tr><td><strong>Cross-Harness</strong></td><td>同一配置跑在 Claude Code / Cursor / OpenCode / Codex CLI</td></tr>
+    <tr><td><strong>Plugin Marketplace</strong></td><td>自託管 marketplace.json，一鍵安裝</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===== 對比 ===== -->
+<h2>架構對照：10 維度比較</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>維度</th><th>冠軍配置</th><th>Rain AI Team</th><th>判斷</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Agent 數量</td><td>16（功能導向）</td><td>28+（組織部門制）</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>Skills</td><td>65+ 跨語言</td><td>110+ 業務覆蓋</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>Review 流程</td><td>單 agent reviewer</td><td>3 層（Quill→Forge→Ray）+ Sentinel</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>Planning</td><td>planner + architect</td><td>3-Phase + veto 權</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>Task Board</td><td>無</td><td>Kai 中控台（完整生命週期）</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>External Agents</td><td>無</td><td>OpenClaw Tier 3</td><td><span class="tag tag-win">Rain 勝</span></td></tr>
+    <tr><td>自動學習</td><td>CL v2（daemon + instincts + evolve）</td><td>手動 lessons.md</td><td><span class="tag tag-lose">冠軍勝</span></td></tr>
+    <tr><td>Hook 控制</td><td>Profile + Disabled hooks</td><td>已有 Profile，缺 Disabled</td><td><span class="tag tag-tie">略平</span></td></tr>
+    <tr><td>Config 測試</td><td>997 tests</td><td>0 tests</td><td><span class="tag tag-lose">冠軍勝</span></td></tr>
+    <tr><td>跨工具相容</td><td>4 harness</td><td>Claude Code only</td><td><span class="tag tag-lose">冠軍勝</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>視覺化強度對比</h3>
+<div class="card">
+  <div class="bar-row"><div class="bar-label">組織架構</div><div class="bar-track"><div class="bar-fill bar-rain" style="width:95%">Rain 95%</div></div></div>
+  <div class="bar-row"><div class="bar-label">審查流程</div><div class="bar-track"><div class="bar-fill bar-rain" style="width:90%">Rain 90%</div></div></div>
+  <div class="bar-row"><div class="bar-label">任務管理</div><div class="bar-track"><div class="bar-fill bar-rain" style="width:92%">Rain 92%</div></div></div>
+  <div class="bar-row"><div class="bar-label">外部整合</div><div class="bar-track"><div class="bar-fill bar-rain" style="width:85%">Rain 85%</div></div></div>
+  <div class="bar-row"><div class="bar-label">自動學習</div><div class="bar-track"><div class="bar-fill bar-champ" style="width:88%">冠軍 88%</div></div></div>
+  <div class="bar-row"><div class="bar-label">Hook 彈性</div><div class="bar-track"><div class="bar-fill bar-champ" style="width:70%">冠軍 70%</div></div></div>
+  <div class="bar-row"><div class="bar-label">Config 品質</div><div class="bar-track"><div class="bar-fill bar-champ" style="width:80%">冠軍 80%</div></div></div>
+</div>
+
+<!-- ===== Ray 審查 ===== -->
+<h2>Ray Phase 3 設計審查</h2>
+
+<div class="verdict verdict-cond">&#9888;&#65039; 有條件通過 — 採用輕量替代方案，不移植 Observer daemon</div>
+
+<h3>1. 風險評估</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>風險</th><th>嚴重度</th><th>功能</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>Observations 安全洩漏</td><td><span class="tag tag-veto">HIGH</span></td><td>CL v2</td><td>PostToolUse 捕捉的 events 含 credentials，不在 Sentinel 掃描範圍</td></tr>
+    <tr><td>R2</td><td>Observer daemon 成本失控</td><td><span class="tag tag-veto">HIGH</span></td><td>CL v2</td><td>28 agents 產出量 + Haiku 常駐，每月估 $50-100+</td></tr>
+    <tr><td>R3</td><td>多 agent 併發寫入</td><td><span class="tag tag-cond">MEDIUM</span></td><td>CL v2</td><td>PID lock 設計為單進程，worktree 並行時不足</td></tr>
+    <tr><td>R4</td><td>知識管線衝突</td><td><span class="tag tag-cond">MEDIUM</span></td><td>CL v2</td><td>自動 instincts 與手動 lessons.md 形成兩套平行系統</td></tr>
+    <tr><td>R5</td><td>安全 hook 誤停</td><td><span class="tag tag-pass">LOW</span></td><td>Hook Profile</td><td>ECC_DISABLED_HOOKS 若可停用 scan-secrets = 繞過 Sentinel</td></tr>
+    <tr><td>R6</td><td>Context 膨脹</td><td><span class="tag tag-cond">MEDIUM</span></td><td>Dyn. Contexts</td><td>28 agents 角色不同，錯誤 context 導致 token 浪費</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>2. Skeptic Check</h3>
+
+<div class="card card-red">
+  <h3 style="margin-top:0;">&#10060; Observer daemon — Ray 否決</h3>
+  <blockquote><strong>「真正的瓶頸不是觀察不夠多，而是搬運不發生。」</strong><br>27 條 lessons + 8 條 speed-improvements 的資料量足夠，問題在於沒人執行從 speed-improvements.md → SKILL.md 的升級。用一個 hook 修改 + 一個 LaunchAgent 即可修復，不需要 daemon。</blockquote>
+  <ul>
+    <li><strong>安全風險</strong>：observations.jsonl 含敏感資料，成為新攻擊面</li>
+    <li><strong>成本問題</strong>：28 agents 觀察量遠超單人使用設計</li>
+    <li><strong>解錯問題</strong>：核心問題是「搬運不發生」，不是「觀察不夠」</li>
+  </ul>
+</div>
+
+<div class="card card-green">
+  <h3 style="margin-top:0;">&#9989; Hook Profile — 已實作</h3>
+  <p style="font-size:0.85rem;">Ray 查完 <code>hook-utils.sh</code> 後發現：<strong>已有 <code>ECC_HOOK_PROFILE</code> + <code>should_run()</code> + 三級分類表</strong>。所有 standard 級 hook 已在使用。只需補一個 <code>is_disabled()</code> 函式（~15 行）。</p>
+</div>
+
+<div class="card card-amber">
+  <h3 style="margin-top:0;">&#9888;&#65039; Dynamic Contexts — 有條件通過</h3>
+  <p style="font-size:0.85rem;">不建扁平 <code>contexts/</code> 目錄。改用 <code>session-start.sh</code> 根據 agent name 注入角色專屬 SKILL.md 摘要 — 更適合 28-agent 組織。開發量 < 半天。</p>
+</div>
+
+<!-- ===== 替代方案 ===== -->
+<h2>批准方案：4 個輕量修改</h2>
+<p class="section-intro">Ray 批准的替代方案 — 直接解決核心問題，無新 daemon、無新成本、無新攻擊面</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>優先級</th><th>改動</th><th>檔案</th><th>效益</th><th>工作量</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="tag tag-veto">P0</span></td>
+      <td><strong>SKILL_DELTA 自動搬運</strong><br><code>require-session-review.sh</code> 偵測到 <code>[SKILL_DELTA]</code> 時自動寫入 speed-improvements.md</td>
+      <td><code>~/.claude/hooks/<br>require-session-review.sh</code></td>
+      <td>修復知識閉環斷裂點</td>
+      <td>~30 行</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-veto">P0</span></td>
+      <td><strong>升級逾期提醒</strong><br>每天 09:00 檢查 speed-improvements.md 逾期條目 → Discord 通知 Quill</td>
+      <td><code>LaunchAgent plist<br>+ Python script</code></td>
+      <td>確保升級執行</td>
+      <td>~50 行</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-cond">P1</span></td>
+      <td><strong>Hook is_disabled()</strong><br><code>hook-utils.sh</code> 加精細停用控制，scan-secrets 硬性不可停用</td>
+      <td><code>~/.claude/hooks/<br>hook-utils.sh</code></td>
+      <td>補齊 Hook Profile</td>
+      <td>~15 行</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-cond">P1</span></td>
+      <td><strong>角色 Context 注入</strong><br><code>session-start.sh</code> 根據 agent name 注入角色摘要</td>
+      <td><code>~/.claude/hooks/<br>session-start.sh</code></td>
+      <td>輕量 Dynamic Contexts</td>
+      <td>~20 行</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card card-accent">
+  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--accent);">&lt;120</div><div style="font-size:0.75rem;color:var(--text-muted);">行程式碼</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--green);">2-3h</div><div style="font-size:0.75rem;color:var(--text-muted);">完成時間</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--green);">$0</div><div style="font-size:0.75rem;color:var(--text-muted);">新增月成本</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--green);">0</div><div style="font-size:0.75rem;color:var(--text-muted);">新攻擊面</div></div>
+  </div>
+</div>
+
+<!-- ===== 路線圖 ===== -->
+<h2>實作路線圖</h2>
+
+<div class="timeline">
+  <div class="tl-item">
+    <div class="tl-title">Phase A：知識閉環強化 <span class="tag tag-veto">P0</span></div>
+    <div class="tl-meta">Max 修 hook + Forge 建 LaunchAgent｜預計 2-3 小時</div>
+    <ul style="margin-top:0.35rem;">
+      <li>A1: 修改 <code>require-session-review.sh</code> — SKILL_DELTA 自動搬運</li>
+      <li>A2: 建立 <code>ai.rain.skill-upgrade-reminder</code> LaunchAgent</li>
+      <li>A3: 測試模擬含 SKILL_DELTA 的 session review</li>
+    </ul>
+  </div>
+  <div class="tl-item">
+    <div class="tl-title">Phase B：Hook 精細控制 <span class="tag tag-cond">P1</span></div>
+    <div class="tl-meta">Max + John｜預計 1 小時</div>
+    <ul style="margin-top:0.35rem;">
+      <li>B1: <code>hook-utils.sh</code> 加 <code>is_disabled()</code>（安全 hook 不可停用）</li>
+      <li>B2: 所有 standard hook 加 <code>is_disabled</code> 呼叫</li>
+      <li>B3: 驗證 scan-secrets 不可被停用</li>
+    </ul>
+  </div>
+  <div class="tl-item">
+    <div class="tl-title">Phase C：角色 Context 注入 <span class="tag tag-cond">P1</span></div>
+    <div class="tl-meta">Max + Scout（spec）｜預計 1 小時</div>
+    <ul style="margin-top:0.35rem;">
+      <li>C1: <code>session-start.sh</code> 加 agent name detection + SKILL.md 注入</li>
+      <li>C2: 建立 agent-context mapping</li>
+      <li>C3: 多角色測試驗證</li>
+    </ul>
+  </div>
+  <div class="tl-item">
+    <div class="tl-title">Phase D：Confidence Decay 概念 <span class="tag tag-pass">P2</span></div>
+    <div class="tl-meta">Nova（docs）｜預計 0.5 小時</div>
+    <ul style="margin-top:0.35rem;">
+      <li>D1: 文件化 lessons.md 的 P/G 標記規範</li>
+      <li>D2: cron 過濾 G=Y 條目提示清理</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 否決項 ===== -->
+<h2>否決項目</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>項目</th><th>Ray 判斷</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>Observer daemon</td><td><span class="tag tag-veto">VETO</span></td><td>安全 HIGH + 成本 $50-100/月 + 解錯問題</td></tr>
+    <tr><td>observations.jsonl 儲存體系</td><td><span class="tag tag-veto">VETO</span></td><td>28-agent 併發維護成本過高</td></tr>
+    <tr><td>/evolve 自動聚類</td><td><span class="tag tag-cond">延後</span></td><td>資料量不夠（27 條），30+ 條再評估</td></tr>
+    <tr><td>Import/Export instincts</td><td><span class="tag tag-veto">VETO</span></td><td>已有 CLAUDE.md + rules/ 機制</td></tr>
+    <tr><td>扁平 contexts/ 目錄</td><td><span class="tag tag-veto">VETO</span></td><td>不適合 28-agent 組織</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===== 獨有優勢 ===== -->
+<h2>Rain 團隊獨有優勢（冠軍沒有的）</h2>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value v-accent">28</div><div class="stat-label">Agents 部門制</div></div>
+  <div class="stat"><div class="stat-value v-accent">3</div><div class="stat-label">Phase Planning</div></div>
+  <div class="stat"><div class="stat-value v-accent">3</div><div class="stat-label">Layer Review</div></div>
+  <div class="stat"><div class="stat-value v-accent">24/7</div><div class="stat-label">夜班自動化</div></div>
+</div>
+
+<div class="card">
+  <ul>
+    <li><strong>組織架構 + 指揮鏈</strong> — 真正的部門制（Security / Finance / Website / Marketing / Investment），冠軍只有扁平功能型 agents</li>
+    <li><strong>3-Phase Planning + veto</strong> — 商業→架構→風險三方交叉驗證</li>
+    <li><strong>Kai 中控台</strong> — 完整任務生命週期 + dashboard + API</li>
+    <li><strong>External Agent 生態</strong> — OpenClaw Tier 3（爬蟲/測試/內容分析）</li>
+    <li><strong>夜班自動化</strong> — night-shift-comprehensive.py + LaunchAgent 排程</li>
+    <li><strong>Deck 報告系統</strong> — 自動生成互動式 HTML 報告 + 部署</li>
+    <li><strong>多通道通訊</strong> — Discord + Email + Telegram 整合</li>
+  </ul>
+</div>
+
+<!-- ===== GPT v6.0 建議 ===== -->
+<h2 style="margin-top:3rem;padding-top:2rem;border-top:2px solid var(--border);">Part 2: GPT v6.0 升級建議 — Klay + Ray 聯合審查</h2>
+<p class="section-intro">GPT 提出 6 個新角色 + 5 個配置規則變更。經 Klay (CEO) + Ray (Architect) 聯合審查後，6 個新角色全部否決，3 條規則通過。</p>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value v-red">0/6</div><div class="stat-label">新角色通過</div></div>
+  <div class="stat"><div class="stat-value v-green">3/5</div><div class="stat-label">規則通過</div></div>
+  <div class="stat"><div class="stat-value v-accent">H11+H12</div><div class="stat-label">新增治理模組</div></div>
+  <div class="stat"><div class="stat-value v-green">v2</div><div class="stat-label">KPI 成本維度</div></div>
+</div>
+
+<h3>6 個新角色 — 全部否決</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>提案</th><th>Ray 判斷</th><th>核心原因</th></tr></thead>
+  <tbody>
+    <tr><td>Atlas (Execution Manager)</td><td><span class="tag tag-veto">REJECT</span></td><td>名稱衝突（現有 Atlas = Google Specialist）+ Klay dispatch 運行穩定</td></tr>
+    <tr><td>Helix (Infra Engineer)</td><td><span class="tag tag-veto">REJECT</span></td><td>無 Docker/Compose/Sentry 需求，全部 Vercel managed</td></tr>
+    <tr><td>Kraken (Browser Automation)</td><td><span class="tag tag-veto">REJECT</span></td><td>與 Nautilus 完全重疊，無新能力</td></tr>
+    <tr><td>Orion (Data Engineer)</td><td><span class="tag tag-veto">REJECT</span></td><td>無 RAG/vector DB/data warehouse 前提</td></tr>
+    <tr><td>Lab (Experimentation)</td><td><span class="tag tag-veto">REJECT</span></td><td>ROI 極低，每週 benchmark token 消耗高但模型陣容季度才變</td></tr>
+    <tr><td>Guardian (Governance)</td><td><span class="tag tag-veto">REJECT</span></td><td>與 governance-audit.py (10 模組) + night-shift (6 模組) 80% 重疊</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card card-red">
+  <h3 style="margin-top:0;">Ray Skeptic Check 核心判斷</h3>
+  <blockquote><strong>GPT 反映了理想化的「大型 AI 工程團隊」架構，但對我們 v5.0 現有系統的能力判斷不足。</strong><br>否決集中在三個模式：解決不存在的問題、與現有系統重疊、增加複雜度但無收益。</blockquote>
+</div>
+
+<h3>3 條規則 — 通過並已實作</h3>
+
+<div class="card card-green">
+  <h3 style="margin-top:0;">Rule C: KPI 成本維度 <span class="tag tag-pass">PASS</span></h3>
+  <p style="font-size:0.85rem;">governance-audit.py 新增 <strong>H11 Cost KPI</strong> 模組：</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>KPI</th><th>定義</th><th>目標</th><th>異常閾值</th></tr></thead>
+    <tbody>
+      <tr><td>Token Efficiency</td><td>success_tokens / total_tokens</td><td>&ge; 0.80</td><td>&lt; 0.60 = 警告</td></tr>
+      <tr><td>Retry Cost Ratio</td><td>retry_tokens / first_attempt_tokens</td><td>&le; 0.15</td><td>&gt; 0.30 = 警告</td></tr>
+      <tr><td>Cost per Success</td><td>total_tokens / successful_tasks</td><td>因 Agent 而異</td><td>&gt; 7d avg 2x = 警告</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card card-green">
+  <h3 style="margin-top:0;">Rule D: 同步自動化 <span class="tag tag-cond">CONDITIONAL</span></h3>
+  <p style="font-size:0.85rem;">governance-audit.py 新增 <strong>H12 Team Sync</strong> 模組：自動驗證 team.json 與 CLAUDE.md、team-roster.md、team_service.py 的一致性。保持 JSON 格式（不遷移 YAML）。</p>
+</div>
+
+<div class="card card-green">
+  <h3 style="margin-top:0;">Rule B: Probe/Echo 半自動觸發 <span class="tag tag-cond">CONDITIONAL</span></h3>
+  <p style="font-size:0.85rem;">升級 verification-flow.md — 6 個自動標記條件（payment/auth/表單/RWD/3+前端檔/production deploy）+ 3 個排除條件 + 每日 3 次上限。Forge 標記 → Klay 決定。</p>
+</div>
+
+<h3>5 條規則完整對照</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>規則</th><th>結果</th><th>實作方式</th></tr></thead>
+  <tbody>
+    <tr><td>B: Probe/Echo 半自動</td><td><span class="tag tag-cond">CONDITIONAL</span></td><td>verification-flow.md 更新觸發條件</td></tr>
+    <tr><td>C: KPI 成本維度</td><td><span class="tag tag-pass">PASS</span></td><td>governance-audit H11 + agent-kpi.md v2</td></tr>
+    <tr><td>D: 同步自動化</td><td><span class="tag tag-cond">CONDITIONAL</span></td><td>governance-audit H12 模組</td></tr>
+    <tr><td>A: Klay 停止 dispatch</td><td><span class="tag tag-veto">REJECT</span></td><td>增加延遲無收益</td></tr>
+    <tr><td>E: Memory 可檢索</td><td><span class="tag tag-veto">REJECT</span></td><td>目前 Grep 足夠</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===== 全部實作狀態 ===== -->
+<h2>全部升級實作狀態</h2>
+<p class="section-intro">合併黑客松冠軍分析 + GPT v6.0 建議，所有已實作項目一覽</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>來源</th><th>Phase</th><th>項目</th><th>狀態</th><th>驗證</th></tr></thead>
+  <tbody>
+    <tr><td>冠軍</td><td>A1</td><td>SKILL_DELTA 自動搬運</td><td><span class="tag tag-pass">DONE</span></td><td>Ray PASS</td></tr>
+    <tr><td>冠軍</td><td>A2</td><td>升級逾期提醒 LaunchAgent</td><td><span class="tag tag-pass">DONE</span></td><td>Ray PASS</td></tr>
+    <tr><td>冠軍</td><td>B1-B2</td><td>Hook is_disabled() 安全保護</td><td><span class="tag tag-pass">DONE</span></td><td>Ray PASS</td></tr>
+    <tr><td>冠軍</td><td>C1</td><td>11 角色 Context 注入</td><td><span class="tag tag-pass">DONE</span></td><td>Ray PASS</td></tr>
+    <tr><td>冠軍</td><td>D1</td><td>P/G 標記規範文件化</td><td><span class="tag tag-pass">DONE</span></td><td>Ray PASS</td></tr>
+    <tr><td>GPT</td><td>Rule C</td><td>KPI 成本維度 (H11)</td><td><span class="tag tag-pass">DONE</span></td><td>dry-run OK</td></tr>
+    <tr><td>GPT</td><td>Rule D</td><td>同步一致性檢查 (H12)</td><td><span class="tag tag-pass">DONE</span></td><td>dry-run OK</td></tr>
+    <tr><td>GPT</td><td>Rule B</td><td>Probe/Echo 半自動觸發條件</td><td><span class="tag tag-pass">DONE</span></td><td>規格更新</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card card-accent">
+  <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--accent);">8</div><div style="font-size:0.75rem;color:var(--text-muted);">項升級完成</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--red);">14</div><div style="font-size:0.75rem;color:var(--text-muted);">項否決（有理由）</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--green);">12</div><div style="font-size:0.75rem;color:var(--text-muted);">模組 governance</div></div>
+    <div><div style="font-size:1.8rem;font-weight:800;color:var(--green);">v5.0+</div><div style="font-size:0.75rem;color:var(--text-muted);">團隊穩定版</div></div>
+  </div>
+</div>
+
+<!-- ===== Part 3: Research Department — Orion + Lab ===== -->
+<h2 style="margin-top:56px;">Part 3：Research Department 建立</h2>
+<p style="color:#666;margin-bottom:24px;">Rain 審閱 Part 2 後指示：Data Engineer 和 Experiment Agent 是「暫時正確」的否決，以團隊擴張速度應提前佈局。</p>
+
+<h3>Rain 的核心判斷</h3>
+<div style="background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;border-left:4px solid #d4a574;">
+  <p style="margin:0;line-height:1.8;">
+    <strong>否決邏輯合理</strong>，但有兩個角色是「暫時不需要」而非「永遠不需要」：<br>
+    1. <strong>Data Engineer</strong> — 知識量持續增長，60+ memory 檔案，未來必需<br>
+    2. <strong>Experiment Agent</strong> — Agent 超過 50+ 時 model routing 變複雜<br>
+    <br>
+    <strong>關鍵指令</strong>：「Claude Code 訂閱制下，成本不是問題。只有非 Claude 外部 Agent 才需要考慮成本。」
+  </p>
+</div>
+
+<h3>Ray 重新評估（Phase 3 二次審查）</h3>
+<table>
+<thead><tr><th>角色</th><th>二次判決</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td><strong>Orion</strong>（Data Engineer）</td><td style="color:#d4a574;font-weight:bold;">⚠️ → ✅ 建立</td><td>Rain 覆蓋否決。Memory 47 檔案 + 37 缺 frontmatter = 確實需要治理。先建角色 + 基礎工具</td></tr>
+<tr><td><strong>Lab</strong>（Experiment）</td><td style="color:#d4a574;font-weight:bold;">❌ → ✅ 建立</td><td>Rain 覆蓋否決。訂閱制下 benchmark 零增量成本，提前建立基線有備無患</td></tr>
+<tr><td><strong>Kraken</strong></td><td style="color:#c0392b;font-weight:bold;">❌ 維持否決</td><td>Nautilus 完整覆蓋 browser automation，概念本身重疊</td></tr>
+</tbody>
+</table>
+
+<h3>Research Department 建制成果</h3>
+<table>
+<thead><tr><th>項目</th><th>狀態</th><th>細節</th></tr></thead>
+<tbody>
+<tr><td>Orion SKILL.md</td><td style="color:#27ae60;">✅</td><td>Memory Schema 治理 + 索引自動化 + RAG 遷移準備</td></tr>
+<tr><td>Lab SKILL.md</td><td style="color:#27ae60;">✅</td><td>模型 Benchmark + 效能基線 + A/B 測試框架</td></tr>
+<tr><td>team.json</td><td style="color:#27ae60;">✅</td><td>新增 "research" group（Orion + Lab）</td></tr>
+<tr><td>team-roster.md</td><td style="color:#27ae60;">✅</td><td>v5.1 — 新增 Research 部門 + Chain of Command</td></tr>
+<tr><td>CLAUDE.md</td><td style="color:#27ae60;">✅</td><td>Depts 新增 Research(Orion+Lab)</td></tr>
+<tr><td>team_service.py</td><td style="color:#27ae60;">✅</td><td>DEFAULT_MEMBERS + v13 migration + _infer_rank + DEPARTMENTS</td></tr>
+<tr><td>agent_task_service.py</td><td style="color:#27ae60;">✅</td><td>TASK_ROUTING：data→orion, benchmark/model_*→lab</td></tr>
+<tr><td>agent-kpi.md</td><td style="color:#27ae60;">✅</td><td>v3 — Orion 健康分數 ≥90% + Lab 推薦採用率 ≥80%</td></tr>
+<tr><td>Kai 驗證</td><td style="color:#27ae60;">✅</td><td>API 確認 orion + lab 已載入（37 agents total）</td></tr>
+</tbody>
+</table>
+
+<h3>基礎工具</h3>
+<table>
+<thead><tr><th>工具</th><th>用途</th><th>首次執行結果</th></tr></thead>
+<tbody>
+<tr><td><code>memory-index.py</code></td><td>Orion — 掃描 memory/ 健康度</td><td>47 檔案，10 健康，37 缺 frontmatter（21% → 首要任務）</td></tr>
+<tr><td><code>benchmark.py</code></td><td>Lab — 5 類 prompt × N 模型比較</td><td>5 個標準 prompt（QA/Design/Impl/Debug/Content），評分機制就緒</td></tr>
+</tbody>
+</table>
+
+<h3>成本模型更新（永久規則）</h3>
+<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:24px;">
+  <table>
+  <thead><tr><th>Agent 類型</th><th>成本考量</th><th>原因</th></tr></thead>
+  <tbody>
+  <tr><td>Claude 模型（Opus/Sonnet/Haiku）</td><td style="color:#27ae60;font-weight:bold;">不計成本</td><td>Claude Code 訂閱制</td></tr>
+  <tr><td>Gemini API（Flash/Pro）</td><td style="color:#e67e22;font-weight:bold;">需考慮</td><td>Pay-per-use API</td></tr>
+  <tr><td>GPT-4.1 / DeepSeek / GLM</td><td style="color:#e67e22;font-weight:bold;">需考慮</td><td>External API 計費</td></tr>
+  <tr><td>Grok（xAI）</td><td style="color:#e67e22;font-weight:bold;">需考慮</td><td>API pay-per-use 計費</td></tr>
+  </tbody>
+  </table>
+</div>
+
+<h3>團隊擴張統計（Updated）</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:32px;">
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">30</div>
+    <div style="font-size:13px;color:#888;">Active Agents</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">9</div>
+    <div style="font-size:13px;color:#888;">Departments</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">8</div>
+    <div style="font-size:13px;color:#888;">Model Types</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#d4a574;">8</div>
+    <div style="font-size:13px;color:#888;">Total Upgrades</div>
+  </div>
+</div>
+
+<!-- ===== Part 4: Config Testing + Activity Logging + Strategy Dept ===== -->
+<h2 style="margin-top:56px;">Part 4：穩健化 + 策略行銷部門</h2>
+<p style="color:#666;margin-bottom:24px;">Rain 指示：做到非常完整。三線並行建制 — Config Testing、Activity Logging、Strategy Department。</p>
+
+<h3>A. Config Testing Framework</h3>
+<div style="background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;">
+  <p style="margin:0 0 12px;"><strong>問題</strong>：冠軍有 997 tests，我們有 0。15+ hooks + 10+ scripts 無測試保護。</p>
+  <table>
+  <thead><tr><th>測試對象</th><th>測試內容</th><th>結果</th></tr></thead>
+  <tbody>
+  <tr><td><code>hook-utils.sh</code></td><td>is_disabled / should_run / PROTECTED_HOOKS</td><td style="color:#27ae60;">✅ Pass</td></tr>
+  <tr><td><code>scan-secrets.sh</code></td><td>偵測 AKIA / 乾淨檔案通過</td><td style="color:#27ae60;">✅ Pass</td></tr>
+  <tr><td><code>governance-audit.py</code></td><td>dry-run 全模組 / H11 / H12</td><td style="color:#27ae60;">✅ Pass</td></tr>
+  <tr><td><code>memory-index.py</code></td><td>掃描不崩潰 / 輸出 Score</td><td style="color:#27ae60;">✅ Pass</td></tr>
+  <tr><td><code>benchmark.py</code></td><td>Prompt 載入 / 5 Standard Prompts</td><td style="color:#27ae60;">✅ Pass</td></tr>
+  </tbody>
+  </table>
+  <p style="margin-top:12px;font-weight:bold;color:#27ae60;">21 passed, 0 failed</p>
+</div>
+
+<h3>B. Structured Activity Logging</h3>
+<div style="background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;">
+  <p style="margin:0 0 12px;"><strong>輕量版 Observer</strong> — 不用 Haiku daemon，零增量成本</p>
+  <table>
+  <thead><tr><th>元件</th><th>說明</th></tr></thead>
+  <tbody>
+  <tr><td><code>activity-logger.sh</code></td><td>PostToolUse hook，每次 tool 使用記一行 JSON（agent/tool/session），async 5ms，fail-silent</td></tr>
+  <tr><td><code>activity-analyzer.py</code></td><td>分析腳本：Top 10 tools / per-agent breakdown / 活躍時段 / 異常偵測（>3x 7 日均值）</td></tr>
+  <tr><td><code>settings.json</code></td><td>已註冊 PostToolUse hook，matcher: .*，async: true</td></tr>
+  </tbody>
+  </table>
+  <p style="margin-top:12px;">為 50+ agents 時代的被動學習系統打基礎。Orion 可在夜班分析 activity log 模式。</p>
+</div>
+
+<h3>C. 策略行銷部門（Strategy & Marketing）</h3>
+<div style="background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;border-left:4px solid #d4a574;">
+  <p style="margin:0 0 16px;"><strong>新部門建立</strong> — 每個新專案啟動前產出 Strategy Brief</p>
+  <table>
+  <thead><tr><th>角色</th><th>職責</th><th>模型</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Strategist</strong>（Lead）</td><td>市場研究、競爭分析、策略定位、Go-to-Market、指導 EchoMarketer</td><td>Sonnet 4.6</td></tr>
+  <tr><td><strong>EchoMarketer</strong>（歸入）</td><td>SEO 內容策略、關鍵字研究、廣告文案（原 Marketing → Strategy）</td><td>Gemini Flash</td></tr>
+  </tbody>
+  </table>
+  <p style="margin-top:16px;"><strong>新專案流程升級</strong>：</p>
+  <div style="background:#f6f5f1;border-radius:8px;padding:16px;font-size:14px;line-height:1.8;">
+    Rain idea → <strong>Strategist</strong> Strategy Brief → Klay Phase 1 → Scout Phase 2 → Ray Phase 3 → 實作
+  </div>
+  <p style="margin-top:12px;font-size:14px;color:#666;">Strategy Brief 包含：Market Analysis (TAM/SAM/SOM) → Competitive Landscape (SWOT) → Target Audience (Persona) → Positioning → GTM Plan → Risk</p>
+</div>
+
+<h3>D. Memory 健康修復（Orion 首任務）</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#c0392b;">21%</div>
+    <div style="font-size:13px;color:#888;">修復前健康度</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#27ae60;">100%</div>
+    <div style="font-size:13px;color:#888;">修復後健康度</div>
+  </div>
+</div>
+
+<h3>團隊最終統計</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:32px;">
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">38</div>
+    <div style="font-size:13px;color:#888;">Total Agents</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">10</div>
+    <div style="font-size:13px;color:#888;">Departments</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#1a1a1a;">21</div>
+    <div style="font-size:13px;color:#888;">Config Tests</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:700;color:#d4a574;">11</div>
+    <div style="font-size:13px;color:#888;">Total Upgrades</div>
+  </div>
+</div>
+
+<!-- ===== Footer ===== -->
+<div class="footnote">
+  <strong>Source</strong>: <a href="https://github.com/affaan-m/everything-claude-code">everything-claude-code</a> &middot; Anthropic x Forum Ventures Hackathon &middot; Built with Opus 4.6 Hackathon (Feb 2026) &middot; GPT v6.0 建議<br>
+  <strong>Reviewed by</strong>: Ray (Codex Plus) &middot; Phase 3 Design Review &times; 3 + Post-Implementation Review &times; 2<br>
+  <strong>Report by</strong>: Klay (Claude Opus 4.6) &middot; Rain AI Team &middot; 2026-03-13（Updated: Part 3 — Research Dept）
+</div>
+
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Governance System v2 — 7 項全面完成報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:16px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:12px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--black)}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s;width:0}
+
+/* SECTIONS */
+section{padding:100px 120px 80px;max-width:1400px;margin:0 auto;width:100%}
+section:first-child{max-width:none;padding:0;width:100%}
+
+/* COVER */
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:72px 120px 60px}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(32px,5vw,56px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;line-height:1.1}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:18px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:600px}
+.cover-stats{display:flex;gap:48px;margin-top:48px;flex-wrap:wrap;justify-content:center}
+.cover-stat{text-align:center}
+.cover-stat .num{font-size:40px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
+.cover-stat .label{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
+.cover-meta{margin-top:48px;font-size:13px;color:rgba(255,255,255,0.3);font-family:var(--font-mono)}
+
+/* SECTION HEADER */
+.section-header{margin-bottom:40px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:clamp(24px,3vw,40px);font-weight:700;letter-spacing:-0.5px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:700px}
+
+/* CARDS */
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
+.card h3{font-size:16px;font-weight:600;margin-bottom:12px}
+.card-eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:6px;font-family:var(--font-mono)}
+
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:40px}
+.stat{background:var(--white);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--grey-01)}
+.stat .num{font-size:32px;font-weight:800;font-family:var(--font-mono)}
+.stat .label{font-size:12px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.stat.blue .num{color:#5b8fb9}
+.stat.warm .num{color:var(--accent-warm)}
+.stat.green .num{color:var(--green)}
+.stat.purple .num{color:#7c3aed}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+.table-wrap table{min-width:600px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
+td{padding:10px 14px;border-bottom:1px solid var(--grey-01)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(168,205,232,0.05)}
+
+/* TAGS & BADGES */
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--grey-01);color:var(--grey-03)}
+.tag.warm{background:rgba(235,128,84,0.12);color:#b85e28}
+.tag.blue{background:rgba(168,205,232,0.2);color:#4a7fa0}
+.tag.green{background:rgba(133,162,104,0.15);color:#4a7532}
+.tag.purple{background:rgba(124,58,237,0.1);color:#6d28d9}
+.tag.red{background:rgba(217,79,79,0.1);color:var(--danger)}
+.mono{font-family:var(--font-mono);font-size:12px;background:var(--grey-01);padding:1px 6px;border-radius:4px}
+.check{color:var(--green);font-weight:700;font-family:var(--font-mono)}
+.check-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(133,162,104,0.15);color:var(--green);font-size:12px;flex-shrink:0}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+/* DARK SECTION */
+.dark-section{background:var(--black);color:var(--white);width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;padding:80px 0}
+.dark-section-inner{max-width:1200px;margin:0 auto;padding:0 120px}
+.dark-section .section-eyebrow{color:var(--accent)}
+.dark-section .section-title{color:var(--white)}
+.dark-section .section-desc{color:rgba(255,255,255,0.5)}
+
+/* FLOW STEPS */
+.flow-step{display:flex;align-items:stretch;gap:0;margin-bottom:4px}
+.flow-step-num{width:44px;min-height:52px;color:white;font-weight:700;font-size:13px;border-radius:8px 0 0 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0}
+.flow-step-body{flex:1;padding:14px 18px;border-radius:0 8px 8px 0;min-width:0}
+.flow-step-body strong{display:block;margin-bottom:4px;font-size:14px}
+.flow-step-body p{font-size:13px;color:var(--grey-02);margin:0;line-height:1.5}
+.flow-sep{text-align:center;color:var(--grey-02);padding:4px 0;font-family:var(--font-mono)}
+
+/* ITEM ROW */
+.item-row{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--grey-01)}
+.item-row:last-child{border-bottom:none}
+.item-id{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--accent-warm);min-width:52px;flex-shrink:0;padding-top:2px}
+.item-content{flex:1;min-width:0}
+.item-content h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.item-content p{font-size:13px;color:var(--grey-02);line-height:1.5}
+.item-status{flex-shrink:0;padding-top:2px}
+
+/* FOOTER */
+.footer{background:var(--black);color:rgba(255,255,255,0.3);text-align:center;padding:40px;font-size:13px;font-family:var(--font-mono);line-height:1.8}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  section{padding:80px 60px 60px}
+  .dark-section-inner{padding:0 60px}
+}
+@media(max-width:900px){
+  section{padding:72px 32px 48px}
+  .dark-section-inner{padding:0 32px}
+  .two-col{grid-template-columns:1fr}
+  .nav{padding:12px 20px}
+  .cover .subtitle{font-size:16px}
+  .cover-stats{gap:28px}
+  .cover-stat .num{font-size:32px}
+}
+@media(max-width:600px){
+  section{padding:64px 20px 40px}
+  .dark-section-inner{padding:0 20px}
+  .dark-section{padding:56px 0}
+  .card{padding:20px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .cover{padding:80px 24px 60px}
+  .cover-stats{gap:20px}
+  .cover-stat .num{font-size:28px}
+  .cover-stat .label{font-size:12px}
+  .nav{padding:10px 16px}
+  .section-title{font-size:22px}
+  .flow-step-num{width:36px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="prog"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Governance v2 Report</div>
+  <div class="nav-links">
+    <a href="#overview">總覽</a>
+    <a href="#team-sync">Team Sync</a>
+    <a href="#task-logic">任務邏輯</a>
+    <a href="#governance">治理檢查</a>
+    <a href="#planning">Planning</a>
+    <a href="#architecture">架構</a>
+    <a href="#files">修改清單</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section>
+<div class="cover">
+  <div class="eyebrow">Rain AI Team &middot; Governance System</div>
+  <h1>AI Governance <span>v2</span><br>剩餘 7 項全面完成</h1>
+  <div class="subtitle">中控台治理系統升級：team sync、chain dedup、compliance hook、model escalation、planning phases 全數到位</div>
+  <div class="cover-stats">
+    <div class="cover-stat"><div class="num">7</div><div class="label">修復項目</div></div>
+    <div class="cover-stat"><div class="num">7</div><div class="label">修改檔案</div></div>
+    <div class="cover-stat"><div class="num">3</div><div class="label">新 API</div></div>
+    <div class="cover-stat"><div class="num">v12</div><div class="label">Migration</div></div>
+  </div>
+  <div class="cover-meta">2026-03-13 &middot; Klay (Claude Opus 4.6)</div>
+</div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="section-header">
+    <div class="section-eyebrow">Overview</div>
+    <div class="section-title">完成<span>總覽</span></div>
+    <div class="section-desc">Governance Audit 報告中遺留的 7 個缺口：4 項基礎設施同步（Gap 5/7/8/10）+ 3 項治理檢查（G8/G10/G12），本次全數實作完成。</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat warm"><div class="num">4</div><div class="label">基礎同步修復</div></div>
+    <div class="stat purple"><div class="num">3</div><div class="label">治理檢查新增</div></div>
+    <div class="stat green"><div class="num">7/7</div><div class="label">完成率</div></div>
+    <div class="stat blue"><div class="num">0</div><div class="label">Blocker</div></div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:70px">ID</th><th>項目</th><th style="width:100px">分類</th><th style="width:160px">狀態</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">Gap 5</span></td><td>Team migration 角色文字新鮮度保證</td><td><span class="tag blue">Sync</span></td><td><span class="check">&#10003; v12 migration</span></td></tr>
+        <tr><td><span class="mono">Gap 7</span></td><td>Chain task dedup bypass 修復</td><td><span class="tag warm">Logic</span></td><td><span class="check">&#10003; 15s window</span></td></tr>
+        <tr><td><span class="mono">Gap 8</span></td><td>WebSocket 組織異動即時廣播</td><td><span class="tag blue">Sync</span></td><td><span class="check">&#10003; 3 events</span></td></tr>
+        <tr><td><span class="mono">Gap 10</span></td><td>Schedule runs → task board 整合</td><td><span class="tag purple">Integration</span></td><td><span class="check">&#10003; auto-sync</span></td></tr>
+        <tr><td><span class="mono">G8</span></td><td>Real-time compliance hook</td><td><span class="tag warm">Governance</span></td><td><span class="check">&#10003; post-completion</span></td></tr>
+        <tr><td><span class="mono">G10</span></td><td>3-Phase Planning compliance tracking</td><td><span class="tag purple">Governance</span></td><td><span class="check">&#10003; planning API</span></td></tr>
+        <tr><td><span class="mono">G12</span></td><td>Model tier escalation detection</td><td><span class="tag warm">Governance</span></td><td><span class="check">&#10003; tier check</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM SYNC: Gap 5 + Gap 8 -->
+<section id="team-sync">
+  <div class="section-header">
+    <div class="section-eyebrow">Team Service</div>
+    <div class="section-title">團隊同步<span>強化</span></div>
+    <div class="section-desc">Gap 5（角色文字新鮮度）+ Gap 8（WebSocket 即時廣播），確保前端始終顯示最新組織狀態。</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-eyebrow">Gap 5</div>
+      <h3>v12 Role Freshness Migration</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">team.json 中的舊成員可能有過時的 role / model / department。啟動時自動比對 DEFAULT_MEMBERS 並覆蓋 6 個欄位。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>新增 <span class="mono">.team_v12_role_freshness</span> marker migration</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>自動更新：role、model、api_provider、department、rank、skills</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>只更新已存在且 ID 匹配的成員，不新增不刪除</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-eyebrow">Gap 8</div>
+      <h3>WebSocket Team Broadcast</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">前端原靠 15s polling 取得團隊狀態。現在組織異動瞬間透過 WebSocket 推送。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>新增 <span class="mono">_broadcast_team_change()</span> helper</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p><span class="mono">update_member()</span> &#8594; <span class="tag blue">team_updated</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p><span class="mono">add_member()</span> &#8594; <span class="tag green">team_added</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p><span class="mono">delete_member()</span> &#8594; <span class="tag red">team_removed</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TASK LOGIC: Gap 7 + Gap 10 -->
+<section id="task-logic">
+  <div class="section-header">
+    <div class="section-eyebrow">Task Service</div>
+    <div class="section-title">任務邏輯<span>修正</span></div>
+    <div class="section-desc">Gap 7（Chain dedup bypass）+ Gap 10（Schedule → Task Board 自動同步），兩個跨服務整合缺口。</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-eyebrow">Gap 7</div>
+      <h3>Chain Task Dedup 修復</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">Chain tasks（任務鏈自動建立的接續任務）過去完全跳過 dedup 檢查。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>移除 <span class="mono">if not parent_task_id:</span> guard</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Chain tasks 使用 <strong>15 秒</strong> dedup window</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Normal tasks 維持 <strong>60 秒</strong> window</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-eyebrow">Gap 10</div>
+      <h3>Schedule &#8594; Task Board 整合</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">排程系統（ScheduleService）和任務看板完全隔離。Rain 無法在 Task Board 看到排程執行記錄。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p><span class="mono">log_run()</span> 後自動建立 task board entry</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Type: <span class="tag">schedule</span> Source: <span class="tag">schedule</span> Severity: <span class="tag">tiny</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>自動 <span class="mono">force_complete()</span> + 60s dedup + non-fatal</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GOVERNANCE CHECKS: G8 + G12 -->
+<section id="governance">
+  <div class="section-header">
+    <div class="section-eyebrow">Governance Checks</div>
+    <div class="section-title">治理<span>閘門</span></div>
+    <div class="section-desc">G8（Compliance Hook）+ G12（Model Escalation Detection）：任務完成時自動觸發，寫入 warn log 供 governance-audit.py 追溯。</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-eyebrow">G8 &mdash; Compliance</div>
+      <h3>Real-time Compliance Hook</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">Major / Critical 任務完成時，若無 review_evidence 且 verified = false，自動觸發告警。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>新增 <span class="mono">_check_compliance()</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>觸發於 <span class="mono">force_complete()</span> + <span class="mono">_transition(SUCCESS)</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Metadata: <span class="mono">check: G8_compliance</span></p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-eyebrow">G12 &mdash; Model Tier</div>
+      <h3>Model Escalation Detection</h3>
+      <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">偵測 Agent 是否使用超過指定等級的 AI 模型，防止成本失控。</p>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>新增 <span class="mono">MODEL_TIER</span> 常數（4 級）</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>比對 agent_model vs team_service expected model</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Metadata: <span class="mono">check: G12_model_escalation</span></p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-eyebrow">Model Tier 分級表</div>
+    <h3>MODEL_TIER 常數定義</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>模型</th><th>預期使用者</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag">Tier 0</span></td><td>Internal</td><td>Kai</td></tr>
+        <tr><td><span class="tag green">Tier 1</span></td><td>Flash / Haiku / GLM / DeepSeek</td><td>Jarvis, Spider, Lynx, Probe, Echo, GooayeAI</td></tr>
+        <tr><td><span class="tag blue">Tier 2</span></td><td>Sonnet / Gemini Pro</td><td>Rex, John, Iris, Forge, Scout, Quill, Noel</td></tr>
+        <tr><td><span class="tag warm">Tier 3</span></td><td>Opus / Codex</td><td>Klay, Max, Ray</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- PLANNING PHASES: G10 -->
+<section id="planning">
+  <div class="section-header">
+    <div class="section-eyebrow">3-Phase Planning</div>
+    <div class="section-title">Planning <span>Tracking</span></div>
+    <div class="section-desc">G10：Major / Critical 任務的三階段規劃合規追蹤。完整記錄 P1（Klay）→ P2（Scout）→ P3（Ray）。</div>
+  </div>
+
+  <!-- Flow Steps -->
+  <div style="max-width:700px;margin-bottom:32px">
+    <div class="flow-step">
+      <div class="flow-step-num" style="background:var(--accent-warm)">P1</div>
+      <div class="flow-step-body" style="background:rgba(235,128,84,0.08)">
+        <strong>Klay &mdash; Business Planning</strong>
+        <p>需求分析、範圍定義、優先級、成功指標、約束條件</p>
+      </div>
+    </div>
+    <div class="flow-sep">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-step-num" style="background:#5b8fb9">P2</div>
+      <div class="flow-step-body" style="background:rgba(168,205,232,0.1)">
+        <strong>Scout &mdash; System Architecture</strong>
+        <p>元件設計、API 契約、資料模型、技術選型、可行性評估</p>
+      </div>
+    </div>
+    <div class="flow-sep">&#8595;</div>
+    <div class="flow-step">
+      <div class="flow-step-num" style="background:var(--green)">P3</div>
+      <div class="flow-step-body" style="background:rgba(133,162,104,0.08)">
+        <strong>Ray &mdash; Pre-Implementation Critic</strong>
+        <p>風險評估、邊界情況、Skeptic Check、架構簽核 / veto</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-eyebrow">Data Model</div>
+      <h3>planning_phases JSON 欄位</h3>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>新增 <span class="mono">planning_phases</span> Column(JSON)</p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>格式：<span class="mono">[{"phase":"P1","agent":"klay","notes":"...","timestamp":"..."}]</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>DB migration + <span class="mono">_to_dict()</span> + <span class="mono">update_task()</span></p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-eyebrow">API + Frontend</div>
+      <h3>端點與 UI 呈現</h3>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p><span class="mono">POST /api/tasks/{id}/planning-phase</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>Pydantic 驗證：<span class="mono">phase: ^P[123]$</span></p></div>
+      </div>
+      <div class="item-row">
+        <span class="check-icon">&#10003;</span>
+        <div class="item-content"><p>TaskBoard 紫色 pill 顯示：<span class="tag purple">P1 klay</span> <span class="tag purple">P2 scout</span> <span class="tag purple">P3 ray</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE (Dark Section) -->
+<section id="architecture" style="padding-bottom:0">
+  <div class="dark-section">
+    <div class="dark-section-inner">
+      <div class="section-header">
+        <div class="section-eyebrow">System Architecture</div>
+        <div class="section-title">治理檢查<span>管線</span></div>
+        <div class="section-desc">從任務建立到夜班審計，完整的自動化治理流程。</div>
+      </div>
+
+      <div class="card" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:var(--white)">
+        <pre style="font-family:var(--font-mono);font-size:13px;line-height:2;color:rgba(255,255,255,0.7);overflow-x:auto;white-space:pre">
+  任務建立 ──────────────────────────────────────────┐
+    ├─ dedup check (60s normal / 15s chain)          │
+    ├─ auto_assign (TASK_ROUTING + AdaptiveRouter)   │
+    └─ severity_level validation                     │
+                                                     │
+  任務執行 ──────────────────────────────────────────┤
+    ├─ planning_phases tracking (P1/P2/P3)           │
+    └─ progress updates                              │
+                                                     │
+  任務完成 ──────────────────────────────────────────┤
+    ├─ G8: _check_compliance()                       │
+    │   └─ Major/Critical without review → warn log  │
+    ├─ G12: _check_model_escalation()                │
+    │   └─ Higher tier than expected → warn log      │
+    └─ PostMortem record                             │
+                                                     │
+  夜班審計 ──────────────────────────────────────────┤
+    ├─ governance-audit.py (11 modules)              │
+    ├─ governance-autofix.py (L1/L2/L3)             │
+    └─ night-shift-comprehensive.py (Module H+I)    │
+                                                     │
+  即時同步 ──────────────────────────────────────────┘
+    ├─ WebSocket: task events + team events
+    ├─ Schedule → Task Board auto-sync
+    └─ v12 migration: role freshness guarantee
+        </pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILES CHANGED -->
+<section id="files">
+  <div class="section-header">
+    <div class="section-eyebrow">Changed Files</div>
+    <div class="section-title">修改<span>清單</span></div>
+    <div class="section-desc">7 個後端 / 前端檔案 + 3 個 Memory 檔案更新。</div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>檔案</th><th>變更內容</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">team_service.py</span></td><td>v12 role freshness migration + WebSocket broadcast helper + 3 broadcast calls</td></tr>
+        <tr><td><span class="mono">agent_task_service.py</span></td><td>Chain dedup fix + MODEL_TIER + _check_compliance + _check_model_escalation + planning_phases</td></tr>
+        <tr><td><span class="mono">schedule_service.py</span></td><td>log_run() &#8594; task board auto-sync</td></tr>
+        <tr><td><span class="mono">sql_models.py</span></td><td>+planning_phases Column(JSON)</td></tr>
+        <tr><td><span class="mono">database.py</span></td><td>+planning_phases migration entry</td></tr>
+        <tr><td><span class="mono">agent_tasks.py</span></td><td>+PlanningPhaseRequest + POST planning-phase endpoint</td></tr>
+        <tr><td><span class="mono">TaskBoard.tsx</span></td><td>+planning_phases interface + purple pill display</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-eyebrow">Memory Updates</div>
+    <h3>記憶系統同步</h3>
+    <div class="item-row">
+      <span class="check-icon">&#10003;</span>
+      <div class="item-content"><p><strong>MEMORY.md</strong> &mdash; migration 版本 v8 &#8594; v12、報告規則更新（Deck 取代 PDF）</p></div>
+    </div>
+    <div class="item-row">
+      <span class="check-icon">&#10003;</span>
+      <div class="item-content"><p><strong>email-reporting-rules.md</strong> &mdash; 禁止 PDF 附件、連結必須用文字超連結</p></div>
+    </div>
+    <div class="item-row">
+      <span class="check-icon">&#10003;</span>
+      <div class="item-content"><p><strong>新增 3 feedback memories</strong> &mdash; control-center-sync / deck-not-pdf / email-link-style</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  Rain AI Team &middot; Governance System v2 Final Completion Report<br>
+  Generated 2026-03-13 by Klay (Claude Opus 4.6)
+</div>
+
+<script>
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  const s=window.scrollY;
+  document.getElementById('prog').style.width=(h>0?(s/h*100):0)+'%';
+});
+// Nav active state
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll',()=>{
+  let current='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)current=s.id});
+  navLinks.forEach(a=>{a.style.color=a.getAttribute('href')==='#'+current?'var(--black)':'var(--grey-02)';a.style.fontWeight=a.getAttribute('href')==='#'+current?'700':'500'});
+});
+</script>
+</body>
+</html>

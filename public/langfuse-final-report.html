@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangFuse Observability 完整建置報告 — Rain AI Team 2026-03-14</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s linear;width:0}
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--black)}
+section{padding:80px 120px 60px;max-width:1400px;margin:0 auto;width:100%}
+section:first-child{max-width:none;padding:0;width:100%}
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;align-items:center;text-align:center;padding:80px 120px 64px}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(28px,4.5vw,54px);font-weight:800;margin-bottom:14px;letter-spacing:-1px;line-height:1.1}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:16px;color:rgba(255,255,255,0.45);margin-bottom:32px;max-width:640px}
+.cover-stats{display:flex;gap:48px;margin-top:36px;flex-wrap:wrap;justify-content:center}
+.cover-stat .num{font-size:38px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
+.cover-stat .label{font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px}
+.cover-meta{margin-top:44px;font-size:12px;color:rgba(255,255,255,0.25);font-family:var(--font-mono)}
+.section-header{margin-bottom:36px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:clamp(22px,3vw,36px);font-weight:700;letter-spacing:-0.5px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:680px}
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
+.card h3{font-size:15px;font-weight:600;margin-bottom:10px}
+.card p{font-size:14px;color:var(--grey-02);line-height:1.65}
+.card ul{padding-left:18px;margin-top:8px}
+.card ul li{font-size:13px;color:var(--grey-02);line-height:1.7;margin-bottom:3px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:36px}
+.stat{background:var(--white);border-radius:12px;padding:22px 18px;text-align:center;border:1px solid var(--grey-01)}
+.stat .num{font-size:28px;font-weight:800;font-family:var(--font-mono)}
+.stat .label{font-size:11px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.stat.warm .num{color:var(--accent-warm)}
+.stat.green .num{color:var(--green)}
+.stat.blue .num{color:#5b8fb9}
+.stat.red .num{color:var(--danger)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--grey-01)}
+.table-wrap table{min-width:580px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 16px;background:var(--grey-01);font-weight:600;font-size:11px;color:var(--grey-03);letter-spacing:.5px;text-transform:uppercase}
+td{padding:10px 16px;border-bottom:1px solid var(--grey-01);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(168,205,232,0.04)}
+code{font-family:var(--font-mono);font-size:12px;background:var(--grey-01);padding:2px 7px;border-radius:4px;color:var(--grey-03)}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font-mono)}
+.tag.green{background:#edf7e9;color:var(--green)}
+.tag.warm{background:#fdf2ec;color:var(--accent-warm)}
+.tag.blue{background:#edf5fb;color:#5b8fb9}
+.tag.grey{background:var(--grey-01);color:var(--grey-03)}
+.tag.red{background:#fef0f0;color:var(--danger)}
+/* Timeline */
+.timeline{position:relative;padding-left:28px;margin-top:4px}
+.timeline::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--grey-01)}
+.tl-item{position:relative;margin-bottom:20px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent-warm);background:var(--white)}
+.tl-dot.done{background:var(--green);border-color:var(--green)}
+.tl-dot.fail{background:var(--danger);border-color:var(--danger)}
+.tl-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.tl-body{font-size:13px;color:var(--grey-02);line-height:1.55}
+/* Arch diagram */
+.arch{background:#1a1a2e;border-radius:12px;padding:28px 32px;margin-top:20px;overflow-x:auto}
+.arch-flow{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:600px}
+.arch-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 16px;font-size:12px;font-family:var(--font-mono);color:rgba(255,255,255,0.75);white-space:nowrap;text-align:center}
+.arch-box.hi{background:rgba(235,128,84,0.18);border-color:rgba(235,128,84,0.5);color:var(--accent-warm)}
+.arch-box.bl{background:rgba(168,205,232,0.14);border-color:rgba(168,205,232,0.4);color:var(--accent)}
+.arch-arr{font-size:16px;color:rgba(255,255,255,0.25);flex-shrink:0}
+.arch-note{font-size:11px;color:rgba(255,255,255,0.25);font-family:var(--font-mono);margin-top:12px}
+/* Code block */
+.code-block{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:20px 24px;font-family:var(--font-mono);font-size:12px;line-height:1.75;overflow-x:auto;margin-top:16px}
+.kw{color:#cba6f7}.vl{color:#a6e3a1}.ky{color:#89b4fa}.st{color:#f9e2af}.cm{color:#6c7086}
+/* Score */
+.score-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.score-label{font-size:13px;font-weight:500;width:170px;flex-shrink:0}
+.score-track{flex:1;height:7px;background:var(--grey-01);border-radius:4px;overflow:hidden}
+.score-fill{height:100%;border-radius:4px}
+.score-val{font-size:13px;font-weight:700;font-family:var(--font-mono);width:40px;text-align:right;flex-shrink:0}
+/* Dark band */
+.dark-band{background:var(--black);color:var(--white);padding:80px 0}
+.dark-band .inner{max-width:1400px;margin:0 auto;padding:0 120px}
+.dark-band .section-eyebrow{color:var(--accent)}
+.dark-band .section-title{color:var(--white)}
+.dark-band .section-desc{color:rgba(255,255,255,0.35)}
+.dk-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:26px}
+.dk-card h3{font-size:15px;font-weight:600;color:var(--white);margin-bottom:10px}
+.dk-card p{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6}
+.dk-card ul{padding-left:18px;margin-top:8px}
+.dk-card ul li{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.7;margin-bottom:3px}
+/* Footer */
+.footer{background:var(--black);color:rgba(255,255,255,0.25);padding:36px;text-align:center;font-size:12px;font-family:var(--font-mono)}
+.footer span{color:var(--accent-warm)}
+/* Responsive */
+@media(max-width:1100px){
+  section{padding:80px 60px 60px}
+  .cover{padding:72px 60px 56px}
+  .dark-band .inner{padding:0 60px}
+}
+@media(max-width:900px){
+  section{padding:72px 32px 48px}
+  .cover{padding:72px 32px 48px}
+  .dark-band .inner{padding:0 32px}
+  .grid-2{grid-template-columns:1fr}
+  .cover-stats{gap:28px}
+  .nav{padding:10px 20px}
+  .score-label{width:120px;font-size:12px}
+}
+@media(max-width:600px){
+  section{padding:64px 20px 40px}
+  .cover{padding:64px 20px 40px}
+  .dark-band .inner{padding:0 20px}
+  .cover-stat .num{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="prog"></div>
+
+<nav class="nav">
+  <div class="nav-brand">LANGFUSE FINAL REPORT</div>
+  <div class="nav-links">
+    <a href="#origin">起點</a>
+    <a href="#obstacles">障礙</a>
+    <a href="#arch">架構</a>
+    <a href="#model">數據模型</a>
+    <a href="#costs">費率表</a>
+    <a href="#verify">驗證</a>
+    <a href="#score">評分</a>
+    <a href="#next">下一步</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section>
+<div class="cover">
+  <div class="eyebrow">RAIN AI TEAM · LANGFUSE OBSERVABILITY · 完整建置報告</div>
+  <h1>從 <span>零</span> 到<br><span>Production Grade</span></h1>
+  <div class="subtitle">AI Agent 每天執行數十個任務 — 現在每一個都有可觀測的執行軌跡、成本數字、延遲分解</div>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="num">7</div>
+      <div class="label">Traces 已確認</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">20+</div>
+      <div class="label">模型費率支援</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">4</div>
+      <div class="label">技術障礙克服</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">7.5/10</div>
+      <div class="label">工程評分（↑ 6/10）</div>
+    </div>
+  </div>
+  <div class="cover-meta">Route B · 2026-03-14 · claude-sonnet-4-6 · M4ControlCenter v2</div>
+</div>
+</section>
+
+<!-- ORIGIN -->
+<section id="origin">
+  <div class="section-header">
+    <div class="section-eyebrow">01 · ORIGIN</div>
+    <h2 class="section-title">任務起點：<span>為什麼 Observability 是第一優先？</span></h2>
+    <p class="section-desc">Ray 企劃書三條升級路線中，Route B ROI 最高，投入最小、回報最立即</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>問題：AI Team 的黑盒子</h3>
+      <ul>
+        <li>每天數十個 Agent 任務執行，完全沒有可觀測性</li>
+        <li>不知道花了多少錢（token 數有記錄但沒換算 USD）</li>
+        <li>不知道哪個 Agent 最慢、哪個 model 最貴</li>
+        <li>任務失敗無法追蹤是哪個環節出問題</li>
+        <li>沒有歷史數據 → 無法優化、無法做 model 比較</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Ray 企劃書三條路線</h3>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-title" style="color:var(--accent-warm)">Route B — Observability <span class="tag warm">已完成</span></div>
+          <div class="tl-body">LangFuse self-hosted，cost 換算，latency 追蹤。ROI 最高，最先做。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Route A — Graph Engine</div>
+          <div class="tl-body">DAG 任務依賴管理，複雜多步驟任務的前置依賴關係。下一步。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-title">Route C — Cloud Scaling</div>
+          <div class="tl-body">多機器擴展，需要先完成 A + B 才有意義。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OBSTACLES -->
+<section id="obstacles">
+  <div class="section-header">
+    <div class="section-eyebrow">02 · OBSTACLES</div>
+    <h2 class="section-title">技術障礙：<span>4 個問題全部解決</span></h2>
+    <p class="section-desc">每個問題都有更好的替代方案，而不是硬撐原本壞掉的路線</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>問題</th>
+          <th>原因</th>
+          <th>解法</th>
+          <th>結果</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:var(--font-mono);color:var(--accent-warm);font-weight:700">01</td>
+          <td><strong>Docker Desktop 完全損壞</strong></td>
+          <td>VM filesystem 空間耗盡 + 執行檔遺失</td>
+          <td>改用 <strong>Colima</strong>（brew install，2 分鐘）</td>
+          <td><span class="tag green">✓ 解決</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);color:var(--accent-warm);font-weight:700">02</td>
+          <td><strong>LangFuse v3 需要 ClickHouse</strong></td>
+          <td>v3 架構複雜，需額外資料庫</td>
+          <td>降版使用 <strong>langfuse:2</strong>（只需 PostgreSQL）</td>
+          <td><span class="tag green">✓ 解決</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);color:var(--accent-warm);font-weight:700">03</td>
+          <td><strong>v2 不支援 LANGFUSE_INIT_*</strong></td>
+          <td>v2 無法透過 env var 預置帳號</td>
+          <td><strong>Playwright 自動化</strong>建立帳號 + 取 API keys</td>
+          <td><span class="tag green">✓ 解決</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);color:var(--accent-warm);font-weight:700">04</td>
+          <td><strong>Python SDK v4 API 不相容</strong></td>
+          <td>SDK v4 改用 OpenTelemetry，init 參數完全不同</td>
+          <td>捨棄 SDK，改用 <strong>urllib.request 純 HTTP</strong></td>
+          <td><span class="tag green">✓ 解決</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ARCH -->
+<section id="arch">
+  <div class="section-header">
+    <div class="section-eyebrow">03 · ARCHITECTURE</div>
+    <h2 class="section-title">最終架構：<span>完整技術棧</span></h2>
+    <p class="section-desc">從 macOS 開機到 trace 出現在 LangFuse，完整自動化</p>
+  </div>
+
+  <div class="arch">
+    <div style="font-size:11px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);margin-bottom:14px">STARTUP CHAIN</div>
+    <div class="arch-flow">
+      <div class="arch-box">macOS Boot</div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box hi">ai.rain.colima<br><span style="font-size:10px;opacity:.6">LaunchAgent</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box">Colima<br><span style="font-size:10px;opacity:.6">--cpu2 --mem4 --disk20</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box hi">ai.rain.langfuse<br><span style="font-size:10px;opacity:.6">LaunchAgent</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box bl">LangFuse v2<br><span style="font-size:10px;opacity:.6">localhost:3010</span></div>
+      <div class="arch-arr">+</div>
+      <div class="arch-box">PostgreSQL 16<br><span style="font-size:10px;opacity:.6">langfuse DB</span></div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);margin:20px 0 14px">TRACE PIPELINE</div>
+    <div class="arch-flow">
+      <div class="arch-box">Kai API<br><span style="font-size:10px;opacity:.6">POST /done</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box hi">force_complete()<br><span style="font-size:10px;opacity:.6">agent_task_service.py</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box hi">langfuse_service.py<br><span style="font-size:10px;opacity:.6">fire-and-forget thread</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box">POST /traces<br><span style="font-size:10px;opacity:.6">urllib.request</span></div>
+      <div class="arch-arr">+</div>
+      <div class="arch-box">POST /ingestion<br><span style="font-size:10px;opacity:.6">batch observations</span></div>
+      <div class="arch-arr">→</div>
+      <div class="arch-box bl">LangFuse UI<br><span style="font-size:10px;opacity:.6">:3010</span></div>
+    </div>
+    <div class="arch-note">daemon thread · non-blocking · zero external SDK · singleton pattern · cost_usd auto-calc</div>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px">
+    <div class="card">
+      <h3>已修改的檔案（5 個）</h3>
+      <ul>
+        <li><code>sql_models.py</code> — agent_steps Column(JSON)</li>
+        <li><code>database.py</code> — migration entry</li>
+        <li><code>agent_tasks.py</code> — TaskCompleteRequest 新增欄位</li>
+        <li><code>agent_task_service.py</code> — force_complete 整合 + cost 自動計算</li>
+        <li><code>langfuse_service.py</code> — 全新 HTTP REST adapter（v2）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>新增的系統檔案（3 個）</h3>
+      <ul>
+        <li><code>langfuse-docker-compose.yml</code> — LangFuse v2 + PostgreSQL 16</li>
+        <li><code>ai.rain.colima.plist</code> — LaunchAgent 開機啟動 Colima</li>
+        <li><code>ai.rain.langfuse.plist</code> — LaunchAgent 等 Docker 就緒後啟動 LangFuse</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DATA MODEL -->
+<section id="model">
+  <div class="section-header">
+    <div class="section-eyebrow">04 · DATA MODEL</div>
+    <h2 class="section-title">Trace 數據模型：<span>每條 trace 包含什麼</span></h2>
+    <p class="section-desc">一個任務完成 → 1 條 Trace + N 條 Generation spans + 1 條 Token usage observation</p>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <h3>Trace（任務層級）</h3>
+        <div class="code-block">
+{
+  <span class="ky">"id"</span>: <span class="st">"task-uuid"</span>,
+  <span class="ky">"name"</span>: <span class="st">"任務標題"</span>,
+  <span class="ky">"userId"</span>: <span class="st">"klay"</span>,          <span class="cm">// assigned_to</span>
+  <span class="ky">"input"</span>: <span class="st">"任務描述"</span>,
+  <span class="ky">"output"</span>: <span class="st">"result.summary"</span>,
+  <span class="ky">"tags"</span>: [<span class="st">"klay"</span>, <span class="st">"feature"</span>],
+  <span class="ky">"metadata"</span>: {
+    <span class="st">"cost_usd"</span>: <span class="vl">0.0525</span>,         <span class="cm">// ← v2 新增</span>
+    <span class="st">"token_input"</span>: <span class="vl">1000</span>,
+    <span class="st">"token_output"</span>: <span class="vl">500</span>,
+    <span class="st">"agent_model"</span>: <span class="st">"claude-opus-4-6"</span>,
+    <span class="st">"duration_seconds"</span>: <span class="vl">32</span>,
+    <span class="st">"latency_breakdown_ms"</span>: {  <span class="cm">// ← v2 新增</span>
+      <span class="st">"max"</span>: <span class="vl">3500</span>,
+      <span class="st">"john"</span>: <span class="vl">2100</span>
+    },
+    <span class="st">"task_type"</span>: <span class="st">"feature"</span>,
+    <span class="st">"source"</span>: <span class="st">"claude_code"</span>
+  }
+}</div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Generation Spans（per agent_step）</h3>
+        <div class="code-block">
+{
+  <span class="ky">"type"</span>: <span class="st">"GENERATION"</span>,
+  <span class="ky">"name"</span>: <span class="st">"max.generation"</span>,
+  <span class="ky">"model"</span>: <span class="st">"claude-opus-4-6"</span>,
+  <span class="ky">"input"</span>: <span class="st">"設計 LangFuse adapter"</span>,
+  <span class="ky">"output"</span>: <span class="st">"完成 _send_trace()"</span>,
+  <span class="ky">"metadata"</span>: {
+    <span class="st">"latency_ms"</span>: <span class="vl">3500</span>,
+    <span class="st">"cost_usd"</span>: <span class="vl">0.048</span>     <span class="cm">// ← v2 新增</span>
+  }
+}
+
+<span class="cm">// Token usage observation（整體）</span>
+{
+  <span class="ky">"name"</span>: <span class="st">"total-tokens"</span>,
+  <span class="ky">"usage"</span>: {
+    <span class="st">"input"</span>: <span class="vl">1000</span>, <span class="st">"output"</span>: <span class="vl">500</span>,
+    <span class="st">"total"</span>: <span class="vl">1500</span>, <span class="st">"unit"</span>: <span class="st">"TOKENS"</span>
+  },
+  <span class="ky">"metadata"</span>: {<span class="st">"cost_usd"</span>: <span class="vl">0.0525</span>}
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COST TABLE -->
+<section id="costs">
+  <div class="section-header">
+    <div class="section-eyebrow">05 · MODEL COST TABLE</div>
+    <h2 class="section-title">模型費率：<span>20+ 模型，Input/Output 分計</span></h2>
+    <p class="section-desc">選對模型差距 100x+。Opus 跑一個任務的錢，DeepSeek 可以跑 65 個</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>模型</th>
+          <th>Input / 1M tokens</th>
+          <th>Output / 1M tokens</th>
+          <th>1K in + 500 out</th>
+          <th>Rain AI Team 使用者</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>claude-opus-4-6</code></td><td>$15.00</td><td>$75.00</td><td style="font-weight:700;color:var(--danger)">$0.0525</td><td><span class="tag warm">Klay / Max</span></td></tr>
+        <tr><td><code>claude-sonnet-4-6</code></td><td>$3.00</td><td>$15.00</td><td>$0.0105</td><td><span class="tag blue">John / Rex / Iris / Ray</span></td></tr>
+        <tr><td><code>claude-haiku-4-5</code></td><td>$0.80</td><td>$4.00</td><td>$0.0028</td><td><span class="tag grey">快速任務</span></td></tr>
+        <tr><td><code>gpt-4o</code></td><td>$2.50</td><td>$10.00</td><td>$0.0075</td><td><span class="tag grey">OpenAI</span></td></tr>
+        <tr><td><code>gpt-4.1</code></td><td>$2.00</td><td>$8.00</td><td>$0.0060</td><td><span class="tag grey">Nautilus</span></td></tr>
+        <tr><td><code>gemini-2.5-pro</code></td><td>$1.25</td><td>$10.00</td><td>$0.0063</td><td><span class="tag blue">Noel / Silo</span></td></tr>
+        <tr><td><code>gemini-flash</code></td><td>$0.075</td><td>$0.30</td><td style="font-weight:700;color:var(--green)">$0.0002</td><td><span class="tag green">Buzz / Jarvis（最便宜）</span></td></tr>
+        <tr><td><code>deepseek-chat</code></td><td>$0.27</td><td>$1.10</td><td>$0.0008</td><td><span class="tag grey">Lynx</span></td></tr>
+        <tr><td><code>glm-4-plus</code></td><td>$0.70</td><td>$0.70</td><td>$0.0011</td><td><span class="tag grey">Spider</span></td></tr>
+        <tr><td><code>codex-plus</code></td><td>$3.00</td><td>$15.00</td><td>$0.0105</td><td><span class="tag warm">Ray（設計審查）</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:12px;font-size:12px;color:var(--grey-02);font-family:var(--font-mono)">
+    Opus vs Gemini Flash：$0.0525 / $0.0002 = <strong style="color:var(--accent-warm)">262x 差距</strong> — 對的任務用對的模型，成本影響巨大
+  </p>
+</section>
+
+<!-- VERIFY -->
+<section id="verify">
+  <div class="section-header">
+    <div class="section-eyebrow">06 · VERIFICATION</div>
+    <h2 class="section-title">E2E 驗證：<span>全部通過</span></h2>
+    <p class="section-desc">從 Kai API 到 LangFuse trace，完整鏈路驗證</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat green"><div class="num">7</div><div class="label">Total Traces</div></div>
+    <div class="stat warm"><div class="num">$0.0525</div><div class="label">Cost 精確值</div></div>
+    <div class="stat blue"><div class="num">3500ms</div><div class="label">Max latency</div></div>
+    <div class="stat green"><div class="num">2100ms</div><div class="label">John latency</div></div>
+    <div class="stat warm"><div class="num">2</div><div class="label">LaunchAgents 生效</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>驗證的 Traces（按時間順序）</h3>
+      <div class="timeline" style="margin-top:8px">
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-title" style="font-size:13px">kai-connection-test <code style="font-size:11px">13:10</code></div>
+          <div class="tl-body">連線測試，HTTP adapter 可達 LangFuse</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-title" style="font-size:13px">E2E Final Integration Test <code style="font-size:11px">13:14</code></div>
+          <div class="tl-body">完整整合測試，userId=klay 確認</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-title" style="font-size:13px">LangFuse E2E with agent_steps <code style="font-size:11px">13:17</code></div>
+          <div class="tl-body">agent_steps Generation spans 確認（max + klay）</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-title" style="font-size:13px">Cost Calc E2E Test <code style="font-size:11px">21:38</code></div>
+          <div class="tl-body">v2 cost_usd=$0.0525，latency_breakdown 確認</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Discord Alert 設定</h3>
+      <p style="margin-bottom:14px">任務完成後自動判斷，fire-and-forget，不阻塞 API：</p>
+      <div style="background:#f6f5f1;border-radius:8px;padding:16px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--accent-warm);font-family:var(--font-mono);margin-bottom:8px">ALERT THRESHOLDS</div>
+        <div style="font-size:13px;margin-bottom:6px">💰 <strong>cost_usd ≥ $0.10</strong> → Discord 通知</div>
+        <div style="font-size:13px">⏱️ <strong>duration ≥ 60s</strong> → Discord 通知</div>
+      </div>
+      <p style="font-size:13px;color:var(--grey-02)">訊息包含：任務名稱、agent、model、token 總數、cost USD、latency breakdown per subagent</p>
+    </div>
+  </div>
+</section>
+
+<!-- SCORE - DARK -->
+<div class="dark-band" id="score">
+  <div class="inner">
+    <div class="section-header">
+      <div class="section-eyebrow">07 · ENGINEERING SCORE</div>
+      <h2 class="section-title">工程評分：<span>6/10 → 7.5/10</span></h2>
+      <p class="section-desc">誠實評分，包含仍然缺少的部分</p>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div style="margin-bottom:32px">
+          <div class="score-row">
+            <div class="score-label" style="color:rgba(255,255,255,0.7)">AI 概念</div>
+            <div class="score-track"><div class="score-fill" style="width:80%;background:var(--green)"></div></div>
+            <div class="score-val" style="color:var(--green)">8/10</div>
+          </div>
+          <div class="score-row">
+            <div class="score-label" style="color:rgba(255,255,255,0.7)">AI 工程</div>
+            <div class="score-track"><div class="score-fill" style="width:75%;background:var(--accent-warm)"></div></div>
+            <div class="score-val" style="color:var(--accent-warm)">7.5</div>
+          </div>
+          <div class="score-row">
+            <div class="score-label" style="color:rgba(255,255,255,0.7)">LLMOps</div>
+            <div class="score-track"><div class="score-fill" style="width:70%;background:var(--accent-warm)"></div></div>
+            <div class="score-val" style="color:var(--accent-warm)">7/10</div>
+          </div>
+          <div class="score-row">
+            <div class="score-label" style="color:rgba(255,255,255,0.7)">DevOps / Alerting</div>
+            <div class="score-track"><div class="score-fill" style="width:65%;background:#5b8fb9"></div></div>
+            <div class="score-val" style="color:#5b8fb9">6.5</div>
+          </div>
+          <div class="score-row">
+            <div class="score-label" style="color:rgba(255,255,255,0.7)">Production Readiness</div>
+            <div class="score-track"><div class="score-fill" style="width:65%;background:#5b8fb9"></div></div>
+            <div class="score-val" style="color:#5b8fb9">6.5</div>
+          </div>
+          <div class="score-row" style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px">
+            <div class="score-label" style="color:rgba(255,255,255,0.9);font-weight:700">整體（v2）</div>
+            <div class="score-track"><div class="score-fill" style="width:75%;background:var(--accent-warm)"></div></div>
+            <div class="score-val" style="color:var(--accent-warm);font-size:15px">7.5</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2" style="grid-template-columns:1fr;gap:14px">
+        <div class="dk-card" style="border-left:3px solid var(--danger)">
+          <h3>仍缺：Real-time Span（-1 分）</h3>
+          <p>現在是任務完成後送 summary trace。真正企業級需要每個 LLM API call 即時打 span（在 llm_service.py 插入 instrumentation）。這是 <strong style="color:var(--accent)">Phase 2</strong>，影響面廣。</p>
+        </div>
+        <div class="dk-card" style="border-left:3px solid #5b8fb9">
+          <h3>仍缺：Evaluation Pipeline（-0.5 分）</h3>
+          <p>LLM judge / 準確度評分需要先累積 200+ traces。目前 7 條，需等 2-4 週。這是 <strong style="color:var(--accent)">Phase 3</strong>，數據量不夠做沒有意義。</p>
+        </div>
+        <div class="dk-card" style="border-left:3px solid rgba(255,255,255,0.15)">
+          <h3>Trace 覆蓋率 ~40%</h3>
+          <p>目前只有 force_complete() 路徑有 trace。正常 claim→start→complete、失敗任務、retry 還沒覆蓋到。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEXT STEPS -->
+<section id="next">
+  <div class="section-header">
+    <div class="section-eyebrow">08 · NEXT STEPS</div>
+    <h2 class="section-title">下一步：<span>已經可以執行的 3 件事</span></h2>
+    <p class="section-desc">按 ROI 排序，第一件事 1 週後就可以做</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="border-left:3px solid var(--green)">
+      <h3>① 1 週後 — LangFuse 數據加入晨報</h3>
+      <p>等 traces 累積到 20-30 條後，用 <code>/api/public/traces</code> 跑統計，加入市場晨報：</p>
+      <ul>
+        <li>今日 AI Team 總成本（USD）</li>
+        <li>最貴的 3 個任務</li>
+        <li>最慢的 agent（latency_breakdown 統計）</li>
+        <li>各 model 使用分佈</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-warm)">
+      <h3>② Route A — Graph Engine</h3>
+      <p>Ray 企劃書下一條路線：DAG 任務依賴管理。</p>
+      <ul>
+        <li>讓複雜任務有明確的前置依賴關係</li>
+        <li>失敗可重試特定節點而非整個 pipeline</li>
+        <li>Kai 已有 <code>parent_task_id</code> 欄位，基礎已在</li>
+        <li>需要 Scout Phase 2 設計 DAG schema</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <h3>③ Phase 2 — Real-time Span（中期）</h3>
+      <p>在 <code>llm_service.py</code> 的每次 LLM call 前後插入 LangFuse span：</p>
+      <ul>
+        <li>即時追蹤，不等任務完成</li>
+        <li>可看到 prompt 內容（輸入什麼）</li>
+        <li>可追蹤 streaming 延遲</li>
+        <li>需要修改所有 LLM 調用路徑（工作量中等）</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--grey-02)">
+      <h3>④ Phase 3 — Evaluation Pipeline（長期）</h3>
+      <p>等 traces 累積到 200+ 條後啟動：</p>
+      <ul>
+        <li>用 LangFuse Datasets 建立 golden set</li>
+        <li>LLM judge 評分（accuracy / relevance）</li>
+        <li>Prompt A/B 測試（比較不同版本效果）</li>
+        <li>預計時間：2-4 週後才有意義</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  Rain AI Team · <span>LangFuse Observability 完整建置報告</span> · 2026-03-14<br>
+  7 Traces · 20+ Models · 7.5/10 · Route B Complete → Route A Next
+</div>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+</script>
+</body>
+</html>

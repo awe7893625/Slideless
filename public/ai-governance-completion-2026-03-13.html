@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Team 自動治理系統 — 實作完成報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --white:#ffffff;
+  --black:#121212;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --accent:#eb8054;
+  --accent-blue:#a8cde8;
+  --green:#85a268;
+  --danger:#d94f4f;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:88px 32px 64px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-blue);margin-bottom:14px;font-family:var(--mono)}
+.cover h1{font-size:clamp(26px,4.5vw,44px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:12px}
+.cover h1 span{color:var(--accent)}
+.cover .subtitle{font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:24px}
+.cover .verdict{display:inline-flex;align-items:center;gap:10px;padding:10px 28px;border:2px solid var(--green);border-radius:6px;color:var(--green);font-weight:700;font-size:14px;letter-spacing:0.05em;font-family:var(--mono);margin-bottom:20px}
+.cover .verdict::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green)}
+.cover .meta{font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1px}
+
+/* Main layout */
+.main{max-width:720px;margin:0 auto;padding:56px 28px 80px}
+@media(max-width:600px){.main{padding:36px 20px 60px}.cover{padding:60px 24px 48px}}
+
+/* Section */
+.section{margin-bottom:56px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
+.section h2{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px}
+.section .section-desc{font-size:14px;color:var(--grey-02);margin-bottom:24px;font-family:var(--mono)}
+.section p{font-size:15px;color:#333;margin-bottom:12px}
+.section ul{margin:0 0 12px 20px;color:#333;font-size:15px}
+.section li{margin-bottom:6px}
+
+/* Divider */
+.divider{height:1px;background:var(--grey-01);margin:0 0 48px}
+
+/* Summary card row */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+.summary-stat{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px 18px;text-align:center}
+.summary-stat .num{font-size:28px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:var(--black);margin-bottom:4px}
+.summary-stat .num.green{color:var(--green)}
+.summary-stat .label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono)}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:22px 24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-label{font-size:11px;font-weight:700;color:var(--grey-02);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-family:var(--mono)}
+.card h4{font-size:15px;font-weight:600;margin-bottom:8px}
+.card p,.card li{font-size:14px;color:#444;line-height:1.6}
+.card ul{margin-left:16px}
+.card li{margin-bottom:5px}
+
+/* Module grid */
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;margin-bottom:4px}
+.module-item{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+.module-item .module-id{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--accent);letter-spacing:1.5px;margin-bottom:6px}
+.module-item .module-name{font-size:14px;font-weight:600;margin-bottom:5px}
+.module-item .module-desc{font-size:13px;color:var(--grey-03);line-height:1.5}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;letter-spacing:0.02em;font-family:var(--mono)}
+.badge-green{background:#e8f5e0;color:#3d7a1c}
+.badge-orange{background:#fff3e0;color:#c45d1a}
+.badge-red{background:#fde8e8;color:#b91c1c}
+.badge-blue{background:#e0f0ff;color:#1a5fb4}
+.badge-gray{background:var(--cream-alt);color:var(--grey-03)}
+
+/* Table */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;border-radius:8px;border:1px solid var(--grey-01)}
+.table-wrap::-webkit-scrollbar{height:4px}
+.table-wrap::-webkit-scrollbar-track{background:var(--cream-alt)}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--grey-02);border-radius:2px}
+table{width:100%;border-collapse:collapse;min-width:480px;font-size:14px}
+th{background:var(--cream-alt);font-weight:600;text-align:left;padding:11px 14px;color:#333;white-space:nowrap;font-size:12px;letter-spacing:0.5px}
+td{padding:11px 14px;border-top:1px solid #eee;color:#444;vertical-align:top}
+tr:hover td{background:#faf9f5}
+.col-mono{font-family:var(--mono);font-size:13px}
+
+/* Endpoint list */
+.endpoint-list{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.endpoint-row{background:var(--white);border:1px solid var(--grey-01);border-radius:8px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px}
+.ep-method{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--cream-alt);padding:3px 9px;border-radius:4px;color:var(--grey-03);white-space:nowrap;margin-top:1px}
+.ep-path{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--black);margin-bottom:3px}
+.ep-desc{font-size:13px;color:var(--grey-03)}
+
+/* Level blocks */
+.level-block{border-left:3px solid var(--grey-01);padding:12px 0 12px 18px;margin-bottom:14px}
+.level-block.l1{border-left-color:var(--accent-blue)}
+.level-block.l2{border-left-color:var(--accent)}
+.level-block.l3{border-left-color:var(--green)}
+.level-block .level-tag{font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:1px;margin-bottom:5px}
+.level-block.l1 .level-tag{color:#1a5fb4}
+.level-block.l2 .level-tag{color:#c45d1a}
+.level-block.l3 .level-tag{color:#3d7a1c}
+.level-block .level-name{font-size:15px;font-weight:600;margin-bottom:5px}
+.level-block .level-desc{font-size:14px;color:var(--grey-03)}
+
+/* File table status */
+.file-status-new{color:var(--green);font-weight:600;font-family:var(--mono);font-size:12px}
+.file-status-mod{color:var(--accent);font-weight:600;font-family:var(--mono);font-size:12px}
+
+/* Action highlight */
+.highlight-box{background:var(--white);border-left:4px solid var(--accent);padding:16px 20px;border-radius:0 8px 8px 0;margin:20px 0;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.highlight-box.blue{border-left-color:var(--accent-blue)}
+.highlight-box.green{border-left-color:var(--green)}
+.highlight-box p{font-size:14px;color:#333;margin-bottom:0}
+.highlight-box p strong{color:var(--black)}
+
+/* Footer */
+.footer{text-align:center;padding:36px 0;color:var(--grey-02);font-size:11px;font-family:var(--mono);letter-spacing:1px}
+.footer strong{color:var(--grey-03)}
+
+/* Tech highlight inline */
+code{font-family:var(--mono);font-size:0.87em;background:var(--cream-alt);padding:1px 6px;border-radius:4px;color:var(--black)}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Final Completion Report · 2026-03-13</div>
+  <h1>AI Team 自動治理系統<br><span>實作完成報告</span></h1>
+  <div class="subtitle">AI Governance System — Full Implementation Report</div>
+  <div class="verdict">ALL PHASES COMPLETE</div>
+  <div class="meta">3 PHASES · 8 MODULES · 6 API ENDPOINTS · 6/6 QUILL FINDINGS RESOLVED</div>
+</div>
+
+<div class="main">
+
+  <!-- Slide 1: Overview -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 01</div>
+    <h2>總覽 — 全系統完成狀態</h2>
+    <div class="section-desc">AI Governance System · 3-Phase Implementation</div>
+
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="num green">3</div>
+        <div class="label">Phases Done</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">8</div>
+        <div class="label">Audit Modules</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">6</div>
+        <div class="label">API Endpoints</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">6/6</div>
+        <div class="label">Quill Findings</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Phase Status</div>
+      <table style="min-width:0;width:100%">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>交付物</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-mono">Phase 1</td>
+            <td>8-module Audit Engine (<code>governance-audit.py</code>)</td>
+            <td><span class="badge badge-green">DONE</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">Phase 2</td>
+            <td>6 API Endpoints (Kai Control Center)</td>
+            <td><span class="badge badge-green">DONE</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">Phase 3</td>
+            <td>3-Level Self-Correction Engine (<code>governance-autofix.py</code>)</td>
+            <td><span class="badge badge-green">DONE</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">Quill Review</td>
+            <td>6/6 findings 全部修復</td>
+            <td><span class="badge badge-green">DONE</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">Night-shift</td>
+            <td>Module H + I 整合進夜班管線</td>
+            <td><span class="badge badge-green">DONE</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box green">
+      <p><strong>夜班管線整合完成。</strong>每晚 01:00 自動執行 governance-audit + governance-autofix，結果納入晨間 Email 報告。</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 2: Phase 1 -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 02</div>
+    <h2>Phase 1 — 審查引擎</h2>
+    <div class="section-desc">governance-audit.py · 8 Audit Modules · 100% Agent Coverage</div>
+
+    <div class="module-grid">
+      <div class="module-item">
+        <div class="module-id">H1 · AGENT STRUCTURE</div>
+        <div class="module-name">Agent 結構審查</div>
+        <div class="module-desc"><code>team.json</code> 28 agents 覆蓋率 × <code>memory/SKILL.md</code> 對應率</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H2 · CONFIG DIFF</div>
+        <div class="module-name">設定一致性檢查</div>
+        <div class="module-desc">7 同步點差異偵測：CLAUDE.md / team-roster / team_service / agent_task_service / SKILL.md / MEMORY.md / TeamPage.tsx</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H3 · ROLE OVERLAP</div>
+        <div class="module-name">角色重疊偵測</div>
+        <div class="module-desc">Agent 技能向量交集分析，標記高重疊風險對</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H4 · REVIEW COMPLIANCE</div>
+        <div class="module-name">審查合規度</div>
+        <div class="module-desc"><code>severity_level</code> × reviewer matrix 合規率統計</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H5 · DISPATCH ANALYTICS</div>
+        <div class="module-name">派遣分析</div>
+        <div class="module-desc">任務派遣 KPI：dispatch rate / fallback rate / 漸進式推行進度</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H6 · COST BY AGENT</div>
+        <div class="module-name">成本歸因</div>
+        <div class="module-desc">模型成本按 Agent 分攤，Opus/Codex/Sonnet 使用分布</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H7 · MEMORY SYSTEM</div>
+        <div class="module-name">記憶體健康度</div>
+        <div class="module-desc">memory file 覆蓋率、逾期 lessons、過舊 speed-improvements</div>
+      </div>
+      <div class="module-item">
+        <div class="module-id">H8 · SCHEDULER SYNC</div>
+        <div class="module-name">排程同步核查</div>
+        <div class="module-desc">LaunchAgent plist ↔ Kai task 排程一致性（exact match，無 substring false positive）</div>
+      </div>
+    </div>
+
+    <div class="highlight-box blue">
+      <p><strong>結果：</strong>28 agents 全數覆蓋，coverage rate 100%。H8 已修正 substring false positive 問題（Quill W2）。</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 3: Phase 2 -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 03</div>
+    <h2>Phase 2 — API 端點</h2>
+    <div class="section-desc">Kai Control Center · backend/app/api/governance.py · 6 New Endpoints</div>
+
+    <div class="endpoint-list">
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/audit</div>
+          <div class="ep-desc">完整審查報告 + 背景刷新（<code>_refresh_in_progress</code> guard）</div>
+        </div>
+      </div>
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/agent-kpis</div>
+          <div class="ep-desc">Agent KPI Scoreboard — 28 agents 北極星指標即時狀態</div>
+        </div>
+      </div>
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/config-diff</div>
+          <div class="ep-desc">組織架構 7 同步點差異報告</div>
+        </div>
+      </div>
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/dispatch-analytics</div>
+          <div class="ep-desc">任務派遣分析 — dispatch rate / fallback rate / 漸進式推行進度</div>
+        </div>
+      </div>
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/review-compliance</div>
+          <div class="ep-desc">審查合規度 — severity level 分布 × reviewer matrix 符合率</div>
+        </div>
+      </div>
+      <div class="endpoint-row">
+        <div class="ep-method">GET</div>
+        <div>
+          <div class="ep-path">/api/governance/findings-history</div>
+          <div class="ep-desc">歷史 findings JSONL 查詢 — 頻率統計、趨勢分析</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-label">技術亮點</div>
+      <ul>
+        <li><code>_refresh_in_progress</code> guard — 防止重複觸發背景刷新（Quill W3 修復）</li>
+        <li><code>asyncio.create_task</code> + <code>await proc.wait()</code> — 正確管理 subprocess 生命週期，杜絕 zombie process</li>
+        <li>所有端點支援快取，避免每次請求重跑 audit 腳本</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 4: Phase 3 -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 04</div>
+    <h2>Phase 3 — 自動修正引擎</h2>
+    <div class="section-desc">governance-autofix.py · 3-Level Trigger System</div>
+
+    <div class="level-block l1">
+      <div class="level-tag">L1 · ALERT</div>
+      <div class="level-name">發生 &lt; 3 次 / 7 天</div>
+      <div class="level-desc">記錄到 JSONL findings history，供統計分析使用</div>
+    </div>
+    <div class="level-block l2">
+      <div class="level-tag">L2 · SUGGEST</div>
+      <div class="level-name">發生 &ge; 3 次 / 7 天</div>
+      <div class="level-desc">生成修復建議命令清單，輸出至報告供 Klay 審閱後手動執行</div>
+    </div>
+    <div class="level-block l3">
+      <div class="level-tag">L3 · AUTO-FIX</div>
+      <div class="level-name">發生 &ge; 5 次 / 7 天</div>
+      <div class="level-desc">dry-run probe 先行確認安全性，通過後自動執行修復（須明確傳入 <code>--auto-fix</code> flag）</div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-label">Safe-to-Fix Whitelist</div>
+      <ul>
+        <li><code>scheduler_unregistered_job</code> — 自動向 Kai 補冊排程任務</li>
+        <li><code>skill_upgrade_expired_72h</code> — 發送 Discord 通知至 Quill</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-label">安全機制</div>
+      <ul>
+        <li><code>job_key</code> regex guard — 防止指令注入（Quill S3 修復）</li>
+        <li>dry-run probe 優先執行，輸出預期結果後才正式觸發</li>
+        <li><code>--auto-fix</code> flag 必須明確啟用，預設模式為 alert-only</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 5: DB Schema -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 05</div>
+    <h2>DB Schema 升級</h2>
+    <div class="section-desc">AgentTask · severity_level 欄位 · 雙重驗證</div>
+
+    <div class="card">
+      <div class="card-label">新增欄位</div>
+      <table style="min-width:0;width:100%">
+        <thead>
+          <tr>
+            <th>欄位</th>
+            <th>表格</th>
+            <th>允許值</th>
+            <th>驗證點</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-mono">severity_level</td>
+            <td>AgentTask</td>
+            <td class="col-mono">tiny / standard / major / critical / unknown</td>
+            <td><code>create_task</code> + <code>update_task</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box">
+      <p><code>complete_task</code> 現在正確傳遞 <code>verified</code> 欄位至 <code>_transition</code> kwargs，確保 Quill/Forge 驗收標記不再遺失（Quill W5 修復）。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Migration 策略</div>
+      <ul>
+        <li>新增 migration 版本 — 現有資料補填 <code>unknown</code> 作為預設值</li>
+        <li><code>create_task</code> 入口：無效值 → raise <code>ValueError</code>（Quill S5 修復）</li>
+        <li><code>update_task</code> 入口：同步加入驗證，防止後置寫入繞過</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 6: Quill Review -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 06</div>
+    <h2>Quill Code Review — 修復紀錄</h2>
+    <div class="section-desc">6/6 Findings Resolved · 0 Remaining Blockers</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>等級</th>
+            <th>問題描述</th>
+            <th>修復方式</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-mono">W2</td>
+            <td><span class="badge badge-orange">Warning</span></td>
+            <td>H8 排程核查 substring false positive</td>
+            <td>改為 exact match 比對</td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">W3</td>
+            <td><span class="badge badge-orange">Warning</span></td>
+            <td>subprocess 未正確等待 → zombie process 風險</td>
+            <td><code>_refresh_in_progress</code> guard + <code>await proc.wait()</code></td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">W4</td>
+            <td><span class="badge badge-orange">Warning</span></td>
+            <td><code>count_recent</code> O(n) 重複讀檔，每次 finding 都重讀</td>
+            <td>preload findings 一次傳入，避免重複 I/O</td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">W5</td>
+            <td><span class="badge badge-orange">Warning</span></td>
+            <td><code>complete_task</code> 未傳 <code>verified</code> 欄位</td>
+            <td>加入 <code>_transition</code> kwargs 傳遞</td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">S3</td>
+            <td><span class="badge badge-red">Security</span></td>
+            <td><code>job_key</code> 無防注入驗證</td>
+            <td><code>re.match</code> regex guard（^[\w\-\.]+$）</td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+          <tr>
+            <td class="col-mono">S5</td>
+            <td><span class="badge badge-red">Security</span></td>
+            <td><code>severity_level</code> 無驗證，任意字串可寫入</td>
+            <td><code>create_task</code> + <code>update_task</code> 雙重入口驗證</td>
+            <td><span class="badge badge-green">Fixed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box green">
+      <p>Quill 全部 6 項 findings 已修復，無 blocker 殘留。Security findings (S3, S5) 均為高優先，已於同 session 內完成修復。</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 7: Night-shift Integration -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 07</div>
+    <h2>夜班整合</h2>
+    <div class="section-desc">night-shift-comprehensive.py · Module H + I · 每晚 01:00 自動執行</div>
+
+    <div class="card">
+      <div class="card-label">Module H — Governance Audit</div>
+      <p>執行 <code>governance-audit.py</code>，產出 8 模組審查快照，結果寫入 <code>~/.claude/cache/night-shift-comprehensive-latest.json</code>。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Module I — Auto-Fix (Alert Mode)</div>
+      <p>執行 <code>governance-autofix.py</code>（預設 alert-only，不帶 <code>--auto-fix</code>），統計 findings 頻率，L2/L3 建議納入晨間報告供 Klay 審閱。</p>
+    </div>
+
+    <div class="highlight-box blue">
+      <p><strong>管線排序：</strong>Module H 先跑（產出快照）→ Module I 讀取快照分析頻率 → 結果彙整至晨間 Email 報告（每晚寄送至 asdapper8866@gmail.com）。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">夜班完整模組順序（更新後）</div>
+      <table style="min-width:0;width:100%">
+        <thead>
+          <tr><th>Module</th><th>功能</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="col-mono">A</td><td>Session Review 分析</td></tr>
+          <tr><td class="col-mono">B</td><td>知識管線（lessons / speed-improvements）</td></tr>
+          <tr><td class="col-mono">C</td><td>LaunchAgent 健康檢查</td></tr>
+          <tr><td class="col-mono">D</td><td>網站健康檢查</td></tr>
+          <tr><td class="col-mono">E</td><td>API Key 額度檢查</td></tr>
+          <tr><td class="col-mono">F</td><td>殭屍任務清理</td></tr>
+          <tr><td class="col-mono"><strong>H</strong></td><td><strong>Governance Audit（新增）</strong></td></tr>
+          <tr><td class="col-mono"><strong>I</strong></td><td><strong>Auto-Fix Alert Mode（新增）</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Slide 8: File Overview -->
+  <div class="section">
+    <div class="section-eyebrow">Slide 08</div>
+    <h2>檔案總覽</h2>
+    <div class="section-desc">8 Files · 2 New · 6 Modified</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>檔案路徑</th>
+            <th>狀態</th>
+            <th>變更摘要</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-mono">~/Projects/scripts/governance-audit.py</td>
+            <td><span class="file-status-new">NEW</span></td>
+            <td>8-module audit engine，H1–H8 完整實作</td>
+          </tr>
+          <tr>
+            <td class="col-mono">~/Projects/scripts/governance-autofix.py</td>
+            <td><span class="file-status-new">NEW</span></td>
+            <td>3-level self-correction engine，L1–L3 觸發邏輯</td>
+          </tr>
+          <tr>
+            <td class="col-mono">backend/app/api/governance.py</td>
+            <td><span class="file-status-new">NEW</span></td>
+            <td>6 個 governance API 端點</td>
+          </tr>
+          <tr>
+            <td class="col-mono">backend/app/models/sql_models.py</td>
+            <td><span class="file-status-mod">MODIFIED</span></td>
+            <td>AgentTask 新增 severity_level 欄位</td>
+          </tr>
+          <tr>
+            <td class="col-mono">backend/app/services/agent_task_service.py</td>
+            <td><span class="file-status-mod">MODIFIED</span></td>
+            <td>severity_level 驗證 + verified 正確傳遞</td>
+          </tr>
+          <tr>
+            <td class="col-mono">backend/app/api/agent_tasks.py</td>
+            <td><span class="file-status-mod">MODIFIED</span></td>
+            <td>complete_task verified forwarding</td>
+          </tr>
+          <tr>
+            <td class="col-mono">backend/app/core/database.py</td>
+            <td><span class="file-status-mod">MODIFIED</span></td>
+            <td>schema migration，existing rows 補填 unknown</td>
+          </tr>
+          <tr>
+            <td class="col-mono">~/Projects/scripts/night-shift-comprehensive.py</td>
+            <td><span class="file-status-mod">MODIFIED</span></td>
+            <td>新增 Module H + Module I</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box green" style="margin-top:24px">
+      <p><strong>Production Ready.</strong> 所有 Quill findings 修復，DB migration 完成，夜班整合驗證，安全機制就位。AI Governance System 正式進入生產運行。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>AI Team 自動治理系統 — 實作完成報告</strong><br>
+  2026-03-13 · John (Implementation) · Quill (Code Review) · Rain AI Team
+</div>
+
+</body>
+</html>

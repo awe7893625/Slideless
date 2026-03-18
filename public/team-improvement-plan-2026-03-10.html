@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 深度改善計劃 by Ray 2026-03-10</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #666;
+    --border: #e8e6e1;
+    --accent: #2d5be3;
+    --green: #16a34a;
+    --yellow: #ca8a04;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --purple: #7c3aed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 40px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+  .badge-ray { display: inline-block; background: #1a1a1a; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.5px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+  .header-title { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+  .header-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .header-verdict { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; background: #fffbeb; border: 1px solid #fde68a; font-size: 13px; font-weight: 600; color: #92400e; }
+
+  .nav { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; display: flex; overflow-x: auto; }
+  .nav-item { padding: 14px 18px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; cursor: pointer; }
+  .nav-item:hover, .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 48px 40px; }
+  .section { margin-bottom: 56px; }
+
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .section-num { width: 40px; height: 40px; border-radius: 10px; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+  .section-title { font-size: 20px; font-weight: 700; }
+  .section-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .card-body { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 2px solid var(--border); background: #fafaf8; }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge.critical { background: #fef2f2; color: var(--red); }
+  .badge.high { background: #fff7ed; color: var(--orange); }
+  .badge.medium { background: #fffbeb; color: var(--yellow); }
+  .badge.low { background: #eff6ff; color: var(--accent); }
+  .badge.p0 { background: #fef2f2; color: var(--red); font-family: 'JetBrains Mono', monospace; }
+  .badge.p1 { background: #fff7ed; color: var(--orange); font-family: 'JetBrains Mono', monospace; }
+  .badge.p2 { background: #eff6ff; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .badge.done { background: #f0fdf4; color: var(--green); }
+  .badge.rich { background: #f0fdf4; color: var(--green); }
+  .badge.moderate { background: #fffbeb; color: var(--yellow); }
+  .badge.missing { background: #fef2f2; color: var(--red); }
+
+  .alert { border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; border-left: 4px solid; }
+  .alert.critical { background: #fef2f2; border-color: var(--red); }
+  .alert.warn { background: #fffbeb; border-color: var(--yellow); }
+  .alert.info { background: #eff6ff; border-color: var(--accent); }
+  .alert.success { background: #f0fdf4; border-color: var(--green); }
+  .alert-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .alert-body { font-size: 13px; color: #555; line-height: 1.8; }
+
+  .action-item { display: flex; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  .action-item:last-child { border-bottom: none; }
+  .action-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); min-width: 55px; margin-top: 2px; }
+  .action-content { flex: 1; }
+  .action-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .action-desc { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 8px; }
+  .action-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .stat-value { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+
+  .flow-step { display: flex; gap: 16px; margin-bottom: 12px; align-items: flex-start; }
+  .flow-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .flow-dot.auto { background: #eff6ff; color: var(--accent); }
+  .flow-dot.manual { background: #fffbeb; color: var(--yellow); }
+  .flow-line { font-size: 13px; line-height: 1.6; }
+  .flow-line strong { font-weight: 600; }
+
+  .agent-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .agent-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .agent-role { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .agent-issue { font-size: 13px; margin-bottom: 8px; }
+  .agent-action { font-size: 12px; color: var(--accent); font-weight: 500; }
+
+  .kpi-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .kpi-cell { flex: 1; padding: 14px 18px; border-right: 1px solid var(--border); }
+  .kpi-cell:last-child { border-right: none; }
+  .kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .kpi-target { font-size: 18px; font-weight: 700; }
+  .kpi-method { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #f0ece4; padding: 2px 6px; border-radius: 4px; }
+
+  .footer { border-top: 1px solid var(--border); padding: 32px 40px; text-align: center; font-size: 12px; color: var(--muted); background: var(--card); margin-top: 80px; }
+  .footer-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+
+  @media (max-width: 768px) {
+    .header-inner, .nav-inner, .main, .footer { padding-left: 20px; padding-right: 20px; }
+    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    .kpi-row { flex-direction: column; }
+    .kpi-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .kpi-cell:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="badge-ray">RAY — 架構審查官 · Design Review Report</div>
+    <div class="header-title">Rain AI Team 深度改善計劃</div>
+    <div class="header-sub">基於完整團隊盤查 · 29 Agent · 28 份 SKILL.md · 18 條 lessons · 2026-03-10</div>
+    <div class="header-verdict">⚠️ 審查結論：有條件通過 — P0 行動必須在 24 小時內開始執行</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-item active" href="#risk">風險評估</a>
+    <a class="nav-item" href="#rootcause">根因分析</a>
+    <a class="nav-item" href="#actions">改善行動</a>
+    <a class="nav-item" href="#selfimprove">自我進步機制</a>
+    <a class="nav-item" href="#agents">各 Agent 建議</a>
+    <a class="nav-item" href="#kpi">成功指標</a>
+    <a class="nav-item" href="#completed">已完成</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- 文件品質概覽 -->
+  <div class="grid-4" style="margin-bottom:40px;">
+    <div class="stat-card">
+      <div class="stat-label">文件完整 (RICH)</div>
+      <div class="stat-value" style="color:var(--green);">20</div>
+      <div class="stat-sub">Klay, Ray, Scout, Iris, Webb...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">文件尚可 (MODERATE)</div>
+      <div class="stat-value" style="color:var(--yellow);">8</div>
+      <div class="stat-sub">Max, Rex, John, Knox, Sage...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">文件缺失 (MISSING)</div>
+      <div class="stat-value" style="color:var(--red);">3</div>
+      <div class="stat-sub">GooayeAI, EchoMarketer, Nautilus</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">高頻錯誤（lessons）</div>
+      <div class="stat-value" style="color:var(--orange);">18</div>
+      <div class="stat-sub">跳流程 / 報告分工 / 交接空殼...</div>
+    </div>
+  </div>
+
+  <!-- 1. 風險評估 -->
+  <div class="section" id="risk">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">風險評估</div>
+        <div class="section-desc">依嚴重度排列，共 15 項風險</div>
+      </div>
+    </div>
+
+    <div class="alert critical">
+      <div class="alert-title">CRITICAL — 影響整個系統信任度（3 項）</div>
+      <div class="alert-body">這些問題不只是效率問題，而是讓整個團隊管理機制失去可信度。</div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>#</th><th>風險項目</th><th>嚴重度</th><th>影響範圍</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>R1</code></td>
+            <td><strong>流程紀律失效</strong>：Major 任務跳過 3-Phase，Ray 從未被觸發</td>
+            <td><span class="badge critical">CRITICAL</span></td>
+            <td>所有 Major/Critical 任務</td>
+          </tr>
+          <tr>
+            <td><code>R2</code></td>
+            <td><strong>任務看板完成率 0%</strong>：54 個任務無一進入 /done，管理盲區</td>
+            <td><span class="badge critical">CRITICAL</span></td>
+            <td>全團隊可見性 + Rain 信任度</td>
+          </tr>
+          <tr>
+            <td><code>R3</code></td>
+            <td><strong>SOP 內容驗證盲區</strong>：SOP 本身方向寫反，同一錯誤修了兩次</td>
+            <td><span class="badge critical">CRITICAL</span></td>
+            <td>BankExamQuiz 內容正確性</td>
+          </tr>
+          <tr>
+            <td><code>R4</code></td>
+            <td><strong>Session 交接空殼</strong>：stop hook 無品質門檻，知識斷層</td>
+            <td><span class="badge high">HIGH</span></td>
+            <td>跨 session 知識延續</td>
+          </tr>
+          <tr>
+            <td><code>R5</code></td>
+            <td><strong>報告分工崩潰</strong>：主 Agent 自做報告，Nova/Jarvis 被繞過</td>
+            <td><span class="badge high">HIGH</span></td>
+            <td>報告品質 + 分工紀律</td>
+          </tr>
+          <tr>
+            <td><code>R6</code></td>
+            <td><strong>偏好結晶化斷路</strong>：lessons.md 18 條教訓，preferences.md 只有 10 條規則</td>
+            <td><span class="badge high">HIGH</span></td>
+            <td>防止重複錯誤的機制</td>
+          </tr>
+          <tr>
+            <td><code>R7</code></td>
+            <td><strong>3 個 Agent 無 SKILL.md</strong>：GooayeAI、EchoMarketer、Nautilus</td>
+            <td><span class="badge high">HIGH</span></td>
+            <td>這 3 個 Agent 的行為邊界</td>
+          </tr>
+          <tr>
+            <td><code>R8</code></td>
+            <td><strong>Klay diary 空白</strong>：架構決策沒有推理記錄</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>架構決策可追溯性</td>
+          </tr>
+          <tr>
+            <td><code>R9</code></td>
+            <td><strong>每週週報從未執行</strong>：定義了但 0 次執行，沒有觸發器</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>持續改善回路</td>
+          </tr>
+          <tr>
+            <td><code>R10</code></td>
+            <td><strong>Keeper 12 個網站缺自動報警</strong>：健康追蹤靠人工</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>網站可用性</td>
+          </tr>
+          <tr>
+            <td><code>R11</code></td>
+            <td><strong>Knox vault API 路徑未記錄</strong>：密鑰存取方式不透明</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>安全審計可操作性</td>
+          </tr>
+          <tr>
+            <td><code>R12</code></td>
+            <td><strong>Inquisitor 無具體執行工具</strong>：有職責定義但無腳本</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>財務審計可執行性</td>
+          </tr>
+          <tr>
+            <td><code>R13</code></td>
+            <td><strong>8 個 Agent 文件 MODERATE</strong>：Max、Rex、John 核心工作流說明不足</td>
+            <td><span class="badge medium">MEDIUM</span></td>
+            <td>跨 Agent 協作品質</td>
+          </tr>
+          <tr>
+            <td><code>R14</code></td>
+            <td>John 過於被動等規格，缺主動確認機制</td>
+            <td><span class="badge low">LOW</span></td>
+            <td>前端開發效率</td>
+          </tr>
+          <tr>
+            <td><code>R15</code></td>
+            <td>Milo、Atlas 文件 MODERATE，無系統性 workflow</td>
+            <td><span class="badge low">LOW</span></td>
+            <td>爬蟲 / Google 整合任務</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. 根因分析 -->
+  <div class="section" id="rootcause">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div>
+        <div class="section-title">根因分析</div>
+        <div class="section-desc">三個系統性設計缺陷 + 一個次要原因</div>
+      </div>
+    </div>
+
+    <div class="alert critical">
+      <div class="alert-title">核心發現：問題不是能力不足，是制度強制力為零</div>
+      <div class="alert-body">每個 Agent 的 SKILL.md 都寫得很好，每個流程都定義了。但缺乏觸發機制和執行成本，導致所有規範都是紙面上的。</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">根因 A：制度強制力為零（最核心）</div>
+        <div class="card-body">
+          流程寫在文件裡，但沒有任何執行強制機制。Agent 在判斷「這個需要走 3-Phase 嗎？」時，天然傾向「不需要」，因為：<br><br>
+          • 走 3-Phase 需要等 Scout + Ray，增加摩擦<br>
+          • 「我能看懂」是最容易合理化跳流程的說詞<br>
+          • 不調用 /done 沒有懲罰，無正向反饋<br><br>
+          <strong>例子</strong>：Kai Flows 整合（5+ 檔案）Klay 直接開幹，理由是「看到 workflow_engine.py 後直接開始」。這不是 Klay 的失誤，是流程設計沒有觸發器。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">根因 B：反饋回路斷裂</div>
+        <div class="card-body">
+          整個自我改善系統設計是：<br>
+          <code>犯錯 → lessons.md → 每週提煉 → preferences.md → 制度化</code><br><br>
+          但實際上：<br>
+          • lessons.md 有 18 條教訓（說明 Agent 有在記錄）✅<br>
+          • preferences.md 只有 10 條規則 ❌<br>
+          • 中間有明顯的<strong>提煉斷路</strong>：Noel 每週一提煉沒有觸發器<br><br>
+          不是 Noel 不盡責，而是「Noel 週報」這件事沒有 cron job，只有文件上的承諾。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">根因 C：文件品質 ≠ 執行品質</div>
+        <div class="card-body">
+          投入大量時間完善 SKILL.md，但文件豐富並不等於行為改變。<br><br>
+          <strong>例子 1</strong>：Ray SKILL.md 清楚寫「3+ 檔案 = Major = 必須 Ray」。但 Ray 從未被觸發，因為觸發責任落在「Klay 判斷任務等級」，繁忙時自然跳過。<br><br>
+          <strong>例子 2</strong>：ray-openrouter-fallback.sh 曾只存在文件說明中，腳本本身不存在。「文件記錄了備案」被誤認為「備案已實施」。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">根因 D（次要）：任務分級標準模糊</div>
+        <div class="card-body">
+          「Major = 3+ 檔案修改」在代碼改動上清晰，但在內容驗證、SOP 維護任務上不清晰。<br><br>
+          BankExamQuiz 筆記驗證被當 Tiny 任務處理，跳過 Ray 的設計審查，相同錯誤出現兩次。<br><br>
+          <strong>缺少的維度</strong>：內容影響面廣（50+ 知識點 / 對外公開 / 涉及法規）= 至少 Major，即使只改 1 個檔案。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 改善行動 -->
+  <div class="section" id="actions">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div>
+        <div class="section-title">改善行動清單</div>
+        <div class="section-desc">P0 = 24h內 · P1 = 本週 · P2 = 本月</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:16px;display:flex;align-items:center;gap:8px;"><span style="background:#fef2f2;padding:4px 10px;border-radius:6px;">P0 — 立即執行（24 小時內）</span></h3>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px;">
+      <div class="action-item">
+        <div class="action-num">P0-01</div>
+        <div class="action-content">
+          <div class="action-title">補建 3 個缺失的 SKILL.md</div>
+          <div class="action-desc">GooayeAI、EchoMarketer、Nautilus 三個 Agent 完全沒有行為邊界定義。</div>
+          <div class="action-meta"><span class="badge done">✅ 今日已完成</span><span class="badge p0">P0</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P0-02</div>
+        <div class="action-content">
+          <div class="action-title">任務看板手動清理 + 補 /done</div>
+          <div class="action-desc">12 個 pending 任務逐一確認：已完成的補 /done，已廢棄的 cancel，仍需執行的重新 dispatch。</div>
+          <div class="action-meta"><span class="badge done">✅ 54 筆 failed/cancelled 今日已刪</span><span class="badge p0">P0</span><span>負責：Klay + Noel</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P0-03</div>
+        <div class="action-content">
+          <div class="action-title">Klay diary 今日起開始記錄</div>
+          <div class="action-desc">每個 Major 決策當下記錄推理過程。格式：<code>[日期] 背景 → 排除選項 → 最終選擇 → 風險</code></div>
+          <div class="action-meta"><span class="badge p0">P0</span><span>負責：Klay</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P0-04</div>
+        <div class="action-content">
+          <div class="action-title">驗證 ray-openrouter-fallback.sh 實際可執行</div>
+          <div class="action-desc"><code>bash ~/.claude/hooks/ray-openrouter-fallback.sh</code> 實際執行，確認腳本回傳有效回應。</div>
+          <div class="action-meta"><span class="badge p0">P0</span><span>負責：Ray</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:700;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:8px;"><span style="background:#fff7ed;padding:4px 10px;border-radius:6px;">P1 — 本週完成</span></h3>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px;">
+      <div class="action-item">
+        <div class="action-num">P1-01</div>
+        <div class="action-content">
+          <div class="action-title">stop-hook 加入交接筆記品質門檻</div>
+          <div class="action-desc">交接筆記必須包含至少 1 個具體動作描述（30 字以上），否則輸出警告。</div>
+          <div class="action-meta"><span class="badge p1">P1</span><span>負責：Forge</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P1-02</div>
+        <div class="action-content">
+          <div class="action-title">建立 Noel 每週一觸發器</div>
+          <div class="action-desc">晨報 LaunchAgent 在週一自動建立 Noel 週報任務到看板。不依賴「記得」，依賴看板任務出現。</div>
+          <div class="action-meta"><span class="badge done">✅ 今日已加入晨報腳本</span><span class="badge p1">P1</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P1-03</div>
+        <div class="action-content">
+          <div class="action-title">Klay SKILL.md 加入 Major 任務硬規則</div>
+          <div class="action-desc">禁止事項加入：「禁止在沒有 Scout Phase 2 + Ray Phase 3 記錄的情況下開始任何 Major 任務，即使我認為我已理解需求。」</div>
+          <div class="action-meta"><span class="badge p1">P1</span><span>負責：Klay</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P1-04</div>
+        <div class="action-content">
+          <div class="action-title">Keeper 網站告警自動化</div>
+          <div class="action-desc">Uptime Kuma 加入所有受管網站 + Discord #alerts 告警設定，測試一次模擬下線通知。</div>
+          <div class="action-meta"><span class="badge p1">P1</span><span>負責：Keeper</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P1-05</div>
+        <div class="action-content">
+          <div class="action-title">建立 Inquisitor 可執行掃描腳本</div>
+          <div class="action-desc"><code>~/.claude/scripts/inquisitor-scan.sh</code> 至少覆蓋：明文密鑰掃描 + Knox vault API 過期 key + 輸出 JSON 報告。</div>
+          <div class="action-meta"><span class="badge p1">P1</span><span>負責：Max + Inquisitor</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P1-06</div>
+        <div class="action-content">
+          <div class="action-title">BankExamQuiz SOP 反向驗證</div>
+          <div class="action-desc">重讀 bank-exam-notes-sop.md，對每條「已修正記錄」確認「錯誤值/正確值」方向不是寫反的。加入「已反向驗證 [日期]」標記。</div>
+          <div class="action-meta"><span class="badge p1">P1</span><span>負責：Klay</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;"><span style="background:#eff6ff;padding:4px 10px;border-radius:6px;">P2 — 本月完成</span></h3>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="action-item">
+        <div class="action-num">P2-01</div>
+        <div class="action-content">
+          <div class="action-title">MODERATE 文件升級 RICH（Max > Rex > John 優先）</div>
+          <div class="action-desc">每個升級至少補充：完整工作流程 + 與其他 Agent 的協作邊界 + 3 個以上禁止事項。</div>
+          <div class="action-meta"><span class="badge p2">P2</span><span>負責：各 Agent 自行</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P2-02</div>
+        <div class="action-content">
+          <div class="action-title">lessons.md → preferences.md 結晶化補課</div>
+          <div class="action-desc">18 條教訓逐一分析，通用性強 + 已驗證 + 未來必然再遇 → 提煉到 preferences.md。目標從 10 條增加到 20+ 條。</div>
+          <div class="action-meta"><span class="badge p2">P2</span><span>負責：Noel + Klay</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P2-03</div>
+        <div class="action-content">
+          <div class="action-title">Knox vault API 路徑標準化</div>
+          <div class="action-desc">Knox SKILL.md 加入「Vault 存取手冊」：實際儲存路徑、讀取指令、存取權限清單。Inquisitor 可按此手冊獨立完成審計。</div>
+          <div class="action-meta"><span class="badge p2">P2</span><span>負責：Knox</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P2-04</div>
+        <div class="action-content">
+          <div class="action-title">內容正確性任務加入分級規則</div>
+          <div class="action-desc">task-dispatch.md 加入新維度：影響 50+ 知識點 / 對外公開頁面 / 涉及法規 = 至少 Major，即使只改 1 個檔案。</div>
+          <div class="action-meta"><span class="badge p2">P2</span><span>負責：Klay</span></div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">P2-05</div>
+        <div class="action-content">
+          <div class="action-title">每日 Session 三問自動提示機制</div>
+          <div class="action-desc">stop hook 在 session 結束時掃描是否有三問紀錄，沒有輸出警告並記錄到 review-loop.log。</div>
+          <div class="action-meta"><span class="badge p2">P2</span><span>負責：Forge</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 自我進步機制 -->
+  <div class="section" id="selfimprove">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div>
+        <div class="section-title">自我進步機制設計</div>
+        <div class="section-desc">如何讓整個團隊自動優化，不需要 Rain 介入</div>
+      </div>
+    </div>
+
+    <div class="alert info">
+      <div class="alert-title">設計原則：把「應該記得做」變成「沒辦法不做」</div>
+      <div class="alert-body">所有機制依賴觸發器（LaunchAgent、看板任務、hook），不依賴 Agent 的記憶力或責任心。</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">🔄 機制 1：Lesson → Preference 自動化回路</div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">每週一 <strong>09:05</strong>（晨報後）LaunchAgent 自動在看板建立 Noel 週報任務</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot manual">N</div>
+          <div class="flow-line">Noel 執行：讀取上週新增 lessons → 判斷通用性（T/F）+ 可預防性（T/F）</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">雙 T → 提煉到 <code>preferences.md</code>，加日期標記</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot manual">N</div>
+          <div class="flow-line">產出週報 Email：高頻錯誤 Top3 + 改善追蹤</div>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#15803d;">
+          <strong>關鍵</strong>：不依賴「記得」，週一看板上會出現任務，任務出現 = 有責任完成
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">📋 機制 2：任務完成強制三問</div>
+        <div class="flow-step">
+          <div class="flow-dot manual">A</div>
+          <div class="flow-line">Agent 呼叫 <code>/done</code> endpoint</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">回應中加入提示：「請回答三問：做了什麼/犯什麼錯/下次怎麼改進」</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">stop hook 掃描最近對話是否含「Session 回顧」關鍵字</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">沒有 → 記錄到 <code>review-loop.log</code>（不阻止 exit）</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot manual">K</div>
+          <div class="flow-line">Klay 晨報時讀取 log，對有缺失的 Agent 標記</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">🚦 機制 3：Major 任務自動分級閘道</div>
+        <div class="flow-step">
+          <div class="flow-dot manual">K</div>
+          <div class="flow-line">Klay 接收任務後執行 <code>classify-task.sh</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">腳本掃描關鍵字（auth/payment/金流/前後端同時改）→ 輸出等級</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">MAJOR/CRITICAL → 強制輸出「需要 Scout Phase 2 + Ray Phase 3」</div>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:#eff6ff;border-radius:8px;font-size:12px;color:#1d4ed8;">
+          <strong>設計邏輯</strong>：把「我來判斷」變成「腳本先跑一遍」。摩擦力從 0 → 有，足以防止輕率跳過
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">📊 機制 4：看板健康度晨報</div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">每日 09:00 晨報腳本計算看板完成率（done/total）</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">完成率連續 3 天不上升 → 晨報加入警告</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot auto">自</div>
+          <div class="flow-line">結果推送到 Discord / Email 給 Rain</div>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:#fffbeb;border-radius:8px;font-size:12px;color:#92400e;">
+          <strong>效果</strong>：讓看板狀態對 Rain 可見，形成自然的改善壓力
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Agent 個別建議 -->
+  <div class="section" id="agents">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div>
+        <div class="section-title">各 Agent 個別改善建議</div>
+        <div class="section-desc">只針對有明確問題的 Agent，有問題有行動有驗收</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="agent-card">
+        <div class="agent-name">Klay <span class="badge moderate" style="font-size:10px;margin-left:6px;">3 項問題</span></div>
+        <div class="agent-role">CEO · Opus 4.6</div>
+        <div class="agent-issue">❌ <strong>diary.md 空白</strong>：推理過程無記錄，決策不可追溯</div>
+        <div class="agent-issue">❌ <strong>跳 3-Phase</strong>：「我看得懂」不是理由</div>
+        <div class="agent-issue">❌ <strong>任務結束不調 /done</strong>：看板 0% 完成率</div>
+        <div class="agent-action">→ P0-03: diary 今日起記錄 / P1-03: 禁止事項加硬規則 / /done 列為完成 checklist 強制項</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">Noel <span class="badge moderate" style="font-size:10px;margin-left:6px;">1 項問題</span></div>
+        <div class="agent-role">Ops Director · Sonnet 4.6</div>
+        <div class="agent-issue">❌ <strong>週報從未執行</strong>：0 次執行，無觸發器</div>
+        <div class="agent-issue">⚠️ 有時直接回答財務問題（應轉 Tax）</div>
+        <div class="agent-action">→ P1-02 觸發器建立後週一自動執行 / SKILL.md 加：禁止直接回答深度財務問題</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">Max <span class="badge moderate" style="font-size:10px;margin-left:6px;">文件 MODERATE</span></div>
+        <div class="agent-role">Senior Backend · Opus 4.6</div>
+        <div class="agent-issue">❌ SKILL.md 缺「接任務後第一步是什麼」</div>
+        <div class="agent-issue">❌ 與 Rex 的任務交接流程不清</div>
+        <div class="agent-issue">❌ 完成後如何通知 Quill 做 review 未定義</div>
+        <div class="agent-action">→ P2-01: 補充「標準開發流程」章節（5+ 步驟，每步有具體指令）</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">John <span class="badge moderate" style="font-size:10px;margin-left:6px;">2 項問題</span></div>
+        <div class="agent-role">Frontend · Sonnet 4.6</div>
+        <div class="agent-issue">❌ 過於被動等規格，缺主動確認機制</div>
+        <div class="agent-issue">❌ i18n 元件漏掃（同類錯誤第 2 次）</div>
+        <div class="agent-action">→ 加「等待 5 分鐘無回應則繼續執行」規則 / SKILL.md 加前端交付 checklist（含 grep 中文殘留）</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">Knox <span class="badge moderate" style="font-size:10px;margin-left:6px;">1 項問題</span></div>
+        <div class="agent-role">Finance Lead · Opus 4.6</div>
+        <div class="agent-issue">❌ vault API 路徑未記錄，Inquisitor 無法獨立操作</div>
+        <div class="agent-action">→ P2-03: 補充「Vault 存取手冊」章節（路徑 + 指令 + 存取權限）</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">Inquisitor <span class="badge moderate" style="font-size:10px;margin-left:6px;">1 項問題</span></div>
+        <div class="agent-role">Finance Auditor · Sonnet 4.6</div>
+        <div class="agent-issue">❌ 有職責定義但無具體執行工具</div>
+        <div class="agent-action">→ P1-05: 建立 inquisitor-scan.sh / SKILL.md 加「工具庫」章節</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">Keeper <span class="badge moderate" style="font-size:10px;margin-left:6px;">1 項問題</span></div>
+        <div class="agent-role">Website Maintenance · Sonnet 4.6</div>
+        <div class="agent-issue">❌ 12 個網站健康追蹤缺自動報警</div>
+        <div class="agent-issue">⚠️ SKILL.md 只列了 4 個網站，清單不完整</div>
+        <div class="agent-action">→ P1-04: Uptime Kuma 加所有網站 + Discord 告警，測試一次模擬下線</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">GooayeAI / EchoMarketer / Nautilus</div>
+        <div class="agent-role">Investment / Marketing / Browser · 各模型</div>
+        <div class="agent-issue">❌ 完全無 SKILL.md（行為邊界未定義）</div>
+        <div class="agent-action">→ P0-01: 已建立 ✅（今日完成）</div>
+      </div>
+      <div class="agent-card" style="border-color:var(--green);">
+        <div class="agent-name">Ray / Scout / Iris / Forge / Webb</div>
+        <div class="agent-role">Core Reviewers + CI + Website Lead</div>
+        <div class="agent-issue">✅ 文件 RICH，邊界清晰，無重大問題</div>
+        <div class="agent-action">→ 維持現狀，根據任務反饋持續迭代</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 成功指標 -->
+  <div class="section" id="kpi">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div>
+        <div class="section-title">成功指標（KPI）</div>
+        <div class="section-desc">怎樣算做好了 · 每個指標有對應的測量方式</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:16px;">流程紀律</h3>
+    <div class="kpi-row" style="margin-bottom:16px;">
+      <div class="kpi-cell">
+        <div class="kpi-label">Major 任務走完 3-Phase</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 80%</div>
+        <div class="kpi-method">看板中 Major 任務是否有 Scout + Ray 的 phase 紀錄 · 每週測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">任務看板完成率</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 60%</div>
+        <div class="kpi-method">GET /api/tasks/stats done vs total · 每天測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Session 三問完成率</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 70%</div>
+        <div class="kpi-method">review-loop.log 三問關鍵字頻率 · 每週測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">週報執行次數</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 4 次/月</div>
+        <div class="kpi-method">看板中 Noel 週報任務 done 記錄 · 每月測量</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:16px;">知識管理</h3>
+    <div class="kpi-row" style="margin-bottom:16px;">
+      <div class="kpi-cell">
+        <div class="kpi-label">同類錯誤重複出現</div>
+        <div class="kpi-target" style="color:var(--green);">0 次</div>
+        <div class="kpi-method">Noel 週報中人工 review · 每週測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">preferences.md 規則數</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 20 條</div>
+        <div class="kpi-method">目前 10 條，目標本月底達到 20+ · 每月測量</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:16px;">文件品質</h3>
+    <div class="kpi-row">
+      <div class="kpi-cell">
+        <div class="kpi-label">MISSING SKILL.md 數</div>
+        <div class="kpi-target" style="color:var(--green);">0</div>
+        <div class="kpi-method">人工檢查 agent 目錄 · 今日已達成 ✅</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">MODERATE → RICH 升級</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 3 個</div>
+        <div class="kpi-method">Max + Rex + John 本月底 · 每月測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">同一 Bug 修 2 次</div>
+        <div class="kpi-target" style="color:var(--green);">0 次/月</div>
+        <div class="kpi-method">lessons.md 中重複根因紀錄 · 每月測量</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">報告分工遵守率</div>
+        <div class="kpi-target" style="color:var(--green);">≥ 90%</div>
+        <div class="kpi-method">主 Agent 是否自做報告 · 每週觀察</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 今日已完成 -->
+  <div class="section" id="completed">
+    <div class="section-header">
+      <div class="section-num">✅</div>
+      <div>
+        <div class="section-title">今日已完成的改善項目</div>
+        <div class="section-desc">2026-03-10 本次盤查已執行的修正</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card" style="border-color:var(--green);">
+        <div class="card-title" style="color:var(--green);">✅ 建立缺失的 3 個 SKILL.md</div>
+        <div class="card-body">
+          • <code>~/.claude/agents/gooaye-ai/SKILL.md</code><br>
+          • <code>~/.claude/agents/echomarketer.md</code>（補充）<br>
+          • <code>~/.claude/agents/nautilus.md</code>（補充）
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--green);">
+        <div class="card-title" style="color:var(--green);">✅ 任務看板清理（54 筆）</div>
+        <div class="card-body">
+          刪除全部 failed + cancelled 任務<br>
+          看板從 91 筆降至 12 筆 pending（全為有效待辦）
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--green);">
+        <div class="card-title" style="color:var(--green);">✅ 晨間報告 LaunchAgent</div>
+        <div class="card-body">
+          每日 09:00 自動執行<br>
+          週一額外建立 Noel 週報任務到看板
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--green);">
+        <div class="card-title" style="color:var(--green);">✅ 本改善報告 + Email</div>
+        <div class="card-body">
+          由 Ray 規劃、Klay 執行<br>
+          Deck 報告已部署 + Email 已發送
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-title">Rain AI Team — 深度改善計劃 by Ray</div>
+  <div>架構審查官：Ray (Codex Plus CLI) · 執行：Klay · 2026-03-10</div>
+  <div style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;">
+    Verdict: NEEDS_ACTION · P0 items must start within 24h · Team can self-improve without Rain
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const target = document.querySelector(item.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.section[id]').forEach(section => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= 120 && rect.bottom >= 120) {
+      const id = section.getAttribute('id');
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

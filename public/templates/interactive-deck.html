@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互動式 Deck 模板 — Rain AI Team</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Chart.js from CDN — no npm needed -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+/* =====================================================
+   ROOT DESIGN TOKENS — Keftek warm-tone palette
+   ===================================================== */
+:root {
+  --black:       #121212;
+  --white:       #ffffff;
+  --cream:       #f6f5f1;
+  --grey-01:     #f0eee6;
+  --grey-02:     #8b877c;
+  --grey-03:     #6c6a62;
+  --accent-warm: #e8723a;
+  --accent-cool: #a8cde8;
+  --green:       #85a268;
+  --danger:      #d94f4f;
+  --yellow:      #d4a843;
+  --font-main:   'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  --radius:      12px;
+  --shadow:      0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* =====================================================
+   RESET & BASE
+   ===================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+body {
+  font-family: var(--font-main);
+  color: var(--black);
+  background: var(--cream);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =====================================================
+   SCROLL PROGRESS BAR
+   ===================================================== */
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent-warm);
+  z-index: 101; transition: width .1s; width: 0;
+}
+
+/* =====================================================
+   STICKY NAV
+   ===================================================== */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(246,245,241,0.96);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  border-bottom: 1px solid var(--grey-01);
+  padding: 12px 40px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.nav-brand {
+  font-weight: 700; font-size: 13px;
+  color: var(--grey-03); font-family: var(--font-mono);
+  white-space: nowrap; flex-shrink: 0;
+}
+.nav-links {
+  display: flex; gap: 14px; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 11px; color: var(--grey-02);
+  text-decoration: none; font-weight: 500;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--black); }
+
+/* =====================================================
+   COVER / HERO
+   ===================================================== */
+.cover {
+  background: var(--black); color: var(--white);
+  text-align: center; padding: 80px 40px 64px;
+}
+.cover .eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent-warm); margin-bottom: 20px;
+  font-family: var(--font-mono);
+}
+.cover h1 {
+  font-size: clamp(28px, 4.5vw, 52px);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -1px; margin-bottom: 14px;
+}
+.cover h1 span { color: var(--accent-warm); }
+.cover .subtitle {
+  font-size: 16px; color: rgba(255,255,255,0.55);
+  max-width: 600px; margin: 0 auto 32px;
+}
+.cover-stats {
+  display: flex; gap: 48px; flex-wrap: wrap;
+  justify-content: center; margin-top: 32px;
+}
+.cover-stat .num {
+  font-size: 40px; font-weight: 800;
+  font-family: var(--font-mono); color: var(--accent-warm);
+}
+.cover-stat .label {
+  font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px;
+}
+.cover-meta {
+  margin-top: 40px; font-size: 12px;
+  color: rgba(255,255,255,0.25); font-family: var(--font-mono);
+}
+
+/* =====================================================
+   LAYOUT
+   ===================================================== */
+.main { max-width: 920px; margin: 0 auto; padding: 56px 40px 80px; }
+.section { margin-bottom: 64px; }
+.section-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent-warm);
+  font-family: var(--font-mono); margin-bottom: 8px;
+}
+.section-title {
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.section-title span { color: var(--accent-warm); }
+.section-desc {
+  font-size: 14px; color: var(--grey-02);
+  max-width: 680px; margin-bottom: 24px;
+}
+
+/* =====================================================
+   CARDS
+   ===================================================== */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 28px; border: 1px solid var(--grey-01);
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.card p, .card li {
+  font-size: 14px; color: var(--grey-03); line-height: 1.75;
+}
+.card ul { padding-left: 18px; margin-top: 6px; }
+.card li { margin-bottom: 4px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+/* =====================================================
+   METRICS
+   ===================================================== */
+.metric-row {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.metric {
+  flex: 1; min-width: 120px; background: var(--white);
+  border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--grey-01); text-align: center;
+}
+.metric .val {
+  font-size: 28px; font-weight: 800; color: var(--black);
+  font-family: var(--font-mono);
+}
+.metric .label {
+  font-size: 11px; color: var(--grey-02);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-top: 4px; font-family: var(--font-mono);
+}
+.metric.warm .val { color: var(--accent-warm); }
+.metric.green .val { color: var(--green); }
+.metric.red .val { color: var(--danger); }
+.metric.blue .val { color: #4a7fa0; }
+
+/* =====================================================
+   TAGS / BADGES
+   ===================================================== */
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); letter-spacing: 0.5px;
+  margin-right: 6px; margin-bottom: 4px;
+}
+.tag-green  { background: #e8f0de; color: var(--green); }
+.tag-red    { background: #fce4e4; color: var(--danger); }
+.tag-warm   { background: #fde8de; color: var(--accent-warm); }
+.tag-yellow { background: #f5edcf; color: var(--yellow); }
+.tag-grey   { background: var(--grey-01); color: var(--grey-03); }
+.tag-blue   { background: #dfedf8; color: #5a8db5; }
+
+/* =====================================================
+   TABLE
+   ===================================================== */
+.table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius); border: 1px solid var(--grey-01);
+  margin-bottom: 16px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
+th {
+  background: var(--grey-01); color: var(--grey-03);
+  font-weight: 600; text-align: left; padding: 10px 14px;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; font-family: var(--font-mono);
+}
+td { padding: 10px 14px; border-top: 1px solid var(--grey-01); color: var(--grey-03); }
+tr:hover td { background: rgba(0,0,0,0.01); }
+
+/* =====================================================
+   DARK SECTION
+   ===================================================== */
+.dark-section {
+  background: var(--black); color: var(--white);
+  width: 100vw; position: relative;
+  left: 50%; right: 50%;
+  margin-left: -50vw; margin-right: -50vw;
+  padding: 64px 0;
+}
+.dark-inner {
+  max-width: 920px; margin: 0 auto; padding: 0 40px;
+}
+.dark-section .section-eyebrow { color: var(--accent-cool); }
+.dark-section .section-title   { color: var(--white); }
+.dark-section .section-desc    { color: rgba(255,255,255,0.45); }
+.dark-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 14px;
+}
+.dark-card h4 { color: var(--white); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.dark-card p, .dark-card li { color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.7; }
+
+/* =====================================================
+   COMPONENT 1 — INTERACTIVE CHARTS
+   Chart container wraps a canvas + time-range switcher
+   ===================================================== */
+.chart-card {
+  background: var(--white); border: 1px solid var(--grey-01);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.chart-header {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 18px;
+}
+.chart-title { font-size: 14px; font-weight: 700; }
+.chart-subtitle { font-size: 12px; color: var(--grey-02); margin-top: 2px; }
+
+/* Time-range switcher buttons */
+.range-switcher {
+  display: flex; gap: 4px;
+}
+.range-btn {
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 4px 12px; border-radius: 6px; border: none;
+  cursor: pointer; transition: background .15s, color .15s;
+  background: var(--grey-01); color: var(--grey-03);
+}
+.range-btn.active, .range-btn:hover {
+  background: var(--accent-warm); color: var(--white);
+}
+.chart-container { position: relative; height: 240px; }
+.chart-container canvas { max-height: 240px; }
+
+/* =====================================================
+   COMPONENT 2 — ACCORDION
+   ===================================================== */
+.accordion { margin-bottom: 12px; }
+.accordion-header {
+  width: 100%; text-align: left;
+  background: var(--white); border: 1px solid var(--grey-01);
+  border-radius: var(--radius); padding: 16px 20px;
+  font-size: 14px; font-weight: 600; color: var(--black);
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  transition: background .15s; font-family: var(--font-main);
+}
+.accordion-header:hover { background: var(--grey-01); }
+.accordion-header.open {
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--grey-01);
+}
+.accordion-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 1.5px solid var(--grey-02); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--grey-02);
+  transition: transform .25s, border-color .15s;
+  line-height: 1;
+}
+.accordion-header.open .accordion-icon {
+  transform: rotate(180deg); border-color: var(--accent-warm);
+  color: var(--accent-warm);
+}
+.accordion-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .3s ease, padding .3s;
+  background: var(--white);
+  border: 1px solid var(--grey-01); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-size: 13px; color: var(--grey-03);
+}
+.accordion-body.open { max-height: 800px; padding: 20px; }
+.accordion-body pre {
+  font-family: var(--font-mono); font-size: 12px;
+  background: var(--grey-01); border-radius: 8px;
+  padding: 14px; overflow-x: auto; line-height: 1.6;
+  color: var(--grey-03); margin-top: 8px;
+}
+.accordion-label {
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); letter-spacing: 1px;
+  text-transform: uppercase; color: var(--grey-02);
+  margin-bottom: 4px;
+}
+
+/* =====================================================
+   COMPONENT 3 — TABS
+   ===================================================== */
+.tabs { margin-bottom: 16px; }
+.tab-nav {
+  display: flex; gap: 0; border-bottom: 2px solid var(--grey-01);
+  margin-bottom: 20px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 10px 20px; border: none; background: none;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  color: var(--grey-02); border-bottom: 2px solid transparent;
+  margin-bottom: -2px; white-space: nowrap; transition: color .15s;
+  font-family: var(--font-main);
+}
+.tab-btn:hover { color: var(--black); }
+.tab-btn.active {
+  color: var(--black); border-bottom-color: var(--accent-warm);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* =====================================================
+   COMPONENT 4 — REFRESH BUTTON
+   ===================================================== */
+.refresh-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 10px; margin-bottom: 12px;
+}
+.refresh-status {
+  font-size: 11px; color: var(--grey-02); font-family: var(--font-mono);
+}
+.refresh-status.loading { color: var(--accent-warm); }
+.refresh-status.success { color: var(--green); }
+.refresh-status.error   { color: var(--danger); }
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--grey-01);
+  background: var(--white); cursor: pointer; font-size: 12px;
+  font-weight: 600; color: var(--grey-03); transition: background .15s;
+  font-family: var(--font-main);
+}
+.refresh-btn:hover { background: var(--grey-01); }
+.refresh-btn .spin { display: inline-block; transition: transform .3s; }
+.refresh-btn.spinning .spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* =====================================================
+   MISC UTILITIES
+   ===================================================== */
+.highlight {
+  background: #fffbeb; border-left: 3px solid var(--yellow);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.success-box {
+  background: #f0fdf4; border-left: 3px solid var(--green);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.danger-box {
+  background: #fef2f2; border-left: 3px solid var(--danger);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.highlight p, .success-box p, .danger-box p {
+  font-size: 13px; color: var(--grey-03); margin: 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 12px;
+  background: var(--grey-01); padding: 1px 6px;
+  border-radius: 4px; color: var(--grey-03);
+}
+.footer {
+  background: var(--black); color: rgba(255,255,255,0.25);
+  text-align: center; padding: 40px;
+  font-size: 12px; font-family: var(--font-mono); line-height: 1.9;
+}
+
+/* =====================================================
+   RESPONSIVE — 390px breakpoint
+   ===================================================== */
+@media (max-width: 640px) {
+  .nav { padding: 10px 16px; }
+  .main { padding: 48px 16px 64px; }
+  .cover { padding: 72px 20px 48px; }
+  .cover-stats { gap: 24px; }
+  .cover-stat .num { font-size: 32px; }
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .metric-row { gap: 8px; }
+  .chart-container { height: 200px; }
+  .chart-container canvas { max-height: 200px; }
+  .chart-header { flex-direction: column; align-items: flex-start; }
+  .range-switcher { flex-wrap: wrap; }
+  .dark-section { padding: 48px 0; }
+  .dark-inner { padding: 0 20px; }
+  .tab-btn { padding: 8px 14px; font-size: 12px; }
+}
+@media (max-width: 390px) {
+  .cover h1 { font-size: 24px; }
+  .metric .val { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Scroll progress indicator -->
+<div class="progress-bar" id="prog"></div>
+
+<!-- Sticky navigation -->
+<nav class="nav">
+  <div class="nav-brand">互動式 Deck 模板 · v1.0</div>
+  <div class="nav-links">
+    <a href="#charts">圖表</a>
+    <a href="#tabs">Tab 切換</a>
+    <a href="#accordion">Accordion</a>
+    <a href="#refresh">資料刷新</a>
+    <a href="#components">元件說明</a>
+  </div>
+</nav>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Rain AI Team · Interactive Deck Template · v1.0</div>
+  <h1>互動式 Deck <span>模板說明</span></h1>
+  <p class="subtitle">
+    包含可互動圖表、Accordion 展開細節、Tab 切換視角、資料刷新按鈕 —
+    Nova 製作報告時可直接套用此模板的互動元件。
+  </p>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="num">4</div>
+      <div class="label">互動元件</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">0</div>
+      <div class="label">npm 依賴</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">390px</div>
+      <div class="label">RWD 支援</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">CDN</div>
+      <div class="label">Chart.js Only</div>
+    </div>
+  </div>
+  <div class="cover-meta">
+    背景 #f6f5f1 · 強調色 #e8723a · 字型 Inter + Noto Sans TC + JetBrains Mono
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- =====================================================
+       SECTION 1 — INTERACTIVE CHARTS
+       ===================================================== -->
+  <div class="section" id="charts">
+    <div class="section-eyebrow">01 · 互動元件</div>
+    <div class="section-title">可互動圖表 — <span>折線圖 / 柱狀圖</span></div>
+    <p class="section-desc">
+      hover 顯示數值 tooltip，點擊時間段按鈕切換本週 / 本月 / 累積資料。
+      圖表由 Chart.js 4（CDN）渲染，無需 npm。
+    </p>
+
+    <!-- 折線圖範例 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">任務完成數 — 每日趨勢</div>
+          <div class="chart-subtitle">Kai 任務看板資料（範例資料）</div>
+        </div>
+        <div class="range-switcher" data-chart="lineChart">
+          <button class="range-btn active" data-range="week">本週</button>
+          <button class="range-btn" data-range="month">本月</button>
+          <button class="range-btn" data-range="total">累積</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 柱狀圖範例 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">各 Agent Token 使用量</div>
+          <div class="chart-subtitle">月度消耗統計（範例資料）</div>
+        </div>
+        <div class="range-switcher" data-chart="barChart">
+          <button class="range-btn active" data-range="week">本週</button>
+          <button class="range-btn" data-range="month">本月</button>
+          <button class="range-btn" data-range="total">累積</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       SECTION 2 — TABS
+       ===================================================== -->
+  <div class="section" id="tabs">
+    <div class="section-eyebrow">02 · 互動元件</div>
+    <div class="section-title">Tab 切換 — <span>多視角報告</span></div>
+    <p class="section-desc">
+      同一報告的不同視角（摘要 / 詳情 / 數據表格），
+      點擊 Tab 切換內容，無頁面跳轉。
+    </p>
+
+    <div class="tabs">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="summary">摘要</button>
+        <button class="tab-btn" data-tab="detail">詳情</button>
+        <button class="tab-btn" data-tab="data">數據表格</button>
+      </div>
+
+      <!-- Tab: 摘要 -->
+      <div class="tab-panel active" id="tab-summary">
+        <div class="metric-row">
+          <div class="metric warm">
+            <div class="val">28</div>
+            <div class="label">Active Agents</div>
+          </div>
+          <div class="metric green">
+            <div class="val">94%</div>
+            <div class="label">Task Success</div>
+          </div>
+          <div class="metric blue">
+            <div class="val">2.4h</div>
+            <div class="label">Avg Task Time</div>
+          </div>
+          <div class="metric">
+            <div class="val">$0.82</div>
+            <div class="label">Avg Cost / Task</div>
+          </div>
+        </div>
+        <div class="success-box">
+          <p>系統整體健康：所有核心服務正常，本週任務成功率 94%，高於上週 89%。</p>
+        </div>
+      </div>
+
+      <!-- Tab: 詳情 -->
+      <div class="tab-panel" id="tab-detail">
+        <div class="two-col">
+          <div class="card">
+            <h3>後端服務</h3>
+            <p>Kai Backend :5002 — 延遲 P95 142ms，記憶體使用 68%，無 5xx 錯誤。</p>
+            <ul>
+              <li>API 端點 24 個，全部正常</li>
+              <li>任務佇列深度 0（空隊列）</li>
+              <li>LangFuse 觀測性已啟用</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>前端服務</h3>
+            <p>控制台 :5173 — 最近部署 2026-03-17，Vercel Edge Network，全球 CDN 正常。</p>
+            <ul>
+              <li>首屏載入 LCP 1.8s</li>
+              <li>CLS 0.02（優秀）</li>
+              <li>行動裝置 PWA 就緒</li>
+            </ul>
+          </div>
+        </div>
+        <div class="highlight">
+          <p>注意：詳情 Tab 適合放單一元件的深度說明，不要超過 3 個卡片。</p>
+        </div>
+      </div>
+
+      <!-- Tab: 數據表格 -->
+      <div class="tab-panel" id="tab-data">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Model</th>
+                <th>本週任務數</th>
+                <th>成功率</th>
+                <th>平均耗時</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Klay</td>
+                <td><code>opus-4-6</code></td>
+                <td>48</td>
+                <td>96%</td>
+                <td>3.2h</td>
+                <td><span class="tag tag-green">active</span></td>
+              </tr>
+              <tr>
+                <td>John</td>
+                <td><code>sonnet-4-6</code></td>
+                <td>32</td>
+                <td>94%</td>
+                <td>1.8h</td>
+                <td><span class="tag tag-green">active</span></td>
+              </tr>
+              <tr>
+                <td>Noel</td>
+                <td><code>gemini-2.5-pro</code></td>
+                <td>61</td>
+                <td>91%</td>
+                <td>2.1h</td>
+                <td><span class="tag tag-green">active</span></td>
+              </tr>
+              <tr>
+                <td>Milo</td>
+                <td><code>opus-3</code></td>
+                <td>0</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="tag tag-grey">frozen</span></td>
+              </tr>
+              <tr>
+                <td>Ray</td>
+                <td><code>codex-plus</code></td>
+                <td>14</td>
+                <td>100%</td>
+                <td>0.5h</td>
+                <td><span class="tag tag-blue">review-only</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       SECTION 3 — ACCORDION
+       ===================================================== -->
+  <div class="section" id="accordion">
+    <div class="section-eyebrow">03 · 互動元件</div>
+    <div class="section-title">Accordion — <span>展開原始數據</span></div>
+    <p class="section-desc">
+      每個 section 有「展開原始數據」按鈕，預設收合，點擊展開。
+      適合放原始 JSON / SQL 查詢結果 / 詳細 log。
+    </p>
+
+    <!-- Accordion 1 -->
+    <div class="accordion">
+      <button class="accordion-header" data-accordion="acc1">
+        <span>任務統計摘要（展開查看原始資料）</span>
+        <span class="accordion-icon">&#8964;</span>
+      </button>
+      <div class="accordion-body" id="acc1">
+        <div class="accordion-label">Raw JSON — /api/tasks/stats</div>
+        <pre>{
+  "total": 248,
+  "completed": 233,
+  "failed": 6,
+  "executing": 9,
+  "success_rate": 0.9395,
+  "avg_duration_minutes": 94.2,
+  "top_agents": [
+    { "name": "noel",  "count": 61 },
+    { "name": "klay",  "count": 48 },
+    { "name": "john",  "count": 32 }
+  ],
+  "generated_at": "2026-03-17T08:00:00+08:00"
+}</pre>
+      </div>
+    </div>
+
+    <!-- Accordion 2 -->
+    <div class="accordion">
+      <button class="accordion-header" data-accordion="acc2">
+        <span>LangFuse 觀測性資料（本週 Span 統計）</span>
+        <span class="accordion-icon">&#8964;</span>
+      </button>
+      <div class="accordion-body" id="acc2">
+        <div class="accordion-label">Span Summary</div>
+        <pre>traces:    1,842
+spans:     9,617
+avg_depth:     4.2
+p95_latency:  2,340 ms
+cost_total:   $12.40 (Claude API)
+judge_scores:
+  - task_quality:   8.1 / 10
+  - hallucination:  0.04 (low)
+  - instruction_follow: 0.92</pre>
+        <p style="margin-top:10px;">P95 延遲略高於上週（1,980ms），需要確認 Max 的後端是否有慢查詢。</p>
+      </div>
+    </div>
+
+    <!-- Accordion 3 -->
+    <div class="accordion">
+      <button class="accordion-header" data-accordion="acc3">
+        <span>夜班執行記錄（2026-03-16）</span>
+        <span class="accordion-icon">&#8964;</span>
+      </button>
+      <div class="accordion-body" id="acc3">
+        <div class="accordion-label">Night Shift Log</div>
+        <pre>01:00 — Noel session started
+01:12 — Module A: 3 sessions analyzed, compliance 100%
+01:18 — Module B: 2 lessons graduated, 1 speed improvement
+01:34 — Module C: LaunchAgent health OK (8/8 running)
+01:51 — Module D: market-briefing size 73KB ✓
+02:03 — Module E: API quotas OK
+02:15 — Module F: 0 zombie tasks
+02:22 — Module J: dispatch_rate 71% (target 70%) ✓
+02:48 — Morning report sent → asdapper8866@gmail.com
+03:01 — Session ended</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       SECTION 4 — REFRESH BUTTON
+       ===================================================== -->
+  <div class="section" id="refresh">
+    <div class="section-eyebrow">04 · 互動元件</div>
+    <div class="section-title">資料刷新 — <span>即時拉取 Kai API</span></div>
+    <p class="section-desc">
+      點擊刷新按鈕，fetch Kai API 取最新資料重新渲染 metric 卡片。
+      如果沒有可用的 API 端點，隱藏此按鈕即可（見使用說明）。
+    </p>
+
+    <!-- Refresh bar -->
+    <div class="refresh-bar">
+      <span class="refresh-status" id="refreshStatus">上次更新：頁面載入時</span>
+      <button class="refresh-btn" id="refreshBtn">
+        <span class="spin">&#8635;</span>
+        刷新資料
+      </button>
+    </div>
+
+    <!-- Live metrics (updated by refresh) -->
+    <div id="liveMetrics">
+      <div class="metric-row">
+        <div class="metric warm" id="lm-tasks">
+          <div class="val" id="lm-tasks-val">—</div>
+          <div class="label">今日任務</div>
+        </div>
+        <div class="metric green" id="lm-success">
+          <div class="val" id="lm-success-val">—</div>
+          <div class="label">成功率</div>
+        </div>
+        <div class="metric blue" id="lm-agents">
+          <div class="val" id="lm-agents-val">—</div>
+          <div class="label">Active Agents</div>
+        </div>
+        <div class="metric" id="lm-executing">
+          <div class="val" id="lm-executing-val">—</div>
+          <div class="label">執行中</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <h3>如何設定 API 刷新端點</h3>
+      <p>在 JavaScript 的 <code>REFRESH_CONFIG</code> 物件修改：</p>
+      <ul style="margin-top:8px;">
+        <li>將 <code>apiUrl</code> 改為 Kai API 的實際端點（如 <code>http://127.0.0.1:5002/api/tasks/stats</code>）</li>
+        <li>修改 <code>mapData(data)</code> 函數，將 API 回傳值對應到 metric 欄位</li>
+        <li>如果沒有 API：設定 <code>enabled: false</code>，刷新按鈕會自動隱藏</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       SECTION 5 — DARK SECTION + COMPONENTS GUIDE
+       ===================================================== -->
+</div><!-- /main -->
+
+<div class="dark-section" id="components">
+  <div class="dark-inner">
+    <div class="section-eyebrow">05 · 元件說明</div>
+    <div class="section-title">給 <span>Nova</span> 的使用說明</div>
+    <p class="section-desc">製作報告時，複製對應的 HTML 區塊套用即可。設計 token 已統一定義在 CSS :root。</p>
+
+    <div class="two-col" style="margin-top:24px;">
+      <div class="dark-card">
+        <h4>圖表元件（Chart.js）</h4>
+        <p>
+          複製 <code>.chart-card</code> 區塊，修改 <code>data-chart</code> ID 和 canvas ID 保持一致。
+          在 JS 的 <code>CHART_DATA</code> 物件新增對應的 week/month/total 資料集。
+          Chart.js 4 從 CDN 載入，無需 npm。
+        </p>
+      </div>
+      <div class="dark-card">
+        <h4>Accordion 元件</h4>
+        <p>
+          複製 <code>.accordion</code> 區塊，修改 <code>data-accordion</code>
+          和對應 <code>id</code> 保持一致。預設收合，適合放原始 JSON、SQL 查詢結果、詳細 log。
+          不需要任何 JS 初始化，自動綁定事件。
+        </p>
+      </div>
+      <div class="dark-card">
+        <h4>Tab 切換元件</h4>
+        <p>
+          複製 <code>.tabs</code> 區塊，修改 <code>data-tab</code>
+          和對應 panel 的 <code>id</code>（格式：<code>tab-{name}</code>）。
+          支援任意數量的 Tab，不超過 6 個最佳。
+        </p>
+      </div>
+      <div class="dark-card">
+        <h4>刷新按鈕元件</h4>
+        <p>
+          修改 <code>REFRESH_CONFIG.apiUrl</code> 指向實際 Kai API 端點。
+          如無 API，設定 <code>enabled: false</code> 自動隱藏按鈕。
+          回傳資料格式對應 <code>mapData()</code> 函數自行調整。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" style="padding-top:48px;">
+  <!-- Design tokens reference -->
+  <div class="section">
+    <div class="section-eyebrow">06 · 設計系統</div>
+    <div class="section-title">Design Tokens 速查</div>
+    <p class="section-desc">所有顏色和字型已在 CSS :root 定義，直接用 var() 引用。</p>
+
+    <div class="three-col">
+      <div class="card" style="text-align:center;">
+        <div style="width:48px;height:48px;background:#f6f5f1;border-radius:8px;margin:0 auto 8px;border:1px solid #e5e5e5;"></div>
+        <div style="font-size:13px;font-weight:600;">--cream</div>
+        <div style="font-size:11px;color:var(--grey-02);font-family:var(--font-mono);">#f6f5f1</div>
+        <div style="font-size:11px;color:var(--grey-02);">主背景色</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="width:48px;height:48px;background:#e8723a;border-radius:8px;margin:0 auto 8px;"></div>
+        <div style="font-size:13px;font-weight:600;">--accent-warm</div>
+        <div style="font-size:11px;color:var(--grey-02);font-family:var(--font-mono);">#e8723a</div>
+        <div style="font-size:11px;color:var(--grey-02);">強調色（橘）</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="width:48px;height:48px;background:#121212;border-radius:8px;margin:0 auto 8px;"></div>
+        <div style="font-size:13px;font-weight:600;">--black</div>
+        <div style="font-size:11px;color:var(--grey-02);font-family:var(--font-mono);">#121212</div>
+        <div style="font-size:11px;color:var(--grey-02);">Hero 背景 / 深色區塊</div>
+      </div>
+    </div>
+
+    <div class="highlight" style="margin-top:8px;">
+      <p>禁止在主內容區使用暗色背景（除了 .dark-section 強調區塊）。
+      報告背景一律 #f6f5f1 奶油白，卡片用 #ffffff。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  互動式 Deck 模板 v1.0 · Rain AI Team · John (Frontend) · 2026-03-17<br>
+  Template: <code>public/templates/interactive-deck.html</code> · Chart.js 4.4.2 CDN · Zero npm deps
+</div>
+
+<!-- =====================================================
+     JAVASCRIPT — All interactive logic
+     ===================================================== -->
+<script>
+/* -------------------------------------------------------
+   CONFIG — Nova 修改這裡來調整資料
+   ------------------------------------------------------- */
+
+// Chart data for each time range
+const CHART_DATA = {
+  lineChart: {
+    week:  { labels: ['週一','週二','週三','週四','週五','週六','週日'], data: [12, 18, 14, 22, 27, 9, 15] },
+    month: { labels: ['第1週','第2週','第3週','第4週'], data: [87, 102, 94, 115] },
+    total: { labels: ['1月','2月','3月'], data: [312, 394, 248] }
+  },
+  barChart: {
+    week:  {
+      labels: ['Klay','Noel','John','Max','Rex','Forge','Scout'],
+      data:   [48200, 61500, 32800, 28400, 19300, 11200, 8400]
+    },
+    month: {
+      labels: ['Klay','Noel','John','Max','Rex','Forge','Scout'],
+      data:   [198000, 243000, 134000, 117000, 82000, 44000, 31000]
+    },
+    total: {
+      labels: ['Klay','Noel','John','Max','Rex','Forge','Scout'],
+      data:   [540000, 710000, 389000, 340000, 234000, 132000, 89000]
+    }
+  }
+};
+
+// Refresh button config — set enabled: false if no API
+const REFRESH_CONFIG = {
+  enabled: true,
+  apiUrl: 'http://127.0.0.1:5002/api/tasks/stats',
+  // Map API response to metric IDs
+  mapData: (data) => ({
+    'lm-tasks-val':     data.today_total     ?? data.total    ?? '—',
+    'lm-success-val':   data.today_success   != null
+                          ? Math.round(data.today_success * 100) + '%'
+                          : (data.success_rate != null ? Math.round(data.success_rate * 100) + '%' : '—'),
+    'lm-agents-val':    data.active_agents   ?? data.agents   ?? '—',
+    'lm-executing-val': data.executing       ?? '—'
+  })
+};
+
+/* -------------------------------------------------------
+   CHART RENDERING
+   ------------------------------------------------------- */
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 350, easing: 'easeInOutQuart' },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#121212',
+      titleColor: '#ffffff',
+      bodyColor: 'rgba(255,255,255,0.7)',
+      padding: 10,
+      cornerRadius: 8,
+      displayColors: false
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 }, color: '#8b877c' }
+    },
+    y: {
+      grid: { color: '#f0eee6' },
+      ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 }, color: '#8b877c' },
+      border: { display: false }
+    }
+  }
+};
+
+const chartInstances = {};
+
+function buildLineDataset(data) {
+  return {
+    labels: data.labels,
+    datasets: [{
+      data: data.data,
+      borderColor: '#e8723a',
+      backgroundColor: 'rgba(232,114,58,0.08)',
+      borderWidth: 2,
+      pointBackgroundColor: '#e8723a',
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      fill: true,
+      tension: 0.35
+    }]
+  };
+}
+
+function buildBarDataset(data) {
+  return {
+    labels: data.labels,
+    datasets: [{
+      data: data.data,
+      backgroundColor: 'rgba(232,114,58,0.75)',
+      hoverBackgroundColor: '#e8723a',
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  };
+}
+
+function initChart(id, type) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const initialData = CHART_DATA[id].week;
+  const dataset = type === 'line' ? buildLineDataset(initialData) : buildBarDataset(initialData);
+
+  chartInstances[id] = new Chart(ctx, {
+    type,
+    data: dataset,
+    options: CHART_DEFAULTS
+  });
+}
+
+function updateChart(id, range) {
+  const chart = chartInstances[id];
+  if (!chart) return;
+  const d = CHART_DATA[id][range];
+  if (!d) return;
+  const isLine = chart.config.type === 'line';
+  const newData = isLine ? buildLineDataset(d) : buildBarDataset(d);
+  chart.data.labels = newData.labels;
+  chart.data.datasets[0].data = newData.datasets[0].data;
+  chart.update();
+}
+
+// Wait for Chart.js to load
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof Chart !== 'undefined') {
+    initChart('lineChart', 'line');
+    initChart('barChart', 'bar');
+  }
+});
+
+/* -------------------------------------------------------
+   RANGE SWITCHER — chart time range buttons
+   ------------------------------------------------------- */
+document.querySelectorAll('.range-switcher').forEach(switcher => {
+  const chartId = switcher.dataset.chart;
+  switcher.querySelectorAll('.range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switcher.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateChart(chartId, btn.dataset.range);
+    });
+  });
+});
+
+/* -------------------------------------------------------
+   ACCORDION
+   ------------------------------------------------------- */
+document.querySelectorAll('.accordion-header').forEach(header => {
+  header.addEventListener('click', () => {
+    const bodyId = header.dataset.accordion;
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const isOpen = body.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.accordion-body').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('open'));
+    // Open clicked if it was closed
+    if (!isOpen) {
+      body.classList.add('open');
+      header.classList.add('open');
+    }
+  });
+});
+
+/* -------------------------------------------------------
+   TABS
+   ------------------------------------------------------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabName = btn.dataset.tab;
+    const tabsContainer = btn.closest('.tabs');
+    // Deactivate all in this group
+    tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    tabsContainer.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    // Activate target
+    btn.classList.add('active');
+    const panel = document.getElementById('tab-' + tabName);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+/* -------------------------------------------------------
+   REFRESH BUTTON
+   ------------------------------------------------------- */
+(function setupRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  const status = document.getElementById('refreshStatus');
+  if (!btn || !status) return;
+
+  // Hide if disabled
+  if (!REFRESH_CONFIG.enabled) {
+    const bar = document.querySelector('.refresh-bar');
+    if (bar) bar.style.display = 'none';
+    return;
+  }
+
+  function fmt(d) {
+    return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function applyMetrics(mapped) {
+    Object.entries(mapped).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    });
+  }
+
+  async function doRefresh() {
+    btn.classList.add('spinning');
+    btn.disabled = true;
+    status.className = 'refresh-status loading';
+    status.textContent = '載入中…';
+
+    try {
+      const res = await fetch(REFRESH_CONFIG.apiUrl, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const mapped = REFRESH_CONFIG.mapData(data);
+      applyMetrics(mapped);
+      status.className = 'refresh-status success';
+      status.textContent = '已更新：' + fmt(new Date());
+    } catch (err) {
+      status.className = 'refresh-status error';
+      status.textContent = '載入失敗（Kai API 離線？）';
+    } finally {
+      btn.classList.remove('spinning');
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener('click', doRefresh);
+  // Auto-fetch on load
+  doRefresh();
+})();
+
+/* -------------------------------------------------------
+   SCROLL PROGRESS BAR
+   ------------------------------------------------------- */
+window.addEventListener('scroll', () => {
+  const prog = document.getElementById('prog');
+  if (!prog) return;
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  prog.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
+});
+
+/* -------------------------------------------------------
+   NAV ACTIVE LINK (IntersectionObserver)
+   ------------------------------------------------------- */
+const navLinks = document.querySelectorAll('.nav-links a');
+const sections = document.querySelectorAll('div[id], section[id]');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-56px 0px 0px 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

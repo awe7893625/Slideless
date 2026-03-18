@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 團隊中控台深度審查報告 — 2026-03-17</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --black:       #121212;
+  --white:       #ffffff;
+  --cream:       #f6f5f1;
+  --grey-01:     #f0eee6;
+  --grey-02:     #8b877c;
+  --grey-03:     #6c6a62;
+  --accent-warm: #e8723a;
+  --accent-cool: #a8cde8;
+  --green:       #85a268;
+  --danger:      #d94f4f;
+  --yellow:      #d4a843;
+  --font-main:   'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  --radius:      12px;
+  --shadow:      0 1px 4px rgba(0,0,0,0.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+body {
+  font-family: var(--font-main);
+  color: var(--black);
+  background: var(--cream);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent-warm);
+  z-index: 101; transition: width .1s; width: 0;
+}
+
+/* Nav */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(246,245,241,0.96);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  border-bottom: 1px solid var(--grey-01);
+  padding: 12px 40px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.nav-brand {
+  font-weight: 700; font-size: 13px;
+  color: var(--grey-03); font-family: var(--font-mono);
+  white-space: nowrap; flex-shrink: 0;
+}
+.nav-links {
+  display: flex; gap: 14px; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 11px; color: var(--grey-02);
+  text-decoration: none; font-weight: 500;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--black); }
+
+/* Cover */
+.cover {
+  background: var(--black); color: var(--white);
+  text-align: center; padding: 100px 40px 72px;
+  position: relative; overflow: hidden;
+}
+.cover::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(232,114,58,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cover .eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent-warm); margin-bottom: 20px;
+  font-family: var(--font-mono);
+}
+.cover h1 {
+  font-size: clamp(28px, 4.5vw, 52px);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -1px; margin-bottom: 14px;
+}
+.cover h1 span { color: var(--accent-warm); }
+.cover .subtitle {
+  font-size: 15px; color: rgba(255,255,255,0.5);
+  max-width: 620px; margin: 0 auto 32px;
+}
+.cover-badges {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  justify-content: center; margin: 24px 0;
+}
+.cover-badge {
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-mono);
+}
+.badge-red    { background: rgba(217,79,79,0.25); color: #f08080; border: 1px solid rgba(217,79,79,0.4); }
+.badge-orange { background: rgba(232,114,58,0.25); color: #f5a87e; border: 1px solid rgba(232,114,58,0.4); }
+.badge-yellow { background: rgba(212,168,67,0.25); color: #e8c87e; border: 1px solid rgba(212,168,67,0.4); }
+.badge-green  { background: rgba(133,162,104,0.25); color: #adc890; border: 1px solid rgba(133,162,104,0.4); }
+.cover-stats {
+  display: flex; gap: 48px; flex-wrap: wrap;
+  justify-content: center; margin-top: 36px;
+}
+.cover-stat .num {
+  font-size: 40px; font-weight: 800;
+  font-family: var(--font-mono); color: var(--accent-warm);
+}
+.cover-stat .label {
+  font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 4px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.cover-meta {
+  margin-top: 40px; font-size: 12px;
+  color: rgba(255,255,255,0.2); font-family: var(--font-mono);
+}
+
+/* Layout */
+.main { max-width: 960px; margin: 0 auto; padding: 64px 40px 100px; }
+.section { margin-bottom: 72px; }
+.section-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent-warm);
+  font-family: var(--font-mono); margin-bottom: 8px;
+}
+.section-title {
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.section-title span { color: var(--accent-warm); }
+.section-desc {
+  font-size: 14px; color: var(--grey-02);
+  max-width: 700px; margin-bottom: 28px; line-height: 1.75;
+}
+
+/* Cards */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 28px; border: 1px solid var(--grey-01);
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.card h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--grey-03); }
+.card p, .card li {
+  font-size: 14px; color: var(--grey-03); line-height: 1.75;
+}
+.card ul { padding-left: 18px; margin-top: 6px; }
+.card li { margin-bottom: 4px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+/* Metrics */
+.metric-row {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.metric {
+  flex: 1; min-width: 130px; background: var(--white);
+  border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--grey-01); text-align: center;
+  box-shadow: var(--shadow);
+}
+.metric .val {
+  font-size: 28px; font-weight: 800; color: var(--black);
+  font-family: var(--font-mono);
+}
+.metric .label {
+  font-size: 11px; color: var(--grey-02);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-top: 4px; font-family: var(--font-mono);
+}
+.metric .sub { font-size: 11px; color: var(--grey-02); margin-top: 2px; }
+.metric.warm .val { color: var(--accent-warm); }
+.metric.green .val { color: var(--green); }
+.metric.red .val { color: var(--danger); }
+.metric.yellow .val { color: var(--yellow); }
+
+/* Score bars */
+.score-row { margin-bottom: 14px; }
+.score-label-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; margin-bottom: 6px; font-weight: 500;
+}
+.score-label-row .score-val { font-family: var(--font-mono); font-weight: 700; }
+.score-bar-bg {
+  height: 8px; background: var(--grey-01); border-radius: 4px; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: var(--accent-warm);
+  transition: width 1s ease;
+}
+.score-bar-fill.green { background: var(--green); }
+.score-bar-fill.yellow { background: var(--yellow); }
+
+/* Tags / Badges */
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); letter-spacing: 0.5px;
+  margin-right: 6px; margin-bottom: 4px;
+}
+.tag-green  { background: #e8f0de; color: var(--green); }
+.tag-red    { background: #fce4e4; color: var(--danger); }
+.tag-warm   { background: #fde8de; color: var(--accent-warm); }
+.tag-yellow { background: #f5edcf; color: var(--yellow); }
+.tag-grey   { background: var(--grey-01); color: var(--grey-03); }
+.tag-blue   { background: #dfedf8; color: #5a8db5; }
+
+/* Service status dot */
+.status-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+}
+.dot-green  { background: var(--green); box-shadow: 0 0 4px rgba(133,162,104,0.6); }
+.dot-orange { background: var(--accent-warm); box-shadow: 0 0 4px rgba(232,114,58,0.6); }
+.dot-red    { background: var(--danger); box-shadow: 0 0 4px rgba(217,79,79,0.6); }
+
+/* Table */
+.table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius); border: 1px solid var(--grey-01);
+  margin-bottom: 16px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
+th {
+  background: var(--grey-01); color: var(--grey-03);
+  font-weight: 600; text-align: left; padding: 10px 14px;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; font-family: var(--font-mono);
+}
+td { padding: 10px 14px; border-top: 1px solid var(--grey-01); color: var(--grey-03); }
+tr:hover td { background: rgba(0,0,0,0.015); }
+td strong { color: var(--black); }
+
+/* Dark section */
+.dark-section {
+  background: var(--black); color: var(--white);
+  width: 100vw; position: relative;
+  left: 50%; right: 50%;
+  margin-left: -50vw; margin-right: -50vw;
+  padding: 64px 0;
+}
+.dark-inner { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+.dark-section .section-eyebrow { color: var(--accent-cool); }
+.dark-section .section-title   { color: var(--white); }
+.dark-section .section-desc    { color: rgba(255,255,255,0.45); }
+.dark-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 14px;
+}
+.dark-card h4 { color: var(--white); font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.dark-card p, .dark-card li { color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.75; }
+.dark-card ul { padding-left: 18px; margin-top: 6px; }
+.dark-card li { margin-bottom: 4px; }
+blockquote.ray-quote {
+  border-left: 3px solid var(--accent-warm);
+  padding: 16px 20px; margin: 20px 0;
+  background: rgba(232,114,58,0.08);
+  border-radius: 0 8px 8px 0;
+}
+blockquote.ray-quote p {
+  font-size: 14px; color: rgba(255,255,255,0.75);
+  line-height: 1.75; margin: 0; font-style: italic;
+}
+
+/* Accordion */
+.accordion { margin-bottom: 10px; }
+.accordion-header {
+  width: 100%; text-align: left;
+  background: var(--white); border: 1px solid var(--grey-01);
+  border-radius: var(--radius); padding: 14px 18px;
+  font-size: 13px; font-weight: 600; color: var(--black);
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  transition: background .15s; font-family: var(--font-main);
+}
+.accordion-header:hover { background: var(--grey-01); }
+.accordion-header.open {
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--grey-01);
+}
+.accordion-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 1.5px solid var(--grey-02); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--grey-02);
+  transition: transform .25s, border-color .15s;
+}
+.accordion-header.open .accordion-icon {
+  transform: rotate(180deg); border-color: var(--accent-warm);
+  color: var(--accent-warm);
+}
+.accordion-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s ease, padding .35s;
+  background: var(--white);
+  border: 1px solid var(--grey-01); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-size: 13px; color: var(--grey-03);
+}
+.accordion-body.open { max-height: 600px; padding: 18px 20px; }
+.accordion-body p { line-height: 1.7; margin-bottom: 8px; }
+.accordion-body p:last-child { margin-bottom: 0; }
+
+/* Utility boxes */
+.highlight {
+  background: #fffbeb; border-left: 3px solid var(--yellow);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.success-box {
+  background: #f0fdf4; border-left: 3px solid var(--green);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.danger-box {
+  background: #fef2f2; border-left: 3px solid var(--danger);
+  padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0;
+}
+.highlight p, .success-box p, .danger-box p {
+  font-size: 13px; color: var(--grey-03); margin: 0; line-height: 1.7;
+}
+code {
+  font-family: var(--font-mono); font-size: 12px;
+  background: var(--grey-01); padding: 2px 6px; border-radius: 4px;
+  color: var(--grey-03);
+}
+
+/* Timeline / step list */
+.step-list { list-style: none; padding: 0; }
+.step-item {
+  display: flex; gap: 16px; padding: 14px 0;
+  border-bottom: 1px solid var(--grey-01);
+}
+.step-item:last-child { border-bottom: none; }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-warm); color: var(--white);
+  font-size: 12px; font-weight: 800; font-family: var(--font-mono);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.step-num.done { background: var(--green); }
+.step-content .step-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.step-content .step-desc { font-size: 13px; color: var(--grey-02); line-height: 1.65; }
+
+/* Priority badge in table */
+.p0 { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #fce4e4; color: var(--danger); }
+.p1 { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #fde8de; color: var(--accent-warm); }
+.p2 { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #f5edcf; color: var(--yellow); }
+.status-done { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #e8f0de; color: var(--green); }
+.status-week { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #fde8de; color: var(--accent-warm); }
+.status-month { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #f5edcf; color: var(--yellow); }
+.status-track { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: #dfedf8; color: #5a8db5; }
+
+/* Chart card */
+.chart-card {
+  background: var(--white); border: 1px solid var(--grey-01);
+  border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.chart-header {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 18px;
+}
+.chart-title { font-size: 14px; font-weight: 700; }
+.chart-subtitle { font-size: 12px; color: var(--grey-02); margin-top: 2px; }
+.chart-container { position: relative; height: 220px; }
+
+/* Divider */
+.divider { height: 1px; background: var(--grey-01); margin: 32px 0; }
+
+/* Footer */
+.footer {
+  text-align: center; padding: 40px;
+  font-size: 12px; color: var(--grey-02);
+  font-family: var(--font-mono);
+  border-top: 1px solid var(--grey-01);
+}
+
+/* RWD */
+@media (max-width: 700px) {
+  .nav { padding: 10px 16px; }
+  .main { padding: 48px 16px 80px; }
+  .cover { padding: 80px 20px 56px; }
+  .dark-inner { padding: 0 16px; }
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .cover-stats { gap: 28px; }
+  .metric-row { gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">AUDIT-2026-03-17</div>
+  <div class="nav-links">
+    <a href="#summary">摘要</a>
+    <a href="#ray">Ray 審查</a>
+    <a href="#klay">Klay 方案</a>
+    <a href="#services">服務健康</a>
+    <a href="#issues">問題總表</a>
+    <a href="#next">下次審查</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="eyebrow">AI TEAM — FULL SYSTEM AUDIT</div>
+  <h1>AI 團隊<br><span>中控台深度審查報告</span></h1>
+  <p class="subtitle">全盤排查 — 角色 × 記憶 × Hook × 服務 × 通訊</p>
+  <p style="font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);">2026-03-17 | 審查長：Ray（架構設計）+ Klay（執行規劃）</p>
+  <div class="cover-badges">
+    <span class="cover-badge badge-red">P0 × 5</span>
+    <span class="cover-badge badge-orange">P1 × 8</span>
+    <span class="cover-badge badge-yellow">P2 × 6</span>
+    <span class="cover-badge badge-green">已修復 × 4</span>
+  </div>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="num">7.8</div>
+      <div class="label">整體評分 / 10</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">28</div>
+      <div class="label">Agent 審查</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">30</div>
+      <div class="label">Hook 稽核</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">19</div>
+      <div class="label">問題清單</div>
+    </div>
+  </div>
+  <div class="cover-meta">Nova 製作 — 審查範疇：角色系統 / Memory / Hook / 服務 / 通訊</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- SECTION 1 — EXECUTIVE SUMMARY -->
+  <div class="section" id="summary">
+    <div class="section-eyebrow">SECTION 01</div>
+    <h2 class="section-title">審查<span>摘要</span></h2>
+    <p class="section-desc">Klay 審查長開場白：本次針對 AI 團隊全體 28 個 Agent、30 個 Hook、所有 LaunchAgent 服務、外部通訊頻道進行完整盤點。整體系統健康度 7.8/10，主要問題集中在組織改革同步滯後和兩個通訊頻道的 TLS 穩定性。</p>
+
+    <div class="metric-row">
+      <div class="metric green">
+        <div class="val">7.8</div>
+        <div class="label">整體評分</div>
+        <div class="sub">GOOD</div>
+      </div>
+      <div class="metric green">
+        <div class="val">4</div>
+        <div class="label">P0 已修復</div>
+        <div class="sub">本次 session</div>
+      </div>
+      <div class="metric warm">
+        <div class="val">8</div>
+        <div class="label">P1 待處理</div>
+        <div class="sub">本週完成</div>
+      </div>
+      <div class="metric yellow">
+        <div class="val">6</div>
+        <div class="label">P2 待排程</div>
+        <div class="sub">本月完成</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>六大維度評分</h3>
+      <div style="margin-top:20px;">
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>Agent 角色定義完整性</span>
+            <span class="score-val">7.6</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:76%"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>Hook 完整性與設定</span>
+            <span class="score-val" style="color:var(--green)">9.0</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill green" style="width:90%"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>Memory 健康度</span>
+            <span class="score-val" style="color:var(--green)">8.5</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill green" style="width:85%"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>服務可用性</span>
+            <span class="score-val">8.0</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>外部通訊頻道</span>
+            <span class="score-val" style="color:var(--yellow)">7.0</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill yellow" style="width:70%"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-label-row">
+            <span>整體</span>
+            <span class="score-val">7.8</span>
+          </div>
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:78%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">問題分佈 — 嚴重度 × 狀態</div>
+          <div class="chart-subtitle">19 個問題，本次已修復 4 個</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="issueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — RAY -->
+  <div class="section" id="ray">
+    <div class="section-eyebrow">SECTION 02</div>
+    <h2 class="section-title">Ray <span>架構設計審查</span></h2>
+    <p class="section-desc">從架構設計角度，AI 團隊的三層審查體系和 Dispatch 規則設計本身是健全的。主要風險點在於組織變革後的設計文件未同步更新，以及通訊基礎設施的 TLS 路由設計缺陷。</p>
+  </div>
+
+</div><!-- end .main, dark-section needs full width -->
+
+<!-- 2.1 Dark Section — P0 組織設計文件不一致 -->
+<div class="dark-section">
+  <div class="dark-inner">
+    <div class="section-eyebrow">2.1 CRITICAL — P0</div>
+    <h2 class="section-title">組織設計文件<span>不一致</span></h2>
+    <p class="section-desc">三個 Agent 的設計定義與當前組織狀態不符，可能導致任務誤路由。</p>
+
+    <blockquote class="ray-quote">
+      <p>設計文件漂移是系統性風險的前兆。當 Milo 的 SKILL.md 仍然完整定義爬蟲職責，但 Milo 已被凍結，任何新上任的 Agent 或自動化系統都可能將任務路由到一個不再活躍的 Agent，造成靜默失敗。</p>
+    </blockquote>
+
+    <div class="table-wrap" style="margin-top:24px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>設計文件狀態</th>
+            <th>實際組織狀態</th>
+            <th>風險</th>
+            <th>修復</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Milo</strong></td>
+            <td>SKILL.md 完整定義爬蟲職責</td>
+            <td>FROZEN（2026-03-13）</td>
+            <td>新 Agent 可能誤路由任務給 Milo</td>
+            <td><span class="status-done">✅ 已修復</span></td>
+          </tr>
+          <tr>
+            <td><strong>Sage</strong></td>
+            <td>SKILL.md 定義帳號池管理</td>
+            <td>FROZEN，職責移交 Knox</td>
+            <td>Knox/Sage 重複職責混淆</td>
+            <td><span class="status-done">✅ 已修復</span></td>
+          </tr>
+          <tr>
+            <td><strong>Jarvis</strong></td>
+            <td>完整 Agent 定義</td>
+            <td>工具級降級</td>
+            <td>Email 主副管道判斷混亂</td>
+            <td><span class="status-done">✅ 已修復</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="success-box" style="background:rgba(133,162,104,0.1);border-color:#85a268;">
+      <p style="color:rgba(255,255,255,0.75);">快速修復已完成：三個 SKILL.md 已加 [FROZEN] / [工具級] 標籤，防止誤路由。</p>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 2.2 財務部門 -->
+  <div style="margin-bottom:40px;margin-top:56px;">
+    <div class="section-eyebrow">2.2 — P1</div>
+    <h3 class="section-title" style="font-size:22px;">財務部門<span>職責邊界</span>模糊</h3>
+    <p class="section-desc">Knox / Inquisitor / Sage 的「帳號池管理」職責目前有三方重疊，SoD 架構不清晰。</p>
+
+    <div class="card">
+      <h3>Ray 的架構建議 — SoD（Separation of Duties）</h3>
+      <ul class="step-list" style="list-style:none;padding:0;">
+        <li class="step-item">
+          <div class="step-num" style="background:#4a7fa0;">K</div>
+          <div class="step-content">
+            <div class="step-title">Knox — 技術實作主力</div>
+            <div class="step-desc">Vault、密鑰加密、帳號建立、帳號池管理（整合 Sage 凍結前職責）</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num" style="background:var(--accent-warm);">I</div>
+          <div class="step-content">
+            <div class="step-title">Inquisitor — 審計層</div>
+            <div class="step-desc">定期掃描、異常偵測，<strong>不做修復</strong>。發現問題 → 通知 Knox 修復</div>
+          </div>
+        </li>
+        <li class="step-item" style="border-bottom:none;">
+          <div class="step-num" style="background:var(--grey-02);">S</div>
+          <div class="step-content">
+            <div class="step-title">Sage — 已凍結</div>
+            <div class="step-desc">輪換排程改為 Knox 的 cronjob，帳號生命週期職責全部移交</div>
+          </div>
+        </li>
+      </ul>
+      <div class="highlight" style="margin-top:16px;">
+        <p><strong>SoD 核心原則：</strong>Inquisitor 發現 → Knox 決定並修復。兩個角色邊界清晰，不重疊。</p>
+      </div>
+    </div>
+
+    <!-- 2.3 設計文件漂移 -->
+    <div class="section-eyebrow" style="margin-top:40px;">2.3 — P1</div>
+    <h3 class="section-title" style="font-size:22px;">設計文件<span>漂移清單</span></h3>
+    <p class="section-desc">四個文件層面的不一致，影響 Agent 行為一致性。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>問題</th>
+            <th>影響</th>
+            <th>優先度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Ray SKILL.md 混雜「Phase 3 事前審查」與「每週抽查」兩個職責</td>
+            <td>新 Agent 不知道什麼時候該找 Ray</td>
+            <td><span class="p1">P1</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Forge SKILL.md 未整合 Domain Checklist 執行職責</td>
+            <td>Forge 在部署時可能漏掉清單項目</td>
+            <td><span class="p1">P1</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>CLAUDE.md 模型 ID 版本不一致（Ray=Codex vs SKILL.md=openai/gpt-5.3-codex）</td>
+            <td>模型路由可能選錯</td>
+            <td><span class="p1">P1</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>6 個 Hook 存在但未在 settings.json 註冊</td>
+            <td>Hook 可能不觸發</td>
+            <td><span class="p1">P1</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 2.4 通訊架構 -->
+    <div class="section-eyebrow" style="margin-top:40px;">2.4 — P1</div>
+    <h3 class="section-title" style="font-size:22px;">通訊架構<span>TLS 風險</span></h3>
+    <p class="section-desc">Klay 和 Ray 的 Telegram bot 均顯示 TLS 連線不穩（EFATAL: packet length too long, ECONNRESET）。</p>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>根因分析</h3>
+        <ul>
+          <li><code>telegram-proxy.js</code>（port 18790）本身連線 Telegram <strong>成功</strong></li>
+          <li>Bot 進程的 TLS 握手失敗</li>
+          <li>最可能原因：node.js <code>HttpsProxyAgent</code> 的 TLS 在代理後的握手順序問題</li>
+          <li>自動重試機制已存在，系統持續嘗試</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Ray 架構評估</h3>
+        <p>proxy→bot 連線架構在代理層本身無問題。建議：</p>
+        <ul style="margin-top:10px;">
+          <li>監控連線成功率（7 天趨勢）</li>
+          <li>考慮換用 polling interval 更長的配置</li>
+          <li>Noel 夜班 Module D 納入 TLS 監控報告</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Ray 總簽核 -->
+    <div class="card" style="border-left: 4px solid var(--accent-warm);">
+      <h3>Ray 總體架構簽核</h3>
+      <p style="font-size:15px;font-weight:700;color:var(--accent-warm);margin:8px 0;">⚠️ 有條件通過</p>
+      <p>P0 問題已在本 session 修復（Milo/Sage FROZEN 標記、Jarvis 工具級、MEMORY 索引）。P1 項目需在 Week 1（2026-03-17 ~ 03-23）完成，否則升級審查。通訊 TLS 問題持續追蹤，若 7 天內無改善則升級處理。</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — KLAY -->
+  <div class="section" id="klay">
+    <div class="section-eyebrow">SECTION 03</div>
+    <h2 class="section-title">Klay <span>執行方案</span></h2>
+    <p class="section-desc">三階段行動計畫：本次 session 已完成的緊急修復、Week 1 待辦清單、Month 1 後續規劃。</p>
+
+    <!-- 3.1 已完成 -->
+    <div class="card">
+      <h3>3.1 本次 Session 已完成</h3>
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">Milo SKILL.md 加 [FROZEN] 標籤</div>
+            <div class="step-desc">防止任務誤路由到凍結 Agent</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">Sage SKILL.md 加 [FROZEN] 標籤</div>
+            <div class="step-desc">職責歸屬 Knox 的標記已完成</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">Jarvis SKILL.md 更新為工具級</div>
+            <div class="step-desc">Email 主管道 = Kai GmailService；Jarvis = 備用管道</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">MEMORY.md 索引補 testing-standards.md</div>
+            <div class="step-desc">Memory 索引完整性修復</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">Probe/Echo SKILL.md 加 CDP routing note</div>
+            <div class="step-desc">Chrome DevTools Protocol 路由說明已補充</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">chrome-cdp skill 安裝到 ~/.claude/skills/</div>
+            <div class="step-desc">瀏覽器自動化技能基礎設施完成</div>
+          </div>
+        </li>
+        <li class="step-item" style="border-bottom:none;">
+          <div class="step-num done">✓</div>
+          <div class="step-content">
+            <div class="step-title">Klay Telegram bot 重啟修復</div>
+            <div class="step-desc">PID 92504，今日重啟後 TLS 狀態監控中</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 3.2 Week 1 -->
+    <div class="card">
+      <h3>3.2 Week 1（2026-03-17 ~ 03-23）</h3>
+      <div class="table-wrap" style="border:none;margin:16px 0 0;">
+        <table>
+          <thead>
+            <tr><th>任務</th><th>負責人</th><th>優先度</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Knox/Inquisitor 職責邊界文件化（SoD 文件）</td>
+              <td>Knox + Inquisitor + Klay 裁決</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>Ray SKILL.md 拆分「事前審查」vs「每週抽查」</td>
+              <td>Ray（自我更新）+ Klay 確認</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>6 個未註冊 Hook 審查：保留/刪除/正式註冊</td>
+              <td>Quill 提案 + Klay 批准</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>Forge SKILL.md 整合 Domain Checklist 執行職責</td>
+              <td>Forge（自我更新）</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>CLAUDE.md Team 補充 Lens/Strategist</td>
+              <td>Klay</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>調查 openclaw-watchdog.sh 是否存在</td>
+              <td>Forge</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+            <tr>
+              <td>Ray bot TLS 監控報告（7天趨勢）</td>
+              <td>Noel 夜班 Module D</td>
+              <td><span class="p1">P1</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.3 Week 2 -->
+    <div class="card">
+      <h3>3.3 Week 2（2026-03-24 ~ 03-30）</h3>
+      <div class="table-wrap" style="border:none;margin:16px 0 0;">
+        <table>
+          <thead>
+            <tr><th>任務</th><th>負責人</th><th>優先度</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>lessons.md GRADUATED 標記補完</td>
+              <td>Orion（memory 治理）</td>
+              <td><span class="p2">P2</span></td>
+            </tr>
+            <tr>
+              <td>Lens PRES Pipeline 在 Webb/Scout SKILL.md 中補充</td>
+              <td>Webb + Scout</td>
+              <td><span class="p2">P2</span></td>
+            </tr>
+            <tr>
+              <td>Iris vs Pixel 配色決策 SOP</td>
+              <td>Iris + Pixel + Klay</td>
+              <td><span class="p2">P2</span></td>
+            </tr>
+            <tr>
+              <td>Strategist vs EchoMarketer 協作邊界文件</td>
+              <td>Strategist</td>
+              <td><span class="p2">P2</span></td>
+            </tr>
+            <tr>
+              <td>CLAUDE.md 模型 ID 統一（Ray/Tax/Nova）</td>
+              <td>Klay</td>
+              <td><span class="p2">P2</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.4 Month 1 後續 -->
+    <div class="card">
+      <h3>3.4 Month 1 後續</h3>
+      <ul>
+        <li><code>auto-lint.sh</code> 等舊 hook 是否整合進 <code>auto-format-v2.sh</code></li>
+        <li>Noel 職責縮減後的 Standard 任務邊界文件化</li>
+        <li>下次季度審查排程（建議每月第一個週一）</li>
+        <li>考慮建立「文件漂移自動偵測」機制（Orion 負責）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — SERVICES -->
+  <div class="section" id="services">
+    <div class="section-eyebrow">SECTION 04</div>
+    <h2 class="section-title">服務<span>健康全景</span></h2>
+    <p class="section-desc">2026-03-17 17:10 TST 快照 — 涵蓋 8 個核心服務 + 20 個關鍵 LaunchAgent。</p>
+
+    <!-- 4.1 服務可用性 -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>服務</th>
+            <th>Port</th>
+            <th>狀態</th>
+            <th>備注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Kai 後端</strong></td>
+            <td><code>5002</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>healthy v0.3.0, Redis 0.33ms</td>
+          </tr>
+          <tr>
+            <td><strong>Kai 前端</strong></td>
+            <td><code>5173</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>Vite dev 正常</td>
+          </tr>
+          <tr>
+            <td><strong>Klay claude-proxy</strong></td>
+            <td><code>38780</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>bridge=sdk, uptime 12.3h</td>
+          </tr>
+          <tr>
+            <td><strong>Ray codex-proxy</strong></td>
+            <td><code>38782</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>PID 816, 按需運作</td>
+          </tr>
+          <tr>
+            <td><strong>OpenClaw Gateway</strong></td>
+            <td><code>18789</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>11 agents, 16 sessions</td>
+          </tr>
+          <tr>
+            <td><strong>Telegram Proxy</strong></td>
+            <td><code>18790</code></td>
+            <td><span class="status-dot dot-green"></span><span class="tag-green tag">UP</span></td>
+            <td>CONNECT proxy 正常</td>
+          </tr>
+          <tr>
+            <td><strong>Klay Telegram Bot</strong></td>
+            <td>—</td>
+            <td><span class="status-dot dot-orange"></span><span class="tag-warm tag">DEGRADED</span></td>
+            <td>TLS 重試中，PID 92504（今日重啟）</td>
+          </tr>
+          <tr>
+            <td><strong>Ray Telegram Bot</strong></td>
+            <td>—</td>
+            <td><span class="status-dot dot-orange"></span><span class="tag-warm tag">DEGRADED</span></td>
+            <td>TLS 錯誤，PID 54073（2026-03-05 起）</td>
+          </tr>
+          <tr>
+            <td><strong>website-health LaunchAgent</strong></td>
+            <td>—</td>
+            <td><span class="status-dot dot-orange"></span><span class="tag-warm tag">DEGRADED</span></td>
+            <td>最近一次執行失敗（昨 21:00 成功）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4.2 LaunchAgent 分類統計 -->
+    <div class="card">
+      <h3>4.2 LaunchAgent 狀態分類（20 個關鍵 Agent）</h3>
+      <div class="table-wrap" style="border:none;margin:16px 0 0;">
+        <table>
+          <thead>
+            <tr><th>分類</th><th>正常</th><th>降級</th><th>失敗</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AI 通訊（Telegram/OpenClaw）</td>
+              <td><span class="tag tag-green">3</span></td>
+              <td><span class="tag tag-warm">2</span></td>
+              <td><span class="tag tag-grey">0</span></td>
+            </tr>
+            <tr>
+              <td>中控台服務（Kai backend/frontend/watchdog）</td>
+              <td><span class="tag tag-green">3</span></td>
+              <td><span class="tag tag-grey">0</span></td>
+              <td><span class="tag tag-grey">0</span></td>
+            </tr>
+            <tr>
+              <td>排程任務（市場/夜班/晨報）</td>
+              <td><span class="tag tag-green">3</span></td>
+              <td><span class="tag tag-grey">0</span></td>
+              <td><span class="tag tag-grey">0</span></td>
+            </tr>
+            <tr>
+              <td>監控（watchdog/health）</td>
+              <td><span class="tag tag-green">2</span></td>
+              <td><span class="tag tag-warm">1</span>（openclaw-watchdog 11天未更新）</td>
+              <td><span class="tag tag-red">1</span>（website-health exit 1）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Service Health Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">服務健康概覽</div>
+          <div class="chart-subtitle">UP / DEGRADED / FAILED 比例</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="serviceChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — ISSUES -->
+  <div class="section" id="issues">
+    <div class="section-eyebrow">SECTION 05</div>
+    <h2 class="section-title">問題<span>優先度總表</span></h2>
+    <p class="section-desc">19 個問題完整清單，含嚴重度、負責人與處理狀態。展開各項目查看詳細說明。</p>
+
+    <!-- P0 Group -->
+    <div class="section-eyebrow" style="margin-bottom:12px;color:var(--danger);">P0 — 已處理</div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p0">P0</span> &nbsp; A01 — Milo SKILL.md 未標記 FROZEN</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>角色系統 | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-done">✅ 已修復</span></p>
+        <p>Milo 在 2026-03-13 組織改革中被凍結，但 SKILL.md 仍完整定義爬蟲職責（靜態 HTML 爬取、ETL 管線等）。任何新 Agent 或 Noel 夜班都可能將爬蟲任務誤路由到 Milo。修復：已在 SKILL.md 頂部加入 [FROZEN] 警告標籤。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p0">P0</span> &nbsp; A02 — Sage SKILL.md 未標記 FROZEN</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>角色系統 | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-done">✅ 已修復</span></p>
+        <p>Sage 職責已完全移交 Knox，但 SKILL.md 仍定義完整的「帳號池管理」和「帳號生命週期」職責。可能導致 Knox/Sage 混淆，錯誤分配帳號管理任務給凍結 Agent。修復：已在 SKILL.md 頂部加入 [FROZEN] 標籤，並注明職責歸 Knox。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p0">P0</span> &nbsp; A03 — Jarvis 未標記工具級</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>角色系統 | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-done">✅ 已修復</span></p>
+        <p>Jarvis 已在 v5.0 組織改革中降級為工具級（Email 備用管道），但 SKILL.md 仍以完整 Agent 形式定義。Agent 可能選擇 Jarvis 作為 Email 主管道，而非 Kai GmailService。修復：SKILL.md 已更新為工具級定義，主管道說明清楚。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p0">P0</span> &nbsp; A04 — testing-standards.md 未在 MEMORY 索引</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>Memory | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-done">✅ 已修復</span></p>
+        <p>testing-standards.md 存在於 memory 目錄中，但未在 MEMORY.md 的 Topic File Index 中列出，導致 Agent 無法透過索引查找到這個文件。修復：已在 MEMORY.md 索引中補充此條目。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p0">P0</span> &nbsp; A05 — Knox/Inquisitor 職責邊界不清</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>財務部門 | <strong>負責人：</strong>Knox + Klay | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>Knox 和 Inquisitor 在「帳號池管理」和「掃描明文密碼」上有職責重疊。SoD（Separation of Duties）架構尚未文件化。需要產出清晰的職責邊界文件，確保 Inquisitor 只做審計，Knox 做執行修復，兩者不重疊。</p>
+      </div>
+    </div>
+
+    <!-- P1 Group -->
+    <div class="section-eyebrow" style="margin-top:32px;margin-bottom:12px;color:var(--accent-warm);">P1 — 本週</div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A06 — Klay Telegram TLS 不穩</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>通訊 | <strong>負責人：</strong>Klay 監控 | <strong>狀態：</strong><span class="status-track">持續追蹤</span></p>
+        <p>Klay Telegram bot 出現 EFATAL: packet length too long 和 ECONNRESET 錯誤。今日重啟後（PID 92504）狀態監控中。自動重試機制已存在，但根本問題（HttpsProxyAgent TLS 握手順序）尚未解決。7 天無改善則升級為 P0。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A07 — Ray Telegram TLS 不穩（2週+）</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>通訊 | <strong>負責人：</strong>Noel 夜班 | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>Ray Telegram bot（PID 54073）自 2026-03-05 起持續出現 TLS 錯誤，已超過 2 週。Noel 夜班 Module D 需納入 7 天趨勢報告。若連線恢復率低於 80% 則考慮改用 longer polling interval 或替換 HttpsProxyAgent 實作。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A08 — Ray SKILL.md 雙重角色混淆</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>角色系統 | <strong>負責人：</strong>Ray | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>Ray 的 SKILL.md 同時定義「Phase 3 事前審查」（Major/Critical 任務開工簽核）和「每週抽查」（定期審查已完成任務）兩個職責，沒有清楚區分觸發條件。需要拆分成兩個章節，分別說明觸發時機。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A09 — Forge Domain Checklist 未整合</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>CI/CD | <strong>負責人：</strong>Forge | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>task-dispatch.md 中定義了 Domain Checklist（Website/Web App/Backend API/AI System/Crawler），要求 Forge 在 CI Gate 時套用對應類型的清單。但 Forge SKILL.md 中未提及此職責，可能在部署時漏掉清單項目。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A10 — 6 Hook 未在 settings.json 註冊</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>Hook 系統 | <strong>負責人：</strong>Quill + Klay | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>~/.claude/hooks/ 目錄中存在多個 hook 腳本，但部分未在 settings.json 的 hooks 配置中正式註冊。未註冊的 Hook 不會被 Claude Code 自動觸發。需要 Quill 逐一審查，決定保留並正式註冊、或刪除過時 Hook。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A11 — CLAUDE.md Team 欄位缺 Lens/Strategist</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>文件 | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>CLAUDE.md 的 Team 緊湊列表（Core + Depts）未包含 Lens（Research Dept）和 Strategist（Strategy Dept），但 team-roster.md 已完整定義這兩個角色。CLAUDE.md 是最常被讀取的全局文件，缺漏會導致路由失誤。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A12 — CLAUDE.md 模型 ID 不一致</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>文件 | <strong>負責人：</strong>Klay | <strong>狀態：</strong><span class="status-week">本週</span></p>
+        <p>Ray 在 CLAUDE.md 中標記為「Codex Plus」，但在 SKILL.md 中的模型 ID 是「openai/gpt-5.3-codex」，兩者不一致。同樣問題也見於 Tax 和 Nova 的模型定義。需要統一到單一來源並與 ~/.claude/team.json 保持一致。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p1">P1</span> &nbsp; A13 — openclaw-watchdog 11天未更新</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>監控 | <strong>負責人：</strong>Forge | <strong>狀態：</strong><span class="status-week">本週</span></td></p>
+        <p>openclaw-watchdog LaunchAgent 的日誌顯示 11 天未有更新記錄，可能是 watchdog 腳本本身存在問題，或 LaunchAgent plist 設定錯誤。需要 Forge 調查是否存在 openclaw-watchdog.sh 腳本並確認運行狀態。</p>
+      </div>
+    </div>
+
+    <!-- P2 Group -->
+    <div class="section-eyebrow" style="margin-top:32px;margin-bottom:12px;color:var(--yellow);">P2 — 本月</div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A14 — website-health exit 1（間歇）</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>監控 | <strong>負責人：</strong>Forge | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>website-health LaunchAgent 最近一次執行失敗（exit 1），但昨日 21:00 執行成功，為間歇性問題。需要調查失敗的具體原因（網路超時 / 腳本 bug / 目標網站暫時不可用），並考慮加入重試機制。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A15 — lessons.md GRADUATED 標記不完整</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>Memory | <strong>負責人：</strong>Orion | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>lessons.md 中的教訓條目應在「知識升級到 SKILL.md」後標記為 [GRADUATED]，但目前標記不完整。夜班 Module B 的「知識管線升級」流程依賴此標記判斷哪些教訓尚未結晶化。由 Orion 在 memory 治理任務中補完。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A16 — Iris vs Pixel 配色決策 SOP 缺失</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>設計 | <strong>負責人：</strong>Iris + Pixel + Klay | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>Iris（UI/UX 規格、CSS、RWD）和 Pixel（視覺設計、AI 圖片生成、品牌素材）在配色決策上的職責邊界不清。當兩個 Agent 都參與同一個專案時，可能出現設計不一致。需要制定明確的協作 SOP。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A17 — Lens PRES Pipeline 跨 agent 文件缺</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>研究部門 | <strong>負責人：</strong>Webb + Scout | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>Lens 的 PRES Pipeline（Nautilus/Spider 掃描 → Buzz 分析 → Lens Spec → Webb 確認 → John+Max+Iris 重建）已在 team-roster.md 定義，但 Webb 和 Scout 的 SKILL.md 中未補充 Lens 協作說明。Webb 需要知道如何接收 Lens 的輸出並組建重建任務。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A18 — Strategist/EchoMarketer 協作 SOP 缺失</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>策略部門 | <strong>負責人：</strong>Strategist | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>Strategy Dept 在 2026-03-13 組織改革中新增，但 Strategist 和 EchoMarketer 的協作流程尚未文件化。特別是：Strategist 如何指導 EchoMarketer 的內容方向、EchoMarketer 的成果如何回饋到 Strategist 的策略調整。</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <span><span class="p2">P2</span> &nbsp; A19 — lessons.md 編號不統一</span>
+        <span class="accordion-icon">▾</span>
+      </button>
+      <div class="accordion-body">
+        <p><strong>影響系統：</strong>Memory | <strong>負責人：</strong>Orion | <strong>狀態：</strong><span class="status-month">本月</span></p>
+        <p>lessons.md 的教訓條目編號系統不統一（部分用 L001 格式，部分用其他格式），且在夜班「知識管線升級」中發現編號有誤（L046 被重複使用）。由 Orion 在下次 memory 治理任務中統一格式並修正編號衝突。</p>
+      </div>
+    </div>
+
+  </div><!-- end section issues -->
+
+  <!-- SECTION 6 — NEXT REVIEW -->
+  <div class="section" id="next">
+    <div class="section-eyebrow">SECTION 06</div>
+    <h2 class="section-title">下次<span>審查計畫</span></h2>
+    <p class="section-desc">建議建立月度審查機制，確保組織設計文件與實際狀態保持同步。</p>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>月度審查機制</h3>
+        <ul>
+          <li><strong>頻率：</strong>每月第一個週一</li>
+          <li><strong>下次：</strong>2026-04-06</li>
+          <li><strong>收集：</strong>Noel（夜班資料收集）</li>
+          <li><strong>審查：</strong>Ray（架構審查）</li>
+          <li><strong>決策：</strong>Klay（執行規劃）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>審查範疇</h3>
+        <ul>
+          <li>SKILL.md drift check（新增/變更 Agent）</li>
+          <li>Service health snapshot（8 核心服務）</li>
+          <li>P-item closure rate（上月問題關閉率）</li>
+          <li>LaunchAgent 健康狀態掃描</li>
+          <li>Hook 註冊狀態稽核</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>自動化計畫</h3>
+      <div class="success-box">
+        <p>建議在每月一夜班自動加「月度審查」任務到 Kai 看板：<code>source="night_shift"</code>，<code>task_type="audit"</code>，<code>assigned_to="ray,klay,noel"</code>。Noel 負責前置資料收集，Ray 執行架構審查，Klay 輸出行動計畫。</p>
+      </div>
+      <div class="highlight">
+        <p>建議 Orion 建立「文件漂移偵測」機制：每週掃描 SKILL.md 與 team.json 的一致性，差異超過閾值時自動建 Kai task。</p>
+      </div>
+    </div>
+
+    <!-- Closing card -->
+    <div class="card" style="border-left:4px solid var(--accent-warm);background:linear-gradient(135deg,#fff,#fffdf8);">
+      <h3 style="color:var(--accent-warm);">審查總結</h3>
+      <p>整體而言，AI 團隊的核心架構設計（3 層審查體系、Dispatch 規則、3-Phase 規劃協議）是健全且高效的。主要問題是組織改革速度超過了文件同步速度，以及通訊基礎設施的 TLS 穩定性有待改善。</p>
+      <br>
+      <p>本次審查成功識別並修復了 4 個 P0 問題，提出了 8 個 P1 和 6 個 P2 的具體改善計畫。下次月度審查預計在 2026-04-06 進行。</p>
+    </div>
+
+  </div><!-- end section next -->
+
+</div><!-- end .main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  AI 團隊中控台深度審查報告 — 2026-03-17<br>
+  審查長：Ray（架構設計）+ Klay（執行規劃）| 製作：Nova | 系統：Kai 中控台 v0.3.0
+</div>
+
+<script>
+// Scroll progress
+const progressBar = document.getElementById('progressBar');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.width = (scrolled / total * 100) + '%';
+});
+
+// Active nav
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -40% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// Accordion
+function toggleAccordion(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.accordion-header.open').forEach(h => {
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    btn.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// Chart — Issue Distribution
+const issueCtx = document.getElementById('issueChart').getContext('2d');
+new Chart(issueCtx, {
+  type: 'bar',
+  data: {
+    labels: ['P0', 'P1', 'P2'],
+    datasets: [
+      {
+        label: '已修復',
+        data: [4, 0, 0],
+        backgroundColor: '#85a268',
+        borderRadius: 6,
+      },
+      {
+        label: '本週待處理',
+        data: [1, 7, 1],
+        backgroundColor: '#e8723a',
+        borderRadius: 6,
+      },
+      {
+        label: '本月排程',
+        data: [0, 1, 5],
+        backgroundColor: '#d4a843',
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12 } }
+    },
+    scales: {
+      x: { stacked: true, grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 11 } } },
+      y: { stacked: true, grid: { color: '#f0eee6' }, ticks: { font: { family: 'JetBrains Mono', size: 11 }, stepSize: 2 } }
+    }
+  }
+});
+
+// Chart — Service Health
+const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+new Chart(serviceCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['UP（正常）', 'DEGRADED（降級）', 'FAILED（失敗）'],
+    datasets: [{
+      data: [6, 3, 0],
+      backgroundColor: ['#85a268', '#e8723a', '#d94f4f'],
+      borderWidth: 2,
+      borderColor: '#ffffff',
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { font: { family: 'Inter', size: 12 }, boxWidth: 14, padding: 16 }
+      }
+    },
+    cutout: '65%'
+  }
+});
+</script>
+</body>
+</html>

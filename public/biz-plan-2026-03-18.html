@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商業方案 #6 — AI 考證題庫平台 | 2026-03-18</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #121212;
+      --white: #ffffff;
+      --cream: #f6f5f1;
+      --grey-01: #f0eee6;
+      --grey-02: #8b877c;
+      --accent-warm: #eb8054;
+      --green: #22c55e;
+      --light-green: #d1fae5;
+      --yellow: #f59e0b;
+      --light-yellow: #fef3c7;
+      --danger: #ef4444;
+      --blue: #3b82f6;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif; background: var(--cream); color: var(--black); line-height: 1.6; }
+
+    .hero { background: var(--black); color: var(--white); padding: 60px 40px 48px; }
+    .hero-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 12px; }
+    .hero h1 { font-size: 34px; font-weight: 800; line-height: 1.25; margin-bottom: 12px; }
+    .hero h1 span { color: var(--accent-warm); }
+    .hero p { font-size: 15px; color: #aaa; max-width: 640px; }
+
+    .meta-bar { display: flex; gap: 24px; flex-wrap: wrap; padding: 16px 40px; background: var(--white); border-bottom: 1px solid #e5e5e5; font-size: 13px; color: #666; }
+    .meta-bar strong { color: var(--black); }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 40px; }
+    .section { margin-bottom: 48px; }
+    .section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey-02); font-weight: 600; margin-bottom: 16px; }
+    h2 { font-size: 22px; font-weight: 700; margin-bottom: 14px; }
+    h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    p { font-size: 15px; color: #444; margin-bottom: 10px; }
+
+    .card { background: var(--white); border: 1px solid #e5e5e5; border-radius: 10px; padding: 24px; margin-bottom: 16px; }
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .card-row { grid-template-columns: 1fr; } }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 16px; display: inline-block; }
+    .badge-green { background: var(--light-green); color: #065f46; }
+    .badge-yellow { background: var(--light-yellow); color: #92400e; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
+
+    .highlight { background: #fffbeb; border-left: 3px solid var(--yellow); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .success-box { background: #f0fdf4; border-left: 3px solid var(--green); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .danger-box { background: #fef2f2; border-left: 3px solid var(--danger); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+    @media (max-width: 640px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+    .metric { background: var(--white); border: 1px solid #e5e5e5; border-radius: 10px; padding: 20px; text-align: center; }
+    .metric-num { font-size: 28px; font-weight: 800; color: var(--black); }
+    .metric-label { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+    th { text-align: left; padding: 10px 12px; background: var(--grey-01); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+
+    .timeline { border-left: 2px solid #e5e5e5; padding-left: 24px; margin: 16px 0; }
+    .timeline-item { margin-bottom: 20px; position: relative; }
+    .timeline-item::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-warm); position: absolute; left: -30px; top: 6px; }
+    .timeline-week { font-size: 12px; font-weight: 600; color: var(--accent-warm); text-transform: uppercase; letter-spacing: 1px; }
+    .timeline-content { font-size: 14px; color: #555; margin-top: 4px; }
+
+    ul { padding-left: 20px; margin: 8px 0; }
+    li { font-size: 14px; color: #555; line-height: 1.8; }
+    li strong { color: var(--black); }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { padding: 6px 0; font-size: 14px; }
+    .checklist li::before { content: ''; display: inline-block; width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 4px; margin-right: 10px; vertical-align: middle; }
+    .checklist li.pass::before { background: var(--green); border-color: var(--green); content: '\2713'; color: white; font-size: 12px; text-align: center; line-height: 16px; }
+    .checklist li.warn::before { background: var(--yellow); border-color: var(--yellow); content: '!'; color: white; font-size: 12px; text-align: center; line-height: 16px; font-weight: 700; }
+    .checklist li.fail::before { background: var(--danger); border-color: var(--danger); content: '\2717'; color: white; font-size: 12px; text-align: center; line-height: 16px; }
+
+    .footer { background: var(--black); color: #888; padding: 30px 40px; font-size: 12px; text-align: center; margin-top: 40px; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 40px 20px; }
+      .hero h1 { font-size: 26px; }
+      .container { padding: 24px 20px; }
+      .meta-bar { padding: 12px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-label">Business Plan #6 &middot; 2026-03-18 &middot; Klay + Vick + Ray</div>
+  <h1>AI 考證題庫<span>帝國</span><br>金融證照全系列自動化平台</h1>
+  <p>把 BankExamQuiz 的已驗證模式複製到台灣 20+ 種金融證照考試。AI 生成題庫 + SEO 自然流量 + ECPay 收款 = 全自動化數位商品帝國。不等客戶上門 — 他們主動搜尋。</p>
+</div>
+
+<div class="meta-bar">
+  <span><strong>方案編號</strong> #6</span>
+  <span><strong>類型</strong> 數位商品平台（Digital Products）</span>
+  <span><strong>基礎</strong> BankExamQuiz（已有付費用戶 + ECPay）</span>
+  <span><strong>預估月收</strong> NT$60,000~90,000</span>
+  <span><strong>MVP 時程</strong> 2 週</span>
+</div>
+
+<div class="container">
+
+  <!-- 1. PROBLEM -->
+  <div class="section">
+    <div class="section-label">01 &mdash; 問題定義</div>
+    <h2>台灣金融證照考試的痛點</h2>
+    <div class="card-row">
+      <div class="card">
+        <h3>考生的困境</h3>
+        <ul>
+          <li>教材過時（書店教材 1~2 年更新一次）</li>
+          <li>題庫零散（考古題散佈各論壇，品質不一）</li>
+          <li>補習班貴（一門 NT$3,000~8,000 + 交通時間）</li>
+          <li>缺乏重點整理（課本厚，不知道考什麼）</li>
+          <li>考前找不到一份「讀這個就夠」的資料</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>市場規模</h3>
+        <ul>
+          <li><strong>金融從業人員必考</strong>：銀行/保險/證券入職門檻</li>
+          <li>證券商業務員：~30,000 人/年</li>
+          <li>人身保險業務員：~50,000 人/年</li>
+          <li>信託業務人員：~20,000 人/年</li>
+          <li>銀行內控：~15,000 人/年</li>
+          <li>產物保險業務員：~15,000 人/年</li>
+          <li>投信投顧業務員：~10,000 人/年</li>
+          <li style="color: var(--accent-warm); font-weight: 600;">合計：~140,000 人/年主動搜尋備考資料</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight">
+      <strong>關鍵洞察</strong>：這 14 萬人不需要你去找他們 — 他們每天在 Google 搜尋「證券商業務員題庫」「銀行內控重點整理」「信託考試準備」。這是<strong>主動需求</strong>，不是創造需求。BankExamQuiz 已經驗證了這個模式：SEO → 流量 → 付費下載。
+    </div>
+  </div>
+
+  <!-- 2. SOLUTION -->
+  <div class="section">
+    <div class="section-label">02 &mdash; 解決方案</div>
+    <h2>AI 驅動的證照備考平台</h2>
+    <p>用 AI 自動生成各證照考試的<strong>重點筆記 + 題庫 + 詳解</strong>，透過 SEO 獲取免費流量，用 ECPay 收費。每個新考試類別 = 複製 BankExamQuiz 模板 + AI 生成內容。</p>
+
+    <div class="card">
+      <h3>已驗證的模型（BankExamQuiz 現況）</h3>
+      <div class="tbl-wrap">
+        <table style="min-width:600px;">
+          <tr><th>項目</th><th>現況</th><th>說明</th></tr>
+          <tr><td>產品</td><td>銀行內控筆記 + 題庫</td><td>PDF + 互動式測驗網頁</td></tr>
+          <tr><td>定價</td><td>NT$299</td><td>一次性購買</td></tr>
+          <tr><td>金流</td><td>ECPay 已串接</td><td>信用卡 + ATM 轉帳</td></tr>
+          <tr><td>流量來源</td><td>Google SEO</td><td>「銀行內控考試」等關鍵字排名</td></tr>
+          <tr><td>基礎設施</td><td>Vercel + 靜態 HTML</td><td>零伺服器維護成本</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="success-box">
+      <strong>核心策略</strong>：不是開發新產品，是把<strong>已賺錢的模式</strong>複製 6 倍。BankExamQuiz 的程式碼 + 付款流程 + SEO 結構全部可重用。每增加一個考試類別，邊際成本趨近於零。
+    </div>
+  </div>
+
+  <!-- 3. TARGET -->
+  <div class="section">
+    <div class="section-label">03 &mdash; 目標客群</div>
+    <h2>台灣金融業從業人員 & 準備入行者</h2>
+    <div class="card-row">
+      <div class="card">
+        <h3>主要客群（80%）</h3>
+        <ul>
+          <li><strong>金融業新鮮人</strong>：剛畢業要考執照，急需資料</li>
+          <li><strong>轉職者</strong>：想進銀行/保險/證券，時間緊迫</li>
+          <li><strong>在職進修</strong>：銀行員需要多張證照升遷加薪</li>
+        </ul>
+        <p style="font-size:13px;color:#888;margin-top:8px;">特徵：願意付 NT$299-599 省下找資料的時間</p>
+      </div>
+      <div class="card">
+        <h3>次要客群（20%）</h3>
+        <ul>
+          <li><strong>大學生</strong>：商學院學生提早準備（價格敏感）</li>
+          <li><strong>重考者</strong>：考過但沒過，願意花錢買更好的資料</li>
+        </ul>
+        <p style="font-size:13px;color:#888;margin-top:8px;">特徵：搜尋「XX考試 PTT」「XX考試 心得」</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. REVENUE MODEL -->
+  <div class="section">
+    <div class="section-label">04 &mdash; 收入模型</div>
+    <h2>單品銷售 + 組合包 + SEO 飛輪</h2>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <tr><th>產品</th><th>包含內容</th><th>定價</th><th>目標客群</th></tr>
+        <tr>
+          <td><strong>單科筆記</strong></td>
+          <td>重點整理 PDF + 300 題題庫 + 詳解</td>
+          <td>NT$299</td>
+          <td>只考一科的人</td>
+        </tr>
+        <tr>
+          <td><strong>單科 Pro</strong></td>
+          <td>筆記 + 題庫 + 模擬考（計時 + 成績）+ 弱項分析</td>
+          <td>NT$499</td>
+          <td>想要更好準備的人</td>
+        </tr>
+        <tr>
+          <td><strong>金融全科組合包</strong></td>
+          <td>6 科全部（證券+保險+信託+內控+產險+投信）</td>
+          <td>NT$999</td>
+          <td>要考多張照的銀行員</td>
+        </tr>
+        <tr>
+          <td><strong>年度訂閱</strong>（Phase 2）</td>
+          <td>所有科目 + 持續更新 + 法規變動通知</td>
+          <td>NT$1,499/年</td>
+          <td>補習班替代品</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top:24px;">收入成長模型（保守版）</h3>
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-num">NT$15k</div>
+        <div class="metric-label">Month 1（2 科）</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num">NT$38k</div>
+        <div class="metric-label">Month 3（4 科）</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num" style="color:var(--accent-warm);">NT$68k</div>
+        <div class="metric-label">Month 5（6 科）</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num" style="color:var(--green);">NT$95k</div>
+        <div class="metric-label">Month 8（6 科+SEO 成熟）</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Month 5 收入拆解</h3>
+      <div class="tbl-wrap">
+        <table style="min-width:600px;">
+          <tr><th>產品</th><th>月銷量</th><th>單價</th><th>小計</th></tr>
+          <tr><td>單科筆記（6 科平均）</td><td>80 份</td><td>NT$299</td><td>NT$23,920</td></tr>
+          <tr><td>單科 Pro</td><td>40 份</td><td>NT$499</td><td>NT$19,960</td></tr>
+          <tr><td>金融全科組合包</td><td>25 份</td><td>NT$999</td><td>NT$24,975</td></tr>
+          <tr style="font-weight:700;"><td colspan="3">合計</td><td style="color:var(--accent-warm);">NT$68,855</td></tr>
+        </table>
+      </div>
+      <p style="font-size:13px;color:#888;margin-top:8px;">假設：6 科上線後，每科每天平均 ~1 筆交易（含淡旺季平均）。旺季（考前 1-2 月）可翻倍。</p>
+    </div>
+
+    <div class="highlight">
+      <strong>SEO 飛輪效應</strong>：每新增一科 = 新增 10~20 個 SEO 著陸頁（「XX考試重點」「XX考試題庫」「XX考試準備方法」...）。6 科上線後有 60~120 個 SEO 著陸頁持續帶來免費流量。時間越長，流量越大，邊際獲客成本趨零。
+    </div>
+  </div>
+
+  <!-- 5. MVP SCOPE -->
+  <div class="section">
+    <div class="section-label">05 &mdash; MVP 範圍</div>
+    <h2>2 週 MVP：先上 2 科，驗證轉換率</h2>
+
+    <div class="card">
+      <h3>MVP 包含（Week 1-2）</h3>
+      <ul>
+        <li><strong>內容生成</strong>：用 AI 生成「證券商業務員」+「人身保險業務員」兩科的筆記 + 題庫</li>
+        <li><strong>平台複製</strong>：從 BankExamQuiz 複製程式碼，改成多科目架構</li>
+        <li><strong>SEO 著陸頁</strong>：每科 5 個核心著陸頁（考試介紹、重點整理、題庫試做、準備方法、購買頁）</li>
+        <li><strong>金流</strong>：沿用 ECPay（已串接，無需額外開發）</li>
+        <li><strong>網站改版</strong>：首頁改為多科目入口（證照考試大全）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>MVP 不包含（Phase 2，上線 1 個月後）</h3>
+      <ul>
+        <li>模擬考計時系統（需要後端開發）</li>
+        <li>弱項分析報告</li>
+        <li>年度訂閱制</li>
+        <li>法規更新自動推送</li>
+        <li>手機 App</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top:24px;">2 週上線計畫</h3>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-week">Week 1 &mdash; 內容生成 + 平台改造</div>
+        <div class="timeline-content">
+          <ul>
+            <li>Day 1-2：AI 生成「證券商業務員」筆記 + 300 題題庫 + 詳解（Noel + Buzz 內容分析）</li>
+            <li>Day 3-4：AI 生成「人身保險業務員」筆記 + 300 題題庫 + 詳解</li>
+            <li>Day 5：John 改造 BankExamQuiz 為多科目架構（首頁 + 路由）</li>
+            <li>Day 6-7：Rex 確認 ECPay 多商品支援 + Silo SEO 結構建立</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">Week 2 &mdash; SEO + 部署 + 推廣</div>
+        <div class="timeline-content">
+          <ul>
+            <li>Day 8-9：EchoMarketer 撰寫 10 個 SEO 著陸頁文案（每科 5 頁）</li>
+            <li>Day 10-11：John 實作著陸頁 + Iris 調整 UI</li>
+            <li>Day 12：Forge 部署 + Silo 提交 Sitemap + GSC 驗證</li>
+            <li>Day 13：Probe + Echo 全站 QA（桌機 + 手機）</li>
+            <li>Day 14：上線！PTT 金融版 + Dcard 工作版 分享免費試做題</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. AGENTS -->
+  <div class="section">
+    <div class="section-label">06 &mdash; 所需 Agent 團隊</div>
+    <h2>內容生成 + 平台維護全自動化</h2>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table style="min-width:700px;">
+          <tr><th>階段</th><th>Agent</th><th>工作內容</th><th>自動化</th></tr>
+          <tr><td>內容生成</td><td>Noel + Buzz</td><td>AI 生成筆記/題庫/詳解（批量）</td><td>95%</td></tr>
+          <tr><td>內容審查</td><td>Ray（spot check）</td><td>抽查題目正確性（每科 20 題）</td><td>80%</td></tr>
+          <tr><td>平台開發</td><td>John + Rex</td><td>多科目架構 + ECPay 多商品</td><td>85%</td></tr>
+          <tr><td>SEO</td><td>Silo + EchoMarketer</td><td>著陸頁 + 技術 SEO + 內容 SEO</td><td>95%</td></tr>
+          <tr><td>UI</td><td>Iris</td><td>著陸頁設計 + 手機版優化</td><td>90%</td></tr>
+          <tr><td>部署</td><td>Forge</td><td>Vercel 部署 + 監控</td><td>100%</td></tr>
+          <tr><td>行銷</td><td>EchoMarketer + Buzz</td><td>SEO 文案 + 社群分享</td><td>90%</td></tr>
+          <tr><td>維護</td><td>Noel 夜班</td><td>法規更新時自動更新內容</td><td>90%</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="success-box">
+      <strong>Rain 角色</strong>：初始內容品質審核（Day 2、Day 4 各 ~30 分鐘確認筆記品質）。上線後<strong>零介入</strong>— SEO 帶流量、ECPay 自動收款、內容自動更新。
+    </div>
+  </div>
+
+  <!-- 7. FINANCIAL -->
+  <div class="section">
+    <div class="section-label">07 &mdash; 財務分析</div>
+    <h2>成本結構 & 損益</h2>
+
+    <div class="card-row">
+      <div class="card">
+        <h3>初始成本（一次性）</h3>
+        <div class="tbl-wrap">
+          <table>
+            <tr><td>額外開發成本</td><td style="text-align:right;">NT$0（團隊已有）</td></tr>
+            <tr><td>ECPay 設定</td><td style="text-align:right;">NT$0（已串接）</td></tr>
+            <tr><td>Domain</td><td style="text-align:right;">NT$0（沿用現有）</td></tr>
+            <tr><td>AI 內容生成</td><td style="text-align:right;">NT$0（Claude 訂閱制）</td></tr>
+            <tr style="font-weight:700;border-top:2px solid #ddd;"><td>合計</td><td style="text-align:right;color:var(--green);">NT$0</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>每月固定成本</h3>
+        <div class="tbl-wrap">
+          <table>
+            <tr><td>Vercel Hosting</td><td style="text-align:right;">NT$0（免費額度內）</td></tr>
+            <tr><td>Claude Code 訂閱</td><td style="text-align:right;">已付（共用）</td></tr>
+            <tr style="font-weight:700;border-top:2px solid #ddd;"><td>合計</td><td style="text-align:right;color:var(--green);">NT$0</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Month 5 損益預估（保守）</h3>
+      <div class="tbl-wrap">
+        <table style="min-width:600px;">
+          <tr><td>營收</td><td style="text-align:right;font-weight:700;">NT$68,855</td></tr>
+          <tr><td>ECPay 手續費（2.75%）</td><td style="text-align:right;">-NT$1,894</td></tr>
+          <tr><td>伺服器/託管</td><td style="text-align:right;">-NT$0</td></tr>
+          <tr><td>稅務預留（6%）</td><td style="text-align:right;">-NT$4,131</td></tr>
+          <tr style="font-weight:700;border-top:2px solid var(--accent-warm);"><td>淨利</td><td style="text-align:right;color:var(--green);">NT$62,830</td></tr>
+        </table>
+      </div>
+      <p style="font-size:13px;color:#888;margin-top:8px;">利潤率：91.2% — 數位商品邊際成本趨零</p>
+    </div>
+
+    <div class="highlight">
+      <strong>vs 方案 #5 (Blankspace AI Studio) 比較</strong>：#5 需要 Month 5 才達 NT$40k（Ray 修正後），且每案需 Rain 介入 1-2hr。#6 的 NT$68k 是<strong>全自動被動收入</strong>，Rain 上線後零介入。兩方案可並行，但 #6 的風險更低（已有付費用戶驗證）。
+    </div>
+  </div>
+
+  <!-- 8. COMPETITIVE -->
+  <div class="section">
+    <div class="section-label">08 &mdash; 競爭分析</div>
+    <h2>台灣金融考試備考市場現況</h2>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table style="min-width:700px;">
+          <tr><th>競爭者</th><th>模式</th><th>價格</th><th>優勢</th><th>劣勢</th></tr>
+          <tr>
+            <td><strong>補習班</strong>（三民/志光）</td>
+            <td>實體/線上課程</td>
+            <td>NT$3,000~8,000</td>
+            <td>品牌信任度</td>
+            <td>貴、時間長、更新慢</td>
+          </tr>
+          <tr>
+            <td><strong>書店教材</strong>（千華/鼎文）</td>
+            <td>紙本書</td>
+            <td>NT$350~600</td>
+            <td>內容完整</td>
+            <td>厚重、過時、不互動</td>
+          </tr>
+          <tr>
+            <td><strong>PTT/論壇</strong></td>
+            <td>免費分享</td>
+            <td>NT$0</td>
+            <td>免費</td>
+            <td>零散、品質差、不完整</td>
+          </tr>
+          <tr>
+            <td><strong>蝦皮/Gumroad 筆記</strong></td>
+            <td>個人賣家</td>
+            <td>NT$99~299</td>
+            <td>便宜</td>
+            <td>品質不穩定、無維護</td>
+          </tr>
+          <tr style="background:#f0fdf4;">
+            <td><strong>我們（AI 題庫平台）</strong></td>
+            <td>數位平台</td>
+            <td>NT$299~999</td>
+            <td>便宜 + 完整 + 持續更新 + SEO 流量</td>
+            <td>品牌知名度低（初期）</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="success-box">
+      <strong>差異化定位</strong>：比補習班便宜 10 倍 + 比書店教材更新更快 + 比 PTT 更完整更有結構 + 比蝦皮更專業更可信。佔據「性價比最高」的甜蜜點。
+    </div>
+  </div>
+
+  <!-- 9. RISKS -->
+  <div class="section">
+    <div class="section-label">09 &mdash; 風險 & 對策</div>
+    <h2>已識別風險</h2>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table style="min-width:700px;">
+          <tr><th>風險</th><th>嚴重度</th><th>對策</th></tr>
+          <tr>
+            <td><strong>內容正確性</strong>：AI 生成可能有錯</td>
+            <td><span class="badge badge-orange">HIGH</span></td>
+            <td>每科上線前 Rain 抽查 20 題 + 標註「僅供參考，以官方為準」+ 社群回報機制</td>
+          </tr>
+          <tr>
+            <td><strong>SEO 排名需要時間</strong>：新頁面 1~3 月才穩定</td>
+            <td><span class="badge badge-yellow">MED</span></td>
+            <td>第一個月用 PTT/Dcard/FB 社群分享免費試做題引流；Long-tail 關鍵字先行</td>
+          </tr>
+          <tr>
+            <td><strong>法規更新</strong>：題庫需跟上法規變動</td>
+            <td><span class="badge badge-yellow">MED</span></td>
+            <td>Noel 夜班排定每月法規掃描 → 自動更新受影響題目</td>
+          </tr>
+          <tr>
+            <td><strong>稅務合規</strong>：營收超 NT$40k 需營業登記</td>
+            <td><span class="badge badge-yellow">MED</span></td>
+            <td>Tax agent 評估 → 預先規劃（與 #5 共用）</td>
+          </tr>
+          <tr>
+            <td><strong>版權問題</strong>：考古題來源</td>
+            <td><span class="badge badge-green">LOW</span></td>
+            <td>不直接使用官方考古題 → AI 根據考試大綱自行出題 + 寫原創詳解</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="danger-box">
+      <strong>最大風險</strong>：內容正確性。金融考試有明確的對錯，不像行銷文案可以模糊。<strong>對策</strong>：每科上線前 Rain 花 30 分鐘抽查 20 題（成本低、影響大）；頁面底部加免責聲明；建立錯誤回報表單讓考生幫忙抓錯。
+    </div>
+  </div>
+
+  <!-- 10. CHECKLIST -->
+  <div class="section">
+    <div class="section-label">10 &mdash; 評估 Checklist</div>
+    <h2>方案可行性自評</h2>
+
+    <ul class="checklist">
+      <li class="pass">2 週內 MVP 上線 — 複製 BankExamQuiz + 新增 2 科內容</li>
+      <li class="pass">Rain 投入 &lt;2hr/week — 上線前抽查 2 次（各 30min），上線後零介入</li>
+      <li class="pass">初始成本 &lt;NT$5,000 — 初始成本 NT$0（全部沿用現有基建）</li>
+      <li class="pass">月 MRR 潛力 — Month 5 達 NT$68k，SEO 飛輪效應持續成長</li>
+      <li class="pass">自動化 &gt;90% — 內容生成/SEO/收款/部署全自動</li>
+      <li class="warn">法律風險 — 營收超 NT$40k 需營業登記；內容需加免責聲明</li>
+      <li class="pass">可擴展性 — 加一科 = 複製模板 + AI 生成 = 2~3 天，可擴到 20+ 科</li>
+    </ul>
+  </div>
+
+  <!-- 11. VS #5 -->
+  <div class="section">
+    <div class="section-label">11 &mdash; 方案比較</div>
+    <h2>#6 vs 歷史方案</h2>
+
+    <div class="card">
+      <div class="tbl-wrap">
+        <table style="min-width:800px;">
+          <tr><th>指標</th><th>#1 SaaSAlt 聯盟</th><th>#5 Blankspace AI Studio</th><th style="background:#f0fdf4;"><strong>#6 AI 考證題庫</strong></th></tr>
+          <tr><td>首次收入</td><td>3~6 個月</td><td>2~4 週</td><td style="background:#f0fdf4;"><strong>2 週（已有模式）</strong></td></tr>
+          <tr><td>Month 5 月收</td><td>NT$20k~50k</td><td>NT$35k~50k</td><td style="background:#f0fdf4;"><strong>NT$60k~90k</strong></td></tr>
+          <tr><td>Rain 介入</td><td>低</td><td>1-2hr/案</td><td style="background:#f0fdf4;"><strong>上線後零介入</strong></td></tr>
+          <tr><td>獲客方式</td><td>SEO（慢）</td><td>社群+廣告（花錢）</td><td style="background:#f0fdf4;"><strong>SEO（自然搜尋需求）</strong></td></tr>
+          <tr><td>初始成本</td><td>NT$0</td><td>NT$600/月</td><td style="background:#f0fdf4;"><strong>NT$0</strong></td></tr>
+          <tr><td>已驗證</td><td>部分</td><td>未驗證</td><td style="background:#f0fdf4;"><strong>已驗證（BankExamQuiz）</strong></td></tr>
+          <tr><td>可並行</td><td>是</td><td>是</td><td style="background:#f0fdf4;"><strong>是</strong></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>核心邏輯</strong>：#5 賣的是「服務」（人力密集、需獲客）。#6 賣的是「產品」（零邊際成本、需求已存在）。先用 #6 建立穩定被動收入，再用 #5 做高單價服務。兩者不衝突，建議<strong>並行執行</strong>，但 #6 優先。
+    </div>
+  </div>
+
+  <!-- 12. REVIEW RESULTS -->
+  <div class="section" id="review-section">
+    <div class="section-label">12 &mdash; 三方審查結果</div>
+    <h2>Vick (Grok) + Ray (Codex Plus) 回饋</h2>
+
+    <div class="card" style="border-left:3px solid var(--blue);">
+      <h3 style="color:var(--blue);">Vick（Grok-3 交叉驗證）</h3>
+      <ul>
+        <li><strong>信任是護城河核心</strong>：AI 生成內容缺乏「人類編寫 = 有責任感」的信任錨點。護城河不是技術（競品 6 個月內可複製），應建數據飛輪（用戶答題行為 &rarr; 題目品質 &rarr; 更多用戶）</li>
+        <li><strong>14 萬考生被高估</strong>：大量考生已被補習班吸走、銀行行員有公司統一採購管道、14 萬是「人次」非「人數」。實際可觸及獨立客戶估 2~4 萬人</li>
+        <li><strong>Month 5 NT$68k 偏樂觀</strong>：SEO 在 Month 5 剛開始爬升，可能正好是「開始有流量」而非「已穩定」</li>
+        <li><strong>90% 自動化 vs 品質保證矛盾</strong>：教育產品中，一份錯題的口碑傷害遠大於退款成本</li>
+        <li><strong>BankExamQuiz 現有規模未說明</strong>：10 人 vs 1000 人差很大，若規模極小，「複製模式」前提薄弱</li>
+      </ul>
+      <h3 style="margin-top:16px;">Vick 替代建議</h3>
+      <ul>
+        <li><strong>B2B 切入</strong>：銀行/保險公司大量員工需考照，企業採購客單價 NT$10k~50k，比 B2C SEO 更快有收入</li>
+        <li><strong>「人審 AI 出題」混合模式</strong>：AI 初稿 + 兼職金融從業者審核（NT$2k~5k/份），大幅提升信任度</li>
+        <li><strong>免費模式 + 付費升級</strong>：前 50 題免費，降低無品牌知名度的購買門檻</li>
+        <li><strong>FB 社團精準投放</strong>：「金融證照準備社團」的 CPC 可能比 SEO 更快且更便宜</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--accent-warm);">
+      <h3 style="color:var(--accent-warm);">Ray（架構審查）&mdash; ⚠️ 有條件通過</h3>
+
+      <h3 style="margin-top:12px;">技術可行性評估</h3>
+      <p>Ray 讀完 BankExamQuiz 程式碼後結論：</p>
+      <ul>
+        <li><strong>604KB 單體 HTML</strong>：題目全嵌入 <code>EXAM_DATA</code>，6 科擴展後會膨脹到 3~4MB，手機體驗差 &rarr; 需架構級改造</li>
+        <li><strong>Supabase 表名 hardcoded</strong>：<code>bank_access_codes</code> 等需加 <code>subject</code> 欄位或泛化</li>
+        <li><strong>存取碼格式 hardcoded</strong>：<code>BANK-XXXX-XXXX</code> 正則出現在前端 + 3 支 API</li>
+        <li><strong>完整改造工時 ~44h</strong>，以多 Agent 並行 2 週內可行，但<strong>內容驗證是未知數</strong></li>
+      </ul>
+
+      <h3 style="margin-top:16px;">商業模型風險</h3>
+      <ul>
+        <li>Month 5 NT$68k 需要 ~194 筆/月 = 6.5 筆/天 &rarr; SEO 在第 5 個月可能剛開始有流量</li>
+        <li>定價與現有 BankExamQuiz（NT$250/NT$400）衝突，需要統一策略</li>
+        <li>考試有季節性（3/6/9/12 月），線性成長假設不符實際</li>
+      </ul>
+
+      <div class="danger-box" style="margin-top:16px;">
+        <h3>Ray 推薦：採用替代方案 A（漸進策略）</h3>
+        <p>不做架構改造。直接複製 BankExamQuiz repo，建獨立 <code>SecuritiesExamQuiz</code> 站（不同 Vercel project），只做「證券商業務員」一科。<strong>工時從 44h 降到 ~16h</strong>。驗證付費轉換率後，再投入多科目架構。</p>
+      </div>
+
+      <h3 style="margin-top:16px;">4 項必改條件（全部滿足才能實作）</h3>
+      <ol>
+        <li><strong>搜尋量驗證</strong>：開工前用 GSC/Ubersuggest 查核心關鍵字月搜尋量。合計 &lt; 3,000/月 &rarr; 降級為純 PDF 方案</li>
+        <li><strong>內容正確性驗證流程</strong>：定義 Rain 抽查 20% + 每題標記信心度 + 低信心度題目先不上線</li>
+        <li><strong>漸進策略</strong>：第一階段只做 1 科（證券商業務員），獨立站點，不做架構改造。驗證後才擴展</li>
+        <li><strong>著陸頁差異化</strong>：NT$299 的付費理由必須清楚表達（AI 逐題詳解、錯題追蹤、精華筆記）</li>
+      </ol>
+    </div>
+
+    <div class="success-box">
+      <h3>會議結論 &mdash; 修正後啟動</h3>
+      <ul>
+        <li>方向確認：<strong>考證題庫</strong>是低風險高潛力方向（已有付費驗證 + 零增量成本）</li>
+        <li><strong>MVP 大幅縮減</strong>：採 Ray 替代方案 A &mdash; 只做 1 科（證券商業務員），獨立站，16h 工時</li>
+        <li><strong>開工前必做</strong>：Silo 搜尋量驗證 + 內容驗證流程定義</li>
+        <li><strong>收入目標下修</strong>：Month 5 從 NT$68k &rarr; NT$30k~45k（單科 + 漸進擴展）</li>
+        <li><strong>Vick 建議採納</strong>：免費 50 題 + 付費完整版 + 人審 AI 出題 + B2B 作為 Phase 2</li>
+        <li>與 #5 (Blankspace AI Studio) <strong>可並行</strong>，資源不衝突</li>
+        <li>下一步：Rain 確認 GO &rarr; Silo 搜尋量驗證 &rarr; 通過後 dispatch John 複製站點</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  AI 考證題庫帝國 &middot; Business Plan #6 &middot; Generated by Klay (Claude Opus 4.6) &middot; 2026-03-18<br>
+  Reviewed by: Vick (Grok-3) + Ray (Codex Plus) &mdash; ⚠️ 有條件通過（4 項必改）
+</div>
+
+</body>
+</html>

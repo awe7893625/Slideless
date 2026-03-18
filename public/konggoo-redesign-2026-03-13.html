@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KongGoo 網站重設計完成報告</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: #f6f5f1; color: #222; line-height: 1.7; }
+  .slide { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+  .slide:nth-child(even) { background: #fff; }
+  .card { max-width: 720px; width: 100%; }
+  .slide-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: #eb8054; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 32px; font-weight: 800; color: #111; margin-bottom: 16px; line-height: 1.3; }
+  h2 { font-size: 22px; font-weight: 700; color: #111; margin-bottom: 14px; }
+  h3 { font-size: 16px; font-weight: 700; color: #333; margin-bottom: 8px; margin-top: 20px; }
+  p, li { font-size: 15px; color: #444; }
+  ul { padding-left: 20px; margin: 10px 0; }
+  li { margin-bottom: 6px; }
+  .highlight { background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-right: 6px; margin-bottom: 4px; }
+  .tag-green { background: #d1fae5; color: #065f46; }
+  .tag-blue { background: #dbeafe; color: #1e40af; }
+  .tag-orange { background: #ffedd5; color: #9a3412; }
+  .tag-purple { background: #ede9fe; color: #5b21b6; }
+  .tag-gray { background: #f3f4f6; color: #374151; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 16px 0; }
+  .table-wrap::-webkit-scrollbar { height: 5px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px; }
+  th { background: #111; color: #fff; text-align: left; padding: 10px 12px; font-weight: 600; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e5e5e5; }
+  tr:hover td { background: #fafaf7; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+  .metric { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; text-align: center; }
+  .slide:nth-child(even) .metric { background: #f6f5f1; }
+  .metric-value { font-size: 28px; font-weight: 800; color: #111; }
+  .metric-label { font-size: 12px; color: #888; margin-top: 4px; }
+  .divider { width: 40px; height: 3px; background: #111; margin: 20px 0; border-radius: 2px; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; padding: 10px 14px; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; }
+  .slide:nth-child(even) .check-item { background: #f6f5f1; }
+  .check-icon { flex-shrink: 0; width: 22px; height: 22px; background: #10b981; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin-top: 1px; }
+  .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; }
+  .success-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; }
+  .dark-section { background: #121212; color: #fff; }
+  .dark-section h1, .dark-section h2 { color: #fff; }
+  .dark-section p, .dark-section li { color: #ccc; }
+  .dark-section .slide-num { color: #eb8054; }
+  .code-block { background: #1e1e1e; color: #d4d4d4; padding: 14px 18px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto; margin: 12px 0; line-height: 1.6; }
+  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .ba-card { border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; }
+  .ba-label { padding: 8px 14px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .ba-before .ba-label { background: #fee2e2; color: #991b1b; }
+  .ba-after .ba-label { background: #d1fae5; color: #065f46; }
+  .ba-content { padding: 14px; font-size: 13px; color: #555; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  @media (max-width: 640px) {
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; }
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+    .slide { padding: 32px 16px; }
+    .before-after { grid-template-columns: 1fr; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<div class="slide dark-section" style="padding: 72px 24px 60px;">
+  <div class="card">
+    <div class="slide-num">KongGoo — Project Report</div>
+    <h1>KongGoo 官網重設計<br>+ ECPay 金流整合</h1>
+    <div class="divider" style="background: #eb8054;"></div>
+    <p>網站視覺全面升級、開發者模式教學、付款系統從 Polar 遷移至綠界信用卡、DMG 簽章驗證</p>
+    <div style="margin-top: 20px;">
+      <span class="tag tag-purple">UI Redesign</span>
+      <span class="tag tag-orange">ECPay</span>
+      <span class="tag tag-green">Deployed</span>
+      <span class="tag tag-blue">Verified</span>
+    </div>
+    <div class="metric-grid" style="margin-top: 28px;">
+      <div class="metric" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1);">
+        <div class="metric-value" style="color: #eb8054;">2</div>
+        <div class="metric-label" style="color: #888;">檔案重寫</div>
+      </div>
+      <div class="metric" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1);">
+        <div class="metric-value" style="color: #a8cde8;">6</div>
+        <div class="metric-label" style="color: #888;">自動化測試</div>
+      </div>
+      <div class="metric" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1);">
+        <div class="metric-value" style="color: #85a268;">100%</div>
+        <div class="metric-label" style="color: #888;">通過率</div>
+      </div>
+    </div>
+    <p style="margin-top: 24px; font-size: 13px; color: #666;">2026-03-13 ｜ Klay 執行</p>
+  </div>
+</div>
+
+<!-- Slide 2: Scope -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">01 — 執行範圍</div>
+    <h2>三大工作項目</h2>
+    <p>本次涵蓋網站前端重寫、付款系統遷移、App 打包驗證。</p>
+
+    <div style="margin-top: 20px;">
+      <div class="check-item">
+        <div class="check-icon">1</div>
+        <div>
+          <strong>網站視覺全面重設計</strong>
+          <p style="font-size: 13px; color: #666; margin-top: 4px;">Apple-style 極簡設計 + 玻璃擬態導航列 + SVG 圖標 + 滾動動畫 + 開發者模式教學 + FAQ + 系統需求</p>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">2</div>
+        <div>
+          <strong>ECPay 綠界信用卡金流整合</strong>
+          <p style="font-size: 13px; color: #666; margin-top: 4px;">取代 Polar，串接 ECPay AIO V5 信用卡付款，含 CheckMacValue SHA256 驗證、Server Notify、License Key 自動發放</p>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">3</div>
+        <div>
+          <strong>DMG 簽章與公證驗證</strong>
+          <p style="font-size: 13px; color: #666; margin-top: 4px;">確認 Developer ID 簽名、Apple Notarization Stapled、無 quarantine 屬性</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Website Redesign -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">02 — 網站重設計</div>
+    <h2>index.html：全面升級</h2>
+
+    <div class="before-after">
+      <div class="ba-card ba-before">
+        <div class="ba-label">Before</div>
+        <div class="ba-content">
+          <ul style="padding-left: 16px; margin: 0;">
+            <li>1424 行，emoji 圖標</li>
+            <li>基本 CSS，無動畫</li>
+            <li>無開發者教學</li>
+            <li>無 FAQ / 系統需求</li>
+            <li>Polar 付款連結</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ba-card ba-after">
+        <div class="ba-label">After</div>
+        <div class="ba-content">
+          <ul style="padding-left: 16px; margin: 0;">
+            <li>~750 行，SVG inline 圖標</li>
+            <li>CSS 變數 + 玻璃擬態 + 漸層</li>
+            <li>開發者模式啟用步驟圖解</li>
+            <li>FAQ + 系統需求區塊</li>
+            <li>ECPay 綠界信用卡</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3>新增區塊</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>區塊</th><th>內容</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="tag tag-purple">Hero</span></td><td>漸層背景 + App mockup 輪廓 + 動態地圖背景描述</td></tr>
+          <tr><td><span class="tag tag-blue">功能展示</span></td><td>4 張卡片：GPS 模擬 / 路線規劃 / 即時預覽 / 跨裝置，SVG icon</td></tr>
+          <tr><td><span class="tag tag-orange">開發者模式</span></td><td>4 步驟教學：設定 > 隱私與安全性 > 開發者模式 > 重新開機</td></tr>
+          <tr><td><span class="tag tag-green">系統需求</span></td><td>macOS 12+ / Windows 10+ / USB 連接 / 開發者模式</td></tr>
+          <tr><td><span class="tag tag-gray">FAQ</span></td><td>5 題常見問答，accordion 展開收合</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: ECPay Integration -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">03 — ECPay 金流整合</div>
+    <h2>Polar → 綠界信用卡</h2>
+    <p>完全移除 Polar SDK，改用 ECPay AIO CheckOut V5 信用卡付款。</p>
+
+    <h3>付款流程</h3>
+    <div style="margin-top: 12px;">
+      <div class="check-item">
+        <div class="check-icon" style="background: #6366f1;">1</div>
+        <div><strong>前端</strong>：使用者點「立即購買」→ 選擇方案（年費 NT$690 / 終身 NT$1,690）</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon" style="background: #6366f1;">2</div>
+        <div><strong>API</strong>：POST <code>/api/payment/create</code> → 建立訂單（Vercel KV）→ 回傳 paymentUrl</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon" style="background: #6366f1;">3</div>
+        <div><strong>ECPay</strong>：Auto-submit form → ECPay 信用卡頁面 → 使用者填卡付款</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon" style="background: #6366f1;">4</div>
+        <div><strong>Notify</strong>：ECPay Server-to-Server callback → 驗證 CheckMacValue → 發放 License Key</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon" style="background: #6366f1;">5</div>
+        <div><strong>Return</strong>：ECPay POST → <code>/payment/success</code> → 顯示啟用碼頁面</div>
+      </div>
+    </div>
+
+    <h3>技術要點</h3>
+    <ul>
+      <li><span class="highlight">CheckMacValue</span>：SHA256，params 排序 + HashKey/HashIV 包裹 + .NET 式 URL encode（空格→<code>+</code>）</li>
+      <li><span class="highlight">ChoosePayment</span>：必須用 <code>'Credit'</code>，不能用 <code>'ALL'</code>（商家只開信用卡）</li>
+      <li><span class="highlight">MerchantTradeNo</span>：最長 20 字元，截斷 orderId</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 5: Testing Results -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">04 — 測試結果</div>
+    <h2>6 項自動化測試：全部通過</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>測試項目</th><th>結果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Homepage 載入（HTTP 200）</td><td><span class="tag tag-green">PASS</span></td></tr>
+          <tr><td>2</td><td>建立年費訂單 API</td><td><span class="tag tag-green">PASS</span></td></tr>
+          <tr><td>3</td><td>建立終身訂單 API</td><td><span class="tag tag-green">PASS</span></td></tr>
+          <tr><td>4</td><td>無效方案拒絕</td><td><span class="tag tag-green">PASS</span></td></tr>
+          <tr><td>5</td><td>ECPay 表單 13 必填欄位</td><td><span class="tag tag-green">PASS</span></td></tr>
+          <tr><td>6</td><td>ECPay Notify 回傳 "1|OK"</td><td><span class="tag tag-green">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Playwright E2E 驗證</h3>
+    <ul>
+      <li>點擊購買按鈕 → Modal 彈出 → 選擇方案 → 導向 ECPay</li>
+      <li>ECPay 頁面正確顯示：<span class="highlight">KongGoo 年費方案 NT$690</span></li>
+      <li>桌面版（1280px）+ 手機版（390px）截圖驗證，無跑版</li>
+    </ul>
+
+    <div class="success-box">
+      所有測試通過，付款流程從前端到 ECPay 頁面完整可用。
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: DMG Verification -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">05 — DMG 簽章驗證</div>
+    <h2>App 打包：Developer ID + Notarized</h2>
+
+    <div class="check-item">
+      <div class="check-icon">&#10003;</div>
+      <div><strong>Developer ID Application</strong>：chengyu lin (PGP6W5JT82)</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">&#10003;</div>
+      <div><strong>Notarization Ticket</strong>：已 Stapled 到 .app</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">&#10003;</div>
+      <div><strong>Quarantine 屬性</strong>：無（使用者下載後不會顯示損毀警告）</div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon">&#10003;</div>
+      <div><strong>GitHub Release 下載</strong>：302 redirect 正常</div>
+    </div>
+
+    <h3>驗證指令</h3>
+    <div class="code-block">
+codesign -dvv KongGoo.app
+# Authority=Developer ID Application: chengyu lin
+
+xcrun stapler validate KongGoo.app
+# The validate action worked!
+
+xattr -l KongGoo.app
+# (no quarantine attribute)
+    </div>
+
+    <div class="success-box">
+      DMG 打包正確，使用者下載後可直接安裝，不會出現「損毀」或「無法打開」警告。
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Deployment -->
+<div class="slide">
+  <div class="card">
+    <div class="slide-num">06 — 部署</div>
+    <h2>正式環境已上線</h2>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-value" style="font-size: 16px;">konggoo.tw</div>
+        <div class="metric-label">主網域</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" style="font-size: 16px;">Vercel</div>
+        <div class="metric-label">託管平台</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" style="font-size: 16px;">385ce7f</div>
+        <div class="metric-label">Git Commit</div>
+      </div>
+    </div>
+
+    <h3>部署驗證</h3>
+    <ul>
+      <li>Live site title tag 包含新版標題</li>
+      <li>開發者模式教學區塊（#dev-mode）存在</li>
+      <li>ECPay 相關字串 13 處確認</li>
+      <li>桌面 + 手機 Playwright 截圖：排版正常</li>
+    </ul>
+
+    <h3>異動檔案</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>檔案</th><th>變更</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>website/public/index.html</code></td><td>全面重寫（1424→~750 行）</td></tr>
+          <tr><td><code>website/server.js</code></td><td>ECPay 金流（移除 Polar，新增 5 個 route）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Summary -->
+<div class="slide dark-section" style="padding: 72px 24px 60px;">
+  <div class="card">
+    <div class="slide-num">Summary</div>
+    <h1>全部完成</h1>
+    <div class="divider" style="background: #eb8054;"></div>
+    <ul style="margin-top: 20px;">
+      <li>網站已上線 — Apple-style 極簡設計 + 開發者模式教學</li>
+      <li>付款系統 — ECPay 綠界信用卡（年費 NT$690 / 終身 NT$1,690）</li>
+      <li>DMG 簽章 — Developer ID + Notarized + Stapled，下載無損毀</li>
+      <li>支援平台 — macOS + Windows（AMD64），控制 iOS 裝置</li>
+    </ul>
+
+    <div class="warning-box" style="margin-top: 24px; background: rgba(254,243,199,0.15); border-color: #f59e0b;">
+      <strong style="color: #f59e0b;">下一步建議</strong>
+      <ul style="margin-top: 8px; padding-left: 16px;">
+        <li style="color: #ccc;">實際刷卡測試（用 Line Bank 卡 4040-0808-xxxx）</li>
+        <li style="color: #ccc;">確認 ECPay Server Notify URL（production 域名）可接收回呼</li>
+        <li style="color: #ccc;">Google Analytics 追蹤安裝</li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 24px; font-size: 13px; color: #666;">KongGoo — konggoo.tw ｜ 2026-03-13</p>
+  </div>
+</div>
+
+</body>
+</html>

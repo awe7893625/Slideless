@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 工作流程強制執行：設計漏洞分析與修復報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--black)}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s;width:0}
+section{padding:80px 120px 60px;max-width:1400px;margin:0 auto;width:100%}
+section:first-child{max-width:none;padding:0;width:100%}
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:72px 120px 60px}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(28px,4vw,52px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;line-height:1.15}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:17px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:640px}
+.cover-stats{display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center}
+.cover-stat{text-align:center}
+.cover-stat .num{font-size:40px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
+.cover-stat .label{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
+.cover-meta{margin-top:48px;font-size:13px;color:rgba(255,255,255,0.3);font-family:var(--font-mono)}
+.section-header{margin-bottom:40px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:clamp(22px,3vw,36px);font-weight:700;letter-spacing:-0.5px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:720px}
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+.card h3{font-size:16px;font-weight:600;margin-bottom:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.bug-card{background:var(--white);border-radius:12px;padding:22px 24px;border:1px solid var(--grey-01);border-left:4px solid var(--danger)}
+.bug-card.fixed{border-left-color:var(--green)}
+.bug-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;font-family:var(--font-mono);color:var(--danger);margin-bottom:6px}
+.bug-card.fixed .bug-label{color:var(--green)}
+.bug-card h4{font-size:14px;font-weight:600;margin-bottom:8px}
+.bug-card p{font-size:13px;color:var(--grey-02);line-height:1.6}
+.vuln-card{background:var(--white);border-radius:12px;padding:22px;border:1px solid var(--grey-01);display:flex;gap:14px;align-items:flex-start}
+.vuln-num{font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--grey-01);flex-shrink:0;line-height:1}
+.vuln-body h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.vuln-body p{font-size:13px;color:var(--grey-02);line-height:1.6}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
+td{padding:10px 14px;border-bottom:1px solid var(--grey-01);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(168,205,232,0.04)}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;font-family:var(--font-mono)}
+.badge.warn{background:rgba(235,128,84,0.12);color:#b85e28}
+.badge.ok{background:rgba(133,162,104,0.15);color:#4a7532}
+.badge.danger{background:rgba(217,79,79,0.1);color:var(--danger)}
+.flow-step{display:flex;align-items:flex-start;gap:16px;padding:16px 0;border-bottom:1px solid var(--grey-01)}
+.flow-step:last-child{border-bottom:none}
+.flow-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px}
+.flow-body h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.flow-body p{font-size:13px;color:var(--grey-02);line-height:1.6}
+.score-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--grey-01)}
+.score-row:last-child{border-bottom:none}
+.score-label{font-size:13px;font-weight:500;width:160px;flex-shrink:0}
+.score-bar-bg{flex:1;background:var(--grey-01);border-radius:4px;height:8px;overflow:hidden}
+.score-bar{height:100%;border-radius:4px;background:var(--accent-warm)}
+.score-num{font-size:14px;font-weight:700;font-family:var(--font-mono);width:40px;text-align:right;flex-shrink:0}
+.dark-section{background:var(--black);color:var(--white);width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;padding:80px 0}
+.dark-inner{max-width:1400px;margin:0 auto;padding:0 120px}
+.dark-section .section-eyebrow{color:var(--accent)}
+.dark-section .section-title{color:var(--white)}
+.dark-section .section-title span{color:var(--accent-warm)}
+.dark-section .section-desc{color:rgba(255,255,255,0.45)}
+.dark-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px}
+.dark-card h4{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--white)}
+.dark-card p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7}
+.rule-box{background:rgba(235,128,84,0.08);border:1px solid rgba(235,128,84,0.2);border-radius:12px;padding:20px 24px}
+.rule-box .rule-num{font-size:11px;font-weight:700;color:var(--accent-warm);font-family:var(--font-mono);letter-spacing:2px;margin-bottom:8px}
+.rule-box p{font-size:14px;line-height:1.7}
+.change-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--grey-01)}
+.change-item:last-child{border-bottom:none}
+.change-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.change-body h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.change-body code{font-family:var(--font-mono);font-size:12px;background:var(--grey-01);padding:1px 6px;border-radius:4px;color:var(--grey-03)}
+.change-body p{font-size:13px;color:var(--grey-02);margin-top:4px;line-height:1.6}
+.ray-verdict{display:flex;gap:12px;align-items:flex-start;background:rgba(235,128,84,0.06);border:1px solid rgba(235,128,84,0.2);border-radius:12px;padding:20px}
+.ray-icon{font-size:28px;flex-shrink:0}
+.ray-body h4{font-size:15px;font-weight:700;margin-bottom:6px}
+.ray-body p{font-size:13px;color:var(--grey-02);line-height:1.7}
+footer{background:var(--black);color:rgba(255,255,255,0.3);text-align:center;padding:40px;font-family:var(--font-mono);font-size:12px}
+@media(max-width:1100px){section{padding:80px 60px 60px}.dark-inner{padding:0 60px}.cover{padding:64px 60px 52px}}
+@media(max-width:900px){section{padding:72px 32px 48px}.dark-inner{padding:0 32px}.cover{padding:56px 32px 48px}.grid-2{grid-template-columns:1fr}.cover-stats{gap:32px}.nav{padding:12px 20px}}
+@media(max-width:600px){section{padding:64px 20px 40px}.dark-inner{padding:0 20px}.cover{padding:48px 20px 40px}.score-label{width:120px}}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="pb"></div>
+<nav class="nav">
+  <span class="nav-brand">workflow-enforcement-2026-03-15</span>
+  <div class="nav-links">
+    <a href="#bg">背景</a>
+    <a href="#vulns">漏洞</a>
+    <a href="#ray">Ray審查</a>
+    <a href="#gate">Gate v2</a>
+    <a href="#reminder">Reminder</a>
+    <a href="#rule0">Rule #0</a>
+    <a href="#honest">評估</a>
+    <a href="#flow">執行流程</a>
+    <a href="#changes">修改清單</a>
+    <a href="#score">評分</a>
+  </div>
+</nav>
+
+<section>
+<div class="cover">
+  <div class="eyebrow">Rain AI Team · 2026-03-15 · Klay + Ray 聯合審查</div>
+  <h1>工作流程強制執行：<span>設計漏洞分析</span>與修復報告</h1>
+  <p class="subtitle">識別 5 大設計漏洞、Ray 設計審查（有條件通過）、3 項技術修復完成</p>
+  <div class="cover-stats">
+    <div class="cover-stat"><div class="num">5</div><div class="label">設計漏洞識別</div></div>
+    <div class="cover-stat"><div class="num">4</div><div class="label">Bug 修復（scope-card-gate）</div></div>
+    <div class="cover-stat"><div class="num">3</div><div class="label">檔案變更</div></div>
+    <div class="cover-stat"><div class="num">7.5</div><div class="label">整體評分 /10</div></div>
+  </div>
+  <div class="cover-meta">scope-card-gate.sh v2 · dispatch-reminder.sh v2 · CLAUDE.md Core Rule #0</div>
+</div>
+</section>
+
+<section id="bg">
+  <div class="section-header">
+    <div class="section-eyebrow">01 · Problem Background</div>
+    <h2 class="section-title">問題背景：<span>為什麼要做這個</span></h2>
+    <p class="section-desc">Rain 觀察到其他 Session 跳過 3-Phase 流程直接自己實作，要求 Klay + Ray 自行診斷並修復。</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>🔍 Situation：觀察到的現象</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--grey-02)">Rain 在其他 Session 下達複雜指令（如「幫我實作 X 功能」），Claude 直接完成整個任務，沒有輸出 Scope Card、沒有 3-Phase 規劃、沒有 dispatch 給 subagent。</p>
+    </div>
+    <div class="card">
+      <h3>⚠️ Complication：問題的本質</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--grey-02)">工作流程規則是 CLAUDE.md 中的<strong>文字指令</strong>，不是技術強制門。Claude 的「有用優先」訓練本能會覆蓋行為規則，尤其在 context 不夠清晰的 fresh session 中。</p>
+    </div>
+    <div class="card">
+      <h3>❓ Question：真正的風險是什麼？</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--grey-02)">Tiny/Standard 任務跳過 dispatch 的實際傷害有限。真正的風險是：<strong>Major/Critical 任務若跳過 Phase 3（Ray 設計審查）</strong>，架構缺陷無法事前發現，事後修復成本 10×。</p>
+    </div>
+    <div class="card">
+      <h3>✅ Answer：Rain 的指令</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--grey-02)">「<strong>你跟 Ray 自己判斷一下，你們覺得該怎麼做就怎麼做。請寫一份報告。</strong>」— Klay 召集 Ray 進行 Phase 3 設計審查，共同決定修復方案。</p>
+    </div>
+  </div>
+</section>
+
+<section id="vulns">
+  <div class="section-header">
+    <div class="section-eyebrow">02 · Design Vulnerabilities</div>
+    <h2 class="section-title">5 大設計漏洞：<span>原始診斷</span></h2>
+    <p class="section-desc">Klay 初步分析出 5 個漏洞；Ray 審查後補充識別 1 個，並指出 2 個是症狀而非根因。</p>
+  </div>
+  <div class="grid-2">
+    <div class="vuln-card">
+      <div class="vuln-num">01</div>
+      <div class="vuln-body"><h4>無技術強制門</h4><p>CLAUDE.md 是文字指令，Claude 的助手本能可以覆蓋。需要技術卡關，不能只靠行為指令。</p></div>
+    </div>
+    <div class="vuln-card">
+      <div class="vuln-num">02</div>
+      <div class="vuln-body"><h4>Klay = Claude（自我矛盾）</h4><p>要求 Claude 克制自己去 dispatch 等於要求它對抗助手本能。規則設計者和被規範者是同一個實體。</p></div>
+    </div>
+    <div class="vuln-card" style="border-left:4px solid var(--grey-02)">
+      <div class="vuln-num" style="color:rgba(139,135,124,0.2)">03</div>
+      <div class="vuln-body"><h4>等級評估主觀 <span style="font-size:11px;color:var(--grey-02);font-family:var(--font-mono)">(症狀)</span></h4><p>Grade 判斷靠 Claude 自己。Ray 指出：這是漏洞 1/2 的症狀，非獨立根因。</p></div>
+    </div>
+    <div class="vuln-card" style="border-left:4px solid var(--grey-02)">
+      <div class="vuln-num" style="color:rgba(139,135,124,0.2)">04</div>
+      <div class="vuln-body"><h4>流程只在正確情境有效 <span style="font-size:11px;color:var(--grey-02);font-family:var(--font-mono)">(症狀)</span></h4><p>所有條件都對了才能 work。Ray 指出：此為症狀，不是獨立漏洞。</p></div>
+    </div>
+    <div class="vuln-card">
+      <div class="vuln-num">05</div>
+      <div class="vuln-body"><h4>session 開場無強制技術機制</h4><p>session-start.sh 只是提示注入，不能阻擋工具呼叫。長 session 中提示會被稀釋。</p></div>
+    </div>
+    <div class="vuln-card" style="border-left:4px solid var(--accent-warm)">
+      <div class="vuln-num" style="color:rgba(235,128,84,0.2)">06</div>
+      <div class="vuln-body"><h4>自我解鎖漏洞 <span style="font-size:11px;color:var(--accent-warm);font-family:var(--font-mono)">(Ray 補充)</span></h4><p>原 scope-card-gate.sh 在 block 訊息中明文寫了解鎖指令。Claude 可自行執行解鎖，gate 形同虛設。</p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:8px;background:rgba(168,205,232,0.05);border-color:rgba(168,205,232,0.3)">
+    <p style="font-size:13px;color:var(--grey-02)">⚠️ <strong>scope-card-gate.sh v1 的具體 Bug</strong>：Bug 1 session 級 gate（永久有效）· Bug 2 stale gate file（SESSION_KEY 跨 session 持久）· Bug 3 Tiny 任務無豁免 · Bug 4 SESSION_KEY fallback 精度不足（分鐘級 → 跨分鐘重複觸發）</p>
+  </div>
+</section>
+
+<section id="ray">
+  <div class="section-header">
+    <div class="section-eyebrow">03 · Ray Design Review</div>
+    <h2 class="section-title">Ray 設計審查結果：<span>有條件通過</span></h2>
+    <p class="section-desc">Ray 執行完整 Phase 3 審查，包含 Skeptic Check（魔鬼代言人）。</p>
+  </div>
+  <div class="ray-verdict" style="margin-bottom:24px">
+    <div class="ray-icon">⚠️</div>
+    <div class="ray-body">
+      <h4>Verdict: ⚠️ 有條件通過（修改後可開工）</h4>
+      <p>Option D 方向正確，但必須先解決 scope-card-gate.sh 自我解鎖問題（Issue 1），並從範疇中移除「session-start.sh 補充提醒」（已有完整 R-00，重複加只增雜訊）。</p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>✅ 確認屬實</h3>
+      <ul style="font-size:13px;color:var(--grey-02);line-height:2;padding-left:16px">
+        <li>scope-card-gate.sh 的 3 個 bug 全部屬實</li>
+        <li>補充識別 Bug 4：block 訊息包含明文解鎖指令</li>
+        <li>Option D 組合方案方向正確</li>
+        <li>session-start.sh 已有完整 R-00，不需再加</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🦹 Skeptic Check（必要輸出）</h3>
+      <p style="font-size:13px;color:var(--grey-02);line-height:1.8">「如果根本不做這個呢？」— Tiny/Standard 跳過的傷害有限。真正問題是 Major/Critical 跳過 Phase 3。<strong>規則清晰比技術卡關更有效</strong>：Claude 讀了所有 context 再行動，防線的假設是 Claude 不看防線，但這個假設本身有問題。</p>
+    </div>
+    <div class="card">
+      <h3>⚠️ 最大風險（未完全解決）</h3>
+      <p style="font-size:13px;color:var(--grey-02);line-height:1.8">Gate 對 Klay 的強制效果有限：Klay 本身是 Claude，speed bump ≠ hard lock。subagent context 中 hooks 行為待確認；Noel 夜班 session 行為待觀察。</p>
+    </div>
+    <div class="card">
+      <h3>💡 Ray 新建議（已採納）</h3>
+      <p style="font-size:13px;color:var(--grey-02);line-height:1.8">dispatch-reminder.sh 在 4+ 檔案時不只警告，而是<strong>要求 Claude 在下一條回應中說明為什麼沒有 dispatch</strong>。比 session 開場的預防性提示更接近任務發生時間點，干預效果更好。</p>
+    </div>
+  </div>
+</section>
+
+<section id="gate">
+  <div class="section-header">
+    <div class="section-eyebrow">04 · scope-card-gate.sh v2</div>
+    <h2 class="section-title">Gate 重構：<span>修復 4 個 Bug + SESSION_KEY 精度</span></h2>
+    <p class="section-desc">速度減緩（speed bump），不是硬鎖（hard lock）。Tiny 任務零摩擦，30 分鐘窗口自動過期。</p>
+  </div>
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="bug-card"><div class="bug-label">Bug 1 — v1 問題</div><h4>Session 級 gate（永久解鎖）</h4><p>一旦解鎖，整個 session 後續所有任務全部放行，等同沒有 gate。</p></div>
+    <div class="bug-card fixed"><div class="bug-label">Bug 1 — v2 修復</div><h4>30 分鐘時間窗口（自動過期）</h4><p><code style="font-family:var(--font-mono);background:rgba(133,162,104,0.1);padding:1px 5px;border-radius:3px">TIME_BUCKET = int(time()/1800)</code> 每 30 分鐘自動過期，新窗口重新攔截一次。</p></div>
+    <div class="bug-card"><div class="bug-label">Bug 2 — v1 問題</div><h4>Stale gate file（跨 session 持久）</h4><p>CLAUDE_SESSION_ID 空值 fallback "main"，/tmp 跨 session 持久化，舊 gate file 讓新 session 永遠跳過。</p></div>
+    <div class="bug-card fixed"><div class="bug-label">Bug 2 — v2 修復</div><h4>Session + 時間戳複合 key</h4><p><code style="font-family:var(--font-mono);background:rgba(133,162,104,0.1);padding:1px 5px;border-radius:3px">scope-{SESSION}-{TIME_BUCKET}</code> 不同時間必然不同 key，stale 問題消除。</p></div>
+    <div class="bug-card"><div class="bug-label">Bug 3 — v1 問題</div><h4>Tiny 任務無豁免（全攔截）</h4><p>所有 Edit/Write 強制 IS_WORK=1，改一行 config 也要 Scope Card，過度摩擦導致習慣性繞過。</p></div>
+    <div class="bug-card fixed"><div class="bug-label">Bug 3 — v2 修復</div><h4>程式碼檔案才攔截，豁免清單</h4><p>豁免 .sh .json .md .yaml .toml .env .plist .html 等，只攔截 .py .ts .tsx .jsx .js 等程式碼檔案。</p></div>
+    <div class="bug-card"><div class="bug-label">Bug 4 — Ray Issue 1 + SESSION_KEY 精度</div><h4>明文解鎖指令 + 分鐘級 fallback</h4><p>block 訊息含解鎖路徑可自行執行；SESSION_KEY fallback 精度到分鐘，分鐘交界時重複觸發。</p></div>
+    <div class="bug-card fixed"><div class="bug-label">Bug 4 — v2 修復</div><h4>移除解鎖指令 + 小時級 fallback</h4><p>block 訊息不含解鎖路徑；SESSION_KEY fallback 改為 <code style="font-family:var(--font-mono);background:rgba(133,162,104,0.1);padding:1px 5px;border-radius:3px">date +%Y%m%d%H</code>（整小時穩定）。</p></div>
+  </div>
+  <div class="card" style="background:rgba(133,162,104,0.05);border-color:rgba(133,162,104,0.2)">
+    <h3 style="color:var(--green)">✅ 新設計邏輯（v2）</h3>
+    <p style="font-size:13px;color:var(--grey-02);line-height:1.9;margin-top:8px">第一次修改程式碼檔案 → block + 顯示 Scope Card 格式 + <strong>自動建立 gate file</strong> → 後續 30 分鐘同窗口放行 → 下一個 30 分鐘窗口重新攔截一次。Claude 輸出 Scope Card 後重試即可繼續，無需手動解鎖指令。</p>
+  </div>
+</section>
+
+<section id="reminder">
+  <div class="section-header">
+    <div class="section-eyebrow">05 · dispatch-reminder.sh v2</div>
+    <h2 class="section-title">Dispatch Reminder：<span>從警告升級到要求說明</span></h2>
+    <p class="section-desc">Ray 建議：比 session 開場的預防性提示更接近任務發生時間點，干預效果更好。</p>
+  </div>
+  <div class="table-wrap">
+    <table style="min-width:600px">
+      <thead><tr><th>觸發條件</th><th>v1 行為</th><th>v2 行為</th><th>等級</th></tr></thead>
+      <tbody>
+        <tr><td>3+ 程式碼檔案</td><td>⚠️ 提醒「可能應該 dispatch」</td><td>⚠️ 提醒（不變）</td><td><span class="badge warn">Warning</span></td></tr>
+        <tr><td>4+ 程式碼檔案</td><td>（無）</td><td>🔴 <strong>Dispatch Gate</strong> — Major 等級確認，要求在下一條回應中明確說明不 dispatch 的原因</td><td><span class="badge danger">Gate</span></td></tr>
+        <tr><td>5+ 程式碼檔案</td><td>🔴 建議停下 dispatch</td><td>🚨 <strong>BLOCKER</strong> — R-01 強制 dispatch，立即停下啟動 worktree</td><td><span class="badge danger">Blocker</span></td></tr>
+        <tr><td>豁免</td><td>memory/ .claude/ .sh .json</td><td>同左 + .md .yaml .toml .plist .env .html（擴展）</td><td><span class="badge ok">Exempt</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="rule0">
+  <div class="section-header">
+    <div class="section-eyebrow">06 · CLAUDE.md Core Rule #0</div>
+    <h2 class="section-title">頂層強制規則：<span>Core Rule #0 新增</span></h2>
+    <p class="section-desc">放在 Core Rules 區塊第一條，前 100 token context 位置，最高視覺優先度。</p>
+  </div>
+  <div class="rule-box" style="margin-bottom:24px">
+    <div class="rule-num">CORE RULE #0 — DISPATCH ENFORCEMENT（Standard+，無例外）</div>
+    <p><strong>⛔ Dispatch enforcement</strong>: 任何 Edit/Write 之前必須先輸出 Scope Card。Grade ≥ Standard → Klay 只規劃，不 implement，必須 dispatch。Grade = Major/Critical → 先 3-Phase（Scout → Ray）再 dispatch。違反 = session review Q4 必須說明，連續 3 次 → Klay audit。</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>為什麼是 Rule #0</h3>
+      <p style="font-size:13px;color:var(--grey-02);line-height:1.8">原本 Scope Card 規則在 Agent Behavior 區塊第 5 項，距 context 開頭較遠。Rule #0 放在 Core Rules 第一條，確保在高度壓縮的 context 中仍然可見。</p>
+    </div>
+    <div class="card">
+      <h3>與 session-start.sh 的關係</h3>
+      <p style="font-size:13px;color:var(--grey-02);line-height:1.8">session-start.sh 已有完整 R-00 提示（lines 57-76）。Ray 明確指出不要再加重複提示。Core Rule #0 是 CLAUDE.md 層面的規則加固，session-start 是運行時注入，兩者互補不重疊。</p>
+    </div>
+  </div>
+</section>
+
+<div class="dark-section" id="honest">
+  <div class="dark-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">07 · Honest Assessment</div>
+      <h2 class="section-title">誠實評估：<span>這能解決問題嗎？</span></h2>
+      <p class="section-desc">Ray 的核心觀點：防線假設 Claude 不看防線；實際上 Claude 讀了所有 context 再行動——規則清晰比技術卡關更有效。</p>
+    </div>
+    <div class="grid-2">
+      <div class="dark-card"><h4>✅ 短期效果（技術層）</h4><p>scope-card-gate 現在正確攔截，不再被 stale gate file 繞過。30 分鐘窗口確保每個工作窗口至少強制確認一次 Scope Card。Tiny 豁免減少摩擦。</p></div>
+      <div class="dark-card"><h4>✅ 中期效果（行為層）</h4><p>Core Rule #0 + session-start R-00 雙重覆蓋，提高 Scope Card 合規率。dispatch-reminder 4+ 檔案時要求說明，增加 accountability loop。夜班 dispatch_rate 統計持續可見。</p></div>
+      <div class="dark-card"><h4>⚠️ 長期限制（仍然存在）</h4><p>Klay 本身是 Claude，speed bump ≠ hard lock。Fresh session 第一個行為仍靠 context。subagent context 中 hooks 是否生效待確認。Noel 夜班 session 行為待觀察。</p></div>
+      <div class="dark-card"><h4>🎯 設計選擇（已知，接受）</h4><p>Hard lock 會阻礙合法的緊急修復（P0/P1）和 Tiny 任務，帶來過高摩擦成本。<strong>7.5/10 是在「有效強制」與「正常工作不受干擾」之間的最佳平衡點</strong>。</p></div>
+    </div>
+  </div>
+</div>
+
+<section id="flow">
+  <div class="section-header">
+    <div class="section-eyebrow">08 · Execution Flow</div>
+    <h2 class="section-title">往後 Session：<span>正式確認執行流程</span></h2>
+    <p class="section-desc">每個 Session 的標準執行路徑，按任務等級分流。</p>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <h3 style="margin-bottom:16px">Session 開場（每次必執行）</h3>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(168,205,232,0.15)">🚀</div>
+      <div class="flow-body"><h4>session-start hook 自動注入</h4><p>系統狀態 + R-00 強制規則（Task Board + Scope Card）+ 近期 5 條教訓 + Agent 角色 context</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(235,128,84,0.12)">📋</div>
+      <div class="flow-body"><h4>Rain 給第一個工作指令 → 立即建立 Kai Task</h4><p><code style="font-family:var(--font-mono);font-size:12px;background:var(--grey-01);padding:1px 6px;border-radius:4px">auto_start: true</code> → 直接進入 executing → 進度回報 3 次（20% / 50% / 80%）</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:16px">任務執行路徑（按 Grade 分流）</h3>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(133,162,104,0.15)">🟢</div>
+      <div class="flow-body"><h4>Grade = Tiny（單檔 config/script，1-2 行）</h4><p>scope-card-gate 自動豁免（.sh/.json/.yaml/.html 等）→ 直接處理 → 完成，不需 dispatch</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(168,205,232,0.2)">🔵</div>
+      <div class="flow-body"><h4>Grade = Standard（CRUD / 單 API / 單 component）</h4><p>scope-card-gate 攔截一次（輸出 Scope Card）→ dispatch 單人 subagent → Quill lightweight + Forge CI → 完成</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(235,128,84,0.12)">🟠</div>
+      <div class="flow-body"><h4>Grade = Major（2+ 檔 + 跨層修改）</h4><p>Scope Card → Phase 1 Klay → Phase 2 Scout → Phase 3 Ray（設計審查 + 開工簽核）→ dispatch worktree → Quill Full + Forge + Ray post-impl → 完成</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(217,79,79,0.1)">🔴</div>
+      <div class="flow-body"><h4>Grade = Critical（auth / payment / migration）</h4><p>同 Major + Ray veto 生效 → auth/payment 強制走 Claude 訂閱制（安全域不走外部 API）</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="changes">
+  <div class="section-header">
+    <div class="section-eyebrow">09 · Change Log</div>
+    <h2 class="section-title">本次修改清單：<span>3 檔案 + 1 清理</span></h2>
+    <p class="section-desc">所有變更均在 ~/.claude/ 目錄內，不影響任何專案程式碼。</p>
+  </div>
+  <div class="card">
+    <div class="change-item">
+      <div class="change-icon">🔧</div>
+      <div class="change-body"><h4>scope-card-gate.sh → v2</h4><code>~/.claude/hooks/scope-card-gate.sh</code><p>重構：30 分鐘時間窗口 · 小時級 SESSION_KEY fallback · 程式碼檔案才攔截 · 自動 gate file 建立 · 移除明文解鎖指令 · Tiny 豁免清單（含 .html）</p></div>
+    </div>
+    <div class="change-item">
+      <div class="change-icon">🔧</div>
+      <div class="change-body"><h4>dispatch-reminder.sh → v2</h4><code>~/.claude/hooks/dispatch-reminder.sh</code><p>新增 4 files → 🔴 Dispatch Gate（要求說明原因）· 5 files → 🚨 BLOCKER · 豁免清單擴展</p></div>
+    </div>
+    <div class="change-item">
+      <div class="change-icon">📝</div>
+      <div class="change-body"><h4>CLAUDE.md → Core Rule #0 新增</h4><code>~/.claude/CLAUDE.md</code><p>在 Core Rules 區塊第一條插入 Rule #0：⛔ Dispatch enforcement，Standard+ 無例外</p></div>
+    </div>
+    <div class="change-item">
+      <div class="change-icon">🗑️</div>
+      <div class="change-body"><h4>清理 v1 stale gate files</h4><code>rm /tmp/claude-scope-state/scope-passed-*</code><p>移除所有 v1 格式的 gate file，防止 v2 啟動後仍被舊檔繞過</p></div>
+    </div>
+  </div>
+  <div class="card" style="background:rgba(133,162,104,0.05);border-color:rgba(133,162,104,0.2)">
+    <p style="font-size:13px;color:var(--grey-02)">✅ <strong>未修改</strong>：session-start.sh（Ray 明確指出已有完整 R-00）· 任何專案程式碼 · LaunchAgents</p>
+  </div>
+</section>
+
+<section id="score" style="padding-bottom:100px">
+  <div class="section-header">
+    <div class="section-eyebrow">10 · Engineering Scorecard</div>
+    <h2 class="section-title">工程誠實評分：<span>2026-03-15</span></h2>
+    <p class="section-desc">v1 baseline 3/10（gate 基本失效）→ v2 整體 7.5/10（speed bump 有效，hard lock 理論上不可達）。</p>
+  </div>
+  <div class="card">
+    <div class="score-row"><span class="score-label">技術強制效果</span><div class="score-bar-bg"><div class="score-bar" style="width:60%;background:var(--accent)"></div></div><span class="score-num" style="color:var(--accent)">6.0</span></div>
+    <div class="score-row"><span class="score-label">行為強制效果</span><div class="score-bar-bg"><div class="score-bar" style="width:80%"></div></div><span class="score-num">8.0</span></div>
+    <div class="score-row"><span class="score-label">系統可維護性</span><div class="score-bar-bg"><div class="score-bar" style="width:85%"></div></div><span class="score-num">8.5</span></div>
+    <div class="score-row"><span class="score-label">覆蓋範圍</span><div class="score-bar-bg"><div class="score-bar" style="width:70%;background:var(--accent-warm)"></div></div><span class="score-num" style="color:var(--accent-warm)">7.0</span></div>
+    <div class="score-row" style="border-top:2px solid var(--grey-01);margin-top:8px;padding-top:20px"><span class="score-label" style="font-weight:700">整體評分</span><div class="score-bar-bg"><div class="score-bar" style="width:75%"></div></div><span class="score-num" style="font-size:18px;font-weight:800">7.5</span></div>
+  </div>
+  <div class="card" style="margin-top:8px">
+    <p style="font-size:13px;color:var(--grey-02);line-height:1.9">📌 <strong>理論上限說明</strong>：9/10+ 需要 hard lock，但 hard lock 會阻礙緊急修復（P0/P1）和 Tiny 任務。<strong>7.5/10 是在「有效強制」與「正常工作不受干擾」之間的最佳平衡點</strong>。v1 baseline 為 3/10（gate 基本失效）。</p>
+  </div>
+</section>
+
+<footer>workflow-enforcement-2026-03-15 · Klay + Ray 聯合審查 · Rain AI Team · 2026-03-15</footer>
+<script>
+const pb=document.getElementById('pb');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop||document.body.scrollTop)/((h.scrollHeight||document.body.scrollHeight)-h.clientHeight)*100;
+  pb.style.width=Math.min(pct,100)+'%';
+});
+</script>
+</body>
+</html>

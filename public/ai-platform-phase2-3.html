@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent 協作平台 — Phase 2+3 系統架構 × Ray 審查報告</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --cream-dark: #eeece6;
+      --cream-border: #dedad2;
+      --orange: #e8855a;
+      --orange-light: #f2a07c;
+      --orange-pale: #fdf0ea;
+      --brown: #6b4c3b;
+      --text: #2c2420;
+      --text-muted: #7a6e69;
+      --text-light: #a89e99;
+      --white: #ffffff;
+      --green: #4a9e6a;
+      --green-pale: #eef7f1;
+      --green-dark: #2d7a4a;
+      --blue: #5a7fb0;
+      --blue-pale: #eef3fa;
+      --yellow-pale: #fdf8ea;
+      --yellow: #c49a2a;
+      --red: #c0392b;
+      --red-pale: #fdecea;
+      --red-dark: #962b20;
+      --purple: #7b5ea7;
+      --purple-pale: #f3eff9;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ─── Sticky Header ─── */
+    .page-header {
+      background: var(--white);
+      border-bottom: 2px solid var(--cream-border);
+      padding: 20px 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .page-header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .page-header-left h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .page-header-left p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff8f0;
+      border: 2px solid var(--orange);
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--orange);
+      white-space: nowrap;
+    }
+    .verdict-badge .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--orange);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ─── Nav ─── */
+    .section-nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--cream-border);
+      padding: 0 40px;
+      position: sticky;
+      top: 72px;
+      z-index: 99;
+      overflow-x: auto;
+    }
+    .section-nav-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+    }
+    .section-nav a {
+      display: inline-block;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .section-nav a:hover {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+
+    /* ─── Layout ─── */
+    .page-body {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 40px 80px;
+    }
+
+    /* ─── Section Headers ─── */
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .tag {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--orange-pale);
+      color: var(--orange);
+      border-radius: 4px;
+      padding: 3px 8px;
+    }
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--cream-border);
+      margin: 48px 0;
+    }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-icon.orange { background: var(--orange-pale); }
+    .card-icon.blue { background: var(--blue-pale); }
+    .card-icon.green { background: var(--green-pale); }
+    .card-icon.red { background: var(--red-pale); }
+    .card-icon.purple { background: var(--purple-pale); }
+    .card-icon.yellow { background: var(--yellow-pale); }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Grid ─── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ─── Tech Stack Pills ─── */
+    .tech-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tech-pill {
+      background: var(--cream-dark);
+      border: 1px solid var(--cream-border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .tech-pill.primary {
+      background: var(--orange-pale);
+      border-color: var(--orange-light);
+      color: var(--orange);
+    }
+    .tech-pill.blue {
+      background: var(--blue-pale);
+      border-color: #b3c8e8;
+      color: var(--blue);
+    }
+    .tech-pill.green {
+      background: var(--green-pale);
+      border-color: #a3d0b5;
+      color: var(--green-dark);
+    }
+
+    /* ─── State Machine ─── */
+    .state-flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px;
+      background: var(--cream);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .state-node {
+      background: var(--white);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      color: var(--text-muted);
+    }
+    .state-node.start { border-color: var(--orange); color: var(--orange); background: var(--orange-pale); }
+    .state-node.success { border-color: var(--green); color: var(--green-dark); background: var(--green-pale); }
+    .state-node.failure { border-color: var(--red); color: var(--red-dark); background: var(--red-pale); }
+    .state-node.warn { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-pale); }
+    .state-arrow { color: var(--text-light); font-size: 16px; }
+
+    /* ─── Tables ─── */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--cream-border); }
+    table { width: 100%; border-collapse: collapse; min-width: 540px; }
+    thead { background: var(--cream-dark); }
+    th {
+      padding: 11px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--cream-border);
+    }
+    td {
+      padding: 11px 14px;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid var(--cream-border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #faf9f6; }
+
+    /* ─── Severity rows ─── */
+    tr.blocking td { background: #fef5f5; }
+    tr.blocking td:first-child { border-left: 3px solid var(--red); font-weight: 600; color: var(--red-dark); }
+    tr.warning td { background: var(--yellow-pale); }
+    tr.warning td:first-child { border-left: 3px solid var(--yellow); }
+    tr.ok td { background: var(--green-pale); }
+    tr.ok td:first-child { border-left: 3px solid var(--green); }
+
+    /* ─── Status Badges ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .badge.red { background: var(--red-pale); color: var(--red-dark); border: 1px solid #f5c2bc; }
+    .badge.green { background: var(--green-pale); color: var(--green-dark); border: 1px solid #a3d0b5; }
+    .badge.orange { background: var(--orange-pale); color: var(--orange); border: 1px solid #f5c4a7; }
+    .badge.blue { background: var(--blue-pale); color: var(--blue); border: 1px solid #b3c8e8; }
+    .badge.purple { background: var(--purple-pale); color: var(--purple); border: 1px solid #c9b8e6; }
+    .badge.gray { background: var(--cream-dark); color: var(--text-muted); border: 1px solid var(--cream-border); }
+
+    /* ─── Agent Cards ─── */
+    .agent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .agent-card {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 10px;
+      padding: 18px;
+      transition: box-shadow 0.2s;
+    }
+    .agent-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .agent-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .agent-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--orange-pale);
+      color: var(--orange);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .agent-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .agent-role {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .agent-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ─── Blocking Risk Alert Box ─── */
+    .blocking-alert {
+      background: var(--red-pale);
+      border: 1.5px solid #f5c2bc;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .blocking-alert-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .blocking-alert-icon {
+      font-size: 22px;
+    }
+    .blocking-alert-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--red-dark);
+    }
+    .blocking-alert-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--red);
+      color: white;
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .blocking-item {
+      display: flex;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5c2bc;
+    }
+    .blocking-item:last-child { border-bottom: none; }
+    .blocking-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .blocking-content h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--red-dark);
+      margin-bottom: 4px;
+    }
+    .blocking-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .blocking-content .fix {
+      font-size: 12px;
+      color: var(--green-dark);
+      background: var(--green-pale);
+      border-radius: 4px;
+      padding: 4px 8px;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    /* ─── Flow Diagram ─── */
+    .flow-diagram {
+      background: var(--cream);
+      border: 1px solid var(--cream-border);
+      border-radius: 10px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text-muted);
+      overflow-x: auto;
+    }
+    .flow-diagram .flow-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+    .flow-highlight { color: var(--orange); font-weight: bold; }
+    .flow-green { color: var(--green-dark); }
+    .flow-blue { color: var(--blue); }
+    .flow-red { color: var(--red); }
+
+    /* ─── Walking Skeleton Steps ─── */
+    .skeleton-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .skeleton-step {
+      display: flex;
+      gap: 16px;
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .skeleton-step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--orange-pale);
+      color: var(--orange);
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .skeleton-step-body h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .skeleton-step-body p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .skeleton-step-owner {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--blue-pale);
+      color: var(--blue);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+
+    /* ─── Summary Phase Table ─── */
+    .phase-table-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .phase-label {
+      width: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .phase-owner {
+      width: 80px;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .phase-status { flex-shrink: 0; }
+    .phase-output {
+      font-size: 12px;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    /* ─── DB Table Pill ─── */
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .db-card {
+      background: var(--cream);
+      border: 1px solid var(--cream-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+    }
+    .db-card-name {
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 6px;
+    }
+    .db-card-fields { color: var(--text-muted); line-height: 1.8; }
+    .db-card-fields span { color: var(--blue); font-weight: 500; }
+
+    /* ─── Auth Box ─── */
+    .auth-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .auth-card {
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .auth-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .auth-detail {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.8;
+    }
+    .auth-detail code {
+      background: var(--cream-border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--brown);
+    }
+
+    /* ─── Footer ─── */
+    .page-footer {
+      border-top: 1px solid var(--cream-border);
+      margin-top: 64px;
+      padding: 24px 40px;
+      text-align: center;
+    }
+    .page-footer p {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ─── Demo Box ─── */
+    .demo-box {
+      background: var(--cream-dark);
+      border: 2px dashed var(--cream-border);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .demo-box-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+    .demo-flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .demo-step {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .demo-step.success {
+      background: var(--green-pale);
+      border-color: #a3d0b5;
+      color: var(--green-dark);
+    }
+    .demo-arrow { color: var(--text-light); font-weight: 300; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .page-header { padding: 16px 20px; }
+      .section-nav { padding: 0 20px; }
+      .page-body { padding: 24px 20px 60px; }
+      .grid-2, .grid-3, .grid-4, .agent-grid, .auth-split, .db-grid { grid-template-columns: 1fr; }
+      .page-header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+
+    .verdict-banner {
+      background: #fffbf0;
+      border: 2px solid var(--orange);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .verdict-banner-icon { font-size: 32px; }
+    .verdict-banner-text h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .verdict-banner-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .info-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .info-row-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 120px;
+    }
+    .info-row-value { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<!-- ─── Sticky Header ─── -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div class="page-header-left">
+      <h1>AI Agent 協作平台 — Phase 2+3 架構審查</h1>
+      <p>Scout 雙線架構設計 × Ray 審查結果 · 2026-03-15</p>
+    </div>
+    <div class="verdict-badge">
+      <span class="dot"></span>
+      ⚠️ CONDITIONAL PASS — 4 BLOCKING 待修
+    </div>
+  </div>
+</header>
+
+<!-- ─── Section Nav ─── -->
+<nav class="section-nav">
+  <div class="section-nav-inner">
+    <a href="#overview">總覽</a>
+    <a href="#phase2-platform">Phase 2-A 平台架構</a>
+    <a href="#phase2-template">Phase 2-B 模板架構</a>
+    <a href="#phase3-blocking">Phase 3 BLOCKING 問題</a>
+    <a href="#phase3-risks">其他風險</a>
+    <a href="#skeleton">Walking Skeleton</a>
+    <a href="#summary">規劃摘要</a>
+  </div>
+</nav>
+
+<main class="page-body">
+
+  <!-- ─── VERDICT BANNER ─── -->
+  <div class="verdict-banner" style="margin-top: 32px;">
+    <div class="verdict-banner-icon">⚠️</div>
+    <div class="verdict-banner-text">
+      <h2>Ray 審查結論：CONDITIONAL PASS</h2>
+      <p>架構設計整體合理，雙重 Auth 設計正確，Agent 抽象層清晰。但發現 <strong>4 個 BLOCKING 問題</strong>必須在實作前修復，另有 <strong>11 項非 BLOCKING 風險</strong>需在 Quill review 前處理。建議採用 Walking Skeleton 優先驗證 api_call 任務完整閉環，不需要 browser automation。</p>
+    </div>
+  </div>
+
+  <!-- ─── OVERVIEW ─── -->
+  <section id="overview">
+    <div class="section-title">
+      總覽
+      <span class="tag">Overview</span>
+    </div>
+    <div class="section-subtitle">各 Phase 負責人、狀態與關鍵產出</div>
+
+    <div class="phase-table-row">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-owner">Klay</span>
+      <span class="phase-status"><span class="badge green">✅ 完成</span></span>
+      <span class="phase-output">目標 / 約束 / Success Metrics / Scope / P0-P3 優先級</span>
+    </div>
+    <div class="phase-table-row">
+      <span class="phase-label">Phase 2-A</span>
+      <span class="phase-owner">Scout-1</span>
+      <span class="phase-status"><span class="badge green">✅ 完成</span></span>
+      <span class="phase-output">22+ API endpoints · 8 DB tables · 任務狀態機 · 雙重 Auth · 實作順序</span>
+    </div>
+    <div class="phase-table-row">
+      <span class="phase-label">Phase 2-B</span>
+      <span class="phase-owner">Scout-2</span>
+      <span class="phase-status"><span class="badge green">✅ 完成</span></span>
+      <span class="phase-output">6 Agents · BrowserAdapter 抽象層 · LLM Connector · Worker mode · Config system</span>
+    </div>
+    <div class="phase-table-row">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-owner">Ray</span>
+      <span class="phase-status"><span class="badge orange">⚠️ 條件通過</span></span>
+      <span class="phase-output">4 BLOCKING + 11 非 BLOCKING · Walking Skeleton 建議 · Skeptic Check</span>
+    </div>
+    <div class="phase-table-row">
+      <span class="phase-label">Sprint 1</span>
+      <span class="phase-owner">Max/Rex/John</span>
+      <span class="phase-status"><span class="badge blue">⏳ 待開始</span></span>
+      <span class="phase-output">Walking Skeleton（5 元件）— 等待 Rain 確認後啟動</span>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── PHASE 2-A: 平台架構 ─── -->
+  <section id="phase2-platform">
+    <div class="section-title">
+      Phase 2-A — 平台核心架構
+      <span class="tag">Scout-1</span>
+    </div>
+    <div class="section-subtitle">AI Agent 協作平台的後端骨架、資料庫設計與 Auth 機制</div>
+
+    <!-- Tech Stack -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon orange">⚙️</div>
+        <div>
+          <div class="card-title">技術棧</div>
+          <div class="card-subtitle">Frontend · Backend · Infrastructure</div>
+        </div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">Frontend</div>
+        <div class="tech-list">
+          <span class="tech-pill primary">Next.js 15</span>
+          <span class="tech-pill primary">shadcn/ui</span>
+          <span class="tech-pill primary">TanStack Query</span>
+          <span class="tech-pill primary">Zustand</span>
+        </div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">Backend</div>
+        <div class="tech-list">
+          <span class="tech-pill blue">FastAPI</span>
+          <span class="tech-pill blue">SQLModel</span>
+          <span class="tech-pill blue">Alembic</span>
+          <span class="tech-pill blue">asyncpg</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">Infrastructure</div>
+        <div class="tech-list">
+          <span class="tech-pill green">PostgreSQL 16</span>
+          <span class="tech-pill green">Redis 7</span>
+          <span class="tech-pill green">Nginx</span>
+          <span class="tech-pill green">Docker Compose</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Modules -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon blue">🖥️</div>
+          <div>
+            <div class="card-title">Web Console（6 頁）</div>
+            <div class="card-subtitle">使用者操作介面</div>
+          </div>
+        </div>
+        <div class="tech-list" style="gap: 6px;">
+          <span class="tech-pill">dashboard</span>
+          <span class="tech-pill">tasks</span>
+          <span class="tech-pill">providers</span>
+          <span class="tech-pill">templates</span>
+          <span class="tech-pill">logs</span>
+          <span class="tech-pill">settings</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon orange">🔌</div>
+          <div>
+            <div class="card-title">API Server（22+ endpoints）</div>
+            <div class="card-subtitle">後端 REST API 層</div>
+          </div>
+        </div>
+        <div class="tech-list" style="gap: 6px;">
+          <span class="tech-pill primary">Task APIs</span>
+          <span class="tech-pill primary">Provider APIs</span>
+          <span class="tech-pill primary">Worker APIs</span>
+          <span class="tech-pill primary">Template APIs</span>
+          <span class="tech-pill primary">Auth APIs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task State Machine -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon purple">🔄</div>
+        <div>
+          <div class="card-title">Task Engine — 任務狀態機</div>
+          <div class="card-subtitle">完整生命週期（含 timeout watchdog — BLOCKING-1 修復後）</div>
+        </div>
+      </div>
+      <div class="state-flow">
+        <span class="state-node start">pending</span>
+        <span class="state-arrow">→</span>
+        <span class="state-node">matched</span>
+        <span class="state-arrow">→</span>
+        <span class="state-node">assigned</span>
+        <span class="state-arrow">→</span>
+        <span class="state-node">running</span>
+        <span class="state-arrow">→</span>
+        <span class="state-node success">completed</span>
+        <span style="font-size: 13px; color: var(--text-light); margin: 0 4px;">/</span>
+        <span class="state-node failure">failed</span>
+        <span style="font-size: 13px; color: var(--text-light); margin: 0 4px;">/</span>
+        <span class="state-node warn">cancelled</span>
+        <span style="font-size: 13px; color: var(--text-light); margin: 0 4px;">/</span>
+        <span class="state-node failure">timeout</span>
+      </div>
+      <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; align-items: center;">
+        <span style="background: var(--red-pale); color: var(--red-dark); border-radius: 4px; padding: 2px 8px; font-weight: 600;">⚠ BLOCKING-1</span>
+        <span>running → timeout 的 watchdog job 目前缺失，必須在實作前加入 APScheduler job</span>
+      </div>
+    </div>
+
+    <!-- Provider Registry + Auth -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon green">📡</div>
+          <div>
+            <div class="card-title">Provider Registry</div>
+            <div class="card-subtitle">Worker 節點管理</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.9;">
+          <div><strong style="color: var(--text);">Heartbeat TTL：</strong>90 秒</div>
+          <div><strong style="color: var(--text);">巡檢頻率：</strong>APScheduler 30s</div>
+          <div><strong style="color: var(--text);">狀態：</strong>online / offline / busy / error</div>
+          <div><strong style="color: var(--text);">技能匹配：</strong>provider_skills 多對多</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon orange">📦</div>
+          <div>
+            <div class="card-title">Template Registry + Package Builder</div>
+            <div class="card-subtitle">SDK 打包與分發</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.9;">
+          <div><strong style="color: var(--text);">打包：</strong>非同步 zip（Worker SDK）</div>
+          <div><strong style="color: var(--text);">版本管理：</strong>template_versions 表</div>
+          <div><strong style="color: var(--text);">狀態追蹤：</strong>pending / building / ready / error</div>
+          <div style="margin-top: 8px;">
+            <span style="background: var(--red-pale); color: var(--red-dark); border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600;">⚠ BLOCKING-3</span>
+            <span style="font-size: 12px; margin-left: 6px;">重啟後 building 狀態需強制重置為 failed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dual Auth -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon red">🔐</div>
+        <div>
+          <div class="card-title">雙重 Auth 機制</div>
+          <div class="card-subtitle">使用者 JWT + Worker Token — Ray 評定設計正確，bcrypt 快取為必要條件</div>
+        </div>
+      </div>
+      <div class="auth-split">
+        <div class="auth-card">
+          <div class="auth-card-title">使用者認證（Bearer JWT）</div>
+          <div class="auth-detail">
+            Header: <code>Authorization: Bearer &lt;token&gt;</code><br/>
+            Expiry: <code>24h</code><br/>
+            Storage: DB users 表<br/>
+            適用: Web Console + 所有使用者 API
+          </div>
+        </div>
+        <div class="auth-card">
+          <div class="auth-card-title">Provider Worker Token（長效 Opaque）</div>
+          <div class="auth-detail">
+            Header: <code>X-Provider-Token: &lt;token&gt;</code><br/>
+            Storage: <code>bcrypt hash</code> 儲於 DB<br/>
+            Cache: <code>Redis 5min</code>（避免每次 bcrypt verify）<br/>
+            適用: Worker SDK poll / heartbeat / result 提交
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB Tables -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">🗄️</div>
+        <div>
+          <div class="card-title">資料庫設計 — 8 張資料表</div>
+          <div class="card-subtitle">PostgreSQL 16 · SQLModel · Alembic 遷移</div>
+        </div>
+      </div>
+      <div class="db-grid">
+        <div class="db-card">
+          <div class="db-card-name">users</div>
+          <div class="db-card-fields">
+            <span>id</span> UUID PK<br/>
+            email VARCHAR<br/>
+            password_hash<br/>
+            created_at
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">providers</div>
+          <div class="db-card-fields">
+            <span>id</span> UUID PK<br/>
+            name, status<br/>
+            token_hash<br/>
+            last_heartbeat
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">provider_skills</div>
+          <div class="db-card-fields">
+            <span>provider_id</span> FK<br/>
+            skill_name<br/>
+            skill_version<br/>
+            <em>多對多關係</em>
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">tasks</div>
+          <div class="db-card-fields">
+            <span>id</span> UUID PK<br/>
+            type, status<br/>
+            payload JSON<br/>
+            timeout_seconds
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">task_results</div>
+          <div class="db-card-fields">
+            <span>task_id</span> FK<br/>
+            result JSON<br/>
+            artifacts<br/>
+            completed_at
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">task_logs</div>
+          <div class="db-card-fields">
+            <span>task_id</span> FK<br/>
+            level, message<br/>
+            step_index<br/>
+            timestamp
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">templates</div>
+          <div class="db-card-fields">
+            <span>id</span> UUID PK<br/>
+            name, description<br/>
+            build_status<br/>
+            created_by FK
+          </div>
+        </div>
+        <div class="db-card">
+          <div class="db-card-name">template_versions</div>
+          <div class="db-card-fields">
+            <span>template_id</span> FK<br/>
+            version, zip_path<br/>
+            is_latest<br/>
+            built_at
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── PHASE 2-B: Web Operator Team 模板 ─── -->
+  <section id="phase2-template">
+    <div class="section-title">
+      Phase 2-B — Web Operator Team 模板架構
+      <span class="tag">Scout-2</span>
+    </div>
+    <div class="section-subtitle">6 個 Agent 角色 · BrowserAdapter 抽象層 · LLM Connector · Worker mode</div>
+
+    <!-- 6 Agents -->
+    <div class="agent-grid" style="margin-bottom: 20px;">
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">1</div>
+          <div>
+            <div class="agent-name">RouterAgent</div>
+            <div class="agent-role">任務分類器</div>
+          </div>
+        </div>
+        <div class="agent-desc">分類任務類型：<code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">web_operation</code> / <code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">web_scraping</code> / <code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">api_call</code> / <code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">hybrid_workflow</code></div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">2</div>
+          <div>
+            <div class="agent-name">PlannerAgent</div>
+            <div class="agent-role">任務分解器（LLM 驅動）</div>
+          </div>
+        </div>
+        <div class="agent-desc">將任務分解為有序執行步驟。輸出需強制符合 sequential 結構（非 BLOCKING 風險項目）。</div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">3</div>
+          <div>
+            <div class="agent-name">BrowserOperatorAgent</div>
+            <div class="agent-role">瀏覽器操作執行器</div>
+          </div>
+        </div>
+        <div class="agent-desc">透過 BrowserAdapter 抽象層執行：navigate / click / type / extract / screenshot。不直接依賴任何特定 browser engine。</div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">4</div>
+          <div>
+            <div class="agent-name">ScraperAgent</div>
+            <div class="agent-role">資料抓取器</div>
+          </div>
+        </div>
+        <div class="agent-desc">靜態：<code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">httpx + BeautifulSoup</code><br/>動態：<code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">Playwright</code><br/>支援去重、欄位映射。</div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">5</div>
+          <div>
+            <div class="agent-name">ToolAgent</div>
+            <div class="agent-role">自訂 API 呼叫器</div>
+          </div>
+        </div>
+        <div class="agent-desc">讀取 <code style="font-size: 11px; background: var(--cream); padding: 1px 4px; border-radius: 3px;">tools.json</code> 設定，執行使用者定義的 REST API 呼叫。Pydantic schema 驗證（非 BLOCKING 風險項目）。</div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-num">6</div>
+          <div>
+            <div class="agent-name">ReporterAgent</div>
+            <div class="agent-role">結果彙整器</div>
+          </div>
+        </div>
+        <div class="agent-desc">彙整所有 Agent 產出，輸出 JSON / CSV / Markdown 格式 artifacts。</div>
+      </div>
+    </div>
+
+    <!-- Execution Flow -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon purple">🔁</div>
+        <div>
+          <div class="card-title">執行流程</div>
+          <div class="card-subtitle">Input → RouterAgent → ... → artifacts output</div>
+        </div>
+      </div>
+      <div class="flow-diagram">
+        <div class="flow-title">Template Execution Pipeline</div>
+<span class="flow-highlight">Input</span>
+  └─▶ <span class="flow-blue">RouterAgent</span>         — 判斷任務類型（api_call / web_op / scraping / hybrid）
+         └─▶ <span class="flow-blue">PlannerAgent</span>      — LLM 分解 → 有序步驟清單（強制 sequential 結構）
+                └─▶ <span class="flow-green">TaskRunner</span>        — 逐步執行以下 Worker Agent：
+                       ├─▶ <span class="flow-blue">BrowserOperatorAgent</span>  — 瀏覽器動作（透過 BrowserAdapter）
+                       ├─▶ <span class="flow-blue">ScraperAgent</span>         — 靜態 / Playwright 爬取
+                       └─▶ <span class="flow-blue">ToolAgent</span>            — tools.json REST API 呼叫
+                └─▶ <span class="flow-blue">ReporterAgent</span>     — 彙整 → JSON/CSV/Markdown
+
+<span class="flow-highlight">Worker mode 額外流程：</span>
+  啟動 → 向平台 register → 輪詢任務（poll，受 rate limit 保護）
+        → 接單 → 執行上述 Pipeline → 回傳結果
+      </div>
+    </div>
+
+    <!-- Abstraction Layers -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon blue">🧩</div>
+          <div>
+            <div class="card-title">BrowserAdapter 抽象層</div>
+            <div class="card-subtitle">核心設計決策 — 不鎖死 Browser engine</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.9; color: var(--text-muted);">
+          <div><strong style="color: var(--text);">BrowserAdapterBase（ABC）</strong></div>
+          <div style="padding-left: 12px; margin-bottom: 10px; font-size: 12px;">navigate / click / type / wait<br/>extract_text / extract_html / screenshot / run_script</div>
+          <div><strong style="color: var(--text);">PlaywrightAdapter</strong></div>
+          <div style="padding-left: 12px; margin-bottom: 10px; font-size: 12px;">完整實作，可立即使用</div>
+          <div><strong style="color: var(--text);">OpenClawLikeAdapter</strong></div>
+          <div style="padding-left: 12px; font-size: 12px;">Stub 介面，<strong>預留 OpenClaw 整合點</strong><br/>未來可接 rain 的 OpenClaw 系統</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon orange">🤖</div>
+          <div>
+            <div class="card-title">LLM Connector 抽象層</div>
+            <div class="card-subtitle">不鎖死任何 LLM vendor</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.9; color: var(--text-muted);">
+          <div><strong style="color: var(--text);">LLMConnectorBase</strong></div>
+          <div style="padding-left: 12px; margin-bottom: 10px; font-size: 12px;">抽象介面，統一 complete() 方法</div>
+          <div><strong style="color: var(--text);">三個具體實作</strong></div>
+          <div style="padding-left: 12px; margin-bottom: 10px;">
+            <span class="tech-pill" style="font-size: 11px;">OpenAI</span>
+            <span class="tech-pill" style="font-size: 11px; margin-left: 4px;">Anthropic</span>
+            <span class="tech-pill" style="font-size: 11px; margin-left: 4px;">Gemini</span>
+          </div>
+          <div><strong style="color: var(--text);">選擇方式</strong></div>
+          <div style="padding-left: 12px; font-size: 12px;">透過 <code style="background: var(--cream); padding: 1px 4px; border-radius: 3px;">team.config.json</code> 設定，無需改程式碼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config System -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon yellow">📋</div>
+        <div>
+          <div class="card-title">Config System</div>
+          <div class="card-subtitle">三層設定檔 + 互動式安裝精靈</div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div style="background: var(--cream); border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; font-family: monospace;">team.config.json</div>
+          <div style="font-size: 12px; color: var(--text-muted);">LLM provider 選擇<br/>Browser mode 設定<br/>Worker mode on/off<br/>Platform API URL</div>
+        </div>
+        <div style="background: var(--cream); border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; font-family: monospace;">tools.json</div>
+          <div style="font-size: 12px; color: var(--text-muted);">使用者自訂 REST API 定義<br/>Pydantic schema 驗證<br/>（人性化錯誤訊息為非 BLOCKING 項目）</div>
+        </div>
+        <div style="background: var(--cream); border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; font-family: monospace;">.env</div>
+          <div style="font-size: 12px; color: var(--text-muted);">API keys（不 commit）<br/>setup.sh 互動精靈生成<br/>含 bash 版本 guard</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── PHASE 3: BLOCKING ISSUES ─── -->
+  <section id="phase3-blocking">
+    <div class="section-title">
+      Phase 3 — Ray 審查：BLOCKING 問題
+      <span class="tag">必須修復才能開工</span>
+    </div>
+    <div class="section-subtitle">以下 4 個問題必須在實作前解決，否則架構存在根本缺陷</div>
+
+    <div class="blocking-alert">
+      <div class="blocking-alert-header">
+        <div class="blocking-alert-icon">🚨</div>
+        <div class="blocking-alert-title">4 個 BLOCKING 問題</div>
+        <div class="blocking-alert-badge">實作前必須解決</div>
+      </div>
+
+      <div class="blocking-item">
+        <div class="blocking-num">1</div>
+        <div class="blocking-content">
+          <h4>Running task timeout watchdog 缺失</h4>
+          <p>任務狀態機中，running 狀態缺乏超時保護。一旦 Worker 崩潰或斷線，任務將永遠卡在 running 狀態，無法重試或標記失敗。</p>
+          <div class="fix">修復方案：tasks 表加 timeout_seconds 欄位 + APScheduler job（每分鐘掃描 running 中超時任務 → 標記 timeout）</div>
+        </div>
+      </div>
+
+      <div class="blocking-item">
+        <div class="blocking-num">2</div>
+        <div class="blocking-content">
+          <h4>/api/worker/poll 無 Rate Limiting</h4>
+          <p>Worker SDK 輪詢端點沒有請求頻率限制。若有 SDK 設定錯誤（輪詢間隔過短或無限迴圈），將直接打爆 DB 連線池，影響整個平台。</p>
+          <div class="fix">修復方案：Redis rate limit，每個 provider_id 最多 12 req/min，超過返回 HTTP 429</div>
+        </div>
+      </div>
+
+      <div class="blocking-item">
+        <div class="blocking-num">3</div>
+        <div class="blocking-content">
+          <h4>Package Builder 重啟後 build_status 卡在 building</h4>
+          <p>平台重啟後，若有任務在 building 狀態，系統會認為「打包進行中」，使用者看到永久 building 的假象，且該模板無法重新觸發打包。</p>
+          <div class="fix">修復方案：平台啟動時執行 SQL UPDATE templates SET build_status='failed' WHERE build_status='building'</div>
+        </div>
+      </div>
+
+      <div class="blocking-item">
+        <div class="blocking-num">4</div>
+        <div class="blocking-content">
+          <h4>Matching 演算法不排除 busy providers</h4>
+          <p>當前 matching 邏輯只依技能匹配 Provider，沒有檢查 Provider 是否已有進行中的任務。一個 Provider 可能同時接到多個任務，超出其處理能力。</p>
+          <div class="fix">修復方案：matching SQL 的 WHERE 條件加上：NOT EXISTS (SELECT 1 FROM tasks WHERE provider_id = p.id AND status IN ('assigned','running'))</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── PHASE 3: OTHER RISKS ─── -->
+  <section id="phase3-risks">
+    <div class="section-title">
+      Phase 3 — Ray 審查：其他風險
+      <span class="tag">Quill Review 前完成</span>
+    </div>
+    <div class="section-subtitle">11 項非 BLOCKING 風險 — 需在 Quill code review 之前處理</div>
+
+    <div class="table-wrap" style="margin-bottom: 24px;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>風險項目</th>
+            <th>影響範圍</th>
+            <th>建議處理方式</th>
+            <th>優先度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>tools.json Pydantic 驗證 + 人性化錯誤</strong></td>
+            <td>ToolAgent / 使用者體驗</td>
+            <td>加入 ValidationError handler，輸出欄位名稱 + 期望格式，避免 cryptic traceback</td>
+            <td><span class="badge orange">P1</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>setup.sh bash 版本 guard</strong></td>
+            <td>安裝流程 / macOS 相容性</td>
+            <td>開頭加 <code style="font-size: 11px;">bash --version</code> 檢查，macOS 預設 zsh 需提示切換</td>
+            <td><span class="badge orange">P1</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Worker token 驗證失敗要明確 log</strong></td>
+            <td>Auth / 除錯能力</td>
+            <td>Token verify 失敗時 log provider_id + IP + timestamp，不可靜默失敗</td>
+            <td><span class="badge orange">P1</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Provider 重新 register upsert 行為未定義</strong></td>
+            <td>Provider API / 資料一致性</td>
+            <td>定義 upsert 語意：已存在 provider_id → 更新 skills + 重設 token，還是拒絕？</td>
+            <td><span class="badge orange">P1</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>Task 結果提交冪等性</strong></td>
+            <td>Worker API / 資料完整性</td>
+            <td>網路重試可能導致重複提交結果。加 idempotency key 或 status check</td>
+            <td><span class="badge orange">P1</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong>PlannerAgent 輸出 schema 強制 sequential</strong></td>
+            <td>Template / LLM 輸出品質</td>
+            <td>加 Pydantic model 驗證 PlannerAgent 輸出，確保步驟清單結構正確</td>
+            <td><span class="badge blue">P2</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><strong>Payload 資料安全警告缺失</strong></td>
+            <td>Web Console / 使用者認知</td>
+            <td>Task payload 輸入框加 tooltip 警告：「請勿包含密碼或私人 token」</td>
+            <td><span class="badge blue">P2</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><strong>BrowserSessionManager 生命週期邊界</strong></td>
+            <td>Browser / 資源管理</td>
+            <td>確保任務完成/失敗時 session 一定被關閉，防止 browser 殭屍進程</td>
+            <td><span class="badge blue">P2</span></td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><strong>API 文件（OpenAPI/Swagger）</strong></td>
+            <td>開發者體驗</td>
+            <td>FastAPI 自動生成 /docs，確認所有 endpoint 有 description + example</td>
+            <td><span class="badge blue">P2</span></td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><strong>健康檢查端點 /health</strong></td>
+            <td>監控 / 運維</td>
+            <td>加入 /health endpoint，回傳 DB 連線狀態 + Redis 狀態 + version</td>
+            <td><span class="badge blue">P2</span></td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><strong>ScraperAgent 失敗率告警</strong></td>
+            <td>爬蟲 / 可靠性</td>
+            <td>24h 爬取失敗率 > 20% → Discord 通知，防止無聲失敗</td>
+            <td><span class="badge gray">P3</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Skeptic Check -->
+    <div class="card" style="border-color: var(--orange-light); background: var(--orange-pale);">
+      <div class="card-header">
+        <div class="card-icon orange">🧐</div>
+        <div>
+          <div class="card-title" style="color: var(--brown);">Ray Skeptic Check</div>
+          <div class="card-subtitle">魔鬼代言人視角 — 必要輸出，不可省略</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: white; border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--orange); margin-bottom: 6px;">❓ 模板可以不依賴平台嗎？</div>
+          <div style="font-size: 13px; color: var(--text-muted);"><strong style="color: var(--text);">Ray 意見：</strong>模板本身可以完全獨立運作，不依賴平台存在。<strong>建議：先建模板驗證使用者價值，再加平台層</strong>。這樣萬一平台設計調整，模板仍可交付。</div>
+        </div>
+        <div style="background: white; border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--orange); margin-bottom: 6px;">❓ 雙重 Auth 是否過於複雜？</div>
+          <div style="font-size: 13px; color: var(--text-muted);"><strong style="color: var(--text);">Ray 意見：</strong>設計正確。JWT vs opaque token 的分離在使用場景上是必要的。bcrypt + Redis 快取是<strong>必要條件</strong>，不是 nice-to-have，缺少 Redis 快取會讓 /health 和 poll 端點變慢。</div>
+        </div>
+        <div style="background: white; border-radius: 8px; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--orange); margin-bottom: 6px;">❓ Matching 演算法的 busy-provider 排除真的是 P0？</div>
+          <div style="font-size: 13px; color: var(--text-muted);"><strong style="color: var(--text);">Ray 意見：</strong>是的，這是 P0，不是 P2。不是「效能問題」，而是「正確性問題」。Provider 同時執行多個任務不僅超載，也會讓任務結果混淆。<strong>必須列為 BLOCKING 問題修復。</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── WALKING SKELETON ─── -->
+  <section id="skeleton">
+    <div class="section-title">
+      Walking Skeleton — Sprint 1 建議
+      <span class="tag">Ray 推薦</span>
+    </div>
+    <div class="section-subtitle">最小可驗證骨架，5 個元件，驗證所有 P0 Success Metrics</div>
+
+    <!-- Demo Goal -->
+    <div class="demo-box" style="margin-bottom: 24px;">
+      <div class="demo-box-title">Demo 成功標準</div>
+      <div class="demo-flow">
+        <div class="demo-step">使用者登入 Console</div>
+        <span class="demo-arrow">→</span>
+        <div class="demo-step">建立 api_call 任務</div>
+        <span class="demo-arrow">→</span>
+        <div class="demo-step">Template Worker 接單</div>
+        <span class="demo-arrow">→</span>
+        <div class="demo-step">呼叫 REST API</div>
+        <span class="demo-arrow">→</span>
+        <div class="demo-step">回傳結果</div>
+        <span class="demo-arrow">→</span>
+        <div class="demo-step success">Console 顯示 completed ✓</div>
+      </div>
+      <div style="margin-top: 14px; font-size: 13px; color: var(--text-muted);">
+        ✅ 此 Demo 驗證所有 P0 Success Metrics，<strong>不需要 browser automation 或爬蟲</strong>。Web Console 可先做單頁 proof，非 6 頁全部完成。
+      </div>
+    </div>
+
+    <div class="skeleton-steps">
+      <div class="skeleton-step">
+        <div class="skeleton-step-num">1</div>
+        <div class="skeleton-step-body">
+          <h4>Platform Core</h4>
+          <p>users / providers / tasks 三張表 + Auth（JWT + Worker Token）+ Provider register + Task create + /health 端點</p>
+          <span class="skeleton-step-owner">👤 Max</span>
+        </div>
+      </div>
+
+      <div class="skeleton-step">
+        <div class="skeleton-step-num">2</div>
+        <div class="skeleton-step-body">
+          <h4>Worker API</h4>
+          <p>poll（含 Redis rate limit）/ accept / result / error / heartbeat — 含 timeout watchdog APScheduler job（BLOCKING-1 修復）</p>
+          <span class="skeleton-step-owner">👤 Rex</span>
+        </div>
+      </div>
+
+      <div class="skeleton-step">
+        <div class="skeleton-step-num">3</div>
+        <div class="skeleton-step-body">
+          <h4>Task Matching Engine</h4>
+          <p>match endpoint + <strong>busy-provider exclusion</strong>（BLOCKING-4 修復）+ APScheduler jobs（heartbeat check + timeout scan）</p>
+          <span class="skeleton-step-owner">👤 Rex</span>
+        </div>
+      </div>
+
+      <div class="skeleton-step">
+        <div class="skeleton-step-num">4</div>
+        <div class="skeleton-step-body">
+          <h4>Minimal Template Worker（ToolAgent only）</h4>
+          <p>setup.sh + team.config + tools.json 驗證 + ToolAgent 實作 + worker mode（僅支援 api_call 任務類型）</p>
+          <span class="skeleton-step-owner">👤 John</span>
+        </div>
+      </div>
+
+      <div class="skeleton-step">
+        <div class="skeleton-step-num">5</div>
+        <div class="skeleton-step-body">
+          <h4>Console UI Proof（單頁）</h4>
+          <p>最小化 Web Console：建任務（api_call 類型）→ 看狀態輪詢 → 看結果。非 6 頁全部，只驗證核心流程。</p>
+          <span class="skeleton-step-owner">👤 John</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; border-color: #a3d0b5; background: var(--green-pale);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 28px;">✅</div>
+        <div>
+          <div style="font-size: 15px; font-weight: 600; color: var(--green-dark);">Walking Skeleton 完成後，這些 P0 指標即可驗證</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Provider 可 register → Task 可建立 → Matching 正確配對 → Worker 可接單執行 → 結果可回傳 → Console 可顯示完整生命週期</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- ─── SUMMARY ─── -->
+  <section id="summary">
+    <div class="section-title">
+      規劃全景摘要
+      <span class="tag">Summary</span>
+    </div>
+    <div class="section-subtitle">三個 Phase 完成狀態 + 下一步行動</div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>負責人</th>
+              <th>狀態</th>
+              <th>關鍵產出</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ok">
+              <td><strong>Phase 1 商業規劃</strong></td>
+              <td>Klay</td>
+              <td><span class="badge green">✅ 完成</span></td>
+              <td>目標 / 約束 / Success Metrics / Scope / P0-P3 優先級</td>
+            </tr>
+            <tr class="ok">
+              <td><strong>Phase 2-A 平台架構</strong></td>
+              <td>Scout-1</td>
+              <td><span class="badge green">✅ 完成</span></td>
+              <td>22+ API endpoints · 8 DB tables · 任務狀態機 · 雙重 Auth · 實作順序</td>
+            </tr>
+            <tr class="ok">
+              <td><strong>Phase 2-B 模板架構</strong></td>
+              <td>Scout-2</td>
+              <td><span class="badge green">✅ 完成</span></td>
+              <td>6 Agents · BrowserAdapter 抽象層 · LLM Connector · Worker mode · Config system</td>
+            </tr>
+            <tr class="warning">
+              <td><strong>Phase 3 風險審查</strong></td>
+              <td>Ray</td>
+              <td><span class="badge orange">⚠️ 條件通過</span></td>
+              <td>4 BLOCKING + 11 非 BLOCKING · Walking Skeleton 建議 · Skeptic Check 完成</td>
+            </tr>
+            <tr>
+              <td><strong>Sprint 1 實作</strong></td>
+              <td>Max / Rex / John</td>
+              <td><span class="badge blue">⏳ 待開始</span></td>
+              <td>Walking Skeleton（5 元件）— 等待 Rain 確認後啟動</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Action Items -->
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="card" style="border-color: var(--red); background: var(--red-pale);">
+        <div class="card-header">
+          <div class="card-icon red">🚨</div>
+          <div>
+            <div class="card-title" style="color: var(--red-dark);">Rain 確認前必須決定</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text); line-height: 1.9;">
+          <div>1. 確認 4 個 BLOCKING 問題修復方案</div>
+          <div>2. 確認 Walking Skeleton scope（5 元件）</div>
+          <div>3. 確認 Sprint 1 啟動（dispatch Max/Rex/John）</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-color: var(--green); background: var(--green-pale);">
+        <div class="card-header">
+          <div class="card-icon green">🎯</div>
+          <div>
+            <div class="card-title" style="color: var(--green-dark);">Rain 確認後立即執行</div>
+          </div>
+        </div>
+        <div style="font-size: 13px; color: var(--text); line-height: 1.9;">
+          <div>1. Klay dispatch Max → Platform Core + Auth</div>
+          <div>2. Klay dispatch Rex → Worker API + Matching</div>
+          <div>3. Klay dispatch John → Template Worker + Console</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── Footer ─── -->
+<footer class="page-footer">
+  <p>Phase 2+3 報告 · Scout × 2 + Ray 審查 · 2026-03-15 · AI Agent 協作平台 MVP</p>
+  <p style="margin-top: 4px;">Deck by Nova · 奶油白風格報告系統 · <a href="https://slideless.vercel.app" style="color: var(--orange); text-decoration: none;">slideless.vercel.app</a></p>
+</footer>
+
+</body>
+</html>

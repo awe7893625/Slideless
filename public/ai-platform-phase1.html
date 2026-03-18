@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent 協作平台 — Phase 1 商業規劃</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --cream-dark: #eeece6;
+      --cream-border: #dedad2;
+      --orange: #e8855a;
+      --orange-light: #f2a07c;
+      --orange-pale: #fdf0ea;
+      --brown: #6b4c3b;
+      --text: #2c2420;
+      --text-muted: #7a6e69;
+      --text-light: #a89e99;
+      --white: #ffffff;
+      --green: #5a9e6e;
+      --green-pale: #eef7f1;
+      --blue: #5a7fb0;
+      --blue-pale: #eef3fa;
+      --yellow-pale: #fdf8ea;
+      --yellow: #c49a2a;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─── */
+    .page-header {
+      background: var(--white);
+      border-bottom: 2px solid var(--cream-border);
+      padding: 28px 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .page-header-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange-pale);
+      border: 1px solid var(--orange-light);
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .header-title span { color: var(--orange); }
+    .header-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Layout ─── */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 40px 80px;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      background: linear-gradient(135deg, #2c2420 0%, #4a3328 60%, #6b4c3b 100%);
+      border-radius: 20px;
+      padding: 56px 60px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(232,133,90,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 30%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(232,133,90,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange-light);
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .hero-subtitle {
+      font-size: 16px;
+      color: rgba(255,255,255,0.65);
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: left;
+    }
+    .hero-stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--orange-light);
+    }
+    .hero-stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── Section ─── */
+    .section { margin-bottom: 40px; }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 14px;
+      padding: 28px 32px;
+    }
+    .card-sm {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+
+    /* ─── Goal Card ─── */
+    .goal-card {
+      background: linear-gradient(135deg, var(--orange-pale) 0%, var(--white) 100%);
+      border: 1.5px solid var(--orange-light);
+      border-radius: 16px;
+      padding: 32px 36px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .goal-icon {
+      width: 48px; height: 48px;
+      background: var(--orange);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .goal-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .goal-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* ─── Grid ─── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .hero { padding: 36px 28px; }
+      .hero-title { font-size: 26px; }
+      .container { padding: 28px 20px 60px; }
+      .page-header { padding: 20px 20px; }
+    }
+
+    /* ─── Constraint List ─── */
+    .constraint-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--cream-border);
+    }
+    .constraint-item:last-child { border-bottom: none; }
+    .constraint-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .constraint-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+    }
+    .constraint-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Metrics ─── */
+    .metric-card {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      border-top: 3px solid var(--orange);
+    }
+    .metric-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 6px;
+    }
+    .metric-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .metric-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Priority Table ─── */
+    .priority-table { width: 100%; border-collapse: collapse; }
+    .priority-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      background: var(--cream-dark);
+      border-bottom: 1px solid var(--cream-border);
+    }
+    .priority-table th:first-child { border-radius: 8px 0 0 0; }
+    .priority-table th:last-child { border-radius: 0 8px 0 0; }
+    .priority-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--cream-border);
+      font-size: 14px;
+      vertical-align: top;
+    }
+    .priority-table tr:last-child td { border-bottom: none; }
+    .priority-table tr:hover td { background: var(--cream); }
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .p0 { background: #fdecea; color: #c0392b; }
+    .p1 { background: #fdf3e8; color: #c46a0a; }
+    .p2 { background: #fff8e0; color: #9b7c0f; }
+    .p3 { background: #eef7f1; color: #2e7d52; }
+
+    /* ─── Architecture ─── */
+    .arch-box {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .arch-header {
+      background: var(--cream-dark);
+      padding: 14px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--cream-border);
+    }
+    .arch-body { padding: 20px; }
+    .arch-component {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--cream);
+      font-size: 14px;
+    }
+    .arch-component:last-child { margin-bottom: 0; }
+    .arch-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── Scope ─── */
+    .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .scope-grid { grid-template-columns: 1fr; } }
+
+    .scope-box {
+      border-radius: 12px;
+      padding: 22px 24px;
+    }
+    .scope-do { background: var(--green-pale); border: 1px solid #a8d4b8; }
+    .scope-dont { background: #fef2f2; border: 1px solid #f5c6c6; }
+
+    .scope-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .scope-do .scope-header { color: var(--green); }
+    .scope-dont .scope-header { color: #c0392b; }
+
+    .scope-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .scope-item::before {
+      content: '▸';
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .scope-do .scope-item::before { color: var(--green); }
+    .scope-dont .scope-item::before { color: #c0392b; }
+
+    /* ─── Phase Roadmap ─── */
+    .phase-timeline {
+      position: relative;
+      padding-left: 48px;
+    }
+    .phase-timeline::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 20px;
+      bottom: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--orange), var(--cream-border));
+    }
+    .phase-item {
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .phase-item:last-child { margin-bottom: 0; }
+    .phase-dot {
+      position: absolute;
+      left: -40px;
+      top: 4px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 1;
+    }
+    .phase-done {
+      background: var(--orange);
+      color: var(--white);
+      box-shadow: 0 0 0 4px var(--orange-pale);
+    }
+    .phase-active {
+      background: var(--white);
+      color: var(--orange);
+      border: 2.5px solid var(--orange);
+      box-shadow: 0 0 0 4px var(--orange-pale);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    .phase-waiting {
+      background: var(--cream-dark);
+      color: var(--text-muted);
+      border: 2px dashed var(--cream-border);
+    }
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 4px var(--orange-pale); }
+      50% { box-shadow: 0 0 0 8px rgba(232,133,90,0.15); }
+    }
+    .phase-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .phase-done-label { color: var(--orange); }
+    .phase-active-label { color: var(--orange); }
+    .phase-waiting-label { color: var(--text-light); }
+
+    .phase-title-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .phase-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .phase-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+    .tag-done { background: var(--orange-pale); color: var(--orange); }
+    .tag-active { background: var(--blue-pale); color: var(--blue); }
+    .tag-wait { background: var(--cream-dark); color: var(--text-light); }
+
+    /* ─── Progress bar ─── */
+    .progress-wrap {
+      background: var(--cream-dark);
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--orange-light));
+      border-radius: 20px;
+      transition: width 0.6s ease;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ─── Agent role cards ─── */
+    .agent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 768px) { .agent-grid { grid-template-columns: 1fr 1fr; } }
+
+    .agent-card {
+      background: var(--white);
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      transition: box-shadow 0.2s;
+    }
+    .agent-card:hover { box-shadow: 0 4px 16px rgba(44,36,32,0.08); }
+    .agent-emoji { font-size: 24px; margin-bottom: 8px; }
+    .agent-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .agent-role { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Business model ─── */
+    .biz-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .biz-node {
+      text-align: center;
+      min-width: 130px;
+    }
+    .biz-box {
+      background: var(--white);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 auto 6px;
+      transition: border-color 0.2s;
+    }
+    .biz-box.highlight {
+      border-color: var(--orange);
+      background: var(--orange-pale);
+      color: var(--orange);
+    }
+    .biz-sub { font-size: 11px; color: var(--text-muted); }
+    .biz-arrow {
+      font-size: 18px;
+      color: var(--orange-light);
+      padding: 0 6px;
+      margin-top: -6px;
+    }
+
+    /* ─── Footer ─── */
+    .page-footer {
+      background: var(--white);
+      border-top: 1px solid var(--cream-border);
+      padding: 24px 40px;
+      margin-top: 60px;
+    }
+    .page-footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-meta { font-size: 12px; color: var(--text-muted); }
+    .footer-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--cream-dark);
+      color: var(--text-muted);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: var(--cream-border);
+      margin: 8px 0 24px;
+    }
+
+    /* ─── Inline tag ─── */
+    .inline-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="header-badge">📋 Phase 1 完成</span>
+        <h1 class="header-title">AI Agent 協作平台 &amp; <span>Web Operator Team</span></h1>
+      </div>
+      <div class="header-meta" style="margin-top:4px;">商業規劃報告 · 由 Klay（AI Team CEO）規劃 · 2026-03-15</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:13px;color:var(--text-muted);">整體進度</div>
+      <div style="font-size:22px;font-weight:700;color:var(--orange);">33%</div>
+      <div style="font-size:11px;color:var(--text-light);">Phase 1 / 3 完成</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">KLAY BUSINESS PLANNING · PHASE 1 OF 3</div>
+    <h2 class="hero-title">AI Agent 協作平台 MVP<br>+ Web Operator Team 模板商品</h2>
+    <p class="hero-subtitle">建立 AI Agent 任務協作平台，搭配可下載部署的 Web Operator Team 模板，以 Provider 自帶算力模式啟動，打造近零固定成本的 MVP。</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">~$0</div>
+        <div class="hero-stat-label">MVP 月固定成本</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">6</div>
+        <div class="hero-stat-label">Agent 角色</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">4</div>
+        <div class="hero-stat-label">Demo 驗收條件</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">US$50–150</div>
+        <div class="hero-stat-label">雲端後月預估成本</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Goal -->
+  <div class="section">
+    <div class="section-label">Project Goal</div>
+    <div class="goal-card">
+      <div class="goal-icon">🎯</div>
+      <div>
+        <div class="goal-title">一句話目標</div>
+        <div class="goal-text">建立 AI Agent 協作平台 MVP（任務建立 → Provider 配對 → 接單執行 → 結果回傳）+ 第一個可商品化的可下載部署 Agent 團隊模板（Web Operator Team）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Metrics -->
+  <div class="section">
+    <div class="section-label">Success Metrics</div>
+    <div class="section-title">成功指標</div>
+    <div class="grid-3">
+      <div class="metric-card">
+        <div class="metric-num">M-1</div>
+        <div class="metric-title">平台完整閉環 Demo</div>
+        <div class="metric-desc">建任務 → 配對 Provider → 執行 → 回傳結果 → Console 顯示，完整流程跑通</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">M-2</div>
+        <div class="metric-title">模板一鍵啟動</div>
+        <div class="metric-desc">zip 下載 → setup.sh 一鍵啟動 → browser / scraping / custom API / worker mode 全部可跑</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">M-3</div>
+        <div class="metric-title">4 條 Demo 驗收</div>
+        <div class="metric-desc">任務協作 / Browser 操作 / 自訂 API / 模板打包下載 — 四條全數通過</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Constraints -->
+  <div class="section">
+    <div class="section-label">Constraints</div>
+    <div class="section-title">約束條件</div>
+    <div class="card">
+      <div class="constraint-item">
+        <div class="constraint-icon" style="background:#fdf0ea;">⚡</div>
+        <div>
+          <div class="constraint-label" style="color:var(--orange);">算力模型</div>
+          <div class="constraint-text">平台不承擔 Provider 算力與 API 成本；Provider 自帶電腦與 API key 執行任務，平台僅負責協作派工</div>
+        </div>
+      </div>
+      <div class="constraint-item">
+        <div class="constraint-icon" style="background:#eef3fa;">🔧</div>
+        <div>
+          <div class="constraint-label" style="color:var(--blue);">技術選型</div>
+          <div class="constraint-text">本地 Docker Compose 優先，預留雲端化擴展，不綁死任何 LLM vendor；架構需具備多 Provider 相容性</div>
+        </div>
+      </div>
+      <div class="constraint-item">
+        <div class="constraint-icon" style="background:var(--green-pale);">⚖️</div>
+        <div>
+          <div class="constraint-label" style="color:var(--green);">法律邊界</div>
+          <div class="constraint-text">合法爬蟲，遵守 robots.txt；不做攻擊型自動化（不含 CAPTCHA 破解、惡意爬蟲、DDoS 相關功能）</div>
+        </div>
+      </div>
+      <div class="constraint-item">
+        <div class="constraint-icon" style="background:var(--yellow-pale);">💰</div>
+        <div>
+          <div class="constraint-label" style="color:var(--yellow);">預算控制</div>
+          <div class="constraint-text">本地 MVP 近 0 月固定成本；正式雲端上線後預估 US$50–150/月（含 Container hosting + DB + CDN）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scope: Do / Don't -->
+  <div class="section">
+    <div class="section-label">Scope Definition</div>
+    <div class="section-title">做與不做</div>
+    <div class="scope-grid">
+      <div class="scope-box scope-do">
+        <div class="scope-header">
+          <span>✅</span> 第一版 MVP 包含
+        </div>
+        <div class="scope-item">AI Agent 協作平台 MVP（Web Console + API Server）</div>
+        <div class="scope-item">Task Engine + Provider Registry + Template Registry</div>
+        <div class="scope-item">Package Builder（模板打包工具）</div>
+        <div class="scope-item">Web Operator Team 模板（6 Agent 角色）</div>
+        <div class="scope-item">Browser / Scraper / API Adapters（抽象層設計）</div>
+        <div class="scope-item">Provider Worker Python SDK</div>
+        <div class="scope-item">Docker Compose 本地全服務一鍵啟動</div>
+      </div>
+      <div class="scope-box scope-dont">
+        <div class="scope-header">
+          <span>🚫</span> 第一版不做（預留後期）
+        </div>
+        <div class="scope-item">全球金流 / 分潤系統</div>
+        <div class="scope-item">企業 SSO / OAuth 登入</div>
+        <div class="scope-item">高并發多租戶 / 大型分散式叢集</div>
+        <div class="scope-item">算力代管服務</div>
+        <div class="scope-item">CAPTCHA 破解 / 惡意爬蟲工具</div>
+        <div class="scope-item">雲端生產環境部署（僅預留架構）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority -->
+  <div class="section">
+    <div class="section-label">Priority Breakdown</div>
+    <div class="section-title">優先級排序</div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="priority-table">
+        <thead>
+          <tr>
+            <th style="width:80px;">優先級</th>
+            <th>核心任務</th>
+            <th>關鍵能力</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="priority-badge p0">P0</span></td>
+            <td style="font-weight:600;">Task flow + Provider flow</td>
+            <td style="color:var(--text-muted);">協作主鏈打通：任務建立 → 配對 → 執行 → 回傳</td>
+          </tr>
+          <tr>
+            <td><span class="priority-badge p1">P1</span></td>
+            <td style="font-weight:600;">Template structure + Browser adapter + Scraping</td>
+            <td style="color:var(--text-muted);">模板框架 + 動態/靜態爬蟲能力 + Browser 操作抽象層</td>
+          </tr>
+          <tr>
+            <td><span class="priority-badge p2">P2</span></td>
+            <td style="font-weight:600;">Custom API + Package Builder + Worker mode</td>
+            <td style="color:var(--text-muted);">使用者自訂 API 接入 + 模板打包下載 + 獨立 Worker 執行模式</td>
+          </tr>
+          <tr>
+            <td><span class="priority-badge p3">P3</span></td>
+            <td style="font-weight:600;">雲端化 + 全球化擴充</td>
+            <td style="color:var(--text-muted);">雲端化預留結構、多地區支援、多語系、企業功能預研</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Architecture Overview -->
+  <div class="section">
+    <div class="section-label">Product Architecture</div>
+    <div class="section-title">兩大核心系統</div>
+    <div class="grid-2">
+      <!-- Platform System -->
+      <div class="arch-box">
+        <div class="arch-header">🏗️ 平台系統</div>
+        <div class="arch-body">
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#e8855a;"></div>
+            <div><strong>Web Console</strong> — 任務管理 + 監控面板</div>
+          </div>
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#e8855a;"></div>
+            <div><strong>API Server</strong> — 協作主鏈 REST API</div>
+          </div>
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#c46a0a;"></div>
+            <div><strong>Task Engine</strong> — 任務佇列 + 狀態機</div>
+          </div>
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#c46a0a;"></div>
+            <div><strong>Provider Registry</strong> — Provider 註冊 + 配對</div>
+          </div>
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#9b7c0f;"></div>
+            <div><strong>Template Registry</strong> — 模板商品目錄</div>
+          </div>
+          <div class="arch-component">
+            <div class="arch-dot" style="background:#9b7c0f;"></div>
+            <div><strong>Package Builder</strong> — zip 打包工具</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template System -->
+      <div class="arch-box">
+        <div class="arch-header">🤖 Web Operator Team 模板（6 Agents）</div>
+        <div class="arch-body">
+          <div class="agent-grid" style="grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="agent-card">
+              <div class="agent-emoji">🗺️</div>
+              <div class="agent-name">Router</div>
+              <div class="agent-role">任務路由 + 分派</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-emoji">📋</div>
+              <div class="agent-name">Planner</div>
+              <div class="agent-role">計畫制定 + 步驟拆解</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-emoji">🌐</div>
+              <div class="agent-name">Browser Operator</div>
+              <div class="agent-role">瀏覽器自動化操作</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-emoji">🕷️</div>
+              <div class="agent-name">Scraper</div>
+              <div class="agent-role">靜態/動態資料擷取</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-emoji">🔌</div>
+              <div class="agent-name">Tool / API</div>
+              <div class="agent-role">自訂 API 接入執行</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-emoji">📊</div>
+              <div class="agent-name">Reporter</div>
+              <div class="agent-role">結果彙整 + 回傳</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three Core Capabilities -->
+  <div class="section">
+    <div class="section-label">Template Capabilities</div>
+    <div class="section-title">Web Operator Team 三大核心能力</div>
+    <div class="grid-3">
+      <div class="card-sm" style="border-top:3px solid var(--orange);">
+        <div style="font-size:24px;margin-bottom:10px;">🌐</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Browser / OpenClaw 能力</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">navigate · click · type · extract · screenshot — 採 adapter 抽象設計，支援 OpenClaw 及相容 Browser 工具替換</div>
+      </div>
+      <div class="card-sm" style="border-top:3px solid var(--orange);">
+        <div style="font-size:24px;margin-bottom:10px;">🕷️</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">網頁爬蟲 / 資料擷取</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">靜態：requests + BeautifulSoup<br>動態：Playwright 渲染<br>合規：遵守 robots.txt + rate control</div>
+      </div>
+      <div class="card-sm" style="border-top:3px solid var(--orange);">
+        <div style="font-size:24px;margin-bottom:10px;">🔌</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">使用者自訂 API 接入</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">tools.json 配置式設計<br>支援 REST / Webhook / Bearer Auth<br>無需改動核心程式碼</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Model -->
+  <div class="section">
+    <div class="section-label">Business Model</div>
+    <div class="section-title">平台商業模式</div>
+    <div class="card">
+      <div style="margin-bottom:20px;">
+        <div class="biz-flow">
+          <div class="biz-node">
+            <div class="biz-box">任務發布者</div>
+            <div class="biz-sub">企業 / 個人</div>
+          </div>
+          <div class="biz-arrow">→</div>
+          <div class="biz-node">
+            <div class="biz-box highlight">協作平台</div>
+            <div class="biz-sub">Task Engine<br>Provider Registry</div>
+          </div>
+          <div class="biz-arrow">→</div>
+          <div class="biz-node">
+            <div class="biz-box">Provider</div>
+            <div class="biz-sub">自帶電腦 + API Key</div>
+          </div>
+          <div class="biz-arrow">→</div>
+          <div class="biz-node">
+            <div class="biz-box">執行結果</div>
+            <div class="biz-sub">回傳平台</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid-3" style="gap:16px;">
+        <div style="padding:12px;background:var(--orange-pale);border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:4px;">💡 定位</div>
+          <div style="font-size:13px;color:var(--text);">協作平台 / 派工平台 / 交易平台（不是算力中心）</div>
+        </div>
+        <div style="padding:12px;background:var(--green-pale);border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">💰 收入來源</div>
+          <div style="font-size:13px;color:var(--text);">協作費 + 模板銷售收入（Provider 自帶算力，平台不承擔成本）</div>
+        </div>
+        <div style="padding:12px;background:var(--blue-pale);border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px;">🗺️ 路線圖</div>
+          <div style="font-size:13px;color:var(--text);">本地 Docker MVP → 雲端上線 → 模板市場 → 全球化</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase Roadmap -->
+  <div class="section">
+    <div class="section-label">3-Phase Planning Protocol</div>
+    <div class="section-title">規劃進度</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+      <div class="card">
+        <div class="phase-timeline">
+
+          <div class="phase-item">
+            <div class="phase-dot phase-done">✓</div>
+            <div class="phase-label phase-done-label">PHASE 1</div>
+            <div class="phase-title-text">Klay 商業規劃（Opus）</div>
+            <div class="phase-desc">需求分析 · 範圍定義 · 優先級 · 成功指標 · 商業模式</div>
+            <div class="phase-tag tag-done">✅ 已完成</div>
+          </div>
+
+          <div class="phase-item">
+            <div class="phase-dot phase-active">▶</div>
+            <div class="phase-label phase-active-label">PHASE 2</div>
+            <div class="phase-title-text">Scout 系統架構（Sonnet × 2）</div>
+            <div class="phase-desc">Scout-Platform（平台架構）+ Scout-Template（模板架構）雙線並行執行中</div>
+            <div class="phase-tag tag-active">🔄 進行中</div>
+          </div>
+
+          <div class="phase-item">
+            <div class="phase-dot phase-waiting">3</div>
+            <div class="phase-label phase-waiting-label">PHASE 3</div>
+            <div class="phase-title-text">Ray 風險審查（Codex Plus）</div>
+            <div class="phase-desc">任務定義審查 · 架構風險評估 · 邊界情況 · 開工簽核</div>
+            <div class="phase-tag tag-wait">⏳ 待機中</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <div class="card-sm" style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">整體進度</div>
+          <div class="progress-wrap">
+            <div class="progress-bar" style="width:33%;"></div>
+          </div>
+          <div class="progress-label">
+            <span>Phase 1 完成</span>
+            <span style="color:var(--orange);font-weight:600;">33%</span>
+          </div>
+        </div>
+
+        <div class="card-sm" style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Phase 2 進行中</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:pulse-ring 2s ease infinite;flex-shrink:0;"></div>
+            <div style="font-size:13px;"><strong>Scout-Platform</strong> — 平台元件設計 + API 契約</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:pulse-ring 2s ease infinite 0.5s;flex-shrink:0;"></div>
+            <div style="font-size:13px;"><strong>Scout-Template</strong> — 模板架構 + Agent 角色規格</div>
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:var(--blue-pale);border-radius:8px;font-size:12px;color:var(--blue);">
+            ⚡ 雙線並行中 — Phase 3 Ray 審查待 Scout 完成後啟動
+          </div>
+        </div>
+
+        <div class="card-sm" style="background:var(--cream-dark);border-color:var(--cream-border);">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">後續動作</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+            Scout Phase 2 完成 → Ray Phase 3 風險審查<br>
+            Ray 開工簽核 → 平行 dispatch 實作（Max + John）<br>
+            實作完成 → Quill 程式碼審查 → Forge CI → 上線
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="page-footer">
+  <div class="page-footer-inner">
+    <div class="footer-meta">
+      AI Agent 協作平台 · Phase 1 商業規劃報告 · 由 <strong>Klay（AI Team CEO）</strong> 規劃 · 2026-03-15
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="footer-tag">3-Phase Planning Protocol</span>
+      <span class="footer-tag">MVP · Docker Compose</span>
+      <span class="footer-tag">6 Agent Roles</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

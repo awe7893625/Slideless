@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Platform — Sprint 1 完成報告</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f6f5f1;
+      --card: #ffffff;
+      --border: #f0eee6;
+      --border-mid: #e8e4da;
+      --orange: #eb8054;
+      --orange-light: #fdf1ea;
+      --orange-mid: #f5c4a8;
+      --dark: #121212;
+      --mid: #4a4a4a;
+      --soft: #7a7a7a;
+      --green: #2d8a55;
+      --green-bg: #edf8f2;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --yellow: #ca8a04;
+      --yellow-bg: #fefce8;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 2rem 1rem 4rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 3.5rem 2rem 3rem;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: inline-block;
+      width: 28px;
+      height: 1px;
+      background: var(--orange-mid);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 span { color: var(--orange); }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--soft);
+      font-weight: 400;
+      margin-bottom: 2rem;
+    }
+
+    .hero-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.25rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.82rem;
+      color: var(--mid);
+    }
+
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hero-meta-item .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      transition: box-shadow 0.2s;
+    }
+
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+    .stat-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--dark);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+
+    .stat-value.green { color: var(--green); }
+    .stat-value.orange { color: var(--orange); }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--soft);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange);
+      background: var(--orange-light);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-agent {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--orange);
+      background: var(--orange-light);
+      border: 1px solid var(--orange-mid);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── GRID TWO COL ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── LIST ── */
+    .item-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .item-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--mid);
+      line-height: 1.5;
+    }
+
+    .item-list li::before {
+      content: '▸';
+      color: var(--orange);
+      font-size: 0.7rem;
+      margin-top: 0.22rem;
+      flex-shrink: 0;
+    }
+
+    .item-list li strong { color: var(--dark); font-weight: 600; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge.pass { background: var(--green-bg); color: var(--green); }
+    .badge.done { background: var(--green-bg); color: var(--green); }
+    .badge.fixed { background: var(--blue-bg); color: var(--blue); }
+    .badge.warn  { background: var(--yellow-bg); color: var(--yellow); }
+    .badge.fail  { background: var(--red-bg); color: var(--red); }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.845rem;
+      min-width: 520px;
+    }
+
+    thead tr {
+      background: var(--bg);
+      border-bottom: 2px solid var(--border-mid);
+    }
+
+    thead th {
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--soft);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf9f6; }
+
+    tbody td {
+      padding: 0.65rem 0.9rem;
+      color: var(--mid);
+      vertical-align: middle;
+    }
+
+    tbody td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    /* ── METRICS GRID ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .metric-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      gap: 0.75rem;
+    }
+
+    .metric-row-label {
+      font-size: 0.845rem;
+      color: var(--mid);
+      font-weight: 500;
+    }
+
+    /* ── SPRINT 2 LIST ── */
+    .sprint2-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .sprint2-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .sprint2-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--orange);
+      background: var(--orange-light);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .sprint2-content { flex: 1; }
+
+    .sprint2-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 0.2rem;
+    }
+
+    .sprint2-desc {
+      font-size: 0.8rem;
+      color: var(--soft);
+    }
+
+    .sprint2-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--orange);
+      background: var(--orange-light);
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      margin-left: 0.3rem;
+      vertical-align: middle;
+    }
+
+    /* ── FOOTER ── */
+    .footer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .review-layers {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .review-layer {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+    }
+
+    .review-layer .check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--green-bg);
+      border: 1.5px solid var(--green);
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .review-layer-name {
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .review-layer-role {
+      color: var(--soft);
+      font-size: 0.76rem;
+    }
+
+    .footer-sep {
+      color: var(--border-mid);
+      font-size: 1.2rem;
+    }
+
+    .footer-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      color: var(--soft);
+      white-space: nowrap;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0.5rem 0 1.25rem;
+    }
+
+    /* ── INLINE CODE ── */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+      background: var(--bg);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      color: var(--orange);
+      border: 1px solid var(--border);
+    }
+
+    /* ── TECH CHIPS ── */
+    .tech-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      background: var(--bg);
+      border: 1px solid var(--border-mid);
+      color: var(--mid);
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-eyebrow">Sprint 1 完成報告</div>
+    <h1>AI Agent <span>Platform</span></h1>
+    <p class="hero-sub">Platform MVP Walking Skeleton · 2026-03-15</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="dot"></span>
+        <span>Backend + Template + Console</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="dot"></span>
+        <span>35/35 Tests PASS</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="dot"></span>
+        <span>3-Layer Review Complete</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATUS BAR ── -->
+  <div class="status-bar">
+    <div class="stat-card">
+      <div class="stat-value green">23/23</div>
+      <div class="stat-label">Backend Tests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value green">12/12</div>
+      <div class="stat-label">Template Tests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value green">4/4</div>
+      <div class="stat-label">Ray BLOCKINGs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value green">2/2</div>
+      <div class="stat-label">Critical Bugs Fixed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value orange">4</div>
+      <div class="stat-label">Clean Commits</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Section 01</span>
+      <span class="section-title">完成交付物</span>
+    </div>
+
+    <!-- Backend API Server -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Backend API Server
+        </div>
+        <span class="card-agent">Max</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <ul class="item-list">
+            <li><strong>FastAPI</strong> + PostgreSQL 16 + Redis 7 + APScheduler</li>
+            <li><strong>6 tables:</strong> users, providers, provider_skills, tasks, task_results, task_logs</li>
+            <li><strong>5 API routers:</strong> <code>/api/auth</code>, <code>/api/tasks</code>, <code>/api/providers</code>, <code>/api/worker</code>, <code>/health</code></li>
+            <li>Alembic migrations ready</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="item-list">
+            <li>Auth + Tasks + Worker — all test suites PASS</li>
+            <li>Timeout watchdog scheduler (60s interval)</li>
+            <li>Redis rate limit on <code>/api/worker/poll</code></li>
+            <li>Startup recovery: <code>building→failed</code> on restart</li>
+          </ul>
+          <div class="tech-chips" style="margin-top:0.6rem">
+            <span class="chip">FastAPI</span>
+            <span class="chip">PostgreSQL 16</span>
+            <span class="chip">Redis 7</span>
+            <span class="chip">APScheduler</span>
+            <span class="chip">Alembic</span>
+          </div>
+        </div>
+      </div>
+      <hr class="divider" style="margin-top:1rem" />
+      <div style="display:flex; align-items:center; gap:0.5rem">
+        <span class="badge pass">✓ 23/23 PASS</span>
+        <span style="font-size:0.8rem;color:var(--soft)">auth · tasks · worker test suites</span>
+      </div>
+    </div>
+
+    <!-- Template -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Template: web-operator-team</div>
+        <span class="card-agent">John</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <ul class="item-list">
+            <li>Python agent template with <strong>ToolAgent + RESTAPIConnector</strong></li>
+            <li>Pydantic v2 config validation with human-readable errors</li>
+            <li>Worker mode: poll → accept → execute → submit result loop</li>
+            <li>Demo: <code>jsonplaceholder.typicode.com</code> GET/POST verified</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="item-list">
+            <li>KeyError fix: <code>task["task_id"]</code> → <code>task["id"]</code></li>
+            <li>HTTP 201 now accepted as success (was treated as failure)</li>
+            <li>Clean separation of tool registration and execution</li>
+          </ul>
+          <div class="tech-chips" style="margin-top:0.6rem">
+            <span class="chip">Python</span>
+            <span class="chip">Pydantic v2</span>
+            <span class="chip">ToolAgent</span>
+            <span class="chip">RESTAPIConnector</span>
+          </div>
+        </div>
+      </div>
+      <hr class="divider" style="margin-top:1rem" />
+      <div style="display:flex; align-items:center; gap:0.5rem">
+        <span class="badge pass">✓ 12/12 PASS</span>
+        <span style="font-size:0.8rem;color:var(--soft)">full template test suite</span>
+      </div>
+    </div>
+
+    <!-- Web Console -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Web Console</div>
+        <span class="card-agent">John</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <ul class="item-list">
+            <li><strong>Next.js 15</strong> + TanStack Query + Zustand</li>
+            <li>Pages: Login, Task List (create + live refresh), Task Detail</li>
+            <li>Task Detail: status + logs display</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="item-list">
+            <li>StatusBadge: <code>pending</code> / <code>matched</code> / <code>running</code> / <code>completed</code> / <code>failed</code> / <code>timeout</code></li>
+            <li>TypeScript typecheck: PASS</li>
+            <li>Timeout added to terminal status set (Quill fix)</li>
+          </ul>
+          <div class="tech-chips" style="margin-top:0.6rem">
+            <span class="chip">Next.js 15</span>
+            <span class="chip">TanStack Query</span>
+            <span class="chip">Zustand</span>
+            <span class="chip">TypeScript</span>
+          </div>
+        </div>
+      </div>
+      <hr class="divider" style="margin-top:1rem" />
+      <div style="display:flex; align-items:center; gap:0.5rem">
+        <span class="badge pass">✓ TypeScript PASS</span>
+        <span style="font-size:0.8rem;color:var(--soft)">zero type errors</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Section 02</span>
+      <span class="section-title">Ray Phase 3 BLOCKING Issues — 全部實作</span>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Issue</th>
+              <th>說明</th>
+              <th>位置</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>BLOCKING-1</td>
+              <td>Running task timeout watchdog (60s interval)</td>
+              <td><code>scheduler.py</code></td>
+              <td><span class="badge done">✓ Implemented</span></td>
+            </tr>
+            <tr>
+              <td>BLOCKING-2</td>
+              <td>Redis rate limit 12 req/min on <code>/api/worker/poll</code></td>
+              <td><code>worker_service.py</code></td>
+              <td><span class="badge done">✓ Implemented</span></td>
+            </tr>
+            <tr>
+              <td>BLOCKING-3</td>
+              <td>Startup recovery: <code>building→failed</code> on restart</td>
+              <td><code>main.py</code> lifespan</td>
+              <td><span class="badge done">✓ Implemented</span></td>
+            </tr>
+            <tr>
+              <td>BLOCKING-4</td>
+              <td>Match excludes busy providers (active running tasks)</td>
+              <td><code>task_service.py</code></td>
+              <td><span class="badge done">✓ Implemented</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Section 03</span>
+      <span class="section-title">Quill Code Review — 2 Critical Bugs Fixed</span>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>嚴重度</th>
+              <th>位置</th>
+              <th>問題</th>
+              <th>修復</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CRITICAL-1</td>
+              <td><code>worker_mode.py:143</code></td>
+              <td>task["task_id"] KeyError</td>
+              <td>改為 <code>task["id"]</code></td>
+              <td><span class="badge fixed">✓ Fixed</span></td>
+            </tr>
+            <tr>
+              <td>CRITICAL-2</td>
+              <td><code>worker_mode.py:55</code></td>
+              <td>HTTP 201 treated as failure</td>
+              <td>accept (200, 201)</td>
+              <td><span class="badge fixed">✓ Fixed</span></td>
+            </tr>
+            <tr>
+              <td>MINOR</td>
+              <td>Task detail page</td>
+              <td>"timeout" not in terminal status set</td>
+              <td>Added "timeout"</td>
+              <td><span class="badge fixed">✓ Fixed</span></td>
+            </tr>
+            <tr>
+              <td>MINOR</td>
+              <td><code>main.py</code></td>
+              <td>Silent bare except on BLOCKING-3</td>
+              <td>Log warning</td>
+              <td><span class="badge fixed">✓ Fixed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Section 04</span>
+      <span class="section-title">Sprint 1 完成指標</span>
+    </div>
+    <div class="card">
+      <div class="metrics-grid">
+        <div class="metric-row">
+          <span class="metric-row-label">Backend Tests</span>
+          <span class="badge pass">23/23 PASS ✅</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-row-label">Template Tests</span>
+          <span class="badge pass">12/12 PASS ✅</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-row-label">TypeScript Check</span>
+          <span class="badge pass">PASS ✅</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-row-label">Ray Phase 3 BLOCKINGs</span>
+          <span class="badge pass">4/4 ✅</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-row-label">Quill Critical Issues</span>
+          <span class="badge pass">2/2 Fixed ✅</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-row-label">Git Commits</span>
+          <span class="badge pass">4 clean ✅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5 ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Section 05</span>
+      <span class="section-title">Sprint 2 Recommended — HIGH items from Quill</span>
+    </div>
+    <ol class="sprint2-list">
+      <li class="sprint2-item">
+        <div class="sprint2-num">1</div>
+        <div class="sprint2-content">
+          <div class="sprint2-title">list_tasks 全表掃描 <span class="sprint2-tag">PERFORMANCE</span></div>
+          <div class="sprint2-desc">改用 SQL COUNT + LIMIT/OFFSET，避免隨資料量增長的線性掃描效能問題</div>
+        </div>
+      </li>
+      <li class="sprint2-item">
+        <div class="sprint2-num">2</div>
+        <div class="sprint2-content">
+          <div class="sprint2-title">report_error 無狀態驗證 <span class="sprint2-tag">CORRECTNESS</span></div>
+          <div class="sprint2-desc">加 <code>status in ("running", "assigned")</code> 守衛，防止非法狀態轉換</div>
+        </div>
+      </li>
+      <li class="sprint2-item">
+        <div class="sprint2-num">3</div>
+        <div class="sprint2-content">
+          <div class="sprint2-title">match_task 無鎖 <span class="sprint2-tag">CONCURRENCY</span></div>
+          <div class="sprint2-desc">加 SELECT FOR UPDATE，多 worker 同時 poll 時防止 race condition</div>
+        </div>
+      </li>
+      <li class="sprint2-item">
+        <div class="sprint2-num">4</div>
+        <div class="sprint2-content">
+          <div class="sprint2-title">登入無 Rate Limit <span class="sprint2-tag">SECURITY</span></div>
+          <div class="sprint2-desc">加 Redis counter（同 worker_poll 做法），防止暴力破解攻擊</div>
+        </div>
+      </li>
+      <li class="sprint2-item">
+        <div class="sprint2-num">5</div>
+        <div class="sprint2-content">
+          <div class="sprint2-title">BLOCKING-3/4 缺測試 <span class="sprint2-tag">COVERAGE</span></div>
+          <div class="sprint2-desc">補 startup recovery + busy provider exclusion unit tests，確保迴歸保護</div>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer-card">
+    <div class="review-layers">
+      <div class="review-layer">
+        <div class="check">✓</div>
+        <div>
+          <div class="review-layer-name">Quill</div>
+          <div class="review-layer-role">Layer 1 · Code Review</div>
+        </div>
+      </div>
+      <span class="footer-sep">·</span>
+      <div class="review-layer">
+        <div class="check">✓</div>
+        <div>
+          <div class="review-layer-name">Forge CI</div>
+          <div class="review-layer-role">Layer 2 · CI Gate</div>
+        </div>
+      </div>
+      <span class="footer-sep">·</span>
+      <div class="review-layer">
+        <div class="check">✓</div>
+        <div>
+          <div class="review-layer-name">Ray</div>
+          <div class="review-layer-role">Phase 3 · Design Review</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-date">Generated 2026-03-15 · Nova · AI Agent Platform Sprint 1</div>
+  </div>
+
+</div>
+</body>
+</html>

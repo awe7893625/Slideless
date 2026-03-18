@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Langfuse v4 最終版規格書 — LLMOps 閉環</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #121212; --white: #ffffff; --cream: #f6f5f1;
+  --grey-01: #f0eee6; --grey-02: #8b877c; --grey-03: #6c6a62;
+  --accent: #a8cde8; --accent-warm: #eb8054;
+  --green: #85a268; --danger: #d94f4f;
+  --font-main: 'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono: 'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-main);background:var(--cream);color:var(--black);font-size:15px;line-height:1.6}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);width:0%;z-index:1000;transition:width .1s}
+nav{position:fixed;top:3px;left:0;right:0;z-index:999;background:rgba(246,245,241,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--grey-01);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:52px}
+.nav-brand{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--grey-03)}
+.nav-links{display:flex;gap:20px}
+.nav-links a{font-size:12px;color:var(--grey-02);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--accent-warm)}
+
+/* Cover */
+.cover{background:var(--black);padding:88px 120px 72px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(168,205,232,0.06) 0%,transparent 70%)}
+.eyebrow{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:3px;color:var(--accent);margin-bottom:20px}
+.cover h1{font-size:clamp(30px,3.8vw,50px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:16px}
+.cover h1 span{color:var(--accent-warm)}
+.subtitle{font-size:16px;color:rgba(255,255,255,0.45);margin-bottom:44px;max-width:720px}
+.cover-stats{display:flex;gap:0;flex-wrap:wrap;margin-bottom:40px}
+.stat-block{padding:18px 32px;border-right:1px solid rgba(255,255,255,0.08)}
+.stat-block:first-child{padding-left:0}
+.stat-num{font-family:var(--font-mono);font-size:26px;font-weight:500;color:#fff}
+.stat-num.accent{color:var(--accent-warm)}
+.stat-num.green{color:#85c985}
+.stat-num.blue{color:var(--accent)}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.cover-meta{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.06);padding-top:18px}
+
+/* Section */
+.section{padding:80px 120px;max-width:1400px;margin:0 auto}
+.section-eyebrow{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent-warm);margin-bottom:12px}
+.section-title{font-size:clamp(22px,2.4vw,32px);font-weight:700;line-height:1.3;margin-bottom:12px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);max-width:760px;margin-bottom:36px;line-height:1.75}
+.divider{height:1px;background:var(--grey-01);margin:0 120px}
+
+/* Cards */
+.card{background:#fff;border-radius:12px;border:1px solid var(--grey-01);padding:28px 32px}
+.grid{display:grid;gap:20px}
+.col2{grid-template-columns:repeat(2,1fr)}
+.col3{grid-template-columns:repeat(3,1fr)}
+.col4{grid-template-columns:repeat(4,1fr)}
+.card-eyebrow{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--grey-02);margin-bottom:10px}
+.card h3{font-size:16px;font-weight:600;margin-bottom:10px}
+.card p{font-size:14px;color:var(--grey-02);line-height:1.65}
+.card ul{padding-left:18px;font-size:14px;color:var(--grey-02);line-height:1.9}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-family:var(--font-mono);font-weight:500;margin:2px}
+.tag.red{background:#fef0f0;color:#c0392b;border:1px solid #fdd}
+.tag.green{background:#f0f7ed;color:#3d7030;border:1px solid #c6e0bd}
+.tag.blue{background:#ebf4fc;color:#2660a4;border:1px solid #b3d4ef}
+.tag.orange{background:#fff4ee;color:#a8491d;border:1px solid #ffd5be}
+.tag.grey{background:var(--grey-01);color:var(--grey-03);border:1px solid #ddd9ce}
+.tag.purple{background:#f3eeff;color:#5b3ea6;border:1px solid #d4bfff}
+
+/* Tables */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--grey-01)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--grey-01)}
+th{padding:11px 16px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--grey-03);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--grey-01);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafaf7}
+td.mono{font-family:var(--font-mono);font-size:12px}
+td.hl{color:var(--accent-warm);font-weight:600}
+
+/* Code */
+.code-block{background:#1e1e2e;border-radius:10px;padding:18px 22px;font-family:var(--font-mono);font-size:12.5px;color:#cdd6f4;overflow-x:auto;margin:14px 0;line-height:1.75}
+.kw{color:#cba6f7} .str{color:#a6e3a1} .num{color:#fab387} .cmt{color:#6c7086;font-style:italic} .key{color:#89dceb}
+
+/* Must-do cards */
+.must-card{background:#fff;border-radius:14px;border:1px solid var(--grey-01);overflow:hidden}
+.must-header{padding:20px 28px;border-bottom:1px solid var(--grey-01);display:flex;align-items:center;gap:16px}
+.must-num{width:38px;height:38px;border-radius:8px;background:var(--black);color:#fff;font-family:var(--font-mono);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.must-title{font-size:16px;font-weight:700}
+.must-subtitle{font-size:12px;color:var(--grey-02)}
+.must-body{padding:20px 28px}
+.priority-badge{font-family:var(--font-mono);font-size:10px;padding:3px 10px;border-radius:20px;margin-left:auto}
+.p0{background:#fef0f0;color:var(--danger);border:1px solid #fdd}
+.p1{background:#fff4ee;color:#a8491d;border:1px solid #ffd5be}
+.p2{background:#f0f7ed;color:#3d7030;border:1px solid #c6e0bd}
+
+/* Span lifecycle */
+.lifecycle{display:flex;flex-direction:column;gap:4px;margin:14px 0}
+.lc-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.lc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lc-dot.llm{background:#cba6f7}
+.lc-dot.tool{background:#89dceb}
+.lc-dot.retrieval{background:#a6e3a1}
+.lc-dot.agent{background:#fab387}
+.lc-dot.system{background:rgba(255,255,255,0.3)}
+
+/* Dark section */
+.dark-section{background:var(--black);padding:72px 0}
+.dark-inner{max-width:1400px;margin:0 auto;padding:0 120px}
+.dark-section .section-eyebrow{color:var(--accent)}
+.dark-section .section-title{color:#fff}
+.dark-section .section-desc{color:rgba(255,255,255,0.4)}
+
+/* Score band */
+.score-band{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px}
+.score-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:18px;text-align:center}
+.score-val{font-family:var(--font-mono);font-size:26px;font-weight:600;margin-bottom:4px}
+.sv-green{color:#85c985} .sv-yellow{color:#f9c858} .sv-blue{color:#a8cde8}
+.score-lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px}
+.delta{font-size:11px;color:rgba(255,255,255,0.25);margin-left:4px}
+
+/* Routing matrix */
+.matrix-cell{padding:8px 12px;border-radius:6px;font-family:var(--font-mono);font-size:12px;text-align:center;font-weight:600}
+.mc-opus{background:#fff0f0;color:#c0392b}
+.mc-sonnet{background:#fff8ee;color:#a8491d}
+.mc-haiku{background:#f0f7ed;color:#3d7030}
+.mc-flash{background:#ebf4fc;color:#2660a4}
+
+/* Steps ordered */
+.spec-step{display:flex;gap:16px;margin-bottom:20px}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--black);color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body{}
+.step-title{font-weight:600;font-size:14px;margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--grey-02);line-height:1.65}
+
+/* Timeline phases */
+.phase-bar{margin:20px 0}
+.pb-row{display:grid;grid-template-columns:100px 1fr;gap:16px;margin-bottom:12px;align-items:start}
+.pb-label{font-family:var(--font-mono);font-size:11px;color:var(--grey-02);padding-top:8px}
+.pb-items{display:flex;gap:8px;flex-wrap:wrap}
+.pb-item{padding:6px 12px;border-radius:6px;font-size:12px;border:1px solid}
+.pb-now{background:rgba(235,128,84,0.1);color:#a8491d;border-color:rgba(235,128,84,0.3)}
+.pb-p1{background:rgba(168,205,232,0.1);color:#2660a4;border-color:rgba(168,205,232,0.3)}
+.pb-p2{background:rgba(133,162,104,0.1);color:#3d7030;border-color:rgba(133,162,104,0.3)}
+.pb-p3{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.1)}
+
+footer{background:var(--black);padding:40px 120px;text-align:center}
+footer p{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.2);line-height:2}
+
+@media(max-width:1100px){.cover,.section,.divider,.dark-inner,footer{padding-left:60px;padding-right:60px}.col3,.col4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.cover,.section{padding:64px 32px}.dark-inner{padding:0 32px}.col2,.col3,.col4{grid-template-columns:1fr}.nav-links{display:none}.score-band{grid-template-columns:repeat(2,1fr)}.cover-stats{flex-direction:column}.stat-block{padding:12px 0;border-right:none;border-bottom:1px solid rgba(255,255,255,0.08)}footer{padding:40px 32px}}
+@media(max-width:600px){.cover,.section{padding:56px 20px}.dark-inner{padding:0 20px}footer{padding:40px 20px}}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <div class="nav-brand">Langfuse v4 · 規格書</div>
+  <div class="nav-links">
+    <a href="#why">定位修正</a>
+    <a href="#m1">M1 即時 Span</a>
+    <a href="#m2">M2 評分框架</a>
+    <a href="#m3">M3 路由引擎</a>
+    <a href="#m4">M4 事件自動化</a>
+    <a href="#m5">M5 資料治理</a>
+    <a href="#m6">M6 儲存策略</a>
+    <a href="#timeline">時程</a>
+    <a href="#scores">評分預測</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="eyebrow">Langfuse v4 · 最終版規格書 · 2026-03-14</div>
+  <h1>LLMOps <span>閉環</span><br>從「看得見」到「自動變更好」</h1>
+  <div class="subtitle">v3 完成了觀測基礎。v4 的目標不是再做更多展示，而是讓 AI 系統根據觀測數據自動優化自己。</div>
+  <div class="cover-stats">
+    <div class="stat-block">
+      <div class="stat-num">6</div>
+      <div class="stat-label">必做項目</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num accent">3</div>
+      <div class="stat-label">階段</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num blue">P0</div>
+      <div class="stat-label">最高優先：即時 Span</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num green">9.5</div>
+      <div class="stat-label">目標評分 / 10</div>
+    </div>
+  </div>
+  <div class="cover-meta">v3 → v4 升級路徑 · 由 Ray 審查報告驅動 · Rain AI Team</div>
+</section>
+
+<!-- WHY / POSITIONING FIX -->
+<section class="section" id="why">
+  <div class="section-eyebrow">00 · v3 問題清單與定位修正</div>
+  <h2 class="section-title">誠實評估：v3 <span>在哪裡、差在哪</span></h2>
+  <div class="section-desc">v3 完成了「看得見 AI 系統」的基礎建設。v4 要完成的是「讓系統自己變更好」。先釐清差距，再決定做什麼。</div>
+
+  <div class="grid col2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-eyebrow">v3 做到的</div>
+      <h3 style="color:var(--green)">✓ Observability Foundation</h3>
+      <ul>
+        <li>Kai 任務系統接上 Langfuse trace</li>
+        <li>per-task cost_usd 精確計算（20+ 模型）</li>
+        <li>span_type 分類（llm / tool / retrieval / agent）</li>
+        <li>/api/langfuse/metrics（p50/p95/p99 + by_agent）</li>
+        <li>Discord alert（cost ≥ $0.10 / duration ≥ 60s）</li>
+        <li>5-Layer Observability 架構定義</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">v3 沒做到的（Ray 審查結論）</div>
+      <h3 style="color:var(--danger)">✗ 六個核心缺口</h3>
+      <ul>
+        <li><span class="tag red">P0</span> 任務結束後補記，<strong>不是即時 tracing</strong></li>
+        <li><span class="tag red">P0</span> 資安：API key 出現在公開報告</li>
+        <li><span class="tag orange">P1</span> alert = 通知，<strong>不是治理閉環</strong></li>
+        <li><span class="tag orange">P1</span> 無品質評分，無法判斷輸出好壞</li>
+        <li><span class="tag orange">P1</span> 模型路由靠人工，Opus 使用率 68%（過高）</li>
+        <li><span class="tag grey">P2</span> agent_steps JSON 長期治理困難</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--black);color:#fff">
+    <div class="card-eyebrow" style="color:var(--accent)">定位修正（強制）</div>
+    <h3 style="color:#fff">v3 應稱為「Phase 1.5 Observability Foundation 完成」，不是「Production Grade」</h3>
+    <p style="color:rgba(255,255,255,0.5);margin-top:8px">真正 Production Grade = v4 完成後：real-time spans + evaluation loop + routing automation + incident governance + data governance + span storage strategy 全部落地</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- M1: REAL-TIME INSTRUMENTATION -->
+<section class="section" id="m1">
+  <div class="section-eyebrow">必做 1 · 最高優先</div>
+  <h2 class="section-title">Real-time Instrumentation：<span>完整執行週期 Span 化</span></h2>
+  <div class="section-desc">現在是 force_complete() 後補寫 trace。v4 要在每個關鍵 lifecycle event 當下寫 span，讓長任務中途可見、失敗可即時定位。</div>
+
+  <div class="grid col2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-eyebrow">現狀（v3）</div>
+      <h3>任務完成後補記</h3>
+      <div class="code-block">
+<span class="cmt"># 現在的流程</span>
+task.status = <span class="str">"completed"</span>
+langfuse_service.emit_task_complete(task, agent_steps)
+<span class="cmt"># 問題：</span>
+<span class="cmt"># - 中途失敗 → trace 可能遺失</span>
+<span class="cmt"># - 長任務執行中完全黑盒</span>
+<span class="cmt"># - 無法 dhoc 定位卡點</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">v4 目標</div>
+      <h3>每個 lifecycle event 即時寫 span</h3>
+      <div class="lifecycle">
+        <div class="lc-row"><div class="lc-dot system" style="background:#eb8054"></div><span class="tag orange" style="font-size:10px">task.start</span> 任務接收，建立 Trace</div>
+        <div class="lc-row"><div class="lc-dot agent"></div><span class="tag orange" style="font-size:10px">agent.dispatch</span> subagent 被派遣</div>
+        <div class="lc-row"><div class="lc-dot llm"></div><span class="tag purple" style="font-size:10px">llm.inference</span> LLM 呼叫前後</div>
+        <div class="lc-row"><div class="lc-dot tool"></div><span class="tag blue" style="font-size:10px">tool.execute</span> Bash/Write/Grep 執行</div>
+        <div class="lc-row"><div class="lc-dot retrieval"></div><span class="tag green" style="font-size:10px">retrieval.query</span> Memory/RAG 查詢</div>
+        <div class="lc-row"><div class="lc-dot system" style="background:#f9c858"></div><span class="tag grey" style="font-size:10px">retry / fallback</span> 重試與降級</div>
+        <div class="lc-row"><div class="lc-dot system" style="background:#85c985"></div><span class="tag green" style="font-size:10px">task.complete</span> 最終結果 + 成本匯總</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-eyebrow">實作規格 — langfuse_service.py v3 升級</div>
+    <h3>新增 emit_span() 方法，支援 start/end 分開呼叫</h3>
+    <div class="code-block">
+<span class="cmt"># v4 新增 API</span>
+<span class="kw">class</span> LangFuseService:
+
+    <span class="kw">def</span> emit_span_start(
+        <span class="key">self</span>,
+        trace_id: <span class="key">str</span>,
+        span_id: <span class="key">str</span>,
+        span_type: <span class="key">str</span>,       <span class="cmt"># llm | tool | retrieval | agent</span>
+        name: <span class="key">str</span>,
+        model: <span class="key">str</span> = <span class="kw">None</span>,
+        input_summary: <span class="key">str</span> = <span class="kw">None</span>,
+        metadata: <span class="key">dict</span> = <span class="kw">None</span>,
+    ) -> <span class="kw">None</span>:
+        <span class="cmt">"""任務中途 span 開始，fire-and-forget"""</span>
+        ...
+
+    <span class="kw">def</span> emit_span_end(
+        <span class="key">self</span>,
+        span_id: <span class="key">str</span>,
+        output_summary: <span class="key">str</span> = <span class="kw">None</span>,
+        token_input: <span class="key">int</span> = <span class="num">0</span>,
+        token_output: <span class="key">int</span> = <span class="num">0</span>,
+        error: <span class="key">str</span> = <span class="kw">None</span>,       <span class="cmt"># 失敗時填入</span>
+    ) -> <span class="kw">None</span>:
+        <span class="cmt">"""span 結束，計算 latency + cost"""</span>
+        ...
+
+<span class="cmt"># 使用方式（llm_service.py 整合）</span>
+span_id = <span class="str">f"</span>{task_id}<span class="str">-llm-</span>{uuid4()}<span class="str">"</span>
+langfuse.emit_span_start(trace_id, span_id, <span class="str">"llm"</span>, <span class="str">"claude.inference"</span>)
+result = await llm.complete(prompt)
+langfuse.emit_span_end(span_id, result.text, result.usage.input, result.usage.output)</div>
+  </div>
+
+  <div class="grid col3" style="margin-top:20px">
+    <div class="card">
+      <div class="card-eyebrow">整合目標：llm_service.py</div>
+      <h3>LLM 呼叫自動記錄</h3>
+      <p>在 llm_service.py 的統一 call() 方法加 span，所有 agent 呼叫自動有 trace，不需要每個 agent 手動添加</p>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">整合目標：tool_executor.py</div>
+      <h3>工具執行 span</h3>
+      <p>Bash / Write / Grep 等工具執行前後，記錄 tool_name、latency_ms、成功/失敗。tool failure rate 可從此統計</p>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">整合目標：memory_service.py</div>
+      <h3>Retrieval span</h3>
+      <p>Memory/RAG 查詢時記錄 retrieval_source、query、hit_count。偵測高延遲查詢與低命中率問題</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- M2: EVALUATION FRAMEWORK -->
+<section class="section" id="m2">
+  <div class="section-eyebrow">必做 2</div>
+  <h2 class="section-title">Task-type Evaluation Framework：<span>多維度品質評分</span></h2>
+  <div class="section-desc">不是單一 0-1 分數。依任務類型定義不同評分維度與權重，讓 Quality 可量化、可比較、可回歸偵測。</div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-eyebrow">評分維度（4 軸）</div>
+    <h3>所有任務類型都從這 4 個維度評</h3>
+    <div class="table-wrap" style="margin-top:16px">
+      <table>
+        <thead><tr><th>維度</th><th>定義</th><th>評分方式</th><th>爬蟲任務</th><th>報告任務</th><th>Coding</th><th>秘書型</th></tr></thead>
+        <tbody>
+          <tr><td class="hl">Correctness</td><td>事實正確 / 資料完整</td><td>LLM-as-Judge + 人工抽驗</td><td class="tag green">40%</td><td class="tag green">35%</td><td class="tag green">40%</td><td class="tag orange">20%</td></tr>
+          <tr><td class="hl">Completeness</td><td>任務需求是否全部達成</td><td>Checklist + LLM 驗證</td><td class="tag orange">35%</td><td class="tag orange">30%</td><td class="tag red">35%</td><td class="tag green">40%</td></tr>
+          <tr><td class="hl">Format</td><td>格式符合規格 / 可直接使用</td><td>Schema 驗證 / 規格比對</td><td class="tag blue">15%</td><td class="tag blue">20%</td><td class="tag blue">20%</td><td class="tag green">30%</td></tr>
+          <tr><td class="hl">Efficiency</td><td>成本 + 時間是否合理</td><td>與同類任務基線比較</td><td class="tag grey">10%</td><td class="tag grey">15%</td><td class="tag grey">5%</td><td class="tag grey">10%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid col2">
+    <div class="card">
+      <div class="card-eyebrow">LLM-as-Judge 設計</div>
+      <h3>三種評分器</h3>
+      <div class="spec-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Pairwise Judge（比較型）</div>
+          <div class="step-desc">「這次任務結果」vs「Golden Set 標準答案」，判斷哪個更好，輸出 win/tie/lose + 理由</div>
+        </div>
+      </div>
+      <div class="spec-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Criteria Judge（標準型）</div>
+          <div class="step-desc">給 rubric（評分細則），逐項打分 0-10，最後加權彙總。每個任務類型各有一份 rubric</div>
+        </div>
+      </div>
+      <div class="spec-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Schema Validator（格式型）</div>
+          <div class="step-desc">工具輸出、爬蟲資料、API 回應 → 用 Pydantic schema 驗證完整性，不需要 LLM，精確快速</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Langfuse Scores API 整合</div>
+      <h3>評分結果寫回 trace</h3>
+      <div class="code-block" style="font-size:12px">
+<span class="cmt"># 評分結果送回 Langfuse</span>
+POST /api/public/scores
+{
+  <span class="str">"traceId"</span>: task_id,
+  <span class="str">"name"</span>: <span class="str">"quality_score"</span>,
+  <span class="str">"value"</span>: <span class="num">0.82</span>,
+  <span class="str">"comment"</span>: <span class="str">"correctness:8 completeness:9 format:7"</span>,
+  <span class="str">"dataType"</span>: <span class="str">"NUMERIC"</span>
+}
+
+<span class="cmt"># Kai task 同步</span>
+task.quality_score = <span class="num">0.82</span>
+task.quality_comment = <span class="str">"..."</span>
+task.evaluated_at = now()</div>
+      <p style="margin-top:12px;font-size:13px;color:var(--grey-02)">評分結果同步回 Kai task DB，中控台可以直接看任何任務的品質分數。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-eyebrow">Regression Detection</div>
+    <h3>品質退化自動偵測：連續 3 個同類任務分數 < 基線 → 建立告警</h3>
+    <div class="code-block" style="font-size:12px">
+<span class="cmt"># regression_detector.py（夜班 Module R）</span>
+<span class="kw">def</span> detect_regression(task_type: <span class="key">str</span>, window: <span class="key">int</span> = <span class="num">7</span>) -> <span class="key">dict</span>:
+    recent = get_recent_scores(task_type, limit=<span class="num">10</span>)
+    baseline = get_baseline(task_type)        <span class="cmt"># 前 30 天 p50</span>
+    <span class="kw">if</span> recent.p50 < baseline * <span class="num">0.85</span>:          <span class="cmt"># 退化超過 15%</span>
+        create_kai_task(<span class="str">"[Regression] 品質退化偵測"</span>, task_type)
+        alert_discord(<span class="str">f"⚠️ {task_type} p50 品質從 {baseline:.2f} 降到 {recent.p50:.2f}"</span>)
+</div>
+  </div>
+</section>
+
+<!-- M3: ROUTING POLICY ENGINE -->
+<section class="section" id="m3" style="background:#fff;max-width:none;padding-top:80px;padding-bottom:80px">
+  <div style="max-width:1400px;margin:0 auto">
+  <div class="section-eyebrow">必做 3</div>
+  <h2 class="section-title">Routing Policy Engine：<span>不是 if-else，是矩陣決策</span></h2>
+  <div class="section-desc">目前 Opus 使用率 68%，成本集中。v4 建立明確的路由決策矩陣，依任務屬性自動決定最佳 model，而不是靠人工指定或單純的「複雜→Opus」規則。</div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-eyebrow">路由決策矩陣（v4 規格）</div>
+    <h3>7 個決策維度 × 4 個 model tier</h3>
+    <div class="table-wrap" style="margin-top:16px">
+      <table>
+        <thead><tr><th>任務屬性</th><th style="text-align:center">Opus<br><small>$15/$75</small></th><th style="text-align:center">Sonnet<br><small>$3/$15</small></th><th style="text-align:center">Haiku<br><small>$0.8/$4</small></th><th style="text-align:center">Flash<br><small>$0.075/$0.3</small></th></tr></thead>
+        <tbody>
+          <tr><td class="mono">需要複雜推理 / 多步計畫</td><td><div class="matrix-cell mc-opus">✓ 優先</div></td><td><div class="matrix-cell mc-sonnet">備用</div></td><td></td><td></td></tr>
+          <tr><td class="mono">需要高準確法規/金融表述</td><td><div class="matrix-cell mc-opus">✓ 優先</div></td><td></td><td></td><td></td></tr>
+          <tr><td class="mono">長文推理（>8K tokens）</td><td><div class="matrix-cell mc-opus">✓ 優先</div></td><td><div class="matrix-cell mc-sonnet">備用</div></td><td></td><td></td></tr>
+          <tr><td class="mono">標準 CRUD / 單一 API 呼叫</td><td></td><td><div class="matrix-cell mc-sonnet">✓ 優先</div></td><td><div class="matrix-cell mc-haiku">備用</div></td><td></td></tr>
+          <tr><td class="mono">前端 UI 元件 / CSS 調整</td><td></td><td><div class="matrix-cell mc-sonnet">✓ 優先</div></td><td><div class="matrix-cell mc-haiku">備用</div></td><td></td></tr>
+          <tr><td class="mono">資料分類 / 標籤 / 簡單萃取</td><td></td><td></td><td><div class="matrix-cell mc-haiku">✓ 優先</div></td><td><div class="matrix-cell mc-flash">備用</div></td></tr>
+          <tr><td class="mono">內容分析 / 搜尋摘要</td><td></td><td></td><td><div class="matrix-cell mc-haiku">備用</div></td><td><div class="matrix-cell mc-flash">✓ 優先</div></td></tr>
+          <tr><td class="mono">SLA 緊急（用戶同步等待）</td><td></td><td><div class="matrix-cell mc-sonnet">✓ 速度優先</div></td><td><div class="matrix-cell mc-haiku">✓ 速度優先</div></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid col2">
+    <div class="card">
+      <div class="card-eyebrow">路由引擎實作規格</div>
+      <h3>routing_policy.py</h3>
+      <div class="code-block" style="font-size:12px">
+<span class="kw">class</span> RoutingPolicy:
+
+    <span class="kw">def</span> decide(
+        <span class="key">self</span>,
+        task_type: <span class="key">str</span>,
+        estimated_tokens: <span class="key">int</span>,
+        requires_reasoning: <span class="key">bool</span>,
+        sla_seconds: <span class="key">int</span>,
+        budget_usd: <span class="key">float</span> = <span class="num">0.05</span>,
+        accuracy_level: <span class="key">str</span> = <span class="str">"standard"</span>,
+    ) -> <span class="key">str</span>:   <span class="cmt"># returns model id</span>
+
+        <span class="cmt"># P0: 超出預算 → 強制降級</span>
+        <span class="kw">if</span> budget_usd < <span class="num">0.02</span>:
+            <span class="kw">return</span> <span class="str">"gemini-flash"</span>
+
+        <span class="cmt"># P1: 高準確度要求</span>
+        <span class="kw">if</span> accuracy_level == <span class="str">"critical"</span>:
+            <span class="kw">return</span> <span class="str">"claude-opus-4-6"</span>
+
+        <span class="cmt"># P2: token 超長</span>
+        <span class="kw">if</span> estimated_tokens > <span class="num">8000</span> <span class="kw">and</span> requires_reasoning:
+            <span class="kw">return</span> <span class="str">"claude-opus-4-6"</span>
+
+        <span class="cmt"># P3: SLA 緊迫 → 選速度</span>
+        <span class="kw">if</span> sla_seconds < <span class="num">10</span>:
+            <span class="kw">return</span> <span class="str">"claude-haiku-4-5"</span>
+
+        <span class="cmt"># default: Sonnet</span>
+        <span class="kw">return</span> <span class="str">"claude-sonnet-4-6"</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">成本降低預測</div>
+      <h3>Opus 68% → 目標 25%</h3>
+      <div style="margin:16px 0">
+        <div style="font-size:13px;color:var(--grey-02);margin-bottom:8px">當前成本分佈（8 traces）</div>
+        <div style="background:var(--grey-01);border-radius:6px;overflow:hidden;height:28px;display:flex">
+          <div style="width:68%;background:var(--danger);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-family:var(--font-mono)">Opus 68%</div>
+          <div style="width:32%;background:#a8cde8;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--black);font-family:var(--font-mono)">Sonnet 32%</div>
+        </div>
+      </div>
+      <div style="margin:16px 0">
+        <div style="font-size:13px;color:var(--grey-02);margin-bottom:8px">v4 目標分佈</div>
+        <div style="background:var(--grey-01);border-radius:6px;overflow:hidden;height:28px;display:flex">
+          <div style="width:25%;background:#c0392b;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-family:var(--font-mono)">Opus 25%</div>
+          <div style="width:45%;background:#a8cde8;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--black);font-family:var(--font-mono)">Sonnet 45%</div>
+          <div style="width:20%;background:#85c985;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--black);font-family:var(--font-mono)">Haiku 20%</div>
+          <div style="width:10%;background:#89dceb;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--black);font-family:var(--font-mono)">Flash</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--grey-02)">預估成本降幅：<strong style="color:var(--green)">~55%</strong>（同任務量，不降品質）</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- M4: INCIDENT AUTOMATION -->
+<div class="dark-section" id="m4">
+  <div class="dark-inner">
+    <div class="section-eyebrow">必做 4</div>
+    <h2 class="section-title" style="color:#fff;margin-bottom:12px">Incident-to-Task Automation：<span>Alert → 自動治理閉環</span></h2>
+    <div class="section-desc" style="margin-bottom:32px">現在的 Discord alert 是通知層。v4 要讓每個 alert 自動轉成 Kai 改善任務，附上 remediation template，讓系統能自我修復。</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:2px">現在（v3）</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.7)">cost ≥ $0.10 → Discord 訊息<br>duration ≥ 60s → Discord 訊息<br><br><span style="color:rgba(255,255,255,0.3);font-size:13px">沒有去重、沒有分級、沒有自動任務、<br>沒有附上修復建議、沒有閉環</span></div>
+      </div>
+      <div style="background:rgba(235,128,84,0.08);border:1px solid rgba(235,128,84,0.2);border-radius:12px;padding:24px">
+        <div style="font-family:var(--font-mono);font-size:10px;color:#eb8054;margin-bottom:12px;text-transform:uppercase;letter-spacing:2px">v4 目標</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.7)">Alert → 去重判斷 → 嚴重度分級<br>→ 自動建 Kai task → 指派 agent<br>→ 附 trace link + remediation template<br><span style="color:rgba(255,255,255,0.3);font-size:13px">→ 任務執行 → 結果回寫 → 閉環</span></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;margin-bottom:24px">
+      <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:16px;text-transform:uppercase;letter-spacing:2px">自動化規則矩陣</div>
+      <div class="table-wrap">
+        <table style="min-width:700px">
+          <thead><tr><th>觸發條件</th><th>嚴重度</th><th>自動建立的 Kai Task</th><th>指派 Agent</th><th>Remediation Template</th></tr></thead>
+          <tbody>
+            <tr><td>Opus 使用率 > 60% 連續 3 天</td><td><span class="tag red">P0</span></td><td>🔴 Model Routing Policy Review</td><td>Klay → Scout</td><td>分析高 Opus 任務，建議路由規則調整</td></tr>
+            <tr><td>p95 latency > 1800s</td><td><span class="tag red">P0</span></td><td>🔴 長尾任務分解優化</td><td>Klay → Max</td><td>找出最慢的 agent_step，提出拆分或並行化方案</td></tr>
+            <tr><td>tool span 失敗率 > 10%</td><td><span class="tag orange">P1</span></td><td>⚠️ Tool Adapter 穩定性檢查</td><td>Rex</td><td>統計哪個 tool 失敗最多，修 retry / fallback 邏輯</td></tr>
+            <tr><td>品質分數 < 基線 15%（3 任務連續）</td><td><span class="tag orange">P1</span></td><td>⚠️ Regression 品質退化調查</td><td>Quill</td><td>比較 failing traces 與 Golden Set，找 prompt/model 差異</td></tr>
+            <tr><td>單任務 cost > $0.50</td><td><span class="tag orange">P1</span></td><td>⚠️ 高成本任務審查</td><td>Knox</td><td>分析 token 分佈，建議 chunking 或 model 降級</td></tr>
+            <tr><td>retrieval hit rate < 30%</td><td><span class="tag grey">P2</span></td><td>🔵 Memory Index 優化</td><td>Orion</td><td>重新 embed 低效 memory chunk，更新索引策略</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="code-block" style="font-size:12px">
+<span class="cmt"># incident_automation.py — 核心邏輯</span>
+<span class="kw">class</span> IncidentAutomation:
+
+    <span class="kw">def</span> process_alert(
+        <span class="key">self</span>, alert_type: <span class="key">str</span>, context: <span class="key">dict</span>
+    ) -> <span class="kw">None</span>:
+        <span class="cmt"># 1. 去重（同類 alert 24h 內只建一個 task）</span>
+        <span class="kw">if</span> <span class="key">self</span>._is_duplicate(alert_type): <span class="kw">return</span>
+
+        <span class="cmt"># 2. 取對應的 remediation template</span>
+        template = REMEDIATION_TEMPLATES[alert_type]
+
+        <span class="cmt"># 3. 建 Kai task，附 trace link + 診斷資料</span>
+        task = create_kai_task(
+            title=template[<span class="str">"title"</span>],
+            description=template[<span class="str">"description"</span>].format(**context),
+            assigned_to=template[<span class="str">"agent"</span>],
+            priority=template[<span class="str">"priority"</span>],
+            source=<span class="str">"langfuse_alert"</span>,
+        )
+
+        <span class="cmt"># 4. Discord 通知（帶 Kai task link）</span>
+        notify_discord(
+            f<span class="str">"🚨 {alert_type} → Kai Task #{task.id} 已建立，指派給 {template['agent']}"</span>
+        )</div>
+  </div>
+</div>
+
+<!-- M5: DATA GOVERNANCE -->
+<section class="section" id="m5">
+  <div class="section-eyebrow">必做 5 · 緊急</div>
+  <h2 class="section-title">Data Governance：<span>密鑰、報告分層、Trace Redaction</span></h2>
+  <div class="section-desc">v3 在公開報告出現 API key fragments。v4 建立完整的資料治理規範：什麼可以公開、什麼要遮蔽、trace 資料的隱私邊界。</div>
+
+  <div class="grid col3" style="margin-bottom:24px">
+    <div class="card" style="border-top:3px solid var(--danger)">
+      <div class="card-eyebrow" style="color:var(--danger)">立即執行（已修復）</div>
+      <h3>API Key 遮蔽</h3>
+      <ul>
+        <li>公開報告禁止出現任何 key / secret</li>
+        <li>Langfuse host URL 加入遮蔽清單</li>
+        <li>v3 報告已移除 key fragments</li>
+        <li>Sentinel hook 掃描規則新增 pk-lf / sk-lf 模式</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent-warm)">
+      <div class="card-eyebrow" style="color:var(--accent-warm)">報告分層規範</div>
+      <h3>Internal / External 分開</h3>
+      <ul>
+        <li><span class="tag orange">Internal</span> 含 trace 詳情、cost breakdown、model 名稱</li>
+        <li><span class="tag green">Public/Deck</span> 只含聚合指標、無 key、無個人資料</li>
+        <li>Deck 報告統一用 Public tier，不含 raw trace</li>
+        <li>Kai 中控台 = Internal tier（需登入）</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent)">
+      <div class="card-eyebrow" style="color:var(--accent)">Trace Redaction 規格</div>
+      <h3>Task 資料遮蔽規則</h3>
+      <ul>
+        <li>input/output 含 email → 自動替換為 [EMAIL]</li>
+        <li>含 password / token 的字串 → [REDACTED]</li>
+        <li>SQL 連線字串 → [DB_URL]</li>
+        <li>遮蔽在 emit_task_complete() 前處理</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-eyebrow">Sentinel Hook 新規則</div>
+    <h3>新增 Langfuse key 掃描模式</h3>
+    <div class="code-block" style="font-size:12px">
+<span class="cmt"># ~/.claude/hooks/scan-secrets.sh 新增規則</span>
+PATTERNS=(
+  <span class="str">"pk-lf-[a-z0-9\-]+"</span>         <span class="cmt"># Langfuse public key</span>
+  <span class="str">"sk-lf-[a-z0-9\-]+"</span>         <span class="cmt"># Langfuse secret key</span>
+  <span class="str">"LANGFUSE_PUBLIC_KEY=pk"</span>     <span class="cmt"># env var with value</span>
+)
+<span class="cmt"># 在 HTML / Markdown / 任何文字檔案中觸發</span>
+<span class="cmt"># 攔截 commit + 發 Discord 警告</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- M6: STORAGE STRATEGY -->
+<section class="section" id="m6">
+  <div class="section-eyebrow">必做 6</div>
+  <h2 class="section-title">Span Storage Strategy：<span>短期 JSON，長期正規化</span></h2>
+  <div class="section-desc">agent_steps JSON 欄位短期 OK，但當你要做跨任務統計、tool failure heatmap、retrieval 分析時就會很痛。v4 規劃遷移路徑。</div>
+
+  <div class="grid col2">
+    <div class="card">
+      <div class="card-eyebrow">現狀（短期保留）</div>
+      <h3>agent_steps JSON Column</h3>
+      <div class="code-block" style="font-size:12px">
+<span class="cmt"># tasks table</span>
+agent_steps = Column(JSON)
+
+<span class="cmt"># 存入格式</span>
+[{
+  <span class="str">"agent_name"</span>: <span class="str">"max"</span>,
+  <span class="str">"span_type"</span>: <span class="str">"llm"</span>,
+  <span class="str">"model"</span>: <span class="str">"claude-opus-4-6"</span>,
+  <span class="str">"latency_ms"</span>: <span class="num">3500</span>,
+  <span class="str">"cost_usd"</span>: <span class="num">0.035</span>
+}]
+<span class="cmt"># 優點：快，不破壞現有 schema</span>
+<span class="cmt"># 缺點：無法 indexed 查詢</span></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">長期目標（v4 Phase 2）</div>
+      <h3>獨立 task_spans 表</h3>
+      <div class="code-block" style="font-size:12px">
+<span class="cmt"># 新增 task_spans table</span>
+CREATE TABLE task_spans (
+  id          UUID PRIMARY KEY,
+  task_id     UUID REFERENCES tasks(id),
+  span_type   VARCHAR(16),   <span class="cmt">-- llm/tool/retrieval/agent</span>
+  agent_name  VARCHAR(50),
+  model       VARCHAR(80),
+  tool_name   VARCHAR(80),
+  latency_ms  INTEGER,
+  cost_usd    DECIMAL(10,6),
+  token_input  INTEGER,
+  token_output INTEGER,
+  started_at  TIMESTAMP,
+  ended_at    TIMESTAMP,
+  error       TEXT           <span class="cmt">-- null = success</span>
+);
+<span class="cmt">-- Index for analytics</span>
+CREATE INDEX ON task_spans (span_type, agent_name);
+CREATE INDEX ON task_spans (tool_name) WHERE span_type = 'tool';</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-eyebrow">遷移策略</div>
+    <h3>三步驟平滑遷移（無停機）</h3>
+    <div class="grid col3" style="margin-top:16px">
+      <div>
+        <div class="step-num" style="width:auto;height:auto;border-radius:6px;padding:4px 10px;display:inline-flex;margin-bottom:8px">Step 1</div>
+        <div class="step-title">雙寫過渡</div>
+        <p style="font-size:13px;color:var(--grey-02)">force_complete() 同時寫入 agent_steps JSON 和新 task_spans table。兩者共存 4 週，驗證數據一致</p>
+      </div>
+      <div>
+        <div class="step-num" style="width:auto;height:auto;border-radius:6px;padding:4px 10px;display:inline-flex;margin-bottom:8px">Step 2</div>
+        <div class="step-title">讀取切換</div>
+        <p style="font-size:13px;color:var(--grey-02)">metrics API 和 agent 統計改從 task_spans 讀取。確認結果一致後停止讀 agent_steps JSON</p>
+      </div>
+      <div>
+        <div class="step-num" style="width:auto;height:auto;border-radius:6px;padding:4px 10px;display:inline-flex;margin-bottom:8px">Step 3</div>
+        <div class="step-title">舊欄位廢棄</div>
+        <p style="font-size:13px;color:var(--grey-02)">停止寫入 agent_steps JSON，標記為 deprecated，計畫在 v5 schema migration 中刪除</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<div class="dark-section" id="timeline">
+  <div class="dark-inner">
+    <div class="section-eyebrow">執行時程</div>
+    <h2 class="section-title" style="color:#fff;margin-bottom:12px">三個 Phase，<span>明確依賴關係</span></h2>
+    <div class="section-desc" style="margin-bottom:32px">按優先順序排列，Phase 1 完成後才有數據支撐 Phase 2 的 Evaluation</div>
+
+    <div class="phase-bar">
+      <div class="pb-row">
+        <div class="pb-label">Phase 0<br>緊急修復</div>
+        <div class="pb-items">
+          <div class="pb-item pb-now">✓ API key 從報告移除</div>
+          <div class="pb-item pb-now">✓ Sentinel 掃描規則更新</div>
+          <div class="pb-item pb-now">✓ Metrics limit=200 bug 修復</div>
+        </div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-label">Phase 1<br>1-2 週</div>
+        <div class="pb-items">
+          <div class="pb-item pb-p1">M1 llm_service.py span 整合</div>
+          <div class="pb-item pb-p1">M3 routing_policy.py 基礎版</div>
+          <div class="pb-item pb-p1">M4 incident_automation.py 核心規則</div>
+        </div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-label">Phase 2<br>2-4 週</div>
+        <div class="pb-items">
+          <div class="pb-item pb-p2">M2 Evaluation Framework（需 Phase 1 spans）</div>
+          <div class="pb-item pb-p2">M3 路由矩陣完整版（需 M2 質量數據）</div>
+          <div class="pb-item pb-p2">M6 task_spans table（雙寫過渡啟動）</div>
+          <div class="pb-item pb-p2">M5 Trace redaction 完整版</div>
+        </div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-label">Phase 3<br>4-8 週</div>
+        <div class="pb-items">
+          <div class="pb-item pb-p3" style="color:rgba(255,255,255,0.4)">Regression Detection 自動化</div>
+          <div class="pb-item pb-p3" style="color:rgba(255,255,255,0.4)">Auto Model Routing（數據驅動）</div>
+          <div class="pb-item pb-p3" style="color:rgba(255,255,255,0.4)">Self-improving loop 完整版</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:20px;margin-top:16px">
+      <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:8px;text-transform:uppercase;letter-spacing:2px">關鍵依賴</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.9">
+        M1（即時 span）→ M2（Evaluation）依賴：沒有 real-time spans，評分器的輸入就不完整<br>
+        M2（Evaluation）→ M3（Routing）依賴：沒有品質評分數據，routing policy 只能靠 heuristics<br>
+        M4（Incident Automation）→ 依賴 M1 + M2 的告警訊號：span failure rate + quality regression 才能觸發有意義的自動 task
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCORE PROJECTION -->
+<section class="section" id="scores">
+  <div class="section-eyebrow">評分預測</div>
+  <h2 class="section-title">v3 → v4：<span>每個 Must-Do 對應的分數增長</span></h2>
+  <div class="section-desc">Ray 審查給出兩套分數：以團隊階段評（8.6）和以成熟市場標準評（7.1）。v4 完成後的預測。</div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Must-Do</th><th>加分來源</th><th>團隊階段<br>分數增長</th><th>市場標準<br>分數增長</th><th>Phase</th></tr></thead>
+        <tbody>
+          <tr><td class="hl">M1 Real-time Instrumentation</td><td>長任務可見 + 即時除錯能力</td><td>+0.2</td><td>+0.5</td><td><span class="tag orange">P1</span></td></tr>
+          <tr><td class="hl">M2 Evaluation Framework</td><td>從「有 trace」升為「有品質基準」</td><td>+0.3</td><td>+0.6</td><td><span class="tag blue">P2</span></td></tr>
+          <tr><td class="hl">M3 Routing Policy Engine</td><td>Opus 68%→25%，成本可控</td><td>+0.2</td><td>+0.4</td><td><span class="tag orange">P1 → P2</span></td></tr>
+          <tr><td class="hl">M4 Incident Automation</td><td>Alert 升為 governance loop</td><td>+0.2</td><td>+0.3</td><td><span class="tag orange">P1</span></td></tr>
+          <tr><td class="hl">M5 Data Governance</td><td>資安合規，報告可對外</td><td>+0.1</td><td>+0.3</td><td><span class="tag green">緊急</span></td></tr>
+          <tr><td class="hl">M6 Storage Strategy</td><td>可做橫向 span 分析</td><td>+0.1</td><td>+0.2</td><td><span class="tag blue">P2</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="dark-section" style="margin:0;border-radius:12px;padding:40px 0">
+    <div class="dark-inner" style="padding:0 40px">
+      <div class="score-band">
+        <div class="score-item">
+          <div class="score-val sv-yellow">8.6</div>
+          <div class="score-lbl">v3 · 團隊階段</div>
+        </div>
+        <div class="score-item">
+          <div class="score-val sv-yellow">7.1</div>
+          <div class="score-lbl">v3 · 市場標準</div>
+        </div>
+        <div class="score-item">
+          <div style="font-size:22px;color:rgba(255,255,255,0.2);margin-bottom:4px;font-family:var(--font-mono)">→</div>
+          <div class="score-lbl">v4 Phase 1 後</div>
+        </div>
+        <div class="score-item">
+          <div class="score-val sv-green">9.1 <span class="delta">↑0.5</span></div>
+          <div class="score-lbl">v4 · 團隊階段</div>
+        </div>
+        <div class="score-item">
+          <div class="score-val sv-green">8.4 <span class="delta">↑1.3</span></div>
+          <div class="score-lbl">v4 · 市場標準</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;color:rgba(255,255,255,0.4)">
+        Phase 1 完成（M1 + M3 + M4）→ 市場標準 <strong style="color:#fff">+1.3</strong>；Phase 2 全完成（M2 + M6）→ 市場標準 <strong style="color:#85c985">+2.2</strong>，達到真正 Production Grade 8.5+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CALLOUT -->
+<section class="section">
+  <div class="card" style="background:var(--black);color:#fff;padding:40px 48px">
+    <div class="eyebrow" style="margin-bottom:16px">最後一句最直白的判斷</div>
+    <h2 style="font-size:clamp(20px,2.5vw,28px);color:#fff;line-height:1.4;margin-bottom:16px">
+      v3 證明了你們能「看見 AI 系統」。<br>
+      <span style="color:var(--accent-warm)">v4 要讓 AI 系統根據自己看到的，自動變得更好。</span>
+    </h2>
+    <p style="color:rgba(255,255,255,0.45);font-size:15px;max-width:700px">這不是說 v3 不夠好。這是說 v3 給了你資格去做 v4 — evaluation、routing、incident governance、quality scoring — 這些東西在沒有 observability 之前根本沒辦法做。現在你有數據了，下一步是讓數據驅動系統自己進化。</p>
+  </div>
+</section>
+
+<footer>
+  <p>Langfuse v4 規格書 · Rain AI Team · 2026-03-14</p>
+  <p>由 Ray 審查報告驅動 · 六個 Must-Do · 三個 Phase · 目標市場標準 8.5+</p>
+</footer>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

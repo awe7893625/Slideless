@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全自動賺錢系統 — 三軌執行報告 | 2026-03-12</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #FAF8F5;
+    --card: #FFFFFF;
+    --text: #1A1A1A;
+    --muted: #6B6B6B;
+    --border: #E8E3DC;
+    --accent: #C8963E;
+    --accent-light: #FDF3E3;
+    --green: #2D7D46;
+    --green-bg: #EDF7F1;
+    --orange: #C45C1E;
+    --orange-bg: #FEF3EE;
+    --red: #B91C1C;
+    --blue: #1D4ED8;
+    --blue-bg: #EFF6FF;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; }
+
+  /* Header */
+  .report-header { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%); color: white; padding: 60px 40px 50px; text-align: center; }
+  .report-header .tag { display: inline-block; background: rgba(200,150,62,0.3); color: #F8C96B; border: 1px solid rgba(200,150,62,0.5); padding: 6px 16px; border-radius: 20px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+  .report-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+  .report-header .subtitle { color: rgba(255,255,255,0.7); font-size: 16px; }
+  .report-header .meta { margin-top: 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+  .report-header .meta span { color: rgba(255,255,255,0.6); font-size: 13px; }
+  .report-header .meta strong { color: #F8C96B; }
+
+  /* Main */
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+  /* Section */
+  .section { margin-bottom: 40px; }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  /* Summary cards */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .summary-card .num { font-size: 36px; font-weight: 700; color: var(--accent); }
+  .summary-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .summary-card .detail { font-size: 13px; color: var(--text); margin-top: 8px; font-weight: 500; }
+
+  /* Track card */
+  .track-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; overflow: hidden; }
+  .track-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 16px; }
+  .track-badge { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .track-badge.t1 { background: #EDF7F1; }
+  .track-badge.t2 { background: #EFF6FF; }
+  .track-badge.t3 { background: #FDF3E3; }
+  .track-info h3 { font-size: 18px; font-weight: 700; }
+  .track-info .track-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+  .status-pill.done { background: var(--green-bg); color: var(--green); }
+  .status-pill.partial { background: var(--orange-bg); color: var(--orange); }
+  .status-pill.waiting { background: var(--blue-bg); color: var(--blue); }
+  .track-body { padding: 24px 28px; }
+
+  /* Done list */
+  .done-list { list-style: none; margin-bottom: 20px; }
+  .done-list li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .done-list li:last-child { border-bottom: none; }
+  .done-list .icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+  .done-list .icon.check { background: var(--green-bg); color: var(--green); }
+  .done-list .icon.wait { background: var(--blue-bg); color: var(--blue); }
+  .done-list .icon.manual { background: var(--orange-bg); color: var(--orange); }
+  .done-list .icon.urgent { background: #FEE2E2; color: var(--red); }
+
+  /* Manual steps */
+  .manual-section { background: var(--orange-bg); border: 1px solid rgba(196,92,30,0.2); border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .manual-section h4 { font-size: 13px; font-weight: 700; color: var(--orange); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .step-list { list-style: none; }
+  .step-list li { display: flex; gap: 12px; margin-bottom: 12px; font-size: 13px; }
+  .step-num { width: 24px; height: 24px; background: var(--orange); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .step-list a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(29,78,216,0.3); }
+
+  /* Revenue projection */
+  .revenue-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .revenue-table th { text-align: left; padding: 10px 14px; background: var(--bg); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .revenue-table td { padding: 12px 14px; border-top: 1px solid var(--border); }
+  .revenue-table tr:hover td { background: var(--bg); }
+  .amount { font-weight: 700; color: var(--green); }
+  .amount.high { color: var(--accent); }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 24px; }
+  .timeline-dot { position: absolute; left: -26px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; }
+  .timeline-dot.active { background: var(--accent); border-color: var(--accent); }
+  .timeline-dot.done { background: var(--green); border-color: var(--green); }
+  .timeline-date { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .timeline-title { font-size: 14px; font-weight: 600; margin: 4px 0; }
+  .timeline-desc { font-size: 13px; color: var(--muted); }
+
+  /* CTA box */
+  .cta-box { background: linear-gradient(135deg, #1A1A2E, #0F3460); color: white; border-radius: 16px; padding: 32px; text-align: center; margin-top: 40px; }
+  .cta-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .cta-box p { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 24px; }
+  .cta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .cta-item { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 16px; text-align: left; }
+  .cta-item .cta-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .cta-item .cta-desc { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .cta-item .cta-link { display: inline-block; margin-top: 8px; color: #F8C96B; font-size: 12px; text-decoration: none; }
+
+  /* Note box */
+  .note-box { background: var(--blue-bg); border: 1px solid rgba(29,78,216,0.2); border-radius: 10px; padding: 16px 20px; font-size: 13px; color: #1E40AF; margin-bottom: 16px; }
+  .note-box strong { font-weight: 700; }
+
+  /* Footer */
+  .report-footer { background: #1A1A1A; color: rgba(255,255,255,0.5); text-align: center; padding: 24px; font-size: 12px; margin-top: 60px; }
+
+  /* Code */
+  code { background: #F3F4F6; color: #374151; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+
+  .tag-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .tag-pill.new { background: var(--green-bg); color: var(--green); }
+  .tag-pill.pending { background: var(--blue-bg); color: var(--blue); }
+  .tag-pill.manual { background: var(--orange-bg); color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="tag">Task #1 執行報告</div>
+  <h1>全自動賺錢系統<br>三軌並行執行報告</h1>
+  <p class="subtitle">已完成工作 / 待辦事項 / 操作教學</p>
+  <div class="meta">
+    <span>報告時間：<strong>2026-03-12 深夜</strong></span>
+    <span>執行者：<strong>Klay + John + Iris</strong></span>
+    <span>三軌完成度：<strong>Track 1 ✓ Track 2 ✓ Track 3 ✓</strong></span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="num">15</div>
+      <div class="label">發布文章數</div>
+      <div class="detail">從 10 篇擴展到 15 篇（+5）</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">3</div>
+      <div class="label">新部署功能</div>
+      <div class="detail">維護方案頁 + 模板商店 + 文章</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">2</div>
+      <div class="label">聯盟申請送出</div>
+      <div class="detail">Semrush (Impact.com) + HubSpot</div>
+    </div>
+    <div class="summary-card">
+      <div class="num">3</div>
+      <div class="label">收入軌道</div>
+      <div class="detail">聯盟 + 維護月費 + 模板販售</div>
+    </div>
+  </div>
+
+  <!-- Track 1 -->
+  <div class="section">
+    <div class="section-title">Track 1 — Blankspace 月費維護方案</div>
+    <div class="track-card">
+      <div class="track-header">
+        <div class="track-badge t1">🔧</div>
+        <div class="track-info">
+          <h3>blankspaces.uk — 月費維護方案</h3>
+          <div class="track-sub">目標：將設計專案客戶轉為月費維護客戶（NT$2,000–6,000/月）</div>
+          <div class="status-pill done">✓ 基礎建置完成，等待第一筆客戶</div>
+        </div>
+      </div>
+      <div class="track-body">
+        <ul class="done-list">
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>維護方案頁面上線</strong><br>
+              <span style="color:var(--muted);font-size:13px;"><a href="https://blankspaces.uk/zh/services/maintenance" style="color:var(--blue)">blankspaces.uk/services/maintenance</a> — 3 個方案定價卡（NT$2,000 / NT$3,500 / NT$6,000）+ FAQ + 詢問表單</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>自動詢問 Email</strong><br>
+              <span style="color:var(--muted);font-size:13px;">客戶填表後自動寄 Email 通知到 movielin8866@gmail.com，含方案選項 + 聯絡資訊</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>Footer 連結更新</strong><br>
+              <span style="color:var(--muted);font-size:13px;">「維護方案」連結已加入 Footer，提升頁面曝光</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon manual">⚡</div>
+            <div>
+              <strong>收款系統（需要你設定）</strong><br>
+              <span style="color:var(--muted);font-size:13px;">目前表單只收詢問，無法自動扣款。需要 Stripe 訂閱 或 綠界科技 定期定額</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="manual-section">
+          <h4>⚡ 你需要做：設定 Stripe 訂閱收款（一次搞定，30 分鐘）</h4>
+          <ol class="step-list">
+            <li><div class="step-num">1</div><div>前往 <a href="https://dashboard.stripe.com/register">stripe.com</a> 用 movielin8866@gmail.com 建立帳號（免費，無月費）</div></li>
+            <li><div class="step-num">2</div><div>建立 3 個「訂閱商品」：基礎 NT$2,000/月、標準 NT$3,500/月、進階 NT$6,000/月</div></li>
+            <li><div class="step-num">3</div><div>每個商品建立「Payment Link」（Stripe 後台 → Products → Payment Links）</div></li>
+            <li><div class="step-num">4</div><div>把 3 個連結傳給我，我幫你換掉維護方案頁的按鈕</div></li>
+            <li><div class="step-num">5</div><div>完成後客戶直接點按鈕就能訂閱，錢自動進台灣帳戶（Stripe 支援 TWD）</div></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track 2 -->
+  <div class="section">
+    <div class="section-title">Track 2 — Niche 內容站聯盟行銷</div>
+    <div class="track-card">
+      <div class="track-header">
+        <div class="track-badge t2">📝</div>
+        <div class="track-info">
+          <h3>SaaSAlternatives — 聯盟行銷內容站</h3>
+          <div class="track-sub">目標：SEO 有機流量 → 點擊聯盟連結 → 自動賺佣金</div>
+          <div class="status-pill waiting">⏳ 基礎完成，等聯盟審核 + SEO 生效</div>
+        </div>
+      </div>
+      <div class="track-body">
+        <ul class="done-list">
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>文章從 10 篇擴展到 15 篇</strong> <span class="tag-pill new">新完成</span><br>
+              <span style="color:var(--muted);font-size:13px;">新增：figma-alternatives, zoom-alternatives, asana-alternatives, shopify-alternatives, grammarly-alternatives</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>Impact.com 帳號 + 網站驗證</strong><br>
+              <span style="color:var(--muted);font-size:13px;">saas-alternatives-hub.vercel.app 已驗證，Profile 80% 完成</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon wait">⏳</div>
+            <div>
+              <strong>Semrush 聯盟申請</strong> — In Review<br>
+              <span style="color:var(--muted);font-size:13px;">通過後佣金：$200/次試用 + 每月 $10 訂閱。預估 1–3 工作天</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon wait">⏳</div>
+            <div>
+              <strong>HubSpot 聯盟申請</strong> — 已寄出 Email <span class="tag-pill new">剛發送</span><br>
+              <span style="color:var(--muted);font-size:13px;">佣金：30% 每月持續。寄到 affiliates@hubspot.com，預估 2–3 工作天</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon manual">⚡</div>
+            <div>
+              <strong>自訂網域（建議）</strong><br>
+              <span style="color:var(--muted);font-size:13px;">目前是 saas-alternatives-hub.vercel.app，不夠專業。建議買 saasalternatives.io（約 $15/年）</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon manual">⚡</div>
+            <div>
+              <strong>Google AdSense 申請</strong><br>
+              <span style="color:var(--muted);font-size:13px;">現在還太新，建議 GSC 索引 4 週後、有 20+ 篇文章再申請</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="manual-section">
+          <h4>⚡ 你需要做：更多聯盟申請（5 分鐘）</h4>
+          <ol class="step-list">
+            <li><div class="step-num">1</div><div>前往 <a href="https://app.impact.com">app.impact.com</a>，搜尋以下品牌申請：<code>Monday.com</code>、<code>Canva</code>、<code>Wix</code>、<code>ActiveCampaign</code></div></li>
+            <li><div class="step-num">2</div><div>每個申請填入：網站 <code>https://saas-alternatives-hub.vercel.app</code>，說明「SaaS comparison content site targeting business users」</div></li>
+            <li><div class="step-num">3</div><div>去 <a href="https://www.namecheap.com">Namecheap</a> 搜尋並購買 <code>saasalternatives.io</code>（約 $15/年）</div></li>
+            <li><div class="step-num">4</div><div>域名買好後傳給我，我幫你設定 Vercel Custom Domain</div></li>
+          </ol>
+        </div>
+
+        <div class="note-box" style="margin-top:16px;">
+          <strong>⏰ 什麼時候能看到錢？</strong> SEO 生效需要 2–4 個月。但聯盟連結只要有人點就算。行動順序：先讓文章被 Google 索引 → 累積流量 → 月底看 Impact.com Dashboard。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track 3 -->
+  <div class="section">
+    <div class="section-title">Track 3 — Next.js 模板商店</div>
+    <div class="track-card">
+      <div class="track-header">
+        <div class="track-badge t3">🛒</div>
+        <div class="track-info">
+          <h3>Next.js 模板商店</h3>
+          <div class="track-sub">目標：賣 SaaS Affiliate Site 模板，$49/套，一次性收入</div>
+          <div class="status-pill partial">🚀 Landing page 完成，等你上架到 Gumroad</div>
+        </div>
+      </div>
+      <div class="track-body">
+        <ul class="done-list">
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>模板商店 Landing Page</strong> <span class="tag-pill new">新建立</span><br>
+              <span style="color:var(--muted);font-size:13px;"><a href="https://saas-alternatives-hub.vercel.app/templates" style="color:var(--blue)">saas-alternatives-hub.vercel.app/templates</a> — 展示 2 個商品 + Bundle 優惠</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon check">✓</div>
+            <div>
+              <strong>第一個產品決定：SaaS Affiliate Starter Kit（$49）</strong><br>
+              <span style="color:var(--muted);font-size:13px;">就是 SaaSAlternatives 的原始碼打包成模板，買家可以直接 clone 部署自己的聯盟站</span>
+            </div>
+          </li>
+          <li>
+            <div class="icon manual">⚡</div>
+            <div>
+              <strong>上架到 Gumroad（需要你操作）</strong><br>
+              <span style="color:var(--muted);font-size:13px;">Gumroad 是全球最大的數位商品平台，零月費，手續費 10%，3 分鐘可上架</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="manual-section">
+          <h4>⚡ 你需要做：Gumroad 上架教學（30 分鐘，一次性）</h4>
+          <ol class="step-list">
+            <li><div class="step-num">1</div><div>前往 <a href="https://gumroad.com">gumroad.com</a>，用 movielin8866@gmail.com 建立帳號</div></li>
+            <li><div class="step-num">2</div><div>在 Gumroad 建立新商品：類型選「Digital Product」，名稱「SaaS Affiliate Starter Kit」，價格 $49</div></li>
+            <li><div class="step-num">3</div><div>我幫你打包 SaaSAlternatives 程式碼成 ZIP（含 README + 部署說明），你上傳這個 ZIP</div></li>
+            <li><div class="step-num">4</div><div>商品描述、截圖我幫你寫好，你只需要複製貼上</div></li>
+            <li><div class="step-num">5</div><div>把 Gumroad 商品連結傳給我，我替換掉模板頁的「Buy on Gumroad」按鈕</div></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Projection -->
+  <div class="section">
+    <div class="section-title">收入預測（保守估計）</div>
+    <div class="track-card">
+      <div class="track-body">
+        <table class="revenue-table">
+          <thead>
+            <tr>
+              <th>收入來源</th>
+              <th>啟動條件</th>
+              <th>保守月收入</th>
+              <th>樂觀月收入</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Track 1:</strong> Blankspace 維護月費</td>
+              <td>1 位客戶轉月費方案</td>
+              <td class="amount">NT$2,000</td>
+              <td class="amount high">NT$20,000+</td>
+            </tr>
+            <tr>
+              <td><strong>Track 2:</strong> Semrush 聯盟佣金</td>
+              <td>Semrush 核准 + 有機流量</td>
+              <td class="amount">$0–50/月</td>
+              <td class="amount high">$200–500/月</td>
+            </tr>
+            <tr>
+              <td><strong>Track 2:</strong> HubSpot 聯盟（30% 持續）</td>
+              <td>審核通過 + 流量建立</td>
+              <td class="amount">$0–30/月</td>
+              <td class="amount high">$100–300/月</td>
+            </tr>
+            <tr>
+              <td><strong>Track 3:</strong> 模板銷售</td>
+              <td>Gumroad 上架 + 有訂單</td>
+              <td class="amount">$0–49</td>
+              <td class="amount high">$200–500</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;">* Track 2 SEO 生效時間：2–4 個月。Track 1 取決於現有客戶轉換。Track 3 取決於 Gumroad 曝光。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="section">
+    <div class="section-title">接下來 30 天時間表</div>
+    <div class="track-card">
+      <div class="track-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-date">今天 — 2026-03-12</div>
+            <div class="timeline-title">三軌基礎建置完成</div>
+            <div class="timeline-desc">15 篇文章 + 維護方案頁 + 模板商店頁，全部部署上線</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot active"></div>
+            <div class="timeline-date">2–3 天內</div>
+            <div class="timeline-title">聯盟審核通知</div>
+            <div class="timeline-desc">Semrush + HubSpot 預計回覆。通過後我立即換上真實 tracking links</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">本週</div>
+            <div class="timeline-title">你完成 3 個手動設定</div>
+            <div class="timeline-desc">① Stripe Payment Link → 我更新維護頁 ② Gumroad 上架 → 我更新模板頁 ③ 域名購買 → 我設定 Vercel</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">4 週後</div>
+            <div class="timeline-title">Google Search Console 索引生效</div>
+            <div class="timeline-desc">開始出現自然流量。申請 Google AdSense（此時申請通過率較高）</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">3 個月後</div>
+            <div class="timeline-title">SEO 顯著流量</div>
+            <div class="timeline-desc">預估 1,000–5,000 月流量，開始有穩定聯盟佣金</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>你現在只需要做 3 件事</h2>
+    <p>剩下的全部自動化或我幫你完成</p>
+    <div class="cta-grid">
+      <div class="cta-item">
+        <div class="cta-title">① Stripe 帳號</div>
+        <div class="cta-desc">建立 + 建 3 個 Payment Link → 傳給我</div>
+        <a href="https://stripe.com" class="cta-link">→ stripe.com</a>
+      </div>
+      <div class="cta-item">
+        <div class="cta-title">② Gumroad 上架</div>
+        <div class="cta-desc">建帳號 + 建商品 → 傳連結給我</div>
+        <a href="https://gumroad.com" class="cta-link">→ gumroad.com</a>
+      </div>
+      <div class="cta-item">
+        <div class="cta-title">③ 域名購買</div>
+        <div class="cta-desc">買 saasalternatives.io → 傳給我設定</div>
+        <a href="https://www.namecheap.com" class="cta-link">→ namecheap.com</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="report-footer">
+  生成時間：2026-03-12 深夜 | 執行：Klay + John + Iris | 三軌並行執行 | Task #1
+</div>
+
+</body>
+</html>

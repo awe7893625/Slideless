@@ -7,289 +7,150 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* ========== Design Tokens ========== */
     :root {
-      --bg-primary:    #121212;
-      --bg-surface:    #1a1a2e;
-      --bg-elevated:   #16213e;
-      --bg-code:       #0d1117;
-      --text-primary:  #ffffff;
-      --text-secondary:#999999;
-      --text-muted:    #666666;
-      --accent:        #e94560;
-      --accent-soft:   rgba(233, 69, 96, 0.15);
-      --success:       #2ecc71;
-      --warning:       #f39c12;
-      --danger:        #e74c3c;
-      --info:          #3498db;
-      --border:        rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.15);
-      --font-heading:  'Inter', 'Noto Sans TC', system-ui, sans-serif;
-      --font-body:     'Inter', 'Noto Sans TC', system-ui, sans-serif;
-      --font-mono:     'JetBrains Mono', 'IBM Plex Mono', monospace;
-      --slide-w: 100vw;
-      --slide-h: 100vh;
+      --black:       #121212;
+      --white:       #ffffff;
+      --cream:       #f6f5f1;
+      --grey-01:     #f0eee6;
+      --grey-02:     #8b877c;
+      --grey-03:     #6c6a62;
+      --accent:      #a8cde8;
+      --accent-warm: #eb8054;
+      --green:       #85a268;
+      --light-green: #def5d9;
+      --danger:      #d94f4f;
+
+      --bg:            var(--cream);
+      --text:          var(--black);
+      --text-secondary:var(--grey-02);
+      --text-muted:    var(--grey-03);
+      --border:        var(--grey-01);
+      --card-bg:       var(--white);
+      --radius:        6px;
+
+      --font-heading:'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      --font-body:   'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      --font-mono:   'JetBrains Mono', 'IBM Plex Mono', monospace;
     }
 
-    [data-theme="light"] {
-      --bg-primary:    #f5f5f7;
-      --bg-surface:    #ffffff;
-      --bg-elevated:   #e8e8ed;
-      --text-primary:  #1a1a1a;
-      --text-secondary:#6b7280;
-      --text-muted:    #9ca3af;
-      --border:        rgba(0, 0, 0, 0.06);
-      --border-strong: rgba(0, 0, 0, 0.12);
+    [data-theme="dark"] {
+      --bg: var(--black); --text: var(--white);
+      --text-secondary: rgba(255,255,255,0.6); --text-muted: rgba(255,255,255,0.4);
+      --border: rgba(255,255,255,0.1); --card-bg: #1e1e1e;
     }
-
+    [data-theme="white"] { --bg: var(--white); }
     [data-theme="accent"] {
-      --bg-primary:    #e94560;
-      --bg-surface:    rgba(255,255,255,0.12);
-      --text-primary:  #ffffff;
-      --text-secondary:rgba(255,255,255,0.75);
+      --bg: var(--accent); --text: var(--black);
+      --text-secondary: rgba(18,18,18,0.65); --card-bg: rgba(255,255,255,0.45);
     }
 
-    /* ========== Reset & Base ========== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
+    html { font-size: 16px; }
+    body { font-family: var(--font-body); background: var(--black); color: var(--text); overflow: hidden; -webkit-font-smoothing: antialiased; }
 
-    /* ========== Slide Container ========== */
     .deck { position: relative; width: 100vw; height: 100vh; }
     .slide {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 64px;
-      background: var(--bg-primary);
-      opacity: 0;
-      transform: translateX(30px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      pointer-events: none;
-      overflow: hidden;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      padding: 80px 120px; background: var(--bg); color: var(--text);
+      opacity: 0; transform: translateX(20px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.08) transparent;
     }
-    .slide.active {
-      opacity: 1;
-      transform: translateX(0);
-      pointer-events: auto;
-    }
-    .slide-inner {
-      max-width: 1400px;
-      width: 100%;
-      margin: 0 auto;
-    }
+    .slide::-webkit-scrollbar { width: 6px; }
+    .slide::-webkit-scrollbar-track { background: transparent; }
+    .slide::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+    .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .slide-inner { max-width: 1200px; width: 100%; margin: auto; }
 
-    /* ========== Typography ========== */
-    .display { font-size: 4rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
-    h1 { font-size: 3rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
-    h2 { font-size: 2.25rem; font-weight: 600; line-height: 1.2; }
-    h3 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; }
-    .body-text { font-size: 1.25rem; line-height: 1.8; color: var(--text-secondary); max-width: 700px; }
-    .caption { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
-    .mono { font-family: var(--font-mono); font-size: 0.9rem; }
+    .display { font-size: 3.75rem; font-weight: 800; line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; }
+    h1 { font-size: 2.75rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+    h2 { font-size: 2rem; font-weight: 600; line-height: 1.25; }
+    h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.35; }
+    .body-text { font-size: 1.15rem; line-height: 1.8; color: var(--text-secondary); max-width: 680px; }
+    .caption { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.12em; }
+    .mono { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* ========== Layout Helpers ========== */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-    .flex-between { display: flex; justify-content: space-between; align-items: center; }
-    .gap-sm { gap: 8px; }
-    .gap-md { gap: 16px; }
-    .gap-lg { gap: 32px; }
-    .mt-sm { margin-top: 8px; }
-    .mt-md { margin-top: 16px; }
-    .mt-lg { margin-top: 32px; }
-    .mt-xl { margin-top: 48px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .mt-sm { margin-top: 8px; } .mt-md { margin-top: 16px; } .mt-lg { margin-top: 32px; } .mt-xl { margin-top: 48px; }
 
-    /* ========== Components ========== */
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      transition: all 0.2s ease;
-    }
-    .card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: transform 0.2s ease; }
+    .card:hover { transform: translateY(-2px); }
 
-    .metric { font-size: 3.5rem; font-weight: 800; color: var(--accent); font-feature-settings: 'tnum'; line-height: 1; }
-    .metric-label { font-size: 0.875rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
-    .metric-change { font-size: 0.875rem; font-weight: 600; margin-top: 4px; }
-    .metric-change.up { color: var(--success); }
+    .metric { font-size: 3.25rem; font-weight: 800; color: var(--black); font-feature-settings: 'tnum'; line-height: 1; }
+    [data-theme="dark"] .metric { color: var(--white); }
+    .metric-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
+    .metric-change { font-size: 0.85rem; font-weight: 600; margin-top: 4px; }
+    .metric-change.up { color: var(--green); }
     .metric-change.down { color: var(--danger); }
 
-    .tag {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 100px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .tag--accent  { background: var(--accent-soft); color: var(--accent); }
-    .tag--success { background: rgba(46,204,113,0.15); color: var(--success); }
-    .tag--warning { background: rgba(243,156,18,0.15); color: var(--warning); }
-    .tag--info    { background: rgba(52,152,219,0.15); color: var(--info); }
+    .tag { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; border: 1px solid; }
+    .tag--green { border-color: var(--green); color: var(--green); background: rgba(133,162,104,0.08); }
+    .tag--warm  { border-color: var(--accent-warm); color: var(--accent-warm); background: rgba(235,128,84,0.08); }
+    .tag--blue  { border-color: var(--accent); color: var(--grey-03); background: rgba(168,205,232,0.15); }
+    .tag--dark  { border-color: var(--grey-01); color: var(--grey-02); background: transparent; }
 
     table { width: 100%; border-collapse: collapse; }
-    th {
-      background: var(--bg-elevated);
-      text-align: left;
-      padding: 12px 16px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border-strong);
-    }
+    th { text-align: left; padding: 12px 16px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
     td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
-    tr:hover td { background: var(--bg-surface); }
 
-    .code-block {
-      background: var(--bg-code);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px 24px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      line-height: 1.6;
-      overflow-x: auto;
-      color: var(--text-secondary);
-    }
+    .scqa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .scqa-item { padding: 24px; border-radius: var(--radius); background: var(--card-bg); border: 1px solid var(--border); }
+    .scqa-item .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; font-weight: 700; }
+    .scqa-item.s { border-left: 3px solid var(--accent); }
+    .scqa-item.c { border-left: 3px solid var(--accent-warm); }
+    .scqa-item.q { border-left: 3px solid var(--danger); }
+    .scqa-item.a { border-left: 3px solid var(--green); }
 
-    .divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .border-left { padding-left: 16px; border-left: 2px solid var(--grey-01); }
+    [data-theme="dark"] .border-left { border-left-color: rgba(255,255,255,0.15); }
 
-    .scqa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .scqa-item { padding: 24px; border-radius: 12px; border: 1px solid var(--border); }
-    .scqa-item .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; font-weight: 700; }
-    .scqa-item.s { border-left: 3px solid var(--info); }
-    .scqa-item.c { border-left: 3px solid var(--warning); }
-    .scqa-item.q { border-left: 3px solid var(--accent); }
-    .scqa-item.a { border-left: 3px solid var(--success); }
-
-    /* ========== Stagger Animation ========== */
-    .stagger > * { opacity: 0; transform: translateY(16px); animation: fadeUp 0.4s ease forwards; }
-    .stagger > *:nth-child(1) { animation-delay: 0.1s; }
-    .stagger > *:nth-child(2) { animation-delay: 0.2s; }
-    .stagger > *:nth-child(3) { animation-delay: 0.3s; }
-    .stagger > *:nth-child(4) { animation-delay: 0.4s; }
-    .stagger > *:nth-child(5) { animation-delay: 0.5s; }
-    .stagger > *:nth-child(6) { animation-delay: 0.6s; }
+    .stagger > * { opacity: 0; transform: translateY(12px); animation: fadeUp 0.4s ease forwards; }
+    .stagger > *:nth-child(1) { animation-delay: 0.08s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.14s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.2s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.26s; }
+    .stagger > *:nth-child(5) { animation-delay: 0.32s; }
+    .stagger > *:nth-child(6) { animation-delay: 0.38s; }
     .slide:not(.active) .stagger > * { animation: none; opacity: 0; }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .nav-controls { position: fixed; bottom: 28px; right: 36px; display: flex; align-items: center; gap: 12px; z-index: 50; }
+    .slide-counter { font-family: var(--font-mono); font-size: 0.75rem; color: var(--grey-02); }
+    .nav-btn { background: var(--white); border: 1px solid var(--grey-01); color: var(--grey-03); width: 34px; height: 34px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.15s ease; }
+    .nav-btn:hover { background: var(--grey-01); color: var(--black); }
+    .progress-bar { position: fixed; bottom: 0; left: 0; height: 2px; background: var(--accent-warm); transition: width 0.3s ease; z-index: 100; }
+    .brand-mark { position: fixed; top: 28px; left: 36px; font-size: 0.7rem; font-weight: 600; color: var(--grey-02); letter-spacing: 0.12em; text-transform: uppercase; z-index: 50; }
+    .export-btn { position: fixed; top: 28px; right: 36px; background: none; border: 1px solid var(--grey-01); color: var(--grey-02); padding: 5px 14px; border-radius: var(--radius); font-size: 0.7rem; font-family: var(--font-body); cursor: pointer; z-index: 50; }
+    .export-btn:hover { background: var(--white); color: var(--black); }
 
-    /* ========== Navigation ========== */
-    .nav-controls {
-      position: fixed;
-      bottom: 24px;
-      right: 32px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      z-index: 50;
-    }
-    .slide-counter { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
-    .nav-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      transition: all 0.15s ease;
-    }
-    .nav-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
-
-    .progress-bar {
-      position: fixed;
-      bottom: 0; left: 0;
-      height: 3px;
-      background: var(--accent);
-      transition: width 0.3s ease;
-      z-index: 100;
-    }
-
-    .brand-mark {
-      position: fixed;
-      top: 24px; left: 32px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      z-index: 50;
-    }
-
-    .export-btn {
-      position: fixed;
-      top: 24px; right: 32px;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-family: var(--font-body);
-      cursor: pointer;
-      z-index: 50;
-      transition: all 0.15s ease;
-    }
-    .export-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
-
-    /* ========== Overview Mode ========== */
-    .deck.overview .slide {
-      position: relative;
-      opacity: 1;
-      transform: none;
-      pointer-events: auto;
-      height: auto;
-      min-height: 50vh;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin: 16px;
-      cursor: pointer;
-    }
-    .deck.overview .slide:hover { border-color: var(--accent); }
-    .deck.overview { display: grid; grid-template-columns: repeat(3, 1fr); height: auto; overflow: auto; padding: 32px; }
+    .deck.overview .slide { position: relative; opacity: 1; transform: none; pointer-events: auto; height: auto; min-height: 40vh; border: 1px solid var(--grey-01); border-radius: var(--radius); margin: 10px; cursor: pointer; }
+    .deck.overview .slide:hover { border-color: var(--accent-warm); }
+    .deck.overview { display: grid; grid-template-columns: repeat(3, 1fr); height: auto; overflow: auto; padding: 24px; background: var(--cream); }
     .deck.overview .nav-controls, .deck.overview .progress-bar, .deck.overview .brand-mark, .deck.overview .export-btn { display: none; }
 
-    /* ========== Print ========== */
     @media print {
       body { overflow: visible; }
       .slide { position: relative; opacity: 1; transform: none; pointer-events: auto; page-break-after: always; height: 100vh; }
       .nav-controls, .progress-bar, .brand-mark, .export-btn { display: none !important; }
       .stagger > * { opacity: 1; transform: none; animation: none; }
     }
-
-    /* ========== Responsive ========== */
     @media (max-width: 1024px) {
-      .slide { padding: 40px; }
-      .display { font-size: 2.75rem; }
-      h1 { font-size: 2.25rem; }
+      .slide { padding: 48px 48px; }
+      .display { font-size: 2.5rem; } h1 { font-size: 2rem; } h2 { font-size: 1.6rem; }
       .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
       .scqa-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
-      .slide { padding: 24px; }
-      .display { font-size: 2rem; }
-      h1 { font-size: 1.75rem; }
-      h2 { font-size: 1.5rem; }
-      .metric { font-size: 2.5rem; }
+      .slide { padding: 32px 24px; min-height: 100vh; height: auto; }
+      .slide-inner { margin: 24px auto; }
+      .display { font-size: 1.75rem; } h1 { font-size: 1.5rem; } h2 { font-size: 1.25rem; } h3 { font-size: 1.1rem; }
+      .metric { font-size: 2rem; } .body-text { font-size: 1rem; }
+      .nav-controls { bottom: 16px; right: 20px; }
+      .brand-mark { top: 16px; left: 20px; } .export-btn { top: 16px; right: 20px; }
     }
   </style>
 </head>
@@ -310,23 +171,23 @@
   </div>
 
   <!-- Slide 2: Agenda -->
-  <div class="slide" data-theme="dark">
+  <div class="slide">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Overview</p>
       <h2>Report Overview: 4 Projects Delivered, Revenue Up 23%</h2>
       <div class="grid-3 mt-xl stagger">
         <div class="card">
-          <h3 style="color: var(--accent);">01</h3>
+          <h3 style="color: var(--accent-warm);">01</h3>
           <p class="mt-sm" style="font-weight: 600;">Key Metrics</p>
           <p class="mt-sm" style="color: var(--text-secondary); font-size: 0.95rem;">Task completion, costs, uptime</p>
         </div>
         <div class="card">
-          <h3 style="color: var(--accent);">02</h3>
+          <h3 style="color: var(--accent-warm);">02</h3>
           <p class="mt-sm" style="font-weight: 600;">Project Status</p>
           <p class="mt-sm" style="color: var(--text-secondary); font-size: 0.95rem;">TheOrder, BookNow, PureVista, BlankSpace</p>
         </div>
         <div class="card">
-          <h3 style="color: var(--accent);">03</h3>
+          <h3 style="color: var(--accent-warm);">03</h3>
           <p class="mt-sm" style="font-weight: 600;">Next Week</p>
           <p class="mt-sm" style="color: var(--text-secondary); font-size: 0.95rem;">Priorities, blockers, resource allocation</p>
         </div>
@@ -335,33 +196,33 @@
   </div>
 
   <!-- Slide 3: SCQA -->
-  <div class="slide" data-theme="dark">
+  <div class="slide">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Context</p>
       <h2>Background & Challenge</h2>
       <div class="scqa-grid mt-lg stagger">
         <div class="scqa-item s">
-          <p class="label" style="color: var(--info);">Situation</p>
-          <p style="font-size: 1.1rem; line-height: 1.7;">AI Team operates 8 active agents across 4 client projects and 2 internal tools. Week 9 delivered 3 projects on time.</p>
+          <p class="label" style="color: var(--grey-03);">Situation</p>
+          <p style="font-size: 1.05rem; line-height: 1.7;">AI Team operates 8 active agents across 4 client projects and 2 internal tools. Week 9 delivered 3 projects on time.</p>
         </div>
         <div class="scqa-item c">
-          <p class="label" style="color: var(--warning);">Complication</p>
-          <p style="font-size: 1.1rem; line-height: 1.7;">API costs spiked 40% due to Opus usage on routine tasks. Two agents hit rate limits during peak hours.</p>
+          <p class="label" style="color: var(--accent-warm);">Complication</p>
+          <p style="font-size: 1.05rem; line-height: 1.7;">API costs spiked 40% due to Opus usage on routine tasks. Two agents hit rate limits during peak hours.</p>
         </div>
         <div class="scqa-item q">
-          <p class="label" style="color: var(--accent);">Question</p>
-          <p style="font-size: 1.1rem; line-height: 1.7;">How do we maintain delivery velocity while reducing per-task costs by 30%?</p>
+          <p class="label" style="color: var(--danger);">Question</p>
+          <p style="font-size: 1.05rem; line-height: 1.7;">How do we maintain delivery velocity while reducing per-task costs by 30%?</p>
         </div>
         <div class="scqa-item a">
-          <p class="label" style="color: var(--success);">Answer</p>
-          <p style="font-size: 1.1rem; line-height: 1.7;">Route routine tasks to Sonnet/Haiku, reserve Opus for architecture decisions. Projected savings: $180/week.</p>
+          <p class="label" style="color: var(--green);">Answer</p>
+          <p style="font-size: 1.05rem; line-height: 1.7;">Route routine tasks to Sonnet/Haiku, reserve Opus for architecture decisions. Projected savings: $180/week.</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Slide 4: Key Metrics -->
-  <div class="slide" data-theme="dark">
+  <div class="slide">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Performance</p>
       <h2>Key Metrics: All KPIs Green Except Cost Efficiency</h2>
@@ -377,7 +238,7 @@
           <p class="metric-change up">+0.3%</p>
         </div>
         <div class="card" style="text-align: center;">
-          <p class="metric" style="color: var(--warning);">$623</p>
+          <p class="metric" style="color: var(--accent-warm);">$623</p>
           <p class="metric-label">API Cost</p>
           <p class="metric-change down">+40% over budget</p>
         </div>
@@ -391,57 +252,19 @@
   </div>
 
   <!-- Slide 5: Project Status Table -->
-  <div class="slide" data-theme="dark">
+  <div class="slide" data-theme="white">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Projects</p>
       <h2>Project Status: TheOrder Launched, BookNow in QA</h2>
       <div class="mt-lg" style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Status</th>
-              <th>Progress</th>
-              <th>Lead</th>
-              <th>Next Milestone</th>
-            </tr>
-          </thead>
-          <tbody class="stagger">
-            <tr>
-              <td style="font-weight: 600;">TheOrder</td>
-              <td><span class="tag tag--success">LIVE</span></td>
-              <td>100%</td>
-              <td>Webb</td>
-              <td>SEO optimization round 2</td>
-            </tr>
-            <tr>
-              <td style="font-weight: 600;">BookNow</td>
-              <td><span class="tag tag--warning">QA</span></td>
-              <td>85%</td>
-              <td>Max + John</td>
-              <td>LINE integration</td>
-            </tr>
-            <tr>
-              <td style="font-weight: 600;">PureVista</td>
-              <td><span class="tag tag--success">LIVE</span></td>
-              <td>100%</td>
-              <td>Webb</td>
-              <td>Monthly maintenance</td>
-            </tr>
-            <tr>
-              <td style="font-weight: 600;">Blank Space</td>
-              <td><span class="tag tag--success">LIVE</span></td>
-              <td>100%</td>
-              <td>Iris + John</td>
-              <td>Client acquisition</td>
-            </tr>
-            <tr>
-              <td style="font-weight: 600;">Kai Control Center</td>
-              <td><span class="tag tag--info">DEV</span></td>
-              <td>70%</td>
-              <td>Max</td>
-              <td>Traffic dashboard v2</td>
-            </tr>
+        <table class="stagger">
+          <thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Lead</th><th>Next Milestone</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight: 600;">TheOrder</td><td><span class="tag tag--green">LIVE</span></td><td>100%</td><td>Webb</td><td>SEO optimization round 2</td></tr>
+            <tr><td style="font-weight: 600;">BookNow</td><td><span class="tag tag--warm">QA</span></td><td>85%</td><td>Max + John</td><td>LINE integration</td></tr>
+            <tr><td style="font-weight: 600;">PureVista</td><td><span class="tag tag--green">LIVE</span></td><td>100%</td><td>Webb</td><td>Monthly maintenance</td></tr>
+            <tr><td style="font-weight: 600;">Blank Space</td><td><span class="tag tag--green">LIVE</span></td><td>100%</td><td>Iris + John</td><td>Client acquisition</td></tr>
+            <tr><td style="font-weight: 600;">Kai Control Center</td><td><span class="tag tag--blue">DEV</span></td><td>70%</td><td>Max</td><td>Traffic dashboard v2</td></tr>
           </tbody>
         </table>
       </div>
@@ -449,18 +272,16 @@
   </div>
 
   <!-- Slide 6: Cost Breakdown -->
-  <div class="slide" data-theme="light">
+  <div class="slide" data-theme="white">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Cost Analysis</p>
       <h2>Cost Breakdown: Opus Accounts for 72% of Spend</h2>
       <div class="grid-2 mt-xl stagger">
-        <div>
+        <div style="overflow-x: auto;">
           <table>
-            <thead>
-              <tr><th>Model</th><th>Tasks</th><th>Cost</th><th>Share</th></tr>
-            </thead>
+            <thead><tr><th>Model</th><th>Tasks</th><th>Cost</th><th>Share</th></tr></thead>
             <tbody>
-              <tr><td>Opus 4.6</td><td>12</td><td>$449</td><td style="color: var(--accent); font-weight: 600;">72%</td></tr>
+              <tr><td>Opus 4.6</td><td>12</td><td>$449</td><td style="color: var(--accent-warm); font-weight: 600;">72%</td></tr>
               <tr><td>Sonnet 4.6</td><td>28</td><td>$134</td><td>22%</td></tr>
               <tr><td>Haiku 4.5</td><td>7</td><td>$40</td><td>6%</td></tr>
             </tbody>
@@ -469,10 +290,10 @@
         <div class="card">
           <h3>Optimization Plan</h3>
           <ul style="margin-top: 16px; list-style: none; display: flex; flex-direction: column; gap: 12px;">
-            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">Route CRUD tasks to Sonnet</li>
-            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">Batch similar requests</li>
-            <li style="padding-left: 16px; border-left: 2px solid var(--accent);">Cache repeated queries</li>
-            <li style="padding-left: 16px; border-left: 2px solid var(--success);">Target: $450/week (-28%)</li>
+            <li class="border-left">Route CRUD tasks to Sonnet</li>
+            <li class="border-left">Batch similar requests</li>
+            <li class="border-left">Cache repeated queries</li>
+            <li class="border-left" style="color: var(--green); font-weight: 600;">Target: $450/week (-28%)</li>
           </ul>
         </div>
       </div>
@@ -480,28 +301,28 @@
   </div>
 
   <!-- Slide 7: Next Week -->
-  <div class="slide" data-theme="dark">
+  <div class="slide">
     <div class="slide-inner">
       <p class="caption" style="margin-bottom: 16px;">Next Week</p>
       <h2>Week 11 Priorities: Cost Reduction + BookNow Launch</h2>
       <div class="grid-3 mt-xl stagger">
-        <div class="card" style="border-top: 3px solid var(--accent);">
-          <p class="caption" style="color: var(--accent);">P0 — Critical</p>
+        <div class="card" style="border-top: 3px solid var(--accent-warm);">
+          <p class="caption" style="color: var(--accent-warm);">P0 — Critical</p>
           <h3 class="mt-md">BookNow Launch</h3>
           <p class="mt-sm" style="color: var(--text-secondary);">Complete LINE integration, ECPay sandbox testing, Vercel deploy.</p>
-          <p class="mt-md mono" style="color: var(--text-muted);">Owner: Max + John + Forge</p>
+          <p class="mt-md mono">Owner: Max + John + Forge</p>
         </div>
-        <div class="card" style="border-top: 3px solid var(--warning);">
-          <p class="caption" style="color: var(--warning);">P1 — High</p>
+        <div class="card" style="border-top: 3px solid var(--accent);">
+          <p class="caption" style="color: var(--grey-03);">P1 — High</p>
           <h3 class="mt-md">Cost Optimization</h3>
           <p class="mt-sm" style="color: var(--text-secondary);">Implement model routing rules in Kai. Monitor for 3 days.</p>
-          <p class="mt-md mono" style="color: var(--text-muted);">Owner: Klay + Noel</p>
+          <p class="mt-md mono">Owner: Klay + Noel</p>
         </div>
-        <div class="card" style="border-top: 3px solid var(--info);">
-          <p class="caption" style="color: var(--info);">P2 — Normal</p>
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <p class="caption" style="color: var(--green);">P2 — Normal</p>
           <h3 class="mt-md">TheOrder SEO</h3>
           <p class="mt-sm" style="color: var(--text-secondary);">Round 2 optimization. Target: 5 keywords in top 10.</p>
-          <p class="mt-md mono" style="color: var(--text-muted);">Owner: Silo + Webb</p>
+          <p class="mt-md mono">Owner: Silo + Webb</p>
         </div>
       </div>
     </div>
@@ -510,17 +331,16 @@
   <!-- Slide 8: Summary -->
   <div class="slide" data-theme="accent">
     <div class="slide-inner" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-      <h1 class="display">4 Projects Shipped.<br>Cost Needs Attention.</h1>
-      <p class="body-text mt-lg" style="color: rgba(255,255,255,0.8); max-width: 600px; margin: 32px auto 0;">
+      <h1 class="display" style="font-size: 3rem;">4 Projects Shipped.<br>Cost Needs Attention.</h1>
+      <p class="body-text mt-lg" style="max-width: 600px; margin: 24px auto 0;">
         Delivery velocity is strong. Focus next week on cost optimization and BookNow launch. All other projects in maintenance mode.
       </p>
-      <p class="mt-xl" style="font-size: 0.875rem; opacity: 0.6;">Rain AI Team | Confidential | 2026-03-07</p>
+      <p class="mt-xl" style="font-size: 0.8rem; color: var(--text-muted);">Rain AI Team | Confidential | 2026-03-07</p>
     </div>
   </div>
 
 </div>
 
-<!-- Navigation -->
 <div class="nav-controls">
   <button class="nav-btn" onclick="navigate(-1)" aria-label="Previous">&#8592;</button>
   <span class="slide-counter" id="counter">1 / 8</span>
@@ -533,64 +353,35 @@
   const slides = deck.querySelectorAll('.slide');
   const counter = document.getElementById('counter');
   const progress = document.getElementById('progress');
-  let current = 0;
-  let isOverview = false;
+  let current = 0, isOverview = false;
 
-  function goTo(index) {
-    if (index < 0 || index >= slides.length) return;
+  function goTo(i) {
+    if (i < 0 || i >= slides.length) return;
     slides[current].classList.remove('active');
-    current = index;
+    current = i;
     slides[current].classList.add('active');
-    counter.textContent = `${current + 1} / ${slides.length}`;
-    progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+    counter.textContent = `${current+1} / ${slides.length}`;
+    progress.style.width = `${((current+1)/slides.length)*100}%`;
   }
-
-  function navigate(dir) {
-    goTo(current + dir);
-  }
-
+  function navigate(d) { goTo(current+d); }
   function toggleOverview() {
     isOverview = !isOverview;
     deck.classList.toggle('overview', isOverview);
-    if (isOverview) {
-      slides.forEach(s => { s.classList.add('active'); });
-    } else {
-      slides.forEach((s, i) => { s.classList.toggle('active', i === current); });
-    }
+    if (isOverview) slides.forEach(s => s.classList.add('active'));
+    else slides.forEach((s,i) => s.classList.toggle('active', i===current));
   }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
-    else if (e.key === 'f' || e.key === 'F') {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-      else document.exitFullscreen();
-    }
-    else if (e.key === 'o' || e.key === 'O') { toggleOverview(); }
-    else if (e.key >= '1' && e.key <= '9') { goTo(parseInt(e.key) - 1); }
-    else if (e.key === 'Escape' && isOverview) { toggleOverview(); }
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); navigate(1); }
+    else if (e.key==='ArrowLeft') { e.preventDefault(); navigate(-1); }
+    else if (e.key==='f'||e.key==='F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+    else if (e.key==='o'||e.key==='O') toggleOverview();
+    else if (e.key>='1'&&e.key<='9') goTo(parseInt(e.key)-1);
+    else if (e.key==='Escape'&&isOverview) toggleOverview();
   });
-
-  // Touch support
-  let touchStartX = 0;
-  deck.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
-  deck.addEventListener('touchend', (e) => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 60) navigate(diff > 0 ? 1 : -1);
-  });
-
-  // Overview click
-  deck.addEventListener('click', (e) => {
-    if (!isOverview) return;
-    const slide = e.target.closest('.slide');
-    if (slide) {
-      const index = Array.from(slides).indexOf(slide);
-      toggleOverview();
-      goTo(index);
-    }
-  });
-
-  // Init
+  let tx=0;
+  deck.addEventListener('touchstart', e => { tx=e.touches[0].clientX; });
+  deck.addEventListener('touchend', e => { const d=tx-e.changedTouches[0].clientX; if(Math.abs(d)>60) navigate(d>0?1:-1); });
+  deck.addEventListener('click', e => { if(!isOverview) return; const s=e.target.closest('.slide'); if(s){toggleOverview();goTo(Array.from(slides).indexOf(s));} });
   goTo(0);
 </script>
 

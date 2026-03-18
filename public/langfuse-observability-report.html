@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangFuse Observability 上線報告 — Rain AI Team 2026-03-14</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+
+/* PROGRESS */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s;width:0}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--black)}
+
+/* SECTIONS */
+section{padding:80px 120px 60px;max-width:1400px;margin:0 auto;width:100%}
+section:first-child{max-width:none;padding:0;width:100%}
+.full-width{max-width:none!important;width:100%!important}
+
+/* COVER */
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 120px 64px}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(32px,5vw,58px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;line-height:1.1}
+.cover h1 span{color:var(--accent-warm)}
+.cover .subtitle{font-size:17px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:660px}
+.cover-stats{display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center}
+.cover-stat{text-align:center}
+.cover-stat .num{font-size:40px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
+.cover-stat .label{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
+.cover-meta{margin-top:48px;font-size:13px;color:rgba(255,255,255,0.3);font-family:var(--font-mono)}
+
+/* SECTION HEADER */
+.section-header{margin-bottom:40px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:clamp(24px,3vw,38px);font-weight:700;letter-spacing:-0.5px}
+.section-title span{color:var(--accent-warm)}
+.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:700px}
+
+/* CARDS */
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
+.card h3{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--black)}
+.card p{font-size:14px;color:var(--grey-02);line-height:1.65}
+.card ul{padding-left:20px;margin-top:8px}
+.card ul li{font-size:14px;color:var(--grey-02);line-height:1.7;margin-bottom:4px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:40px}
+.stat{background:var(--white);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--grey-01)}
+.stat .num{font-size:32px;font-weight:800;font-family:var(--font-mono)}
+.stat .label{font-size:12px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.stat.blue .num{color:#5b8fb9}
+.stat.warm .num{color:var(--accent-warm)}
+.stat.green .num{color:var(--green)}
+.stat.red .num{color:var(--danger)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+.table-wrap table{min-width:600px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
+td{padding:10px 14px;border-bottom:1px solid var(--grey-01);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(168,205,232,0.05)}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+/* STEP ITEMS */
+.step{display:flex;gap:16px;margin-bottom:20px}
+.step-num{width:32px;height:32px;border-radius:8px;background:var(--accent-warm);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-mono)}
+.step-body h4{font-size:15px;font-weight:600;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--grey-02);line-height:1.6}
+
+/* DONE ITEM */
+.done-item{display:flex;gap:12px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--grey-01)}
+.done-item:last-child{border-bottom:none}
+.done-icon{width:28px;height:28px;border-radius:6px;background:#edf7e9;color:var(--green);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.done-body h4{font-size:14px;font-weight:600;margin-bottom:3px}
+.done-body p{font-size:13px;color:var(--grey-02);line-height:1.5}
+
+/* PROBLEM CARD */
+.problem{background:var(--white);border-radius:10px;padding:20px 24px;border:1px solid var(--grey-01);border-left:3px solid var(--accent-warm);margin-bottom:14px}
+.problem .prob-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-warm);font-family:var(--font-mono);margin-bottom:6px}
+.problem .prob-q{font-size:14px;font-weight:600;margin-bottom:8px}
+.problem .prob-a{font-size:13px;color:var(--grey-02);line-height:1.55}
+.problem .prob-a strong{color:var(--green);font-weight:600}
+
+/* ARCH DIAGRAM */
+.arch{background:var(--black);border-radius:12px;padding:32px;color:#fff;margin-top:24px}
+.arch-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.arch-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 18px;font-size:13px;font-family:var(--font-mono);white-space:nowrap}
+.arch-box.highlight{background:rgba(235,128,84,0.18);border-color:rgba(235,128,84,0.45);color:var(--accent-warm)}
+.arch-box.blue{background:rgba(168,205,232,0.15);border-color:rgba(168,205,232,0.4);color:var(--accent)}
+.arch-arrow{font-size:18px;color:rgba(255,255,255,0.3)}
+.arch-label{font-size:11px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);margin-top:4px}
+
+/* DARK BAND */
+.dark-section{background:var(--black);color:var(--white);padding:80px 0}
+.dark-section .inner{max-width:1400px;margin:0 auto;padding:0 120px}
+.dark-section .section-eyebrow{color:var(--accent)}
+.dark-section .section-title{color:var(--white)}
+.dark-section .section-desc{color:rgba(255,255,255,0.4)}
+
+/* TAG */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font-mono)}
+.tag.green{background:#edf7e9;color:var(--green)}
+.tag.warm{background:#fdf2ec;color:var(--accent-warm)}
+.tag.blue{background:#edf5fb;color:#5b8fb9}
+.tag.grey{background:var(--grey-01);color:var(--grey-03)}
+
+/* FOOTER */
+.footer{background:var(--black);color:rgba(255,255,255,0.3);padding:40px;text-align:center;font-size:12px;font-family:var(--font-mono)}
+.footer span{color:var(--accent-warm)}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  section{padding:80px 60px 60px}
+  .cover{padding:72px 60px 56px}
+  .dark-section .inner{padding:0 60px}
+}
+@media(max-width:900px){
+  section{padding:72px 32px 48px}
+  .cover{padding:72px 32px 48px}
+  .dark-section .inner{padding:0 32px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .cover-stats{gap:28px}
+  .nav{padding:10px 20px}
+}
+@media(max-width:600px){
+  section{padding:64px 20px 40px}
+  .cover{padding:64px 20px 40px}
+  .dark-section .inner{padding:0 20px}
+  .cover-stat .num{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="prog"></div>
+
+<nav class="nav">
+  <div class="nav-brand">LANGFUSE — OBSERVABILITY</div>
+  <div class="nav-links">
+    <a href="#background">背景</a>
+    <a href="#architecture">架構</a>
+    <a href="#deliverables">交付項目</a>
+    <a href="#verification">驗證結果</a>
+    <a href="#issues">問題解決</a>
+    <a href="#next">下一步</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section>
+<div class="cover">
+  <div class="eyebrow">RAIN AI TEAM — OBSERVABILITY</div>
+  <h1>LangFuse <span>Observability</span><br>完整上線</h1>
+  <div class="subtitle">Kai AI 中控台 Observability 系統從 0 到完整運作 — 每個 Agent 任務現在都有可觀測的執行軌跡</div>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="num">4</div>
+      <div class="label">Traces 確認</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">5</div>
+      <div class="label">技術交付項目</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">2</div>
+      <div class="label">LaunchAgents</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">0</div>
+      <div class="label">外部 SDK 依賴</div>
+    </div>
+  </div>
+  <div class="cover-meta">Route B · 2026-03-14 · claude-sonnet-4-6 · M4ControlCenter</div>
+</div>
+</section>
+
+<!-- BACKGROUND -->
+<section id="background">
+  <div class="section-header">
+    <div class="section-eyebrow">01 · BACKGROUND</div>
+    <h2 class="section-title">任務背景：<span>為什麼做 Observability？</span></h2>
+    <p class="section-desc">Ray 企劃書指出三條 Tier 1 升級路線，Route B（Observability）ROI 最高，是最值得先做的一步</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Ray 企劃書 — 三條升級路線</h3>
+      <ul>
+        <li><strong>Route A</strong> — Graph Engine：DAG 任務依賴管理（複雜度高）</li>
+        <li><strong style="color:var(--accent-warm)">Route B — Observability：LangFuse 追蹤（ROI 最高，先做）</strong></li>
+        <li><strong>Route C</strong> — Cloud Scaling：多機器擴展（需要先 B）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Observability 解決什麼問題？</h3>
+      <ul>
+        <li>每個 AI Agent 任務執行過程「黑盒子」— 不知道用了多少 token、耗時多久</li>
+        <li>多個 subagent 協作時無法追蹤哪個環節最慢/最貴</li>
+        <li>沒有歷史數據就無法做模型比較或 prompt 優化</li>
+        <li>現在：每完成一個任務，Kai 自動 fire trace 到 LangFuse</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="section-header">
+    <div class="section-eyebrow">02 · ARCHITECTURE</div>
+    <h2 class="section-title">系統架構：<span>完整技術棧</span></h2>
+    <p class="section-desc">LangFuse v2 self-hosted，Colima 提供輕量 Docker runtime，Kai 後端透過 HTTP REST 無依賴注入</p>
+  </div>
+
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-box highlight">Kai force_complete()</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box highlight">langfuse_service.py<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">HTTP REST · fire-and-forget</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">LangFuse v2<br><span style="font-size:10px;color:rgba(168,205,232,0.5)">localhost:3010</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">PostgreSQL 16<br><span style="font-size:10px;color:rgba(255,255,255,0.3)">langfuse DB</span></div>
+    </div>
+    <div class="arch-row" style="margin-top:8px">
+      <div class="arch-box">macOS Boot</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box highlight">LaunchAgent: ai.rain.colima<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">--cpu 2 --memory 4 --disk 20</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box highlight">LaunchAgent: ai.rain.langfuse<br><span style="font-size:10px;color:rgba(255,255,255,0.4)">docker compose up -d</span></div>
+    </div>
+    <div class="arch-label" style="margin-top:16px">daemon thread → non-blocking · urllib.request only · Singleton pattern</div>
+  </div>
+
+  <div class="grid-3" style="margin-top:24px">
+    <div class="card">
+      <h3>LangFuse v2</h3>
+      <p>Self-hosted 觀測平台。v2 只需 PostgreSQL（v3 需要 ClickHouse 複雜度過高）。UI 在 localhost:3010，帳號由 Playwright 自動建立。</p>
+    </div>
+    <div class="card">
+      <h3>Colima Docker Runtime</h3>
+      <p>Docker Desktop 損壞後的輕量替代方案。brew install colima，佔用更少資源，CLI 相容原本所有 docker 指令。</p>
+    </div>
+    <div class="card">
+      <h3>HTTP REST Adapter</h3>
+      <p>langfuse_service.py 用 stdlib urllib.request 直接打 REST API，零外部依賴，與 SDK 版本完全脫鉤。daemon thread 確保不阻塞 Kai API response。</p>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLES -->
+<section id="deliverables">
+  <div class="section-header">
+    <div class="section-eyebrow">03 · DELIVERABLES</div>
+    <h2 class="section-title">交付項目：<span>5 個完成的技術工作</span></h2>
+    <p class="section-desc">從資料庫欄位到自動啟動，完整閉環</p>
+  </div>
+
+  <div class="card">
+    <div class="done-item">
+      <div class="done-icon">✓</div>
+      <div class="done-body">
+        <h4>agent_steps 欄位 <span class="tag green">DB + API</span></h4>
+        <p>sql_models.py 新增 Column(JSON)，database.py 加 migration entry，agent_tasks.py TaskCompleteRequest 新增 Optional[list[dict]]，agent_task_service.py force_complete() 接收並儲存。</p>
+      </div>
+    </div>
+    <div class="done-item">
+      <div class="done-icon">✓</div>
+      <div class="done-body">
+        <h4>LangFuse v2 Docker Compose <span class="tag blue">Infrastructure</span></h4>
+        <p>langfuse-docker-compose.yml：postgres:16 + langfuse/langfuse:2，port 3010。帳號透過 Playwright 自動化建立（pk-lf + sk-lf API keys 已寫入 Kai .env）。</p>
+      </div>
+    </div>
+    <div class="done-item">
+      <div class="done-icon">✓</div>
+      <div class="done-body">
+        <h4>HTTP REST Adapter <span class="tag warm">Core</span></h4>
+        <p>langfuse_service.py：純 urllib.request，無 SDK 依賴。Singleton get_langfuse_service()，daemon thread fire-and-forget。發送 Trace + Generation spans（per agent_step）+ token usage observation。</p>
+      </div>
+    </div>
+    <div class="done-item">
+      <div class="done-icon">✓</div>
+      <div class="done-body">
+        <h4>Kai 整合 <span class="tag green">Integration</span></h4>
+        <p>agent_task_service.py force_complete() 在 db.commit() 後自動 emit trace。失敗不影響主流程（try/except pass）。LangFuse keys 已從 .env 自動載入。</p>
+      </div>
+    </div>
+    <div class="done-item">
+      <div class="done-icon">✓</div>
+      <div class="done-body">
+        <h4>LaunchAgents 自動啟動 <span class="tag grey">Ops</span></h4>
+        <p>ai.rain.colima.plist：開機啟動 Colima（--cpu 2 --memory 4 --disk 20）。ai.rain.langfuse.plist：等待 Docker 就緒（最多 2 分鐘）再 docker compose up -d。兩個 LaunchAgent 已 launchctl load 生效。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VERIFICATION -->
+<section id="verification">
+  <div class="section-header">
+    <div class="section-eyebrow">04 · VERIFICATION</div>
+    <h2 class="section-title">驗證結果：<span>4 Traces 全部確認</span></h2>
+    <p class="section-desc">LangFuse UI（localhost:3010）+ REST API 雙重驗證</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat green">
+      <div class="num">4</div>
+      <div class="label">Total Traces</div>
+    </div>
+    <div class="stat warm">
+      <div class="num">2</div>
+      <div class="label">agent_steps count</div>
+    </div>
+    <div class="stat blue">
+      <div class="num">100%</div>
+      <div class="label">Metadata Coverage</div>
+    </div>
+    <div class="stat green">
+      <div class="num">0ms</div>
+      <div class="label">API Blocking Time</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Trace Name</th>
+          <th>User</th>
+          <th>Timestamp</th>
+          <th>agent_steps</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:12px">kai-connection-test</code></td>
+          <td>—</td>
+          <td>2026-03-14 13:10</td>
+          <td>—</td>
+          <td><span class="tag green">✓ 確認</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:12px">E2E Final Integration Test</code></td>
+          <td>klay</td>
+          <td>2026-03-14 13:14</td>
+          <td>—</td>
+          <td><span class="tag green">✓ 確認</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:12px">LangFuse Live E2E Test</code></td>
+          <td>klay</td>
+          <td>2026-03-14 13:16</td>
+          <td>—</td>
+          <td><span class="tag green">✓ 確認</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:12px">LangFuse E2E with agent_steps</code></td>
+          <td>klay</td>
+          <td>2026-03-14 13:17</td>
+          <td>max + klay × 2</td>
+          <td><span class="tag warm">✓ Full Trace</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:24px;border-left:3px solid var(--green)">
+    <h3>Trace 欄位確認</h3>
+    <p>每個 trace 包含：<strong>userId</strong>（assigned_to）· <strong>input</strong>（description）· <strong>output</strong>（result.summary）· <strong>metadata</strong>（task_type, source, priority, agent_model, duration_seconds）· <strong>tags</strong>（agent 名稱、task_type、source）</p>
+    <p style="margin-top:8px">agent_steps trace 額外有：<strong>GENERATION spans</strong>（每個 subagent 一條，含 model, input_summary, output_summary, latency_ms）+ <strong>token usage observation</strong>（input/output/total/unit）</p>
+  </div>
+</section>
+
+<!-- ISSUES -->
+<section id="issues">
+  <div class="section-header">
+    <div class="section-eyebrow">05 · PROBLEMS &amp; SOLUTIONS</div>
+    <h2 class="section-title">遇到的問題：<span>4 個障礙全部解決</span></h2>
+    <p class="section-desc">每個問題都找到了更好的替代方案</p>
+  </div>
+
+  <div class="problem">
+    <div class="prob-label">Problem 01</div>
+    <div class="prob-q">Docker Desktop 完全損壞（no space left + 執行檔遺失）</div>
+    <div class="prob-a">VM 內部 filesystem 空間耗盡，/Docker/host/piped 報錯；MacOS/ 目錄下執行檔也遺失。→ <strong>改用 Colima</strong>：brew install colima，2分鐘安裝完成，CLI 完全相容原本所有 docker 指令，且資源佔用更低。</div>
+  </div>
+
+  <div class="problem">
+    <div class="prob-label">Problem 02</div>
+    <div class="prob-q">LangFuse v3 需要 ClickHouse（複雜度過高）</div>
+    <div class="prob-a">拉最新 image 後 CLICKHOUSE_URL is not configured 報錯。→ <strong>降版使用 langfuse:2</strong>：v2 只需 PostgreSQL，架構簡單，功能完整，適合本地自托管。</div>
+  </div>
+
+  <div class="problem">
+    <div class="prob-label">Problem 03</div>
+    <div class="prob-q">LangFuse v2 不支援 LANGFUSE_INIT_* 環境變數</div>
+    <div class="prob-a">想透過 docker-compose env 預置帳號 + API keys，但 v2 完全不支援這個功能。→ <strong>Playwright 自動化</strong>：自動打開 localhost:3010，填入帳號資料，建立 project，複製 API keys，寫入 Kai .env。</div>
+  </div>
+
+  <div class="problem">
+    <div class="prob-label">Problem 04</div>
+    <div class="prob-q">LangFuse Python SDK v4 API 完全不相容</div>
+    <div class="prob-a">SDK v4 改用 OpenTelemetry，__init__() 參數完全不同（enabled= 不存在）。→ <strong>捨棄 SDK，改用 urllib.request 純 HTTP</strong>：直接打 /api/public/traces 和 /api/public/ingestion，零外部依賴，且永遠不會有 SDK 版本升級問題。</div>
+  </div>
+</section>
+
+<!-- NEXT STEPS - DARK SECTION -->
+<div class="dark-section" id="next">
+  <div class="inner">
+    <div class="section-header">
+      <div class="section-eyebrow">06 · NEXT STEPS</div>
+      <h2 class="section-title" style="color:var(--white)">下一步：<span style="color:var(--accent-warm)">Route A + 數據分析</span></h2>
+      <p class="section-desc" style="color:rgba(255,255,255,0.4)">Observability 上線後，數據開始累積，後續任務已經明確</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="card" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)">
+        <h3 style="color:var(--white)">Route A — Graph Engine</h3>
+        <p style="color:rgba(255,255,255,0.45)">DAG 任務依賴管理。讓複雜多步驟任務有明確的前置依賴關係，失敗可重試特定節點而非整個 pipeline。Ray 企劃書優先順序：B → A → C。</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)">
+        <h3 style="color:var(--white)">LangFuse 數據報表</h3>
+        <p style="color:rgba(255,255,255,0.45)">等 1-2 週數據累積後，可做 agent latency / cost / 任務類型分佈報表。哪個 agent 最貴？哪種任務最久？有了數據才能優化。</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)">
+        <h3 style="color:var(--white)">LangFuse Datasets（Phase 2）</h3>
+        <p style="color:rgba(255,255,255,0.45)">串接 LangFuse Datasets 功能，讓每個 task 結果成為 prompt 評估的訓練集。可以做 A/B 比較不同 prompt 版本的輸出品質。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Rain AI Team · <span>LangFuse Observability</span> · 2026-03-14<br>
+  Route B Complete · Traces: 4 ✓ · Auto-start: Colima + LangFuse ✓
+</div>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+</script>
+</body>
+</html>

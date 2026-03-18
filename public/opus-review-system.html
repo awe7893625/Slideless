@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opus 4.6 AI 審查系統 — 頂配架構設計</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:       #121212;
+  --white:       #ffffff;
+  --cream:       #f6f5f1;
+  --grey-01:     #ede9e0;
+  --grey-02:     #8b877c;
+  --grey-03:     #6c6a62;
+  --grey-04:     #3d3a34;
+  --accent:      #E8631A;
+  --accent-light:#fef0e7;
+  --accent-mid:  #f97316;
+  --brown:       #7c5c3e;
+  --green:       #5a7a4a;
+  --green-light: #edf3ea;
+  --red:         #c0392b;
+  --red-light:   #fdf0ef;
+  --blue:        #2c5f8a;
+  --blue-light:  #eaf2fa;
+  --card:        #ffffff;
+  --font-main:   'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  --radius:      12px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06);
+  --shadow:      0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 60px; }
+body {
+  font-family: var(--font-main);
+  color: var(--black);
+  background: var(--cream);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent);
+  z-index: 200; transition: width 0.12s linear; width: 0;
+}
+
+/* Nav */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(246,245,241,0.95);
+  backdrop-filter: blur(14px);
+  z-index: 100;
+  border-bottom: 1px solid var(--grey-01);
+  padding: 14px 40px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.nav-brand {
+  font-weight: 700; font-size: 12px;
+  color: var(--grey-03); font-family: var(--font-mono);
+  white-space: nowrap; flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+.nav-links {
+  display: flex; gap: 20px; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 11.5px; color: var(--grey-02);
+  text-decoration: none; font-weight: 500;
+  transition: color 0.2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--black); }
+
+/* Cover */
+.cover {
+  background: var(--black); color: var(--white);
+  text-align: center; padding: 120px 40px 80px;
+  position: relative; overflow: hidden;
+  margin-top: 48px;
+}
+.cover::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 110%, rgba(232,99,26,0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cover-eyebrow {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 24px; display: block;
+}
+.cover-title {
+  font-size: clamp(32px, 5vw, 56px); font-weight: 800;
+  line-height: 1.15; letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.cover-title span { color: var(--accent); }
+.cover-subtitle {
+  font-size: 18px; color: rgba(255,255,255,0.6);
+  max-width: 520px; margin: 0 auto 40px;
+  line-height: 1.6; font-weight: 400;
+}
+.cover-meta {
+  display: flex; justify-content: center; gap: 32px;
+  flex-wrap: wrap;
+}
+.cover-meta-item {
+  font-family: var(--font-mono); font-size: 11px;
+  color: rgba(255,255,255,0.4); letter-spacing: 0.06em;
+}
+
+/* Hero Verdict Tag */
+.verdict-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(232,99,26,0.15); border: 1px solid rgba(232,99,26,0.35);
+  border-radius: 999px; padding: 8px 20px;
+  font-size: 13px; color: var(--accent); font-weight: 600;
+  margin-bottom: 32px; letter-spacing: 0.03em;
+}
+.verdict-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+/* Main content */
+.main { max-width: 860px; margin: 0 auto; padding: 80px 32px 120px; }
+
+/* Section */
+.section { margin-bottom: 80px; }
+.section-header {
+  display: flex; align-items: flex-start; gap: 16px; margin-bottom: 32px;
+}
+.section-number {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  color: var(--accent); background: var(--accent-light);
+  border-radius: 6px; padding: 4px 10px; flex-shrink: 0;
+  letter-spacing: 0.08em; margin-top: 4px;
+}
+.section-title {
+  font-size: 26px; font-weight: 700; color: var(--black);
+  line-height: 1.25; letter-spacing: -0.01em;
+}
+.section-title em { color: var(--accent); font-style: normal; }
+
+/* Divider */
+.divider {
+  border: none; border-top: 1px solid var(--grey-01); margin: 80px 0;
+}
+
+/* Card */
+.card {
+  background: var(--card); border: 1px solid var(--grey-01);
+  border-radius: var(--radius); padding: 32px;
+  box-shadow: var(--shadow-sm);
+}
+.card + .card { margin-top: 16px; }
+
+/* Big Verdict Card */
+.verdict-card {
+  background: var(--black); color: var(--white);
+  border-radius: 16px; padding: 40px;
+  text-align: center; margin-bottom: 32px;
+}
+.verdict-card .label {
+  font-family: var(--font-mono); font-size: 11px;
+  color: rgba(255,255,255,0.4); letter-spacing: 0.14em;
+  text-transform: uppercase; margin-bottom: 16px; display: block;
+}
+.verdict-card .headline {
+  font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+  margin-bottom: 12px; line-height: 1.2;
+}
+.verdict-card .headline span { color: var(--accent); }
+.verdict-card .sub {
+  font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.6;
+}
+
+/* Two-col */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* Highlight card */
+.highlight {
+  background: var(--accent-light); border: 1px solid rgba(232,99,26,0.2);
+  border-radius: var(--radius); padding: 24px;
+}
+.highlight-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 10px; display: block;
+}
+.highlight-value {
+  font-size: 22px; font-weight: 700; color: var(--black);
+  line-height: 1.25; letter-spacing: -0.01em;
+}
+.highlight-sub { font-size: 13px; color: var(--grey-03); margin-top: 6px; }
+
+/* Green card */
+.green-card {
+  background: var(--green-light); border: 1px solid rgba(90,122,74,0.2);
+  border-radius: var(--radius); padding: 24px;
+}
+.green-card .badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--green);
+  background: rgba(90,122,74,0.12); border-radius: 999px;
+  padding: 3px 10px; margin-bottom: 10px;
+  font-family: var(--font-mono); letter-spacing: 0.06em;
+}
+.green-card .title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.green-card .desc { font-size: 14px; color: var(--grey-03); line-height: 1.6; }
+
+/* Red card */
+.red-card {
+  background: var(--red-light); border: 1px solid rgba(192,57,43,0.2);
+  border-radius: var(--radius); padding: 24px;
+}
+.red-card .badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--red);
+  background: rgba(192,57,43,0.10); border-radius: 999px;
+  padding: 3px 10px; margin-bottom: 10px;
+  font-family: var(--font-mono); letter-spacing: 0.06em;
+}
+.red-card .title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--red); }
+.red-card .desc { font-size: 14px; color: var(--grey-03); line-height: 1.6; }
+
+/* Body text */
+p { font-size: 15px; color: var(--grey-04); line-height: 1.75; margin-bottom: 16px; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--black); font-weight: 600; }
+
+/* Architecture Layer Stack */
+.arch-stack { display: flex; flex-direction: column; gap: 4px; margin: 24px 0; }
+.arch-layer {
+  display: grid; grid-template-columns: 60px 1fr auto;
+  align-items: center; gap: 16px;
+  padding: 16px 24px; border-radius: 10px;
+  border: 1px solid transparent; transition: all 0.2s;
+}
+.arch-layer:hover { transform: translateX(4px); }
+.arch-layer-num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--grey-02); letter-spacing: 0.08em;
+}
+.arch-layer-content {}
+.arch-layer-name {
+  font-size: 14px; font-weight: 700; margin-bottom: 2px;
+}
+.arch-layer-role {
+  font-size: 12px; color: var(--grey-03);
+}
+.arch-layer-model {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px;
+  white-space: nowrap;
+}
+
+.layer-l1 { background: #f8f8f8; border-color: #e8e8e8; }
+.layer-l1 .arch-layer-name { color: var(--grey-03); }
+.layer-l1 .arch-layer-model { background: #eeeeee; color: var(--grey-03); }
+
+.layer-l2a { background: #edf3ea; border-color: rgba(90,122,74,0.2); }
+.layer-l2a .arch-layer-name { color: var(--green); }
+.layer-l2a .arch-layer-model { background: rgba(90,122,74,0.12); color: var(--green); }
+
+.layer-l2b { background: var(--blue-light); border-color: rgba(44,95,138,0.2); }
+.layer-l2b .arch-layer-name { color: var(--blue); }
+.layer-l2b .arch-layer-model { background: rgba(44,95,138,0.10); color: var(--blue); }
+
+.layer-l3 { background: #f3f0ec; border-color: rgba(124,92,62,0.2); }
+.layer-l3 .arch-layer-name { color: var(--brown); }
+.layer-l3 .arch-layer-model { background: rgba(124,92,62,0.10); color: var(--brown); }
+
+.layer-l4 {
+  background: var(--black); border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 20px rgba(232,99,26,0.18);
+}
+.layer-l4 .arch-layer-num { color: var(--accent); }
+.layer-l4 .arch-layer-name { color: var(--white); font-size: 16px; }
+.layer-l4 .arch-layer-role { color: rgba(255,255,255,0.5); }
+.layer-l4 .arch-layer-model { background: var(--accent); color: var(--white); font-size: 12px; }
+
+.layer-l5 { background: #f8f8f8; border-color: #e8e8e8; }
+.layer-l5 .arch-layer-name { color: var(--grey-03); }
+.layer-l5 .arch-layer-model { background: #eeeeee; color: var(--grey-03); }
+
+/* Arrow connector */
+.arch-arrow {
+  text-align: center; color: var(--grey-02); font-size: 18px;
+  margin: 2px 0; line-height: 1;
+}
+
+/* Role Cards */
+.role-card {
+  border-radius: var(--radius); padding: 28px;
+  border-left: 3px solid;
+}
+.role-card.primary {
+  background: var(--black); color: var(--white);
+  border-left-color: var(--accent);
+}
+.role-card.secondary {
+  background: var(--card); border: 1px solid var(--grey-01);
+  border-left: 3px solid var(--grey-02);
+}
+.role-card .role-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 999px;
+  display: inline-block; margin-bottom: 14px;
+}
+.role-card.primary .role-badge { background: var(--accent); color: var(--white); }
+.role-card.secondary .role-badge { background: var(--grey-01); color: var(--grey-03); }
+.role-card .role-title {
+  font-size: 20px; font-weight: 700; margin-bottom: 10px; line-height: 1.2;
+}
+.role-card.primary .role-title { color: var(--white); }
+.role-card .role-desc { font-size: 14px; line-height: 1.65; }
+.role-card.primary .role-desc { color: rgba(255,255,255,0.6); }
+.role-card.secondary .role-desc { color: var(--grey-03); }
+.role-card .role-bullets { margin-top: 14px; padding-left: 0; list-style: none; }
+.role-card .role-bullets li {
+  font-size: 13.5px; padding: 5px 0; display: flex; align-items: flex-start; gap: 8px;
+}
+.role-card.primary .role-bullets li { color: rgba(255,255,255,0.75); }
+.role-card.secondary .role-bullets li { color: var(--grey-03); }
+.bullet-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 7px;
+}
+.primary .bullet-dot { background: var(--accent); }
+.secondary .bullet-dot { background: var(--grey-02); }
+
+/* JSON block */
+.json-block {
+  background: #1a1a1a; color: #e8e8e8;
+  border-radius: var(--radius); padding: 24px;
+  font-family: var(--font-mono); font-size: 13px;
+  line-height: 1.7; overflow-x: auto;
+}
+.json-key { color: #a8cde8; }
+.json-str { color: #c3e8a8; }
+.json-comment { color: #6c6a62; font-style: italic; }
+.json-label { color: var(--accent); }
+
+/* Code block */
+.code-block {
+  background: #1a1a1a; color: #d4d0c8;
+  border-radius: var(--radius); padding: 24px;
+  font-family: var(--font-mono); font-size: 13px;
+  line-height: 1.75; overflow-x: auto;
+  margin-top: 16px;
+}
+.code-kw { color: #a8cde8; }
+.code-fn { color: #f0c080; }
+.code-str { color: #c3e8a8; }
+.code-comment { color: #6c6a62; font-style: italic; }
+.code-num { color: #d4a843; }
+
+/* Flow diagram */
+.flow {
+  display: flex; align-items: center; gap: 0;
+  flex-wrap: wrap; margin: 24px 0;
+}
+.flow-node {
+  background: var(--card); border: 1.5px solid var(--grey-01);
+  border-radius: 10px; padding: 12px 18px;
+  font-size: 13px; font-weight: 600; color: var(--black);
+  text-align: center; white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+.flow-node.accent {
+  background: var(--accent); color: var(--white);
+  border-color: var(--accent);
+}
+.flow-node.dark {
+  background: var(--black); color: var(--white);
+  border-color: var(--black);
+}
+.flow-node.green {
+  background: var(--green-light); color: var(--green);
+  border-color: rgba(90,122,74,0.25);
+}
+.flow-arrow {
+  color: var(--grey-02); font-size: 18px; padding: 0 6px; flex-shrink: 0;
+}
+.flow-branch {
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: flex-start; margin-left: 6px;
+}
+.flow-branch-item {
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Condition pills */
+.condition-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.condition-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--card); border-radius: 8px;
+  border: 1px solid var(--grey-01);
+}
+.condition-icon {
+  font-size: 16px; flex-shrink: 0; margin-top: 1px;
+}
+.condition-text { font-size: 14px; color: var(--grey-04); line-height: 1.5; }
+.condition-text strong { color: var(--black); font-weight: 600; }
+
+/* Ranking table */
+.rank-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.rank-table th {
+  text-align: left; padding: 10px 16px;
+  font-size: 11px; font-weight: 600; color: var(--grey-02);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  background: #f2f0ea; border-bottom: 1px solid var(--grey-01);
+}
+.rank-table td {
+  padding: 14px 16px; font-size: 14px;
+  border-bottom: 1px solid var(--grey-01);
+  color: var(--grey-04);
+}
+.rank-table tr:last-child td { border-bottom: none; }
+.rank-table tr:hover td { background: #fafaf7; }
+.rank-badge {
+  display: inline-block; font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 5px;
+}
+.rank-badge.green { background: var(--green-light); color: var(--green); }
+.rank-badge.blue { background: var(--blue-light); color: var(--blue); }
+.rank-badge.orange { background: var(--accent-light); color: var(--accent); }
+
+/* Action list */
+.action-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.action-item {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 20px 24px;
+  background: var(--card); border-radius: var(--radius);
+  border: 1px solid var(--grey-01); box-shadow: var(--shadow-sm);
+}
+.action-num {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  color: var(--white); background: var(--accent);
+  border-radius: 8px; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.action-content {}
+.action-title { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+.action-desc { font-size: 13.5px; color: var(--grey-03); line-height: 1.55; }
+
+/* Footer */
+.footer {
+  background: var(--black); color: rgba(255,255,255,0.35);
+  text-align: center; padding: 40px 32px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+}
+.footer strong { color: rgba(255,255,255,0.6); }
+
+/* Responsive */
+@media (max-width: 680px) {
+  .nav { padding: 12px 16px; }
+  .cover { padding: 88px 24px 64px; }
+  .main { padding: 48px 20px 80px; }
+  .two-col { grid-template-columns: 1fr; }
+  .three-col { grid-template-columns: 1fr; }
+  .arch-layer { grid-template-columns: 48px 1fr; }
+  .arch-layer-model { display: none; }
+  .flow { gap: 8px; }
+  .card { padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<!-- Nav -->
+<nav class="nav">
+  <span class="nav-brand">OPUS-REVIEW-SYSTEM v1.0</span>
+  <div class="nav-links">
+    <a href="#s1">定位</a>
+    <a href="#s2">差距</a>
+    <a href="#s3">五層架構</a>
+    <a href="#s4">三角色</a>
+    <a href="#s5">Prompt</a>
+    <a href="#s6">閉環</a>
+    <a href="#s7">強項</a>
+    <a href="#s8">成本</a>
+    <a href="#s9">Ranking</a>
+    <a href="#s10">行動</a>
+  </div>
+</nav>
+
+<!-- Cover -->
+<header class="cover">
+  <div class="verdict-tag">
+    <span class="verdict-dot"></span>
+    Architecture Design Report
+  </div>
+  <h1 class="cover-title">
+    Opus 4.6 AI 審查系統<br>
+    <span>頂配架構設計</span>
+  </h1>
+  <p class="cover-subtitle">
+    最高裁決者 + 架構審計官 — 讓 AI 系統有真正的權威判決者，而不是群龍無首的 review 迴圈
+  </p>
+  <div class="cover-meta">
+    <span class="cover-meta-item">DATE: 2026-03-17</span>
+    <span class="cover-meta-item">AUTHOR: Nova / Iris</span>
+    <span class="cover-meta-item">CLASSIFICATION: INTERNAL</span>
+    <span class="cover-meta-item">VERSION: FINAL</span>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- S1: 核心定位 -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2 class="section-title">核心定位 — <em>最高裁決者</em></h2>
+    </div>
+
+    <div class="verdict-card">
+      <span class="label">ONE-LINE VERDICT</span>
+      <div class="headline">Opus 4.6 = <span>AI CTO</span></div>
+      <div class="sub">最終技術決策者 · 架構審計官 · 衝突仲裁人</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <p><strong>不是另一個 reviewer</strong>，而是讓整個審查鏈有明確的權威終點。</p>
+        <p style="margin-top: 12px;">多模型系統最大的問題從來不是「沒有夠多意見」，而是「有太多意見卻沒有人負責最終判決」。Opus 解決這個問題。</p>
+      </div>
+      <div class="highlight">
+        <span class="highlight-label">核心職責</span>
+        <div class="highlight-value">Supreme Judge</div>
+        <div class="highlight-sub">唯一有最終 verdict 決策權的角色</div>
+        <div style="margin-top: 12px; font-size: 13px; color: var(--grey-03); line-height: 1.6;">
+          只在需要時出手。高成本、高精準、高權威。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S2: 差距對比 -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2 class="section-title">現在 vs 頂配 — <em>差在哪裡</em></h2>
+    </div>
+
+    <div class="two-col" style="margin-bottom: 24px;">
+      <div class="red-card">
+        <span class="badge">現狀問題</span>
+        <div class="title">各模型一起 Review</div>
+        <div class="desc">Claude、GPT、Gemini 各說各的，統整後沒有「權威判決」。結果像委員會決策 — 緩慢、模糊、沒人負責對錯。</div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">無 verdict 責任人</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">模型衝突意見無法裁決</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">沒有人負責最終對錯</span>
+          </div>
+        </div>
+      </div>
+      <div class="green-card">
+        <span class="badge" style="background: rgba(90,122,74,0.12);">頂配架構</span>
+        <div class="title">Supreme Judge 閉環</div>
+        <div class="desc">多模型並行 review，Opus 做最終 verdict 裁決。系統有明確的責任終點，每個決策都有問責鏈。</div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text">Opus = 唯一最終決策者</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text">模型衝突由 Opus 一票裁決</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text">Accept / Revise / Reject 三態明確</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p><strong>根本差異：責任歸屬。</strong>現在的系統沒有人真正負責「這個 code 能不能上 production」。頂配架構讓 Opus 成為那個負責人 — 它說 Accept，才能上線；它說 Reject，不管有多少其他 reviewer 通過也不行。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S3: 五層架構 -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2 class="section-title">五層架構 — <em>Final Form</em></h2>
+    </div>
+
+    <div class="card" style="padding: 40px;">
+      <div class="arch-stack">
+
+        <div class="arch-layer layer-l1">
+          <span class="arch-layer-num">L1</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Writer</div>
+            <div class="arch-layer-role">生成原始代碼、功能實作</div>
+          </div>
+          <span class="arch-layer-model">GPT / Cursor</span>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer layer-l2a">
+          <span class="arch-layer-num">L2</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Critical Reviewer</div>
+            <div class="arch-layer-role">邏輯 bug、規格合規、DRY 違反</div>
+          </div>
+          <span class="arch-layer-model">Claude Sonnet</span>
+        </div>
+
+        <div class="arch-layer layer-l2b" style="margin-top: 4px;">
+          <span class="arch-layer-num">L2</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Edge Case Reviewer</div>
+            <div class="arch-layer-role">邊界情況、多模態、異常路徑</div>
+          </div>
+          <span class="arch-layer-model">Gemini</span>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer layer-l3">
+          <span class="arch-layer-num">L3</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Aggregator</div>
+            <div class="arch-layer-role">彙整多個 reviewer 意見，結構化輸出</div>
+          </div>
+          <span class="arch-layer-model">GPT</span>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer layer-l4">
+          <span class="arch-layer-num">L4</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Supreme Judge</div>
+            <div class="arch-layer-role">最終 verdict · 衝突裁決 · Production 安全把關</div>
+          </div>
+          <span class="arch-layer-model">Opus 4.6</span>
+        </div>
+
+        <div class="arch-arrow">↓</div>
+
+        <div class="arch-layer layer-l5">
+          <span class="arch-layer-num">L5</span>
+          <div class="arch-layer-content">
+            <div class="arch-layer-name">Auto Fixer</div>
+            <div class="arch-layer-role">依 Opus verdict 自動修復，回到 L2 re-review</div>
+          </div>
+          <span class="arch-layer-model">GPT / Claude</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <p><strong>L2 並行設計的意圖：</strong>Claude Sonnet 和 Gemini 同時 review，各自發揮強項 — Sonnet 抓邏輯 bug，Gemini 抓 edge case。兩者的分歧正是 Opus L4 存在的理由：模型衝突需要有人裁決，而不是取平均值。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S4: 三個正確角色 -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">Opus 的 <em>三個正確角色</em></h2>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+
+      <div class="role-card primary">
+        <span class="role-badge">最重要</span>
+        <div class="role-title">Supreme Judge — 最終裁決者</div>
+        <div class="role-desc">這是 Opus 最核心的存在理由。不是在 review 池裡多一個意見，而是整個 review 鏈路的終點。</div>
+        <ul class="role-bullets">
+          <li><span class="bullet-dot"></span>最終 verdict 唯一決策權（accept / revise / reject）</li>
+          <li><span class="bullet-dot"></span>處理模型衝突 — Sonnet 說 OK、Gemini 說有問題，Opus 仲裁</li>
+          <li><span class="bullet-dot"></span>判斷是否可上 production，沒有其他模型可以覆蓋</li>
+          <li><span class="bullet-dot"></span>輸出結構化 JSON，機器可讀，直接接 Auto Fix Loop</li>
+        </ul>
+      </div>
+
+      <div class="two-col">
+        <div class="role-card secondary">
+          <span class="role-badge">架構審計</span>
+          <div class="role-title">Architecture Auditor</div>
+          <div class="role-desc">大型 feature / refactor / infra / agent 系統時觸發，不是每次 review 都用。</div>
+          <ul class="role-bullets">
+            <li><span class="bullet-dot"></span>Scalability — 能撐住 10x 流量嗎？</li>
+            <li><span class="bullet-dot"></span>Maintainability — 六個月後能改嗎？</li>
+            <li><span class="bullet-dot"></span>Hidden risk — 表面看不出的系統性問題</li>
+          </ul>
+        </div>
+        <div class="role-card secondary">
+          <span class="role-badge">錯誤復盤</span>
+          <div class="role-title">Failure Investigator</div>
+          <div class="role-desc">review fail / production bug 觸發，找系統性問題而非單點錯誤。</div>
+          <ul class="role-bullets">
+            <li><span class="bullet-dot"></span>Root cause analysis — 真正的根因是什麼？</li>
+            <li><span class="bullet-dot"></span>Pattern detection — 這是一次性錯誤還是系統問題？</li>
+            <li><span class="bullet-dot"></span>Prevention strategy — 如何確保不再發生？</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S5: Prompt 結構 -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2 class="section-title">Supreme Judge <em>Prompt 結構</em></h2>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <p><strong>輸入包含三個部分：</strong>原始任務需求 + 生成結果（完整 code）+ 多個 reviewer 報告（含分數和詳細意見）。Opus 需要完整上下文才能做出有意義的最終判決。</p>
+    </div>
+
+    <div class="two-col" style="margin-bottom: 16px;">
+      <div class="card">
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--grey-02); letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 14px;">決策規則</div>
+        <div class="condition-list">
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--red);">⛔</span>
+            <span class="condition-text"><strong>任何 critical issue valid</strong><br>→ 強制 REJECT，無例外</span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">⚠</span>
+            <span class="condition-text"><strong>系統設計缺陷</strong><br>→ REVISE，附具體修改方向</span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text"><strong>生產安全，風險可接受</strong><br>→ ACCEPT，附信心分數</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--grey-02); letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 14px;">輸出格式（嚴格 JSON）</div>
+        <div class="json-block">
+{<br>
+&nbsp;&nbsp;<span class="json-key">"final_verdict"</span>: <span class="json-str">"accept | revise | reject"</span>,<br>
+&nbsp;&nbsp;<span class="json-key">"confidence"</span>: <span class="json-label">0–1</span>,<br>
+&nbsp;&nbsp;<span class="json-key">"key_risks"</span>: [<span class="json-str">...</span>],<br>
+&nbsp;&nbsp;<span class="json-key">"missed_issues"</span>: [<span class="json-str">...</span>],<br>
+&nbsp;&nbsp;<span class="json-key">"final_reasoning"</span>: <span class="json-str">"..."</span><br>
+}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p><strong>為什麼嚴格 JSON：</strong>Opus 輸出必須機器可讀，才能直接接入 Auto Fix Loop。如果 verdict 是自由文字，下游系統無法自動解析「該不該修」、「修哪裡」。結構化輸出讓整個管線變成真正的自動化閉環，而非半手動流程。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S6: 閉環系統 -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2 class="section-title">閉環系統 — <em>Auto Fix Loop</em></h2>
+    </div>
+
+    <div class="card" style="padding: 40px;">
+      <!-- Flow diagram -->
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+
+        <div class="flow-node">Code 生成</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">Multi Review（Sonnet + Gemini）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">Aggregator（GPT）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node dark">Opus Supreme Judge</div>
+
+        <div style="display: flex; gap: 40px; align-items: flex-start; margin-top: 8px; flex-wrap: wrap; justify-content: center;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: 0.08em;">REJECT / REVISE</div>
+            <div class="flow-arrow" style="color: var(--red);">↓</div>
+            <div class="flow-node" style="background: var(--red-light); color: var(--red); border-color: rgba(192,57,43,0.2);">Auto Fixer</div>
+            <div class="flow-arrow" style="color: var(--red);">↺</div>
+            <div style="font-size: 12px; color: var(--grey-03); text-align: center;">回到 Multi Review</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--green); font-weight: 600; letter-spacing: 0.08em;">ACCEPT</div>
+            <div class="flow-arrow" style="color: var(--green);">↓</div>
+            <div class="flow-node green">Deploy to Production</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <p><strong>閉環的關鍵：</strong>Auto Fixer 收到 Opus 的 JSON verdict 後，針對 <code style="font-family: var(--font-mono); font-size: 13px; background: #f0ede6; padding: 2px 6px; border-radius: 4px;">key_risks</code> 和 <code style="font-family: var(--font-mono); font-size: 13px; background: #f0ede6; padding: 2px 6px; border-radius: 4px;">missed_issues</code> 做定向修復，然後重新進入 L2 review。這個迴圈持續到 Opus 說 Accept 為止 — 沒有靠人工判斷「差不多了」。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S7: 真正的強項 -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2 class="section-title">Opus 真正的 <em>強項</em></h2>
+    </div>
+
+    <div class="two-col">
+      <div class="red-card">
+        <span class="badge">不是 Opus 的強項</span>
+        <div class="title" style="margin-top: 4px; font-size: 15px;">Opus 不擅長的事</div>
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">寫 code（速度太慢、成本太高）</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">快速回應（等待時間不適合實時對話）</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--red);">✗</span>
+            <span class="condition-text">低風險 review（殺雞用牛刀，浪費 token）</span>
+          </div>
+        </div>
+      </div>
+      <div class="green-card">
+        <span class="badge">Opus 的真正強項</span>
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text"><strong>長上下文理解</strong> — 整個 codebase + 多份 review 報告同時消化</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text"><strong>系統層級判斷</strong> — 看到其他模型看不到的架構性問題</span>
+          </div>
+          <div class="condition-item" style="padding: 10px 12px;">
+            <span class="condition-icon" style="color: var(--green);">✓</span>
+            <span class="condition-text"><strong>找人類沒看到的風險</strong> — 特別是隱性依賴和安全盲點</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <p>Opus 的核心優勢是<strong>系統性思考能力</strong>：它能在吸收大量上下文後，做出其他模型無法做到的整體性判斷。這恰好是 Supreme Judge 角色最需要的能力。用它來寫第一版 CRUD，是把火箭引擎裝在腳踏車上。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S8: 成本策略 -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2 class="section-title">成本最優策略 — <em>條件觸發</em></h2>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <p>Opus 不應該在每次 review 都出現。精確的觸發條件讓它只在真正需要的時候介入，<strong>成本比全量使用降低 80% 以上</strong>，效果反而更好。</p>
+    </div>
+
+    <div class="two-col" style="margin-bottom: 16px;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--grey-02); letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 12px;">觸發條件（任一滿足）</div>
+        <div class="condition-list">
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">◈</span>
+            <span class="condition-text">審查綜合分數 <strong>&lt; 8 分</strong></span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">◈</span>
+            <span class="condition-text">Reviewers 之間有<strong>衝突意見</strong></span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">◈</span>
+            <span class="condition-text">有任何 <strong>critical issue</strong> 被標記</span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">◈</span>
+            <span class="condition-text"><strong>Production code</strong>（非 staging）</span>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon" style="color: var(--accent);">◈</span>
+            <span class="condition-text"><strong>Infra / Agent 系統</strong>變更</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--grey-02); letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 12px;">路由邏輯（Python 示意）</div>
+        <div class="code-block">
+<span class="code-kw">def</span> <span class="code-fn">route_to_judge</span>(task, reviews):<br>
+&nbsp;&nbsp;score = <span class="code-fn">aggregate_score</span>(reviews)<br>
+&nbsp;&nbsp;has_conflict = <span class="code-fn">detect_conflict</span>(reviews)<br>
+&nbsp;&nbsp;has_critical = <span class="code-fn">has_critical_issue</span>(reviews)<br>
+<br>
+&nbsp;&nbsp;<span class="code-kw">if</span> task.is_simple <span class="code-kw">and</span> score &gt;= <span class="code-num">8</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> <span class="code-fn">skip_opus</span>()  <span class="code-comment"># 不觸發</span><br>
+<br>
+&nbsp;&nbsp;<span class="code-kw">if</span> (score &lt; <span class="code-num">8</span> <span class="code-kw">or</span> has_conflict<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">or</span> has_critical <span class="code-kw">or</span> task.is_production):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> <span class="code-fn">use_opus</span>()  <span class="code-comment"># 觸發 L4</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <span class="highlight-label">成本原則</span>
+      <div class="highlight-value" style="font-size: 18px;">精準觸發 &gt; 全量使用</div>
+      <div class="highlight-sub">80% 的 review 不需要 Opus。剩下 20% 的高風險 case 才是 Opus 真正有價值的戰場。</div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S9: Reviewer Ranking -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <span class="section-number">09</span>
+      <h2 class="section-title">Reviewer Ranking System — <em>加權判決</em></h2>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <p>長期記錄各模型在不同 review 類型的表現，讓 Opus 不是對所有 reviewer 意見一視同仁，而是<strong>按歷史準確率加權</strong>做最終裁決。</p>
+    </div>
+
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th>模型</th>
+            <th>最強項</th>
+            <th>相對弱項</th>
+            <th>Opus 權重方向</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Claude Sonnet</strong></td>
+            <td>邏輯 bug、規格合規、DRY 違反</td>
+            <td>邊緣案例、UI 視覺問題</td>
+            <td><span class="rank-badge green">邏輯問題高權重</span></td>
+          </tr>
+          <tr>
+            <td><strong>Gemini</strong></td>
+            <td>Edge case、多模態、異常路徑</td>
+            <td>深層業務邏輯</td>
+            <td><span class="rank-badge blue">邊界問題高權重</span></td>
+          </tr>
+          <tr>
+            <td><strong>GPT</strong></td>
+            <td>穩定、格式一致性、說明清晰</td>
+            <td>相對保守，漏報率較高</td>
+            <td><span class="rank-badge orange">結構問題參考</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <p><strong>實作方式：</strong>每次 Opus 裁決後，記錄「哪個 reviewer 的意見最終被 Opus 採納」。長期統計形成各模型的 <code style="font-family: var(--font-mono); font-size: 13px; background: #f0ede6; padding: 2px 6px; border-radius: 4px;">accuracy_by_category</code> 向量，作為 Opus Prompt 的動態上下文，讓 L4 判決越來越精準。</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- S10: 行動清單 -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-number">10</span>
+      <h2 class="section-title">立即行動清單 — <em>四步到位</em></h2>
+    </div>
+
+    <div class="action-list">
+      <div class="action-item">
+        <div class="action-num">1</div>
+        <div class="action-content">
+          <div class="action-title">建立 Supreme Judge（Opus）路由邏輯</div>
+          <div class="action-desc">實作 <code style="font-family: var(--font-mono); font-size: 12px; background: #f0ede6; padding: 1px 5px; border-radius: 3px;">route_to_judge()</code> 函數，根據 score / conflict / critical / production 四個條件決定是否觸發 Opus L4。這是整個系統的核心路由決策點。</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">2</div>
+        <div class="action-content">
+          <div class="action-title">強制 JSON review 結構</div>
+          <div class="action-desc">讓所有 reviewer（Sonnet、Gemini、GPT）的輸出都符合統一 JSON schema：<code style="font-family: var(--font-mono); font-size: 12px; background: #f0ede6; padding: 1px 5px; border-radius: 3px;">{ score, issues[], verdict_suggestion, confidence }</code>。Aggregator 和 Opus 才能機器可讀地處理多份報告。</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">3</div>
+        <div class="action-content">
+          <div class="action-title">做 Auto Fix Loop</div>
+          <div class="action-desc">Auto Fixer 接收 Opus 的 <code style="font-family: var(--font-mono); font-size: 12px; background: #f0ede6; padding: 1px 5px; border-radius: 3px;">key_risks</code> 和 <code style="font-family: var(--font-mono); font-size: 12px; background: #f0ede6; padding: 1px 5px; border-radius: 3px;">missed_issues</code>，做定向修復後重新進入 L2 review。設定最大迴圈次數（建議 3 次），防止無限循環。</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">4</div>
+        <div class="action-content">
+          <div class="action-title">記錄 reviewer 表現數據</div>
+          <div class="action-desc">建立 <code style="font-family: var(--font-mono); font-size: 12px; background: #f0ede6; padding: 1px 5px; border-radius: 3px;">reviewer_performance.jsonl</code>，每次 Opus verdict 後寫入哪個 reviewer 的意見被採納。累積 50+ 筆後開始用加權方式影響 Opus Prompt，讓系統持續自我優化。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict-card" style="margin-top: 32px;">
+      <span class="label">SYSTEM VISION</span>
+      <div class="headline">有 <span>Opus</span> 的 AI Review 系統</div>
+      <div class="sub">不是更多 reviewer，而是更清晰的責任鏈 — 從多人委員會變成有裁決者的高效審查機器</div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <strong>Opus 4.6 AI 審查系統 — 頂配架構設計</strong><br>
+  <span>Generated by Nova · Rain AI Team · 2026-03-17</span>
+</footer>
+
+<script>
+// Progress bar
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (scrolled / total * 100) + '%';
+});
+
+// Active nav links
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 修復報告 2026-03-11</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --white:#ffffff;
+  --black:#121212;
+  --g01:#f0eee6;
+  --g02:#8b877c;
+  --g03:#6c6a62;
+  --g04:#3a3834;
+  --warm:#eb8054;
+  --warm2:#f49a78;
+  --green:#6a9e52;
+  --red:#c94f4f;
+  --blue:#5a8fb9;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter','Noto Sans TC',sans-serif;
+}
+html{scroll-behavior:smooth;scroll-padding-top:54px}
+body{font-family:var(--sans);background:var(--cream);color:var(--black);line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g01);border-radius:2px}
+
+/* ━━ PROGRESS BAR ━━ */
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--warm);z-index:300;width:0;transition:width .1s}
+
+/* ━━ NAV ━━ */
+nav{position:fixed;top:0;left:0;right:0;height:54px;background:rgba(246,245,241,0.92);backdrop-filter:blur(16px);z-index:200;
+  border-bottom:1px solid var(--g01);display:flex;align-items:center;padding:0 40px;gap:24px}
+.nav-brand{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--g03);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:12px;font-weight:500;color:var(--g02);text-decoration:none;padding:5px 11px;border-radius:6px;
+  transition:all .15s;white-space:nowrap}
+.nav-links a:hover{color:var(--black);background:var(--g01)}
+.nav-links a.active{color:var(--black);background:var(--g01)}
+.nav-links a.cta{color:var(--warm);font-weight:700}
+.nav-links a.cta:hover{background:rgba(235,128,84,0.1)}
+
+/* ━━ FLOATING TOC ━━ */
+.ftoc{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100}
+@media(max-width:960px){.ftoc{display:none}}
+.ftoc-dot{width:6px;height:6px;border-radius:50%;background:var(--g01);cursor:pointer;transition:all .2s;position:relative;border:1px solid var(--g02)}
+.ftoc-dot.active{background:var(--warm);border-color:var(--warm);transform:scale(1.4)}
+.ftoc-dot::after{content:attr(data-label);position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;
+  font-family:var(--mono);white-space:nowrap;color:var(--g04);background:var(--white);
+  border:1px solid var(--g01);padding:3px 8px;border-radius:5px;opacity:0;pointer-events:none;
+  transition:opacity .15s;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.ftoc-dot:hover::after{opacity:1}
+
+/* ━━ COVER (封面 — 只有頂部窄帶用黑) ━━ */
+.cover{background:var(--black);color:var(--white);padding:90px 40px 64px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.cover-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  color:var(--warm);margin-bottom:20px}
+.cover h1{font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.05;margin-bottom:14px}
+.cover h1 em{color:var(--warm);font-style:normal}
+.cover-sub{font-size:14px;color:rgba(255,255,255,0.4);max-width:560px;line-height:1.8;margin-bottom:48px}
+
+/* Stat pills on cover */
+.cover-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.cs-pill{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:14px 22px;text-align:center;transition:transform .2s}
+.cs-pill:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+.cs-pill .n{font-family:var(--mono);font-size:26px;font-weight:800;line-height:1;color:var(--white)}
+.cs-pill .n.warm{color:var(--warm)}
+.cs-pill .n.green{color:#7fcf60}
+.cs-pill .l{font-size:10px;color:rgba(255,255,255,0.35);margin-top:5px;font-family:var(--mono);letter-spacing:.5px}
+.cover-meta{margin-top:36px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:1px}
+
+/* ━━ MAIN BODY ━━ */
+.body-wrap{background:var(--cream)}
+
+/* ━━ SECTION ━━ */
+.sec{padding:64px 0 48px}
+.sec-inner{max-width:1080px;margin:0 auto;padding:0 40px}
+.sec-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--warm);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.sec-eyebrow::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,var(--warm),transparent)}
+.sec-title{font-size:clamp(22px,3.5vw,36px);font-weight:700;letter-spacing:-0.5px;color:var(--black);margin-bottom:8px}
+.sec-title em{font-style:normal;color:var(--warm)}
+.sec-desc{font-size:13px;color:var(--g02);max-width:600px;line-height:1.85;margin-bottom:36px}
+.divider{height:1px;background:var(--g01);margin:0 40px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CAROUSEL (水平滑動)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.carousel-wrap{position:relative}
+.carousel-wrap::before,.carousel-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:56px;z-index:10;pointer-events:none}
+.carousel-wrap::before{left:0;background:linear-gradient(90deg,var(--cream),transparent)}
+.carousel-wrap::after{right:0;background:linear-gradient(-90deg,var(--cream),transparent)}
+.carousel-wrap.white-bg::before{background:linear-gradient(90deg,var(--cream),transparent)}
+.carousel-wrap.white-bg::after{background:linear-gradient(-90deg,var(--cream),transparent)}
+
+.carousel{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  padding:6px 52px 20px;cursor:grab;user-select:none}
+.carousel::-webkit-scrollbar{display:none}
+.carousel.dragging{cursor:grabbing}
+
+/* Change card (今天改了什麼) */
+.cc{flex:0 0 280px;scroll-snap-align:start;background:var(--white);border:1px solid var(--g01);
+  border-radius:14px;padding:22px;transition:all .2s;position:relative;overflow:hidden}
+.cc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--g01);transition:background .2s}
+.cc:hover{box-shadow:0 8px 24px rgba(0,0,0,0.07);transform:translateY(-2px)}
+.cc:hover::after{background:var(--warm)}
+
+.cc-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;border-radius:5px;margin-bottom:12px}
+.badge-new{background:rgba(235,128,84,0.1);color:var(--warm);border:1px solid rgba(235,128,84,0.2)}
+.badge-sec{background:rgba(201,79,79,0.08);color:var(--red);border:1px solid rgba(201,79,79,0.15)}
+.badge-fix{background:rgba(106,158,82,0.1);color:var(--green);border:1px solid rgba(106,158,82,0.18)}
+.badge-sync{background:rgba(90,143,185,0.1);color:var(--blue);border:1px solid rgba(90,143,185,0.18)}
+
+.cc-num{position:absolute;top:16px;right:18px;font-family:var(--mono);font-size:10px;
+  font-weight:700;color:var(--g01)}
+.cc-title{font-size:13.5px;font-weight:700;color:var(--black);margin-bottom:8px;line-height:1.4}
+.cc-body{font-size:12px;color:var(--g03);line-height:1.8}
+.cc-body strong{color:var(--g04);font-weight:600}
+.cc-body code{font-family:var(--mono);font-size:10.5px;background:var(--g01);padding:1px 5px;border-radius:3px;color:var(--g04)}
+.cc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.cc-tag{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:4px;
+  background:var(--cream);color:var(--g02);border:1px solid var(--g01)}
+
+/* Agent card */
+.ac{flex:0 0 180px;scroll-snap-align:start;background:var(--white);border:1px solid var(--g01);
+  border-radius:12px;padding:18px 16px;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+.ac:hover{box-shadow:0 6px 20px rgba(0,0,0,0.07);transform:translateY(-2px)}
+.ac-avatar{width:44px;height:44px;border-radius:10px;background:var(--cream);display:flex;
+  align-items:center;justify-content:center;font-size:18px;margin:0 auto 10px;border:1px solid var(--g01)}
+.ac-name{font-size:13px;font-weight:700;color:var(--black);margin-bottom:3px}
+.ac-role{font-size:11px;color:var(--g02);line-height:1.4;margin-bottom:8px}
+.ac-model{font-family:var(--mono);font-size:9px;color:var(--warm);background:rgba(235,128,84,0.08);
+  padding:2px 6px;border-radius:4px;display:inline-block;border:1px solid rgba(235,128,84,0.15)}
+.ac-new{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:8px;font-weight:700;
+  color:var(--warm);background:rgba(235,128,84,0.1);padding:2px 5px;border-radius:3px;
+  letter-spacing:1px;border:1px solid rgba(235,128,84,0.2)}
+.ac-line{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--g01)}
+.ac.new .ac-line{background:var(--warm)}
+.ac.core .ac-line{background:linear-gradient(90deg,var(--warm),var(--warm2))}
+
+/* Carousel nav */
+.c-nav{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.c-btn{width:32px;height:32px;border-radius:50%;background:var(--white);border:1px solid var(--g01);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--g02)}
+.c-btn:hover{border-color:var(--g03);color:var(--black);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.c-dots{display:flex;gap:5px;align-items:center}
+.cdot{width:5px;height:5px;border-radius:50%;background:var(--g01);cursor:pointer;transition:all .2s;
+  border:1px solid var(--g02)}
+.cdot.active{background:var(--warm);border-color:var(--warm);width:14px;border-radius:3px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIFF PANEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.diff-label{font-size:12px;font-weight:600;color:var(--g03);margin:28px 0 12px;
+  display:flex;align-items:center;gap:10px;font-family:var(--mono)}
+.diff-label::after{content:'';flex:1;height:1px;background:var(--g01)}
+.diff-panel{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g01);border-radius:12px;overflow:hidden;background:var(--white)}
+@media(max-width:600px){.diff-panel{grid-template-columns:1fr}}
+.dp-head{padding:10px 18px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;border-bottom:1px solid var(--g01)}
+.dp-head.bad{color:var(--red);background:rgba(201,79,79,0.05)}
+.dp-head.good{color:var(--green);background:rgba(106,158,82,0.05);border-left:1px solid var(--g01)}
+.dp-body{padding:16px 18px;overflow-x:auto;border-left:1px solid var(--g01)}
+.dp-body:first-child{border-left:none}
+.dp-body pre{font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--g02);white-space:pre}
+.hl-bad{color:var(--red)}
+.hl-good{color:var(--green)}
+.hl-ok{color:var(--warm)}
+
+/* ━━ TEST PILLS ━━ */
+.test-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.tp{flex:1;min-width:170px;background:var(--white);border:1px solid var(--g01);border-radius:10px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px}
+.tp-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;font-weight:700}
+.tp-icon.pass{background:rgba(106,158,82,0.12);color:var(--green)}
+.tp-lbl{font-size:12px;font-weight:600;color:var(--black)}
+.tp-sub{font-size:10.5px;color:var(--g02);font-family:var(--mono)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ACCORDION
+━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.acc{display:flex;flex-direction:column;gap:8px}
+.ai{background:var(--white);border:1px solid var(--g01);border-radius:12px;overflow:hidden;transition:box-shadow .2s}
+.ai:hover{box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.ai-head{padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
+.ai-badge{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:3px 9px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+.ab-high{background:rgba(201,79,79,0.08);color:var(--red);border:1px solid rgba(201,79,79,0.15)}
+.ab-midhigh{background:rgba(235,128,84,0.1);color:var(--warm);border:1px solid rgba(235,128,84,0.2)}
+.ab-done{background:rgba(106,158,82,0.1);color:var(--green);border:1px solid rgba(106,158,82,0.18)}
+.ai-text{flex:1}
+.ai-title{font-size:13.5px;font-weight:700;color:var(--black)}
+.ai-sub{font-size:11.5px;color:var(--g02);margin-top:2px}
+.ai-arrow{color:var(--g02);transition:transform .25s;flex-shrink:0}
+.ai.open .ai-arrow{transform:rotate(180deg)}
+.ai-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.ai.open .ai-body{max-height:500px}
+.ai-content{padding:0 20px 20px;margin-top:4px;border-top:1px solid var(--g01);
+  padding-top:16px;font-size:13px;color:var(--g03);line-height:1.85}
+.ai-content strong{color:var(--g04);font-weight:600}
+.ai-content code{font-family:var(--mono);font-size:11px;background:var(--cream);
+  padding:1px 5px;border-radius:3px;color:var(--g04)}
+
+/* ━━━━━━━━━━━━━━━━━━━
+   FLOW DIAGRAM (橫向)
+━━━━━━━━━━━━━━━━━━━━ */
+.flow-scroll{overflow-x:auto;scrollbar-width:none;padding-bottom:16px}
+.flow-scroll::-webkit-scrollbar{display:none}
+.flow-nodes{display:flex;align-items:center;gap:0;min-width:max-content;padding:12px 4px 4px}
+.fn{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
+.fn-box{width:76px;height:72px;border-radius:12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;border:1px solid var(--g01);background:var(--white);
+  text-align:center;cursor:default;transition:all .2s;line-height:1.25}
+.fn-box:hover{box-shadow:0 4px 14px rgba(0,0,0,0.08);transform:translateY(-3px)}
+.fn-icon{font-size:18px}
+.fn-name{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--g04)}
+.fn-lbl{font-size:10px;color:var(--g02);text-align:center;max-width:84px;line-height:1.3}
+.fn-box.warm{background:rgba(235,128,84,0.07);border-color:rgba(235,128,84,0.25)}
+.fn-box.warm .fn-name{color:var(--warm)}
+.fn-box.green{background:rgba(106,158,82,0.07);border-color:rgba(106,158,82,0.25)}
+.fn-box.green .fn-name{color:var(--green)}
+.fn-box.red{background:rgba(201,79,79,0.07);border-color:rgba(201,79,79,0.2)}
+.fn-box.red .fn-name{color:var(--red)}
+.fn-box.blue{background:rgba(90,143,185,0.07);border-color:rgba(90,143,185,0.25)}
+.fn-box.blue .fn-name{color:var(--blue)}
+.fn-box.black{background:var(--black);border-color:var(--black)}
+.fn-box.black .fn-name{color:var(--white)}
+.fn-box.black .fn-icon{filter:invert(1)}
+
+.fn-arrow{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;
+  padding:0 6px;margin-top:-30px}
+.fn-arrow svg{color:var(--g01)}
+.fn-arrow-note{font-size:9px;font-family:var(--mono);color:var(--g02);white-space:nowrap}
+
+.flow-branch{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.flow-br-row{display:flex;align-items:center;gap:0}
+
+/* ━━━━━━━━━━━━━━━━━━
+   TABS
+━━━━━━━━━━━━━━━━━━ */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--g01);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:13px;font-weight:500;color:var(--g02);padding:10px 20px;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--black)}
+.tab.active{color:var(--black);font-weight:700;border-bottom-color:var(--warm)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadein .2s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ━━ LIST ITEMS ━━ */
+.il{display:flex;flex-direction:column;gap:8px}
+.ir{background:var(--white);border:1px solid var(--g01);border-radius:10px;padding:14px 18px;
+  display:flex;gap:12px;font-size:13px;color:var(--g03);line-height:1.75;align-items:flex-start}
+.ir strong{color:var(--black);font-weight:600}
+.ir code{font-family:var(--mono);font-size:11px;background:var(--cream);padding:1px 5px;border-radius:3px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--warm);flex-shrink:0;margin-top:8px}
+.dot.green{background:var(--green)}
+.dot.blue{background:var(--blue)}
+.dot.purple{background:#a374cc}
+
+/* ━━ CALLOUT ━━ */
+.callout{border-left:3px solid var(--warm);padding:14px 18px;background:rgba(235,128,84,0.06);
+  border-radius:0 8px 8px 0;margin-top:20px;font-size:13px;color:var(--g03);line-height:1.8}
+.callout strong{color:var(--black);font-weight:600}
+
+/* ━━ INLINE STATS ROW (白底小 stat) ━━ */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:32px}
+@media(max-width:720px){.stat-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.sbox{background:var(--white);border:1px solid var(--g01);border-radius:10px;padding:16px;text-align:center}
+.sbox .n{font-family:var(--mono);font-size:22px;font-weight:800;line-height:1;margin-bottom:4px}
+.sbox .l{font-size:10px;color:var(--g02);letter-spacing:.5px;font-family:var(--mono)}
+.sbox.w .n{color:var(--warm)}
+.sbox.g .n{color:var(--green)}
+.sbox.b .n{color:var(--blue)}
+.sbox.r .n{color:var(--red)}
+
+/* ━━ SCROLL REVEAL ━━ */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+.delay1{transition-delay:.08s}.delay2{transition-delay:.16s}.delay3{transition-delay:.24s}
+
+/* ━━ FOOTER ━━ */
+footer{text-align:center;padding:48px 40px;font-family:var(--mono);font-size:10.5px;
+  color:var(--g02);border-top:1px solid var(--g01);margin-top:8px;line-height:2}
+footer a{color:var(--warm);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+
+<nav>
+  <span class="nav-brand">RAIN AI TEAM · 2026-03-11</span>
+  <div class="nav-links">
+    <a href="#today" class="cta">★ 今天改了什麼</a>
+    <a href="#fixes">Ray 審查修復</a>
+    <a href="#acp">ACP 架構</a>
+    <a href="#agents">Agent 名單</a>
+    <a href="#summary">總結</a>
+  </div>
+</nav>
+
+<div class="ftoc">
+  <div class="ftoc-dot active" data-section="cover" data-label="封面"></div>
+  <div class="ftoc-dot" data-section="today" data-label="今天改動"></div>
+  <div class="ftoc-dot" data-section="fixes" data-label="Ray 修復"></div>
+  <div class="ftoc-dot" data-section="acp" data-label="ACP 架構"></div>
+  <div class="ftoc-dot" data-section="agents" data-label="Agent 名單"></div>
+  <div class="ftoc-dot" data-section="summary" data-label="總結"></div>
+</div>
+
+<!-- ━━ COVER ━━ -->
+<div class="cover" id="cover">
+  <div class="cover-eyebrow">Rain AI Team · 運作報告 · 2026-03-11</div>
+  <h1>全日修復報告<br><em>&amp; Worker 上線</em></h1>
+  <p class="cover-sub">spawn-worker.py 新架構 · Ray 審查 7 項全修復 · Noel 防幻覺強化 · Kai 中控台同步完成</p>
+  <div class="cover-stats">
+    <div class="cs-pill"><div class="n">7</div><div class="l">Ray 審查發現</div></div>
+    <div class="cs-pill"><div class="n green" data-target="7">0</div><div class="l">全部修復 ✓</div></div>
+    <div class="cs-pill"><div class="n warm">1</div><div class="l">新 Agent 上線</div></div>
+    <div class="cs-pill"><div class="n" data-target="30">0</div><div class="l">Team Agents</div></div>
+    <div class="cs-pill"><div class="n green">PASS</div><div class="l">整合測試</div></div>
+  </div>
+  <div class="cover-meta">Klay (CEO · Opus) · Ray (Design Review · Codex Plus) · Worker (新上線)</div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━ BODY ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="body-wrap">
+
+<!-- ─── TODAY ─── -->
+<section class="sec" id="today">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">★ 今天改了什麼</div>
+    <h2 class="sec-title reveal">2026-03-11 <em>全部改動</em></h2>
+    <p class="sec-desc reveal">Ray 架構審查 7 項全修復 · Worker 新架構上線 · Kai 中控台同步。← → 左右滑動查看每個改動</p>
+
+    <div class="stat-row reveal delay1">
+      <div class="sbox w"><div class="n">1</div><div class="l">新腳本建立</div></div>
+      <div class="sbox r"><div class="n">3</div><div class="l">HIGH 安全修復</div></div>
+      <div class="sbox w"><div class="n">4</div><div class="l">MID 強化</div></div>
+      <div class="sbox b"><div class="n">3</div><div class="l">中控台檔案</div></div>
+      <div class="sbox g"><div class="n">✓</div><div class="l">測試通過</div></div>
+    </div>
+  </div>
+
+  <div class="carousel-wrap reveal delay2">
+    <div class="carousel" id="todayCar">
+
+      <div class="cc">
+        <div class="cc-num">01</div>
+        <span class="cc-badge badge-new">★ 全新建立</span>
+        <div class="cc-title">spawn-worker.py — Noel 第二執行路徑</div>
+        <div class="cc-body">新建 <strong>244 行</strong>自主執行腳本。Standard/Tiny → Worker 執行；Major/Critical → Klay。完成後自動更新 Kai + Discord 通知 Rain。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">spawn-worker.py</span>
+          <span class="cc-tag">244 行</span>
+          <span class="cc-tag">Claude Sonnet 4.6</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">02</div>
+        <span class="cc-badge badge-sec">HIGH-1 安全</span>
+        <div class="cc-title">assigned_to Bug 修復</div>
+        <div class="cc-body">任務建立時 <code>assigned_to</code> 原為 <code>"klay"</code>，Worker 任務歸屬錯誤，重複偵測完全失效。修正為 <code>"worker"</code>，check URL 同步更新。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">spawn-worker.py:92</span>
+          <span class="cc-tag">check_duplicate</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">03</div>
+        <span class="cc-badge badge-sec">HIGH-2 安全</span>
+        <div class="cc-title">Shell Injection 防護</div>
+        <div class="cc-body">Ray PoC 驗證 <code>$(whoami)</code> 注入成功。修復：Python 預先生成 <code>.sh</code> 包裝檔，全部參數用 <code>shlex.quote()</code> 保護，LLM 只看固定 script path。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">write_escalate_script()</span>
+          <span class="cc-tag">shlex.quote</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">04</div>
+        <span class="cc-badge badge-sec">HIGH-3 安全</span>
+        <div class="cc-title">Closing Tag Bypass 修復</div>
+        <div class="cc-body"><code>sanitize_for_prompt()</code> 原本不匹配 <code>&lt;/system&gt;</code>。修正 regex 涵蓋開頭與結尾 tag，並新增 <code>$(…)</code> 與反引號到 DANGEROUS_PATTERNS。兩個腳本同步。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">sanitize_for_prompt</span>
+          <span class="cc-tag">spawn-klay.py 同步</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">05</div>
+        <span class="cc-badge badge-fix">MID-HIGH 修復</span>
+        <div class="cc-title">路由邏輯 Major → Klay</div>
+        <div class="cc-body">原本只有 Critical 轉 Klay，Major 等級由 Worker 自行執行（風險過高，無 3-Phase 規劃）。修正：Major 和 Critical 均走 <code>escalate_{id}.sh</code>。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">routing logic</span>
+          <span class="cc-tag">escalate script</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">06</div>
+        <span class="cc-badge badge-fix">MID 強化</span>
+        <div class="cc-title">Kai 離線 Fallback</div>
+        <div class="cc-body">Kai 離線時原本直接 crash。現在 fallback 寫入 <code>offline_queue.jsonl</code>，生成 <code>local-{uuid}</code> task ID，繼續執行 tmux session，不中斷任務。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">offline_queue.jsonl</span>
+          <span class="cc-tag">local-{uuid}</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">07</div>
+        <span class="cc-badge badge-fix">MID 強化</span>
+        <div class="cc-title">tmux Return Code 檢查</div>
+        <div class="cc-body"><code>tmux new-session</code> 失敗時無回應。加入 <code>proc.wait()</code> + <code>returncode != 0</code> 判斷，失敗時 fail Kai 任務並 exit 1，不再靜默失敗。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">proc.returncode</span>
+          <span class="cc-tag">fail_kai_task()</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">08</div>
+        <span class="cc-badge badge-fix">MID 強化</span>
+        <div class="cc-title">Noel 防幻覺 +3 規則</div>
+        <div class="cc-body">openclaw.json 新增 3 條：禁止捏造測試輸出、任務建立 ≠ Agent 啟動、通知聲稱需真實 API 回傳。主題 <strong>5688 → 5932 chars</strong>，共 8 條反捏造規則。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">openclaw.json</span>
+          <span class="cc-tag">⛔ 反捏造 ×8</span>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-num">09</div>
+        <span class="cc-badge badge-sync">中控台同步</span>
+        <div class="cc-title">Worker 進 Kai + 7 處同步規則</div>
+        <div class="cc-body">team_service.py v8 migration · agent_task_service.py TASK_ROUTING 更新。永久規則寫入 MEMORY.md：新增/移除 Agent 必須同步 7 個位置。</div>
+        <div class="cc-tags">
+          <span class="cc-tag">team_service.py v8</span>
+          <span class="cc-tag">TASK_ROUTING</span>
+          <span class="cc-tag">MEMORY.md</span>
+        </div>
+      </div>
+
+    </div><!-- /carousel -->
+    <div class="c-nav" id="todayNav">
+      <button class="c-btn" id="todayPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="c-dots" id="todayDots"></div>
+      <button class="c-btn" id="todayNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+
+  <!-- DIFF -->
+  <div class="sec-inner">
+    <div class="diff-label reveal">HIGH-2 修復前後對比 — Shell Injection 防護</div>
+    <div class="diff-panel reveal delay1">
+      <div>
+        <div class="dp-head bad">✗ 修復前</div>
+        <div class="dp-body"><pre><span class="hl-bad"># 危險：title 直接進 prompt 字串</span>
+prompt = f"""
+spawn-klay.py with title:
+<span class="hl-bad">{title}</span>
+"""
+<span class="hl-bad"># title = "$(whoami)" → bash 展開 → RCE</span></pre></div>
+      </div>
+      <div>
+        <div class="dp-head good">✓ 修復後</div>
+        <div class="dp-body"><pre><span class="hl-good">def write_escalate_script(task_id, title):</span>
+    path = f"escalate_{task_id}.sh"
+    with open(path, "w") as f:
+        f.write(f"""#!/bin/bash
+exec {shlex.quote(py)} \
+     {shlex.quote(spawn_klay)} \
+     <span class="hl-good">{shlex.quote(title)}</span>
+""")
+<span class="hl-good"># LLM 只見 script path，title 已被
+# Python 層 shlex.quote() 完整保護</span></pre></div>
+      </div>
+    </div>
+
+    <!-- TEST RESULTS -->
+    <div class="test-row reveal delay2">
+      <div class="tp"><div class="tp-icon pass">✓</div><div><div class="tp-lbl">sanitize_for_prompt</div><div class="tp-sub">closing tag + $() 全擋</div></div></div>
+      <div class="tp"><div class="tp-icon pass">✓</div><div><div class="tp-lbl">write_escalate_script PoC</div><div class="tp-sub">單引號包裹，bash 不展開</div></div></div>
+      <div class="tp"><div class="tp-icon pass">✓</div><div><div class="tp-lbl">Prompt routing</div><div class="tp-sub">Major → escalate ✓</div></div></div>
+      <div class="tp"><div class="tp-icon pass">✓</div><div><div class="tp-lbl">Live integration</div><div class="tp-sub">assigned_to: worker · 17s</div></div></div>
+      <div class="tp"><div class="tp-icon pass">✓</div><div><div class="tp-lbl">Kai /api/team/members</div><div class="tp-sub">Worker 出現 ✓</div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── RAY FIXES ─── -->
+<section class="sec" id="fixes">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">Ray 架構審查</div>
+    <h2 class="sec-title reveal">7 項發現 <em>全修復</em></h2>
+    <p class="sec-desc reveal">Ray（Codex Plus CLI）對 spawn-worker.py 進行架構審查，發現 3 HIGH · 1 MID-HIGH · 3 MID。點擊展開每項詳情。</p>
+
+    <div class="acc reveal">
+
+      <div class="ai open">
+        <div class="ai-head" onclick="toggleAi(this)">
+          <span class="ai-badge ab-high">HIGH-1</span>
+          <div class="ai-text"><div class="ai-title">assigned_to 錯誤 + 重複偵測失效</div><div class="ai-sub">Worker 任務錯誤歸屬 Klay 帳下</div></div>
+          <svg class="ai-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ai-body"><div class="ai-content">
+          任務建立時 <code>assigned_to="klay"</code>，導致 Worker 任務出現在 Klay 名下，Dashboard 顯示錯誤。<code>check_duplicate</code> query 查的是 <code>?assigned_to=klay</code>，Worker 任務完全無法觸發重複偵測。<br><br>
+          <strong>修復</strong>：<code>assigned_to="worker"</code>，<code>check_duplicate</code> URL 參數同步更新。
+        </div></div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="toggleAi(this)">
+          <span class="ai-badge ab-high">HIGH-2</span>
+          <div class="ai-text"><div class="ai-title">Shell Injection via Task Title（Ray PoC 驗證）</div><div class="ai-sub"><code>$(whoami)</code> 注入成功 RCE</div></div>
+          <svg class="ai-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ai-body"><div class="ai-content">
+          原本 title 直接插入 prompt 字串，LLM 生成 shell 指令。攻擊者在 title 放入 <code>$(whoami)</code> 即可 RCE。Ray 實際 PoC 驗證攻擊路徑成立。<br><br>
+          <strong>修復</strong>：<code>write_escalate_script()</code> 預先生成 <code>escalate_{task_id}.sh</code>，所有參數用 <code>shlex.quote()</code> 包裹。LLM 只看到不含 title 的固定 script path。
+        </div></div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="toggleAi(this)">
+          <span class="ai-badge ab-high">HIGH-3</span>
+          <div class="ai-text"><div class="ai-title">Closing Tag Bypass（兩個腳本都受影響）</div><div class="ai-sub"><code>&lt;/system&gt;</code> 可繞過 sanitize_for_prompt</div></div>
+          <svg class="ai-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ai-body"><div class="ai-content">
+          <code>sanitize_for_prompt()</code> regex 只匹配 <code>&lt;system&gt;</code>，不匹配 <code>&lt;/system&gt;</code>，攻擊者可用結尾 tag 注入 prompt 結構。spawn-klay.py 有相同漏洞。<br><br>
+          <strong>修復</strong>：Regex 改為 <code>&lt;\s*/?\s*(system|assistant|user|task_input)\s*/?&gt;</code>，同時將 <code>$(...)</code> 命令替換和反引號加入 <code>DANGEROUS_PATTERNS</code>。兩個腳本同步修復。
+        </div></div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="toggleAi(this)">
+          <span class="ai-badge ab-midhigh">MID-HIGH</span>
+          <div class="ai-text"><div class="ai-title">Major 任務路由錯誤（Worker 自行執行）</div><div class="ai-sub">Major 等級應轉 Klay 但由 Worker 直接跑</div></div>
+          <svg class="ai-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ai-body"><div class="ai-content">
+          原本路由：Critical → Klay、Major → Worker 執行。Major 任務（3+ 檔案、前後端同時改）由 Worker 直接執行，缺乏 3-Phase Planning，風險過高。<br><br>
+          <strong>修復</strong>：Major 和 Critical 均走 <code>write_escalate_script()</code> → spawn-klay.py。Worker 只處理 Standard 和 Tiny。
+        </div></div>
+      </div>
+
+      <div class="ai">
+        <div class="ai-head" onclick="toggleAi(this)">
+          <span class="ai-badge ab-done">MID ×3</span>
+          <div class="ai-text"><div class="ai-title">離線 Fallback · tmux 錯誤 · Noel 防幻覺</div><div class="ai-sub">3 項穩定性強化</div></div>
+          <svg class="ai-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ai-body"><div class="ai-content">
+          <strong>Kai 離線 Fallback</strong>：Kai 離線時原本 crash。現在寫入 <code>offline_queue.jsonl</code>，生成 <code>local-{uuid}</code> task ID，繼續執行不中斷。<br><br>
+          <strong>tmux Return Code</strong>：<code>tmux new-session</code> 失敗無回應。加入 <code>proc.wait()</code> + <code>returncode != 0</code> 判斷，失敗時 fail Kai 任務並 exit 1。<br><br>
+          <strong>Noel 防幻覺 +3 條</strong>：openclaw.json 新增規則，禁止捏造測試輸出、任務建立 ≠ Agent 啟動、通知聲稱需真實 API 回傳。
+        </div></div>
+      </div>
+
+    </div><!-- /acc -->
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── ACP ─── -->
+<section class="sec" id="acp">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">ACP 架構</div>
+    <h2 class="sec-title reveal">Noel <em>雙執行路徑</em></h2>
+    <p class="sec-desc reveal">Autonomous Completion Protocol：Noel 自主完成任務的機制。今日新增 Worker 路徑。← 左右滑動查看完整流程</p>
+
+    <div class="flow-scroll reveal">
+      <div class="flow-nodes">
+        <div class="fn">
+          <div class="fn-box warm"><span class="fn-icon">📋</span><span class="fn-name">NOEL</span></div>
+          <div class="fn-lbl">收到任務</div>
+        </div>
+        <div class="fn-arrow">
+          <svg width="36" height="2" viewBox="0 0 36 2"><line x1="0" y1="1" x2="36" y2="1" stroke="#f0eee6" stroke-width="1.5" stroke-dasharray="5 3"/></svg>
+        </div>
+        <div class="fn">
+          <div class="fn-box blue"><span class="fn-icon">⚖️</span><span class="fn-name">評估等級</span></div>
+          <div class="fn-lbl">Tiny / Standard<br>Major / Critical</div>
+        </div>
+        <div class="fn-arrow">
+          <svg width="36" height="2" viewBox="0 0 36 2"><line x1="0" y1="1" x2="36" y2="1" stroke="#f0eee6" stroke-width="1.5" stroke-dasharray="5 3"/></svg>
+        </div>
+
+        <!-- 分叉 -->
+        <div class="fn" style="align-items:flex-start">
+          <div class="flow-branch">
+            <!-- 路徑 A -->
+            <div class="flow-br-row">
+              <div class="fn" style="gap:4px">
+                <div style="font-size:9px;font-family:var(--mono);color:var(--green);margin-bottom:2px;white-space:nowrap;letter-spacing:.5px">STANDARD / TINY</div>
+                <div class="fn-box green"><span class="fn-icon">⚡</span><span class="fn-name">WORKER</span></div>
+                <div class="fn-lbl">spawn-worker.py</div>
+              </div>
+              <div class="fn-arrow" style="margin-top:-16px">
+                <svg width="36" height="2" viewBox="0 0 36 2"><line x1="0" y1="1" x2="36" y2="1" stroke="#f0eee6" stroke-width="1.5" stroke-dasharray="5 3"/></svg>
+              </div>
+              <div class="fn" style="gap:4px">
+                <div style="font-size:9px;font-family:var(--mono);color:transparent;margin-bottom:2px">.</div>
+                <div class="fn-box green"><span class="fn-icon">✅</span><span class="fn-name">完成</span></div>
+                <div class="fn-lbl">更新 Kai<br>通知 Discord</div>
+              </div>
+            </div>
+
+            <!-- 路徑 B -->
+            <div class="flow-br-row">
+              <div class="fn" style="gap:4px">
+                <div style="font-size:9px;font-family:var(--mono);color:var(--red);margin-bottom:2px;white-space:nowrap;letter-spacing:.5px">MAJOR / CRITICAL</div>
+                <div class="fn-box red"><span class="fn-icon">🔺</span><span class="fn-name">轉交 KLAY</span></div>
+                <div class="fn-lbl">escalate_{id}.sh</div>
+              </div>
+              <div class="fn-arrow" style="margin-top:-16px">
+                <svg width="36" height="2" viewBox="0 0 36 2"><line x1="0" y1="1" x2="36" y2="1" stroke="#f0eee6" stroke-width="1.5" stroke-dasharray="5 3"/></svg>
+              </div>
+              <div class="fn" style="gap:4px">
+                <div style="font-size:9px;font-family:var(--mono);color:transparent;margin-bottom:2px">.</div>
+                <div class="fn-box black"><span class="fn-icon" style="filter:none">👑</span><span class="fn-name" style="color:#eb8054">KLAY</span></div>
+                <div class="fn-lbl">spawn-klay.py<br>3-Phase 規劃</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3 欄說明 -->
+    <div class="reveal delay1" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:28px">
+      <div style="background:var(--white);border:1px solid var(--g01);border-radius:12px;padding:20px">
+        <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--warm);text-transform:uppercase;margin-bottom:10px">Worker 執行</div>
+        <div class="il">
+          <div style="font-size:12.5px;color:var(--g03);line-height:1.9">✓ Tiny 任務<br>✓ Standard 任務<br>✓ Bug fix<br>✓ CRUD<br>✓ 研究查詢</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--g01);border-radius:12px;padding:20px">
+        <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:10px">Klay 執行</div>
+        <div style="font-size:12.5px;color:var(--g03);line-height:1.9">✓ Major（3+ 檔案）<br>✓ Critical 任務<br>✓ 前後端同時改<br>✓ Auth / Payment<br>✓ 需 3-Phase 規劃</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--g01);border-radius:12px;padding:20px">
+        <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:10px">安全防護</div>
+        <div style="font-size:12.5px;color:var(--g03);line-height:1.9">✓ shlex.quote() 全覆蓋<br>✓ sanitize_for_prompt<br>✓ DANGEROUS_PATTERNS<br>✓ Kai offline fallback<br>✓ tmux exit code check</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── AGENTS ─── -->
+<section class="sec" id="agents">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">Team Agents</div>
+    <h2 class="sec-title reveal">30 Agents · <em>Worker 新加入</em></h2>
+    <p class="sec-desc reveal">今日新增 Worker 至 Kai 中控台。← → 左右滑動瀏覽全員</p>
+  </div>
+
+  <div class="carousel-wrap reveal">
+    <div class="carousel" id="agentCar">
+      <div class="ac new"><div class="ac-new">★ 新</div><div class="ac-avatar">⚡</div><div class="ac-name">Worker</div><div class="ac-role">Noel 第二執行路徑<br>Standard/Tiny 任務</div><div class="ac-model">Sonnet 4.6</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">👑</div><div class="ac-name">Klay</div><div class="ac-role">CEO · 商業決策<br>任務分級</div><div class="ac-model">Opus</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🏢</div><div class="ac-name">Noel</div><div class="ac-role">Ops Director<br>任務派遣</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🔨</div><div class="ac-name">Max</div><div class="ac-role">Senior Backend<br>FastAPI · 效能</div><div class="ac-model">Opus</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">⚙️</div><div class="ac-name">Rex</div><div class="ac-role">Backend API<br>CRUD · 金流串接</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🖥️</div><div class="ac-name">John</div><div class="ac-role">Frontend<br>React · Next.js</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🎨</div><div class="ac-name">Iris</div><div class="ac-role">UI/UX Design<br>CSS · RWD</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🔬</div><div class="ac-name">Scout</div><div class="ac-role">架構設計<br>API Contracts</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">✅</div><div class="ac-name">Ray</div><div class="ac-role">方案審查官<br>Veto 權</div><div class="ac-model">Codex Plus</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">📝</div><div class="ac-name">Quill</div><div class="ac-role">Code Review<br>PR/Diff</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">🚀</div><div class="ac-name">Forge</div><div class="ac-role">CI/CD Gate<br>lint · build</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac core"><div class="ac-avatar">📊</div><div class="ac-name">Kai</div><div class="ac-role">控制台監控<br>任務追蹤</div><div class="ac-model">Internal</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">🔒</div><div class="ac-name">Sentinel</div><div class="ac-role">Security<br>secrets scan</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">💰</div><div class="ac-name">Knox</div><div class="ac-role">Finance Lead<br>vault · 帳號</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">🌐</div><div class="ac-name">Webb</div><div class="ac-role">Website Lead<br>規格包 Owner</div><div class="ac-model">Sonnet</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">🔍</div><div class="ac-name">Silo</div><div class="ac-role">SEO 技術結構<br>sitemap</div><div class="ac-model">Gemini Pro</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">🎯</div><div class="ac-name">Pixel</div><div class="ac-role">Creative Design<br>AI 圖片生成</div><div class="ac-model">Gemini CLI</div><div class="ac-line"></div></div>
+      <div class="ac"><div class="ac-avatar">📈</div><div class="ac-name">GooayeAI</div><div class="ac-role">Investment<br>股癌 EP 分析</div><div class="ac-model">Gemini Flash</div><div class="ac-line"></div></div>
+    </div>
+  </div>
+  <div class="c-nav" id="agentNav">
+    <button class="c-btn" id="agentPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="c-dots" id="agentDots"></div>
+    <button class="c-btn" id="agentNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── SUMMARY ─── -->
+<section class="sec" id="summary">
+  <div class="sec-inner">
+    <div class="sec-eyebrow reveal">總結</div>
+    <h2 class="sec-title reveal">今日 <em>全部完成</em></h2>
+    <p class="sec-desc reveal">點擊 Tab 查看不同面向的報告。</p>
+
+    <div class="tabs reveal">
+      <div class="tab active" onclick="switchTab(this,'done')">✅ 已完成</div>
+      <div class="tab" onclick="switchTab(this,'rule')">📋 新規則</div>
+      <div class="tab" onclick="switchTab(this,'next')">→ 下一步</div>
+    </div>
+
+    <div class="tab-panel active" id="tab-done">
+      <div class="il">
+        <div class="ir"><div class="dot green"></div><div><strong>spawn-worker.py 全新建立</strong> — 244 行，Standard/Tiny → Worker，Major/Critical → Klay via escalate script</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>HIGH-1 修復</strong> — <code>assigned_to="worker"</code>，重複偵測 query 同步</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>HIGH-2 修復</strong> — <code>write_escalate_script()</code> + <code>shlex.quote()</code>，shell injection 完全防護</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>HIGH-3 修復</strong> — <code>sanitize_for_prompt</code> closing tag + $() 反引號，spawn-klay.py 同步</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>MID-HIGH 修復</strong> — Major 路由改為 → Klay（不由 Worker 自行執行）</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>MID ×3 修復</strong> — Kai 離線 fallback、tmux exit code、Noel 防幻覺 +3 規則</div></div>
+        <div class="ir"><div class="dot blue"></div><div><strong>Kai 中控台同步</strong> — team_service.py v8 migration、agent_task_service.py TASK_ROUTING</div></div>
+        <div class="ir"><div class="dot green"></div><div><strong>Live integration test PASS</strong> — assigned_to: worker ✓，17 秒完成，5 項 dry-run 全過</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-rule">
+      <div class="il">
+        <div class="ir"><div class="dot purple"></div><div><strong>中控台 7 處同步規則（永久）</strong> — 新增/移除 Agent 必須同步：CLAUDE.md · team-roster.md · team_service.py（含 migration）· agent_task_service.py · SKILL.md · MEMORY.md · TeamPage.tsx</div></div>
+        <div class="ir"><div class="dot purple"></div><div><strong>Worker 路由合約</strong> — Tiny/Standard → Worker 執行；Major/Critical → <code>escalate_{id}.sh</code> → spawn-klay.py → Klay 3-Phase 規劃</div></div>
+        <div class="ir"><div class="dot purple"></div><div><strong>Shell Injection 防護原則</strong> — LLM prompt 不可直接包含外部輸入；必須在 Python 層 <code>shlex.quote()</code> 包裹後存成 .sh，LLM 只引用 script path</div></div>
+        <div class="ir"><div class="dot purple"></div><div><strong>Noel 防幻覺規則 ×8</strong> — 禁止捏造工具輸出、任務建立 ≠ Agent 啟動、通知聲稱需真實 API 回傳（openclaw.json）</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-next">
+      <div class="il">
+        <div class="ir"><div class="dot"></div><div><strong>Worker Avatar</strong> — <code>/avatars/worker.png</code> 目前 404，請 Pixel 生成 worker 頭像</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>TeamPage.tsx 同步</strong> — 前端 Team 頁面尚未加入 Worker 卡片，需 John / Iris 處理</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>offline_queue.jsonl 回放機制</strong> — Kai 上線後應自動讀取 queue 並補建任務，目前尚未實作</div></div>
+        <div class="ir"><div class="dot"></div><div><strong>Worker 執行監控</strong> — Kai Dashboard 應顯示 Worker session 即時狀態</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div><!-- /body-wrap -->
+
+<footer>
+  Rain AI Team · 修復報告 v3 · 2026-03-11<br>
+  Klay (CEO · Opus) · Ray (Design Review · Codex Plus) · Worker (新上線 · Sonnet 4.6)<br>
+  <a href="https://slideless.vercel.app">slideless.vercel.app</a>
+</footer>
+
+<script>
+// ── PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const pct=window.scrollY/(document.documentElement.scrollHeight-window.innerHeight)*100
+  document.getElementById('bar').style.width=pct+'%'
+})
+
+// ── COUNT UP
+document.querySelectorAll('[data-target]').forEach(el=>{
+  const target=+el.dataset.target
+  const io=new IntersectionObserver(entries=>{
+    if(!entries[0].isIntersecting)return; io.disconnect()
+    let cur=0
+    const step=()=>{cur=Math.min(cur+Math.ceil(target/20),target);el.textContent=cur;if(cur<target)requestAnimationFrame(step)}
+    setTimeout(step,400)
+  })
+  io.observe(el)
+})
+
+// ── SCROLL REVEAL
+const revealEls=document.querySelectorAll('.reveal')
+const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');ro.unobserve(x.target)}})},{threshold:.12})
+revealEls.forEach(el=>ro.observe(el))
+
+// ── ACCORDION
+function toggleAi(head){head.closest('.ai').classList.toggle('open')}
+
+// ── TABS
+function switchTab(tab,panel){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
+  tab.classList.add('active')
+  document.getElementById('tab-'+panel).classList.add('active')
+}
+
+// ── CAROUSEL
+function initCarousel(trackId,prevId,nextId,dotsId,cardW){
+  const track=document.getElementById(trackId)
+  if(!track)return
+  const prev=document.getElementById(prevId)
+  const next=document.getElementById(nextId)
+  const dotsEl=document.getElementById(dotsId)
+  const cards=[...track.children]
+  const count=cards.length
+
+  function buildDots(){
+    dotsEl.innerHTML=''
+    const n=Math.min(count,10)
+    for(let i=0;i<n;i++){
+      const d=document.createElement('div')
+      d.className='cdot'+(i===0?' active':'')
+      d.onclick=()=>goTo(i)
+      dotsEl.appendChild(d)
+    }
+  }
+  function updateDots(){
+    const idx=Math.round(track.scrollLeft/(cardW+14))
+    const di=Math.min(idx,dotsEl.children.length-1)
+    ;[...dotsEl.children].forEach((d,i)=>d.classList.toggle('active',i===di))
+  }
+  function goTo(idx){track.scrollTo({left:idx*(cardW+14),behavior:'smooth'})}
+  if(prev)prev.onclick=()=>{const c=Math.round(track.scrollLeft/(cardW+14));goTo(Math.max(0,c-1))}
+  if(next)next.onclick=()=>{const c=Math.round(track.scrollLeft/(cardW+14));goTo(Math.min(count-1,c+1))}
+  track.addEventListener('scroll',updateDots)
+
+  // drag
+  let isDown=false,startX,scrollL
+  track.addEventListener('mousedown',e=>{isDown=true;track.classList.add('dragging');startX=e.pageX-track.offsetLeft;scrollL=track.scrollLeft})
+  track.addEventListener('mouseleave',()=>{isDown=false;track.classList.remove('dragging')})
+  track.addEventListener('mouseup',()=>{isDown=false;track.classList.remove('dragging')})
+  track.addEventListener('mousemove',e=>{if(!isDown)return;e.preventDefault();const x=e.pageX-track.offsetLeft;track.scrollLeft=scrollL-(x-startX)})
+
+  buildDots()
+}
+
+initCarousel('todayCar','todayPrev','todayNext','todayDots',280)
+initCarousel('agentCar','agentPrev','agentNext','agentDots',180)
+
+// ── FLOATING TOC
+const sections=['cover','today','fixes','acp','agents','summary']
+const ftocDots=document.querySelectorAll('.ftoc-dot')
+const navAs=document.querySelectorAll('.nav-links a')
+function updateTOC(){
+  let cur=0
+  sections.forEach((id,i)=>{
+    const el=document.getElementById(id)
+    if(el&&el.getBoundingClientRect().top<window.innerHeight*.5)cur=i
+  })
+  ftocDots.forEach((d,i)=>d.classList.toggle('active',i===cur))
+  navAs.forEach(a=>{
+    const href=a.getAttribute('href')?.slice(1)
+    a.classList.toggle('active',href===sections[cur])
+  })
+}
+ftocDots.forEach((d,i)=>{d.onclick=()=>document.getElementById(sections[i])?.scrollIntoView({behavior:'smooth'})})
+window.addEventListener('scroll',updateTOC)
+updateTOC()
+</script>
+</body>
+</html>

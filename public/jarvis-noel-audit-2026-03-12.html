@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis & Noel 架構審查 + 任務看板診斷 — 2026-03-12</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2a2a2a;
+    --text: #e8e0d4;
+    --text2: #a09080;
+    --accent: #c8956c;
+    --accent2: #e8b48a;
+    --green: #6fbf73;
+    --red: #e57373;
+    --blue: #5b8fd1;
+    --yellow: #f0c060;
+    --font: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-left h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent2);
+    letter-spacing: 0.02em;
+  }
+  .header-left p {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .header-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 14px;
+    background: var(--accent);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .tag-green { color: var(--green); border-color: var(--green); background: rgba(111,191,115,0.08); }
+  .tag-blue { color: var(--blue); border-color: var(--blue); background: rgba(91,143,209,0.08); }
+  .tag-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(240,192,96,0.08); }
+  .tag-red { color: var(--red); border-color: var(--red); background: rgba(229,115,115,0.08); }
+  .tag-accent { color: var(--accent); border-color: var(--accent); background: rgba(200,149,108,0.08); }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+  .kv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .kv {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .kv-key {
+    min-width: 100px;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .kv-val {
+    font-size: 14px;
+    color: var(--text);
+    flex: 1;
+  }
+  .finding-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .finding-item:last-child { border-bottom: none; }
+  .finding-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .finding-content .finding-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .finding-content .finding-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .finding-content .finding-desc code {
+    background: var(--surface2);
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--accent2);
+    font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  }
+  .fix-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(111,191,115,0.05);
+    border: 1px solid rgba(111,191,115,0.15);
+    margin-bottom: 10px;
+  }
+  .fix-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    min-width: 24px;
+    letter-spacing: 0.05em;
+  }
+  .fix-text { font-size: 13px; color: var(--text); }
+  .fix-text code {
+    background: var(--surface2);
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--accent2);
+    font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-green { background: var(--green); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-red { background: var(--red); }
+  .status-label { font-size: 13px; flex: 1; }
+  .status-note { font-size: 12px; color: var(--text2); }
+  .before-after {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .ba-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+  .ba-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .ba-label.before { color: var(--red); }
+  .ba-label.after { color: var(--green); }
+  .ba-content { font-size: 13px; color: var(--text); line-height: 1.7; }
+  .arrow { font-size: 20px; color: var(--text2); text-align: center; }
+  .summary-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px 28px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .summary-stat { display: flex; flex-direction: column; gap: 4px; }
+  .summary-stat .num { font-size: 28px; font-weight: 300; color: var(--accent2); }
+  .summary-stat .lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text2); }
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.data-table th {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text2);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  table.data-table tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Jarvis &amp; Noel 架構審查 + 任務看板診斷</h1>
+    <p>Rain AI Team — Klay CEO 調查報告 &nbsp;·&nbsp; 2026-03-12</p>
+  </div>
+  <div class="header-badge">Audit Report</div>
+</div>
+
+<div class="container">
+
+  <!-- Summary Bar -->
+  <div class="summary-bar">
+    <div class="summary-stat">
+      <span class="num">2</span>
+      <span class="lbl">審查對象</span>
+    </div>
+    <div class="summary-stat">
+      <span class="num">3</span>
+      <span class="lbl">問題發現</span>
+    </div>
+    <div class="summary-stat">
+      <span class="num" style="color:var(--green)">3</span>
+      <span class="lbl">已修復</span>
+    </div>
+    <div class="summary-stat">
+      <span class="num">12</span>
+      <span class="lbl">清除孤兒任務</span>
+    </div>
+  </div>
+
+  <!-- 1. Jarvis 現況 -->
+  <div class="section">
+    <div class="section-title">01 — Jarvis 現況</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-blue">Docs 部門</span>
+          指令調度中心
+        </div>
+        <div class="kv-list">
+          <div class="kv">
+            <span class="kv-key">職位</span>
+            <span class="kv-val">Dispatch Center + Email 寄送</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">模型</span>
+            <span class="kv-val">Gemini 2.5 Flash（via OpenRouter，輕量路由）</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">入口</span>
+            <span class="kv-val">Telegram Bot（Python-telegram-bot）</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">路徑</span>
+            <span class="kv-val">~/Desktop/Jarvis_Claude/</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">啟動</span>
+            <span class="kv-val">bash run_jarvis.sh &amp;</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">調度能力清單</div>
+        <div class="kv-list">
+          <div class="kv">
+            <span class="kv-key">dispatch_klay</span>
+            <span class="kv-val">Major/Critical 任務 → spawn-klay.py → Kai 登記 ✅</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">dispatch_ray</span>
+            <span class="kv-val">架構審查 → spawn-ray.py → Kai 登記 ✅</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">dispatch_worker</span>
+            <span class="kv-val">Standard 任務 → spawn-worker.py → Kai 登記 ✅</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">dispatch_openclaw</span>
+            <span class="kv-val">外部 agents（spider/lynx/probe 等）→ <span style="color:var(--yellow)">無 Kai 追蹤 ⚠️</span></span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">check_tasks</span>
+            <span class="kv-val">查詢 Kai 看板</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">Email</span>
+            <span class="kv-val">Kai API /api/email/send</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Noel 現況 -->
+  <div class="section">
+    <div class="section-title">02 — Noel 現況</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-accent">External 部門</span>
+          備用個人助理
+        </div>
+        <div class="kv-list">
+          <div class="kv">
+            <span class="kv-key">職位</span>
+            <span class="kv-val">Personal Assistant（備用助理）</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">模型</span>
+            <span class="kv-val">Gemini 2.5 Pro（OpenClaw，更強模型直接做事）</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">平台</span>
+            <span class="kv-val">OpenClaw workspace-noel</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">主要職責</span>
+            <span class="kv-val">台灣稅法諮詢、韓商銀行業務、備用助理</span>
+          </div>
+          <div class="kv">
+            <span class="kv-key">指揮</span>
+            <span class="kv-val">Spider / Lynx / Nautilus / Probe / Echo / Buzz</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Jarvis vs Noel 分工邊界</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>面向</th>
+              <th>Jarvis</th>
+              <th>Noel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>接受指令</td>
+              <td>Telegram Bot</td>
+              <td>OpenClaw chat</td>
+            </tr>
+            <tr>
+              <td>模型</td>
+              <td>Flash（路由輕量）</td>
+              <td>Pro（做事強力）</td>
+            </tr>
+            <tr>
+              <td>主要任務</td>
+              <td>路由 → Klay/Ray</td>
+              <td>直接執行小任務</td>
+            </tr>
+            <tr>
+              <td>外部 agent</td>
+              <td>dispatch_openclaw</td>
+              <td>直接指揮</td>
+            </tr>
+            <tr>
+              <td>Email 寄送</td>
+              <td>✅（透過 Kai API）</td>
+              <td>可透過 Jarvis</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 問題一：Telegram 是否自動登記 -->
+  <div class="section">
+    <div class="section-title">03 — 問題一：Jarvis Telegram 指令是否自動登記任務看板？</div>
+    <div class="card">
+      <div class="card-title">
+        <span class="tag tag-yellow">部分自動</span>
+        &nbsp;取決於 Jarvis 是否調用 dispatch_klay/ray/worker
+      </div>
+      <div class="finding-item">
+        <div class="finding-icon">✅</div>
+        <div class="finding-content">
+          <div class="finding-title">有登記：dispatch_klay / dispatch_worker / dispatch_ray</div>
+          <div class="finding-desc">
+            呼叫 <code>spawn-klay.py</code> / <code>spawn-ray.py</code> / <code>spawn-worker.py</code>，
+            腳本內部呼叫 Kai API 建立任務，並設 <code>auto_start: true</code>（直接進入 executing 狀態）。
+            任務完成時由 Klay/Ray 在 prompt 中呼叫 <code>/done</code> endpoint。
+          </div>
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-icon">⚠️</div>
+        <div class="finding-content">
+          <div class="finding-title">無登記：dispatch_openclaw（外部 agents）</div>
+          <div class="finding-desc">
+            當 Jarvis 呼叫 <code>dispatch_openclaw</code>（spider/lynx/probe/echo/noel/buzz），
+            目前沒有對應的 Kai 任務建立，Rain 無法在看板追蹤這些外部任務的狀態。
+            <strong style="color:var(--yellow)">建議後續改善：openclaw dispatch 前後各一次 Kai 任務建立/完成。</strong>
+          </div>
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-icon">ℹ️</div>
+        <div class="finding-content">
+          <div class="finding-title">設計上不登記：Jarvis 自己處理的訊息</div>
+          <div class="finding-desc">
+            簡單聊天、投影快捷（<code>/mirror</code>）、直接查詢等，Jarvis 自行回應，不需要登記為任務。
+            這是預期行為。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 問題二：任務看板顯示 -->
+  <div class="section">
+    <div class="section-title">04 — 問題二：任務看板「進行中」欄位顯示異常</div>
+    <div class="card">
+      <div class="card-title">
+        <span class="tag tag-red">根本原因找到</span>
+        &nbsp;session-start.sh 孤兒任務 + 非預期 claim+done 失敗
+      </div>
+
+      <div class="finding-item">
+        <div class="finding-icon">🔍</div>
+        <div class="finding-content">
+          <div class="finding-title">根本原因 1：Terminal Session 任務 claim+done 失敗孤兒化</div>
+          <div class="finding-desc">
+            <code>~/.claude/hooks/session-start.sh</code> 在每次 Claude Code session 啟動時建立
+            "Terminal Session" 任務，然後立即 claim + done。
+            但當 Kai 回應慢（<code>--max-time 5</code>）或連線不穩時，done 呼叫失敗，
+            任務卡在 <strong style="color:var(--red)">pending</strong>，永不完成，積在「待處理」欄位。
+            <br><br>
+            <strong>影響：</strong>連續 12 個 Terminal Session 任務堆積在 pending，
+            Rain 看到「待處理」欄位 12 筆，誤以為有真實任務未處理。
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-item">
+        <div class="finding-icon">🔍</div>
+        <div class="finding-content">
+          <div class="finding-title">根本原因 2：Stale Executing 任務（spawn-ray 孤兒）</div>
+          <div class="finding-desc">
+            <code>spawn-ray.py</code> 建立 Kai 任務後啟動 tmux Ray session，若 Ray session 提早結束
+            （完成審查後未呼叫 <code>/done</code> 或 Klay 未等到結果），任務卡在 executing，
+            需等待 <strong>30 分鐘 timeout</strong> 才自動 fail。
+            <br><br>
+            <strong>影響：</strong>「執行中」欄位出現 progress=0% 的假執行任務，誤導 Rain 以為有任務卡住。
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-item">
+        <div class="finding-icon">✅</div>
+        <div class="finding-content">
+          <div class="finding-title">前端邏輯正確（非問題所在）</div>
+          <div class="finding-desc">
+            TaskBoard.tsx 正確將 <code>claimed</code> 狀態映射到「執行中」欄位，
+            後端每 60 秒掃描一次 timeout，1800 秒後自動標記 FAILED。
+            前端無需修改。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 已執行修復 -->
+  <div class="section">
+    <div class="section-title">05 — 已執行修復</div>
+
+    <div class="fix-item">
+      <span class="fix-number">FIX 1</span>
+      <span class="fix-text">
+        清理 12 個 stale Terminal Session pending 任務 — 全部呼叫 claim + done 標記為 success（audit trail 保留）。
+      </span>
+    </div>
+
+    <div class="fix-item">
+      <span class="fix-number">FIX 2</span>
+      <span class="fix-text">
+        修復 <code>session-start.sh</code>：done 呼叫失敗時，改為呼叫 DELETE 刪除任務，
+        避免孤兒任務堆積在 pending 欄位。
+      </span>
+    </div>
+
+    <div class="fix-item">
+      <span class="fix-number">FIX 3</span>
+      <span class="fix-text">
+        強制將 stale Ray 審查 executing 任務（<code>0bb5574a</code>）標記為 failed，
+        清空「執行中」欄位。
+      </span>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title">修復後任務看板狀態</div>
+      <div class="before-after">
+        <div class="ba-box">
+          <div class="ba-label before">修復前</div>
+          <div class="ba-content">
+            待處理：12（Terminal Session 孤兒）<br>
+            執行中：1（Ray 審查孤兒）<br>
+            已完成：17<br>
+            失敗：3
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="ba-box">
+          <div class="ba-label after">修復後</div>
+          <div class="ba-content">
+            待處理：<strong style="color:var(--green)">0 ✅</strong><br>
+            執行中：<strong style="color:var(--green)">0 ✅</strong><br>
+            已完成：29（+12）<br>
+            失敗：4（+1）
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 後續建議 -->
+  <div class="section">
+    <div class="section-title">06 — 後續建議（未立即執行，供 Rain 決定）</div>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-dot dot-yellow"></div>
+        <div class="status-label">dispatch_openclaw 增加 Kai 任務追蹤（建立 + 完成），讓外部 agent 任務可在看板追蹤</div>
+        <div class="status-note">中優先</div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot dot-yellow"></div>
+        <div class="status-label">spawn-ray.py 確認 Ray session 結束後一定呼叫 <code>/done</code>（目前 prompt 已包含，但 Ray 有時不執行）</div>
+        <div class="status-note">中優先</div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot dot-green"></div>
+        <div class="status-label">session-start.sh 已修復，session 孤兒任務問題不會再發生</div>
+        <div class="status-note">已完成</div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot dot-green"></div>
+        <div class="status-label">前端 TaskBoard 無需修改，邏輯正確</div>
+        <div class="status-note">確認</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>Rain AI Team — Klay CEO &nbsp;·&nbsp; 調查執行：Claude Sonnet 4.6</span>
+  <span>2026-03-12 &nbsp;·&nbsp; Audit Scope: Jarvis + Noel + TaskBoard</span>
+</div>
+
+</body>
+</html>

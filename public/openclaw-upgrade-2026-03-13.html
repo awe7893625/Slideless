@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw 升級報告 — 免費模型整合 + Embedding 切換</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#f6f5f1;--white:#ffffff;--grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;--black:#121212;--accent-warm:#eb8054;--accent-cool:#a8cde8;--green:#85a268;--green-bg:#e8f0de;--red:#d94f4f;--red-bg:#fce4e4;--blue:#5a8db5;--blue-bg:#dfedf8;--yellow:#d4a843;--yellow-bg:#f5edcf;--warm-bg:#fde8de}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--grey-03);font-family:'Inter','Noto Sans TC',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+/* Cover */
+.cover{background:linear-gradient(135deg,#2d2a26 0%,#1a1816 100%);color:#fff;padding:80px 40px 60px;text-align:center}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);font-family:'JetBrains Mono',monospace;margin-bottom:16px}
+.cover h1{font-size:clamp(26px,5vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:12px}
+.cover .subtitle{font-size:15px;color:rgba(255,255,255,0.55);max-width:560px;margin:0 auto 20px}
+.cover .date{font-size:13px;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace}
+.cover .team-line{font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;font-family:'JetBrains Mono',monospace}
+
+/* Main */
+.main{max-width:740px;margin:0 auto;padding:48px 40px 80px}
+.section{margin-bottom:56px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:24px;color:var(--black)}
+
+/* Cards */
+.card{background:var(--white);border-radius:12px;padding:28px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:16px}
+.card-label{font-size:12px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.card h3{font-size:17px;font-weight:700;color:var(--black);margin-bottom:10px}
+.card p,.card li{font-size:14px;color:var(--grey-03);line-height:1.8}
+.card ul{padding-left:18px;margin-top:6px}
+.card li{margin-bottom:4px}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;margin-right:6px;margin-bottom:4px}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-red{background:var(--red-bg);color:var(--red)}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+.tag-warm{background:var(--warm-bg);color:var(--accent-warm)}
+.tag-yellow{background:var(--yellow-bg);color:var(--yellow)}
+
+/* Metrics */
+.metric-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.metric{flex:1;min-width:130px;background:var(--white);border-radius:12px;padding:18px;border:1px solid var(--grey-01);text-align:center}
+.metric .val{font-size:26px;font-weight:800;color:var(--black);font-family:'JetBrains Mono',monospace}
+.metric .label{font-size:11px;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;margin-top:4px;font-family:'JetBrains Mono',monospace}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin-top:12px;border-radius:12px;border:1px solid var(--grey-01)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+th{background:var(--grey-01);color:var(--grey-03);font-weight:600;text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+td{padding:10px 14px;border-top:1px solid var(--grey-01);color:var(--grey-03);font-size:13px}
+tr:hover td{background:rgba(0,0,0,0.01)}
+
+/* Alert box */
+.alert{border-radius:12px;padding:22px 28px;margin-bottom:16px;font-size:14px;line-height:1.8}
+.alert-warn{background:#fef3e0;border:1px solid #f5d89a;color:#8a6d1b}
+.alert-warn strong{color:#6b5214}
+.alert-info{background:var(--blue-bg);border:1px solid #b8d4e9;color:#3a6e8f}
+
+/* Flow box */
+.flow-box{background:var(--white);border-radius:12px;padding:24px;border:1px solid var(--grey-01);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.2;color:var(--grey-03);overflow-x:auto;white-space:pre;text-align:center}
+
+/* Status dots */
+.status{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-yellow{background:var(--yellow)}
+.dot-red{background:var(--red)}
+
+/* Footer */
+.footer{text-align:center;padding:40px;font-size:12px;color:var(--grey-02);font-family:'JetBrains Mono',monospace;border-top:1px solid var(--grey-01)}
+
+/* Responsive */
+@media(max-width:600px){
+  .cover{padding:60px 24px 40px}
+  .main{padding:32px 20px 60px}
+  .card{padding:20px}
+  .metric .val{font-size:22px}
+  .metric{min-width:100px;padding:14px}
+  table{min-width:400px}
+}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="eyebrow">SYSTEM UPGRADE REPORT</div>
+  <h1>OpenClaw 升級報告</h1>
+  <div class="subtitle">免費模型整合 + Embedding 記憶系統切換 — 全程 3-Phase 規劃審查</div>
+  <div class="date">2026-03-13</div>
+  <div class="team-line">Klay (規劃) → Scout (架構) → Ray (審查) → Klay (執行)</div>
+</div>
+
+<div class="main">
+
+  <!-- SECTION 01: 摘要 -->
+  <div class="section">
+    <div class="section-eyebrow">01 · 摘要</div>
+    <div class="section-title">本次升級做了什麼</div>
+
+    <div class="metric-row">
+      <div class="metric"><div class="val">+3</div><div class="label">免費模型</div></div>
+      <div class="metric"><div class="val">5</div><div class="label">Agent Fallback 更新</div></div>
+      <div class="metric"><div class="val">$0</div><div class="label">Embedding 成本</div></div>
+    </div>
+
+    <div class="card">
+      <p>新增 <strong>3 個 OpenRouter 免費模型</strong>到 OpenClaw，更新 <strong>5 個 Agent 的 fallback 鏈</strong>，將記憶系統 Embedding 從 <strong>OpenAI（付費）切換到 Gemini（免費）</strong>。全程經過 3-Phase 規劃審查。</p>
+    </div>
+  </div>
+
+  <!-- SECTION 02: 審查流程 -->
+  <div class="section">
+    <div class="section-eyebrow">02 · 審查流程</div>
+    <div class="section-title">3-Phase Planning Protocol</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>階段</th><th>負責人</th><th>產出</th><th>結果</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Phase 1</strong><br>商業規劃</td>
+            <td>Klay (Opus)</td>
+            <td>需求定義、Scope、成功指標</td>
+            <td><span class="tag tag-green">✅ 通過</span></td>
+          </tr>
+          <tr>
+            <td><strong>Phase 2</strong><br>系統架構</td>
+            <td>Scout (Sonnet)</td>
+            <td>Config 結構設計、Embedding 方案、Agent fallback 建議</td>
+            <td><span class="tag tag-green">✅ 產出</span></td>
+          </tr>
+          <tr>
+            <td><strong>Phase 3</strong><br>設計審查</td>
+            <td>Ray (Codex Plus)</td>
+            <td>風險評估 7 項、Edge Case 6 項、Skeptic Check</td>
+            <td><span class="tag tag-yellow">⚠️ 有條件通過</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-label">Ray 審查重點裁決</div>
+      <ul>
+        <li><span class="tag tag-green">Part A</span> <strong>新增免費模型</strong> — ✅ 有條件通過（需標記 FREE/Preview、記錄安全風險）</li>
+        <li><span class="tag tag-green">Part B</span> <strong>Agent Fallback</strong> — ✅ 有條件通過（免費模型放最末端；Nautilus 不加 Hunter Alpha，延遲 20.8s 不適合）</li>
+        <li><span class="tag tag-red">Part C</span> <strong>Embedding Sidecar</strong> — ❌ 打回（OpenClaw 已有完整 embedding 系統，建第二套 = 資料分裂。改用原生 config 切換）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 03: 新增免費模型 -->
+  <div class="section">
+    <div class="section-eyebrow">03 · 新增模型</div>
+    <div class="section-title">3 個 OpenRouter 免費模型</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>模型</th><th>Model ID</th><th>Context</th><th>能力</th><th>成本</th><th>延遲</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Hunter Alpha</strong></td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:11px">openrouter/hunter-alpha</td>
+            <td>1,048,576 (1M)</td>
+            <td>Agentic + Reasoning + Tool Use</td>
+            <td><span class="tag tag-green">$0</span></td>
+            <td>~20.8s</td>
+          </tr>
+          <tr>
+            <td><strong>Healer Alpha</strong></td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:11px">openrouter/healer-alpha</td>
+            <td>262,144</td>
+            <td>多模態（文字+圖片+音訊+影片）</td>
+            <td><span class="tag tag-green">$0</span></td>
+            <td>~14.7s</td>
+          </tr>
+          <tr>
+            <td><strong>Free Router</strong></td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:11px">openrouter/free</td>
+            <td>200,000</td>
+            <td>自動路由最佳免費模型</td>
+            <td><span class="tag tag-green">$0</span></td>
+            <td>~5.3s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info" style="margin-top:16px">
+      <strong>附註：</strong>Qwen3 Coder 480B 在 OpenRouter 上不存在，已跳過。所有模型已 API 實測驗證可用。
+    </div>
+  </div>
+
+  <!-- SECTION 04: Agent Fallback -->
+  <div class="section">
+    <div class="section-eyebrow">04 · Agent Fallback</div>
+    <div class="section-title">免費模型用在哪裡</div>
+
+    <div class="card" style="margin-bottom:20px">
+      <p>免費模型全部放在 fallback 鏈<strong>最末端</strong>，僅在所有主力模型都失敗時才觸發。</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Agent</th><th>Primary（不變）</th><th>新增 Fallback</th><th>選擇理由</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Spider</strong>（爬蟲）</td>
+            <td>DeepSeek Chat</td>
+            <td><span class="tag tag-blue">+ Free Router</span></td>
+            <td>通用備援</td>
+          </tr>
+          <tr>
+            <td><strong>Lynx</strong>（爬蟲備援）</td>
+            <td>DeepSeek Chat</td>
+            <td><span class="tag tag-blue">+ Free Router</span></td>
+            <td>同 Spider</td>
+          </tr>
+          <tr>
+            <td><strong>Buzz</strong>（社群）</td>
+            <td>DeepSeek Chat</td>
+            <td><span class="tag tag-blue">+ Healer Alpha</span> <span class="tag tag-blue">+ Free Router</span></td>
+            <td>多模態適合分析圖文</td>
+          </tr>
+          <tr>
+            <td><strong>Probe</strong>（測試）</td>
+            <td>Gemini 2.5 Flash</td>
+            <td><span class="tag tag-blue">+ Healer Alpha</span> <span class="tag tag-blue">+ Free Router</span></td>
+            <td>支援 image 輸入，截圖驗證</td>
+          </tr>
+          <tr>
+            <td><strong>Echo</strong>（測試備援）</td>
+            <td>Gemini 2.5 Flash</td>
+            <td><span class="tag tag-blue">+ Healer Alpha</span> <span class="tag tag-blue">+ Free Router</span></td>
+            <td>同 Probe</td>
+          </tr>
+          <tr style="background:rgba(0,0,0,0.02)">
+            <td><strong>Nautilus</strong></td>
+            <td>GPT-4.1</td>
+            <td><span class="tag tag-warm">不改</span></td>
+            <td>Ray 否決：延遲 20.8s 不適合瀏覽器自動化</td>
+          </tr>
+          <tr style="background:rgba(0,0,0,0.02)">
+            <td><strong>Noel</strong></td>
+            <td>Gemini 2.5 Pro</td>
+            <td><span class="tag tag-warm">不改</span></td>
+            <td>高信任 agent，現有鏈已足夠</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 05: Embedding -->
+  <div class="section">
+    <div class="section-eyebrow">05 · Embedding 切換</div>
+    <div class="section-title">記憶系統 Embedding 從付費到免費</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th></th><th>切換前</th><th>切換後</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Provider</strong></td>
+            <td>OpenAI（自動偵測）</td>
+            <td><span class="tag tag-green">Gemini（明確設定）</span></td>
+          </tr>
+          <tr>
+            <td><strong>Model</strong></td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">text-embedding-3-small</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">gemini-embedding-001</td>
+          </tr>
+          <tr>
+            <td><strong>維度</strong></td>
+            <td>1536</td>
+            <td>768</td>
+          </tr>
+          <tr>
+            <td><strong>成本</strong></td>
+            <td><span class="tag tag-red">$0.02 / 1M tokens</span></td>
+            <td><span class="tag tag-green">$0（Google 免費額度）</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-label">切換方式</div>
+      <p>在 <code style="font-family:'JetBrains Mono',monospace;background:var(--grey-01);padding:2px 6px;border-radius:4px;font-size:12px">openclaw.json</code> 新增 memorySearch config → 備份舊 sqlite → 刪除 → 重啟 gateway 自動重建</p>
+      <p style="margin-top:8px;font-size:13px;color:var(--grey-02)">備份位置：<code style="font-family:'JetBrains Mono',monospace;background:var(--grey-01);padding:2px 6px;border-radius:4px;font-size:12px">memory/backup-pre-gemini/</code>（23.8 MB）</p>
+    </div>
+  </div>
+
+  <!-- SECTION 06: 安全注意 -->
+  <div class="section">
+    <div class="section-eyebrow">06 · 安全注意</div>
+    <div class="section-title">免費模型的隱私風險</div>
+
+    <div class="alert alert-warn">
+      <strong>⚠ 重要警告：</strong>OpenRouter 免費模型的 prompt/completion 會被 provider 記錄用於模型訓練。
+    </div>
+
+    <div class="card">
+      <div class="card-label">安全規則</div>
+      <ul>
+        <li><span class="dot dot-green"></span> 免費模型只做 fallback <strong>最末端</strong></li>
+        <li><span class="dot dot-red"></span> 含敏感資料<strong>不走免費模型</strong></li>
+        <li><span class="dot dot-yellow"></span> 模型名稱加 <span class="tag tag-warm">(FREE/Preview)</span> 標記</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 07: 改動檔案 -->
+  <div class="section">
+    <div class="section-eyebrow">07 · 改動檔案</div>
+    <div class="section-title">涉及的檔案清單</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>檔案</th><th>改動</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">openclaw.json</td>
+            <td>+3 模型定義、+3 alias、5 agent fallback 更新、+memorySearch config</td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">memory/lessons.md</td>
+            <td>+免費模型 prompt 安全風險記錄</td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">memory/backup-pre-gemini/</td>
+            <td>舊 embedding sqlite 備份</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 08: 未來可升級 -->
+  <div class="section">
+    <div class="section-eyebrow">08 · 未來可升級</div>
+    <div class="section-title">下一步升級路徑</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>項目</th><th>條件</th><th>效益</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>gemini-embedding-2-preview</strong></td>
+            <td>OpenClaw 原生支援後</td>
+            <td>3072 維向量，多模態 embedding</td>
+          </tr>
+          <tr>
+            <td><strong>Hunter Alpha 升為 primary</strong></td>
+            <td>延遲降到 &lt;5s 且穩定</td>
+            <td>1M context 取代 DeepSeek 的 64K</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Rain AI Team — Klay (CEO) ｜ 2026-03-13
+</div>
+
+</body>
+</html>

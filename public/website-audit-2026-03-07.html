@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 網站維護 &amp; 中控台全面盤點報告 2026-03-07</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6}
+
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.95);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-weight:700;font-size:14px;color:var(--grey-03)}
+.nav-links{display:flex;gap:24px}
+.nav-links a{font-size:13px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--black)}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .3s}
+
+section{min-height:100vh;padding:100px 80px 80px}
+@media(max-width:768px){section{padding:80px 24px 48px}}
+
+.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.cover h1{font-size:clamp(28px,4vw,48px);font-weight:700;margin-bottom:16px;letter-spacing:-0.5px}
+.cover .subtitle{font-size:18px;color:var(--accent);margin-bottom:8px}
+.cover .date{font-size:14px;color:var(--grey-02)}
+.cover .badge{display:inline-block;margin-top:24px;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600}
+.badge-green{background:rgba(133,162,104,0.2);color:var(--green)}
+
+.card{background:var(--white);border-radius:12px;padding:32px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card h3{font-size:18px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+h2{font-size:clamp(24px,3vw,36px);font-weight:700;margin-bottom:32px;letter-spacing:-0.3px}
+h2 span{color:var(--accent-warm)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
+.stat{background:var(--white);border-radius:12px;padding:24px;text-align:center}
+.stat .num{font-size:36px;font-weight:700;font-family:var(--font-mono)}
+.stat .label{font-size:13px;color:var(--grey-02);margin-top:4px}
+.stat.green .num{color:var(--green)}
+.stat.warn .num{color:var(--accent-warm)}
+.stat.danger .num{color:var(--danger)}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:12px 16px;background:var(--grey-01);font-weight:600;font-size:13px;color:var(--grey-03);border-bottom:2px solid var(--grey-01)}
+td{padding:10px 16px;border-bottom:1px solid var(--grey-01)}
+tr:hover td{background:rgba(168,205,232,0.08)}
+.status-ok{color:var(--green);font-weight:600}
+.status-warn{color:var(--accent-warm);font-weight:600}
+.status-fail{color:var(--danger);font-weight:600}
+
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--grey-01)}
+.timeline-item{position:relative;margin-bottom:24px}
+.timeline-item::before{content:'';position:absolute;left:-28px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent-warm);background:var(--cream)}
+.timeline-item.done::before{background:var(--green);border-color:var(--green)}
+.timeline-item h4{font-size:15px;font-weight:600;margin-bottom:4px}
+.timeline-item p{font-size:13px;color:var(--grey-02)}
+
+.issue{display:flex;gap:12px;padding:16px;border-radius:8px;margin-bottom:12px}
+.issue.critical{background:rgba(217,79,79,0.06);border-left:3px solid var(--danger)}
+.issue.medium{background:rgba(235,128,84,0.06);border-left:3px solid var(--accent-warm)}
+.issue.fixed{background:rgba(133,162,104,0.06);border-left:3px solid var(--green)}
+.issue-tag{font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;white-space:nowrap;height:fit-content}
+.issue.critical .issue-tag{background:rgba(217,79,79,0.15);color:var(--danger)}
+.issue.medium .issue-tag{background:rgba(235,128,84,0.15);color:var(--accent-warm)}
+.issue.fixed .issue-tag{background:rgba(133,162,104,0.15);color:var(--green)}
+.issue-body h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.issue-body p{font-size:13px;color:var(--grey-03)}
+
+.footer{background:var(--black);color:var(--grey-02);padding:60px 80px;text-align:center;font-size:13px}
+.footer strong{color:var(--white)}
+
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
+.fade-up.visible{opacity:1;transform:none}
+.bg-white{background:var(--white)}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="nav">
+  <div class="nav-brand">Rain AI Team</div>
+  <div class="nav-links">
+    <a href="#overview">總覽</a>
+    <a href="#websites">網站</a>
+    <a href="#control">中控台</a>
+    <a href="#issues">問題</a>
+    <a href="#fixes">修復</a>
+    <a href="#sop">監控 SOP</a>
+  </div>
+</nav>
+
+<!-- 封面 -->
+<section class="cover" id="cover">
+  <div class="subtitle">Rain AI Team — 全面盤點報告</div>
+  <h1>網站維護 &amp; 中控台<br>全面盤點報告</h1>
+  <div class="date">2026-03-07 &middot; 審核人：Klay + Ray + John</div>
+  <div class="badge badge-green">修復後 42/42 項健康檢查全數通過</div>
+</section>
+
+<!-- 總覽 -->
+<section id="overview">
+  <h2>執行<span>摘要</span></h2>
+
+  <div class="stats">
+    <div class="stat green"><div class="num">5</div><div class="label">管理中網站</div></div>
+    <div class="stat green"><div class="num">42</div><div class="label">健康檢查項目</div></div>
+    <div class="stat warn"><div class="num">10</div><div class="label">發現問題</div></div>
+    <div class="stat green"><div class="num">7</div><div class="label">當場修復</div></div>
+  </div>
+
+  <div class="card">
+    <h3>SCQA 分析框架</h3>
+    <table>
+      <tr><td style="width:80px;font-weight:600;color:var(--accent-warm)">情境</td>
+        <td>Rain AI Team 為客戶管理 5 個網站，中控台（M4）負責追蹤流量、安全與任務。</td></tr>
+      <tr><td style="font-weight:600;color:var(--accent-warm)">衝突</td>
+        <td>沒有系統化的每日兩次監控。中控台 GA4 映射錯誤、DB 健康檢查壞掉、金流端點沒被監控。</td></tr>
+      <tr><td style="font-weight:600;color:var(--accent-warm)">問題</td>
+        <td>所有網站是否健康？中控台是否準確追蹤？有沒有無死角的監控 SOP？</td></tr>
+      <tr><td style="font-weight:600;color:var(--accent-warm)">答案</td>
+        <td>5 站全部在線、SSL 有效。發現 10 個問題、立即修復 7 個。建立每日兩次自動 Email 報告（12:00 + 21:00）。</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 網站健康 -->
+<section class="bg-white" id="websites">
+  <h2>網站<span>健康狀態</span></h2>
+
+  <div class="card">
+    <h3>全站總覽</h3>
+    <table>
+      <tr>
+        <th>網站</th><th>網址</th><th>HTTP</th><th>SSL</th><th>回應時間</th><th>SEO</th><th>金流</th>
+      </tr>
+      <tr>
+        <td><strong>留白工作室</strong><br><span style="font-size:12px;color:var(--grey-02)">品牌官網</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px">blankspaces.uk</td>
+        <td class="status-ok">200</td>
+        <td class="status-ok">89 天</td>
+        <td>0.67s</td>
+        <td class="status-ok">3/3</td>
+        <td style="color:var(--grey-02)">無</td>
+      </tr>
+      <tr>
+        <td><strong>選物事務所</strong><br><span style="font-size:12px;color:var(--grey-02)">電商</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px">somethings.cool</td>
+        <td class="status-ok">200</td>
+        <td class="status-ok">82 天</td>
+        <td>0.41s</td>
+        <td class="status-ok">3/3</td>
+        <td class="status-ok">ECPay 正常</td>
+      </tr>
+      <tr>
+        <td><strong>序位 TheOrder</strong><br><span style="font-size:12px;color:var(--grey-02)">電商</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px">theorder.tw</td>
+        <td class="status-ok">200</td>
+        <td class="status-ok">88 天</td>
+        <td class="status-warn">1.14s</td>
+        <td class="status-ok">3/3</td>
+        <td class="status-ok">ECPay 正常</td>
+      </tr>
+      <tr>
+        <td><strong>澄境清潔</strong><br><span style="font-size:12px;color:var(--grey-02)">服務型</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px">pure-vista.vercel.app</td>
+        <td class="status-ok">200</td>
+        <td class="status-ok">81 天</td>
+        <td>0.59s</td>
+        <td class="status-ok">3/3</td>
+        <td class="status-ok">ECPay 正常</td>
+      </tr>
+      <tr>
+        <td><strong>鳴和會計師</strong><br><span style="font-size:12px;color:var(--grey-02)">品牌官網</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px">&mdash;</td>
+        <td style="color:var(--grey-02)">未部署</td>
+        <td style="color:var(--grey-02)">未部署</td>
+        <td style="color:var(--grey-02)">未部署</td>
+        <td style="color:var(--grey-02)">未部署</td>
+        <td style="color:var(--grey-02)">無</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>電商金流端點檢查</h3>
+    <table>
+      <tr><th>網站</th><th>Health API</th><th>購物車</th><th>結帳</th><th>ECPay Webhook</th></tr>
+      <tr>
+        <td>選物事務所</td>
+        <td class="status-ok">200（db:ok, redis:ok）</td>
+        <td style="color:var(--grey-02)">localStorage 設計</td>
+        <td class="status-ok">405（僅限 POST）</td>
+        <td class="status-ok">200</td>
+      </tr>
+      <tr>
+        <td>序位 TheOrder</td>
+        <td class="status-warn">新建（本次新增）</td>
+        <td class="status-ok">401（需登入）</td>
+        <td class="status-ok">405（僅限 POST）</td>
+        <td class="status-ok">405（僅限 POST）</td>
+      </tr>
+      <tr>
+        <td>澄境清潔</td>
+        <td class="status-ok">200（db:ok, ecpay:ok, email:ok）</td>
+        <td style="color:var(--grey-02)">不適用</td>
+        <td style="color:var(--grey-02)">不適用</td>
+        <td style="color:var(--grey-02)">不適用</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Supabase &amp; 基礎設施</h3>
+    <table>
+      <tr><th>服務</th><th>狀態</th><th>防休眠</th></tr>
+      <tr><td>Supabase 澄境清潔</td><td class="status-ok">活躍</td><td class="status-ok">每 2 天 ping</td></tr>
+      <tr><td>Supabase BookNow</td><td class="status-ok">活躍</td><td class="status-ok">每 2 天 ping</td></tr>
+      <tr><td>Supabase 停車系統</td><td class="status-ok">活躍</td><td class="status-ok">每 2 天 ping</td></tr>
+      <tr><td>Kai 中控台 :5002</td><td class="status-ok">健康（Redis 0.4ms）</td><td>&mdash;</td></tr>
+      <tr><td>Uptime Kuma :3001</td><td class="status-ok">運行中</td><td>&mdash;</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 中控台審核 -->
+<section id="control">
+  <h2>中控台<span>審核結果</span></h2>
+
+  <div class="stats">
+    <div class="stat green"><div class="num">46</div><div class="label">已測試 API 端點</div></div>
+    <div class="stat green"><div class="num">45</div><div class="label">通過</div></div>
+    <div class="stat warn"><div class="num">1</div><div class="label">警告</div></div>
+    <div class="stat green"><div class="num">16</div><div class="label">前端頁面</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Ray 的 API 審查摘要</h3>
+    <table>
+      <tr><th>類別</th><th>端點</th><th>狀態</th></tr>
+      <tr><td>核心健康</td><td>/health、/api/health/detailed、/api/connection</td><td class="status-ok">全部通過</td></tr>
+      <tr><td>任務看板</td><td>/api/tasks、/api/tasks/stats</td><td class="status-ok">通過</td></tr>
+      <tr><td>團隊管理</td><td>/api/team/members、departments、heartbeats</td><td class="status-ok">通過</td></tr>
+      <tr><td>流量分析</td><td>/api/website-analytics/overview + 5 站</td><td class="status-ok">通過（修復後）</td></tr>
+      <tr><td>安全監控</td><td>/api/security/status、/scan、/alerts</td><td class="status-ok">通過</td></tr>
+      <tr><td>成本追蹤</td><td>/api/cost/budget、/api/tokens/summary</td><td class="status-ok">通過</td></tr>
+      <tr><td>Discord</td><td>/api/discord/status</td><td class="status-ok">已連線</td></tr>
+      <tr><td>Telegram</td><td>/api/telegram/status</td><td class="status-warn">已斷線（Moltbot 接管）</td></tr>
+      <tr><td>Email</td><td>/api/email/status</td><td class="status-ok">已設定</td></tr>
+      <tr><td>Redis &amp; 佇列</td><td>/api/redis/health、/queue/status</td><td class="status-ok">健康</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>GA4 &amp; GSC 覆蓋率（修復後）</h3>
+    <table>
+      <tr><th>網站</th><th>GA4</th><th>GSC</th><th>Property ID</th></tr>
+      <tr><td>序位 TheOrder</td><td class="status-ok">正常</td><td class="status-ok">正常</td><td style="font-family:var(--font-mono);font-size:12px">526877601</td></tr>
+      <tr><td>選物事務所</td><td class="status-ok">已修正</td><td class="status-ok">正常</td><td style="font-family:var(--font-mono);font-size:12px">526022066</td></tr>
+      <tr><td>澄境清潔</td><td class="status-ok">正常</td><td class="status-ok">正常</td><td style="font-family:var(--font-mono);font-size:12px">526857401</td></tr>
+      <tr><td>留白工作室</td><td class="status-ok">已修正</td><td class="status-ok">已新增</td><td style="font-family:var(--font-mono);font-size:12px">527534412</td></tr>
+      <tr><td>鳴和會計師</td><td class="status-ok">正常</td><td style="color:var(--grey-02)">未部署</td><td style="font-family:var(--font-mono);font-size:12px">526883857</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 問題清單 -->
+<section class="bg-white" id="issues">
+  <h2>發現<span>問題</span></h2>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#1 中控台 GA4 Property ID 錯位</h4>
+      <p>webspeed 使用了選物事務所的 GA4 ID（526022066），導致 Traffic Dashboard 中留白工作室顯示的是選物事務所的流量數據。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#2 選物事務所 GA4 未接入中控台</h4>
+      <p>SITE_DISPLAY 中 somethingselect 的 ga4_id 為 None，中控台完全看不到選物事務所的 GA4 流量。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#3 留白工作室未加入 GSC 追蹤</h4>
+      <p>GSC_SITES 字典中沒有 blankspaces.uk，Search Console 數據未同步到中控台。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#4 資料庫健康檢查永遠失敗</h4>
+      <p>/api/health/detailed 永遠顯示 database=false、status=degraded。根因：SQLAlchemy 2.x 原始 SQL 需要 text() 包裝。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#5 序位 TheOrder 缺少 /api/health 端點</h4>
+      <p>API 目錄中沒有 health route，健康檢查腳本無法監控後端。已建立包含 DB + ECPay 設定檢查的 route.ts。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#6 健康檢查腳本缺少金流端點監控</h4>
+      <p>只檢查首頁 + SEO 文件，不檢查 ECPay webhook、購物車、結帳端點。已新增電商健康檢查區塊。</p>
+    </div>
+  </div>
+
+  <div class="issue fixed">
+    <div class="issue-tag">已修復</div>
+    <div class="issue-body">
+      <h4>#7 排程只跑一次/天，沒有 Email 報告</h4>
+      <p>LaunchAgent 只在 12:50 執行一次，且只寫 JSON 不通知。已升級為 12:00 + 21:00 兩次，加入 HTML Email 自動寄送。</p>
+    </div>
+  </div>
+
+  <div class="issue medium">
+    <div class="issue-tag">待處理</div>
+    <div class="issue-body">
+      <h4>#8 31 筆安全警報累積未清除</h4>
+      <p>重複的「Kai 安全掃描：風險等級 medium」警報從未被 resolve，不斷累積。需要批次清除 API 或手動處理。</p>
+    </div>
+  </div>
+
+  <div class="issue medium">
+    <div class="issue-tag">待處理</div>
+    <div class="issue-body">
+      <h4>#9 澄境清潔 robots.txt AI Bot 格式不標準</h4>
+      <p>多個 User-Agent 堆疊在一起，應該每個 bot 獨立一個區塊。</p>
+    </div>
+  </div>
+
+  <div class="issue medium">
+    <div class="issue-tag">待處理</div>
+    <div class="issue-body">
+      <h4>#10 序位 TheOrder 冷啟動偏慢（1.14 秒）</h4>
+      <p>Vercel serverless 首次請求需 1 秒以上。可考慮 Fluid Compute 或 warm-up cron 改善。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 修復紀錄 -->
+<section id="fixes">
+  <h2>修復<span>紀錄</span></h2>
+
+  <div class="card">
+    <div class="timeline">
+      <div class="timeline-item done">
+        <h4>修正 GA4 Property 映射</h4>
+        <p>website_analytics_service.py — 修正 GA4_PROPERTIES、GSC_SITES、SITE_DISPLAY，5 站完整覆蓋</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>修正資料庫健康檢查</h4>
+        <p>main.py — 加入 sqlalchemy.text() 包裝 SELECT 1 查詢</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>建立 TheOrder /api/health</h4>
+        <p>TheOrder/apps/web/src/app/api/health/route.ts — DB + ECPay 設定檢查</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>升級健康檢查腳本 v2.0</h4>
+        <p>website-health-check.sh — 新增金流端點監控 + HTML Email 報告自動寄送</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>排程改為每日兩次</h4>
+        <p>ai.rain.website-health.plist — 12:00 + 21:00 TST，自動 Email 寄送到 Rain 信箱</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>建立監控 SOP</h4>
+        <p>website-monitoring-sop.md — 三層防線、同步規則、異常處理流程</p>
+      </div>
+      <div class="timeline-item done">
+        <h4>記錄教訓</h4>
+        <p>lessons.md — L-016 至 L-018（GA4 映射錯誤、SQLAlchemy text()、健康檢查盲區）</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 監控 SOP -->
+<section class="bg-white" id="sop">
+  <h2>監控 <span>SOP</span></h2>
+
+  <div class="card">
+    <h3>三層防線架構</h3>
+    <table>
+      <tr><th>層級</th><th>工具</th><th>頻率</th><th>通知管道</th></tr>
+      <tr>
+        <td><strong>第一層：即時監控</strong></td>
+        <td>Uptime Kuma</td>
+        <td>每 30-60 秒</td>
+        <td>Discord（即時告警）</td>
+      </tr>
+      <tr>
+        <td><strong>第二層：排程報告</strong></td>
+        <td>Health Check Script v2.0</td>
+        <td>12:00 + 21:00 TST</td>
+        <td>Email 寄送到 Rain</td>
+      </tr>
+      <tr>
+        <td><strong>第三層：趨勢分析</strong></td>
+        <td>中控台 Dashboard</td>
+        <td>15 分鐘快取</td>
+        <td>/traffic 頁面</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>健康檢查涵蓋範圍（42 項）</h3>
+    <table>
+      <tr><th>類別</th><th>檢查項目</th><th>數量</th></tr>
+      <tr><td>網站基礎</td><td>DNS + HTTP + 回應時間 + SSL（每站 4 項）</td><td>16</td></tr>
+      <tr><td>SEO 文件</td><td>robots.txt + sitemap.xml + llms.txt（每站 3 項）</td><td>12</td></tr>
+      <tr><td>電商金流</td><td>Health API + ECPay webhook + 購物車 + 結帳</td><td>7</td></tr>
+      <tr><td>內部服務</td><td>Kai 後端 + Traffic + Security + Uptime Kuma</td><td>4</td></tr>
+      <tr><td>Supabase</td><td>澄境 + BookNow + 停車系統 REST API</td><td>3</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>中控台同步規則</h3>
+    <table>
+      <tr><th>異動類型</th><th>必須同步更新的中控台位置</th></tr>
+      <tr><td>新網站上線</td><td>GA4_PROPERTIES + GSC_SITES + SITE_DISPLAY + health-check.sh</td></tr>
+      <tr><td>新增 GA4 property</td><td>GA4_PROPERTIES + SITE_DISPLAY 的 ga4_id</td></tr>
+      <tr><td>域名變更</td><td>GSC_SITES + SITE_DISPLAY 的 gsc_site + health-check.sh 網址</td></tr>
+      <tr><td>新增 Supabase 專案</td><td>health-check.sh + supabase-keepalive.sh</td></tr>
+      <tr><td>新增金流整合</td><td>health-check.sh 電商區塊</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>異常處理流程</h3>
+    <table>
+      <tr><th>等級</th><th>觸發條件</th><th>處理方式</th></tr>
+      <tr><td class="status-fail">P0 嚴重</td><td>網站完全掛掉</td><td>Discord @everyone + Email + Forge 立即介入</td></tr>
+      <tr><td class="status-warn">P1 高</td><td>金流斷線</td><td>Discord + Email + Forge 介入</td></tr>
+      <tr><td style="color:var(--accent-warm)">P2 中</td><td>SSL 快過期 / 回應過慢</td><td>Email 提醒 + 排程處理</td></tr>
+      <tr><td style="color:var(--grey-02)">P3 低</td><td>SEO 文件缺失</td><td>記錄到 tech-debt</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 頁尾 -->
+<div class="footer">
+  <p><strong>Rain AI Team</strong> &mdash; 網站維護 &amp; 中控台全面盤點報告</p>
+  <p style="margin-top:8px">2026-03-07 &middot; 審核人：Klay（CEO）+ Ray（架構審查）+ John（前端審查）+ Scout（分析）</p>
+  <p style="margin-top:4px;font-size:12px">由 Slideless 產出 &middot; <span style="font-family:var(--font-mono)">slideless.vercel.app</span></p>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  document.getElementById('progress').style.width=pct+'%';
+});
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})
+},{threshold:0.1});
+document.querySelectorAll('.card,.stat,.issue,.timeline-item').forEach(el=>{el.classList.add('fade-up');obs.observe(el)});
+</script>
+</body>
+</html>

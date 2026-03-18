@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team Architecture Review — 2026-03-13</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --text: #e4e4e7;
+    --text-muted: #71717a;
+    --accent: #818cf8;
+    --accent-dim: rgba(129,140,248,0.15);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.12);
+    --cyan: #22d3ee;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 { font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card:hover { background: var(--surface-hover); }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  .severity-critical { color: var(--red); }
+  .severity-high { color: var(--amber); }
+  .severity-medium { color: var(--accent); }
+  .severity-low { color: var(--green); }
+
+  .badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-critical { background: var(--red-dim); color: var(--red); }
+  .badge-high { background: var(--amber-dim); color: var(--amber); }
+  .badge-medium { background: var(--accent-dim); color: var(--accent); }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin: 0.75rem 0;
+  }
+  th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  tr:hover td { background: var(--surface-hover); }
+
+  .bar-container {
+    width: 100%;
+    height: 24px;
+    background: var(--surface);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    margin: 0.5rem 0;
+  }
+  .bar-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: rgba(0,0,0,0.8);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .finding {
+    padding: 1rem 1.25rem;
+    border-left: 3px solid;
+    margin-bottom: 0.75rem;
+    background: var(--surface);
+    border-radius: 0 8px 8px 0;
+  }
+  .finding-critical { border-color: var(--red); }
+  .finding-high { border-color: var(--amber); }
+  .finding-medium { border-color: var(--accent); }
+
+  .finding-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    margin-bottom: 0.375rem;
+  }
+  .finding-body {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .recommendation {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+  }
+  .rec-number {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .rec-content { flex: 1; }
+  .rec-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 0.25rem; }
+  .rec-body { font-size: 0.8125rem; color: var(--text-muted); }
+
+  .agent-matrix {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .agent-chip {
+    padding: 0.375rem 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+  .chip-active { background: var(--green-dim); color: var(--green); border-color: rgba(74,222,128,0.2); }
+  .chip-idle { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.15); }
+  .chip-partial { background: var(--amber-dim); color: var(--amber); border-color: rgba(251,191,36,0.15); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    body { padding: 1rem; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .agent-matrix { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Rain AI Team Architecture Review</h1>
+<p class="subtitle">Night Shift Audit / 2026-03-13 / Reviewer: Klay (CEO)</p>
+
+<!-- ===== Executive Summary ===== -->
+<h2>Executive Summary</h2>
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-value severity-critical">32</div>
+    <div class="stat-label">Total Agents</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value severity-critical">5</div>
+    <div class="stat-label">Active (有任務記錄)</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value severity-high">78%</div>
+    <div class="stat-label">Klay 任務佔比</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value severity-low">87.5%</div>
+    <div class="stat-label">Agent 閒置率</div>
+  </div>
+</div>
+
+<div class="card">
+  <strong>核心問題：</strong>團隊定義了 32 個 Agent，但看板數據顯示只有 5 個曾出現在任務記錄中。Klay 承擔了 78% 的任務（39/50），實質上是「一人團隊」。龐大的組織架構成為文件負擔而非生產力來源。
+</div>
+
+<!-- ===== Task Distribution ===== -->
+<h2>1. 任務分佈分析</h2>
+
+<h3>任務分配比例</h3>
+<div class="bar-container">
+  <div class="bar-segment" style="width:78%; background: var(--accent);">Klay 78%</div>
+  <div class="bar-segment" style="width:14%; background: var(--amber);">Worker 14%</div>
+  <div class="bar-segment" style="width:4%; background: var(--cyan);">Ray 4%</div>
+  <div class="bar-segment" style="width:2%; background: var(--green);">Noel 2%</div>
+  <div class="bar-segment" style="width:2%; background: var(--red);">Buzz 2%</div>
+</div>
+
+<h3>Agent 活躍度矩陣</h3>
+<div class="agent-matrix">
+  <div class="agent-chip chip-active">Klay</div>
+  <div class="agent-chip chip-partial">Noel</div>
+  <div class="agent-chip chip-partial">Ray</div>
+  <div class="agent-chip chip-partial">Jarvis</div>
+  <div class="agent-chip chip-partial">Buzz</div>
+  <div class="agent-chip chip-idle">Max</div>
+  <div class="agent-chip chip-idle">Rex</div>
+  <div class="agent-chip chip-idle">John</div>
+  <div class="agent-chip chip-idle">Iris</div>
+  <div class="agent-chip chip-idle">Forge</div>
+  <div class="agent-chip chip-idle">Scout</div>
+  <div class="agent-chip chip-idle">Quill</div>
+  <div class="agent-chip chip-idle">Sentinel</div>
+  <div class="agent-chip chip-idle">Knox</div>
+  <div class="agent-chip chip-idle">Sage</div>
+  <div class="agent-chip chip-idle">Inquisitor</div>
+  <div class="agent-chip chip-idle">Tax</div>
+  <div class="agent-chip chip-idle">Nova</div>
+  <div class="agent-chip chip-idle">EchoMktr</div>
+  <div class="agent-chip chip-idle">Webb</div>
+  <div class="agent-chip chip-idle">Silo</div>
+  <div class="agent-chip chip-idle">Keeper</div>
+  <div class="agent-chip chip-idle">GooayeAI</div>
+  <div class="agent-chip chip-idle">Atlas</div>
+  <div class="agent-chip chip-idle">Milo</div>
+  <div class="agent-chip chip-idle">Pixel</div>
+  <div class="agent-chip chip-idle">Vick</div>
+  <div class="agent-chip chip-idle">Spider</div>
+  <div class="agent-chip chip-idle">Lynx</div>
+  <div class="agent-chip chip-idle">Nautilus</div>
+  <div class="agent-chip chip-idle">Probe</div>
+  <div class="agent-chip chip-idle">Echo</div>
+</div>
+<p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">
+  Green = 活躍 / Yellow = 少量活動 / Red = 零任務記錄
+</p>
+
+<!-- ===== Findings ===== -->
+<h2>2. 審查發現</h2>
+
+<div class="finding finding-critical">
+  <div class="finding-title"><span class="badge badge-critical">CRITICAL</span> F-01: Klay 單點過載 — 反模式</div>
+  <div class="finding-body">
+    Klay 定義為 CEO（商業目標、優先級、衝突仲裁），但實際承擔了 78% 的 feature 實作。這違反了「CEO 不寫程式」的組織原則。Max（Opus）專門處理複雜後端，Rex/John/Iris 處理日常開發，但看板上完全沒有他們的任務記錄。<br>
+    <strong>根因：</strong>Claude Code session 中 Klay 直接實作而不 dispatch，因為 dispatch 到 subagent 需要額外 context 準備和等待時間。
+  </div>
+</div>
+
+<div class="finding finding-critical">
+  <div class="finding-title"><span class="badge badge-critical">CRITICAL</span> F-02: 3-Phase Planning 從未實際執行</div>
+  <div class="finding-body">
+    task-dispatch.md 定義了完整的 3-Phase Planning Protocol（Klay → Scout → Ray），但 Scout 的任務記錄為 <strong>0</strong>，Ray 的 2 個任務都 <strong>failed</strong>（其中一個正是「團隊架構審查」）。<br>
+    <strong>根因：</strong>Ray 用 Codex Plus CLI，執行環境不穩定；Scout 從未被 Klay dispatch 過。3-Phase Protocol 是設計良好但從未落地的流程。
+  </div>
+</div>
+
+<div class="finding finding-high">
+  <div class="finding-title"><span class="badge badge-high">HIGH</span> F-03: Noel 角色定義模糊 — 閒置嚴重</div>
+  <div class="finding-body">
+    Noel 定位為「Personal Assistant — 備用助理, TW accounting, KR banking」，但：<br>
+    - 僅 1 個任務被指派（且 failed）<br>
+    - 作為 External Worker 的 functional lead（dispatch Spider/Lynx/Nautilus/Probe/Echo/Buzz），但這些 worker 全部零任務<br>
+    - TW accounting 職責與 Tax agent 重疊<br>
+    - 「備用助理」定位太弱 — 不清楚什麼時候該用 Noel 而不是 Klay<br>
+    <strong>影響：</strong>Gemini 2.5 Pro 的算力閒置，External Worker 管理層形同虛設。
+  </div>
+</div>
+
+<div class="finding finding-high">
+  <div class="finding-title"><span class="badge badge-high">HIGH</span> F-04: Jarvis Dispatch Center — 有名無實</div>
+  <div class="finding-body">
+    Jarvis 定義為「Dispatch Center + Email 寄送」，Chain of Command 甚至是 Rain → Jarvis → Klay。但：<br>
+    - Jarvis 僅作為 task creator（5 tasks），從未被 assigned 任何任務<br>
+    - Email 寄送功能由 Kai GmailService API 取代<br>
+    - Dispatch 功能由 Klay 直接執行<br>
+    - Jarvis 的 Telegram Bot 介面與 Kai 的 Web UI 重複<br>
+    <strong>影響：</strong>指揮鏈中的 Jarvis 層是冗餘的。
+  </div>
+</div>
+
+<div class="finding finding-high">
+  <div class="finding-title"><span class="badge badge-high">HIGH</span> F-05: 審查管線斷裂</div>
+  <div class="finding-body">
+    定義了 5 層審查（Sentinel → Ray → Quill → Forge → Probe+Echo），但：<br>
+    - Quill（程式碼審查）：看板 <strong>0 任務</strong>（雖然在 Claude Code 中可能以 subagent 形式運作，但沒有追蹤）<br>
+    - Forge（CI Gate）：<strong>0 任務</strong><br>
+    - Sentinel（安全）：<strong>0 任務</strong>（即使有 git hook，看板無記錄）<br>
+    - Probe + Echo（UI 驗收）：<strong>0 任務</strong><br>
+    <strong>影響：</strong>定義的審查流程無法從看板驗證是否執行，品質保障是假象。
+  </div>
+</div>
+
+<div class="finding finding-medium">
+  <div class="finding-title"><span class="badge badge-medium">MEDIUM</span> F-06: 職責重疊地帶</div>
+  <div class="finding-body">
+    <table>
+      <tr><th>重疊對</th><th>問題</th></tr>
+      <tr><td>Milo vs Spider/Lynx</td><td>Milo 是「Data/Crawler Engineer」，Spider/Lynx 也做爬蟲，Milo 還是他們的上級。Milo 本身從未執行任務。</td></tr>
+      <tr><td>Knox vs Sentinel</td><td>Knox 管 vault/api_key，Sentinel 管 secrets leak。兩者 task_types 都含 "security"，邊界不清。</td></tr>
+      <tr><td>Noel vs Tax</td><td>Noel 標註 "TW accounting, KR banking"，Tax 也負責同樣領域。</td></tr>
+      <tr><td>Nova vs Jarvis</td><td>同屬 docs 部門，Nova 做報告、Jarvis 做寄送，但寄送已由 Kai API 處理。</td></tr>
+      <tr><td>Webb vs John+Iris</td><td>Webb 是 Website Lead 做 fullstack，John 做 frontend，Iris 做 UI。網站任務時三者邊界需額外協調。</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="finding finding-medium">
+  <div class="finding-title"><span class="badge badge-medium">MEDIUM</span> F-07: 「Terminal Session」空殼任務</div>
+  <div class="finding-body">
+    看板有 <strong>8 個</strong> "Terminal Session" 待處理任務（pending），這正是 CLAUDE.md 明確禁止的行為：「不要建 Terminal Session 空殼」。<br>
+    這些任務佔了 pending 任務的 47%（8/17），汙染看板數據。
+  </div>
+</div>
+
+<!-- ===== Agent-by-Agent Assessment ===== -->
+<h2>3. 各 Agent 狀態評估</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Agent</th>
+      <th>Tier</th>
+      <th>任務數</th>
+      <th>狀態</th>
+      <th>建議</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Klay</strong></td><td>Core</td><td>39</td><td><span class="badge badge-critical">過載</span></td><td>回歸 CEO 角色，實作下放</td></tr>
+    <tr><td><strong>Max</strong></td><td>Core</td><td>0</td><td><span class="badge badge-critical">閒置</span></td><td>承接 Klay 的後端實作</td></tr>
+    <tr><td><strong>Rex</strong></td><td>Core</td><td>0</td><td><span class="badge badge-critical">閒置</span></td><td>承接 CRUD/API 任務</td></tr>
+    <tr><td><strong>John</strong></td><td>Core</td><td>0</td><td><span class="badge badge-critical">閒置</span></td><td>承接前端實作</td></tr>
+    <tr><td><strong>Iris</strong></td><td>Core</td><td>0</td><td><span class="badge badge-critical">閒置</span></td><td>承接 UI/CSS 任務</td></tr>
+    <tr><td><strong>Forge</strong></td><td>Core</td><td>0</td><td><span class="badge badge-high">閒置</span></td><td>CI 自動化需落實</td></tr>
+    <tr><td><strong>Scout</strong></td><td>Core</td><td>0</td><td><span class="badge badge-high">閒置</span></td><td>3-Phase P2 需落實</td></tr>
+    <tr><td><strong>Ray</strong></td><td>Core</td><td>2 (failed)</td><td><span class="badge badge-high">不穩定</span></td><td>修復 Codex 執行環境</td></tr>
+    <tr><td><strong>Quill</strong></td><td>Core</td><td>0</td><td><span class="badge badge-high">閒置</span></td><td>review-loop 需追蹤</td></tr>
+    <tr><td><strong>Noel</strong></td><td>External</td><td>1 (failed)</td><td><span class="badge badge-high">閒置</span></td><td>見建議 R-03</td></tr>
+    <tr><td><strong>Jarvis</strong></td><td>Dispatch</td><td>0 (5 created)</td><td><span class="badge badge-high">半閒置</span></td><td>見建議 R-04</td></tr>
+    <tr><td><strong>Sentinel</strong></td><td>Security</td><td>0</td><td><span class="badge badge-medium">自動化</span></td><td>hook 存在但無看板追蹤</td></tr>
+    <tr><td><strong>Knox/Sage/Inq</strong></td><td>Finance</td><td>0</td><td><span class="badge badge-medium">待命</span></td><td>按需觸發，合理</td></tr>
+    <tr><td><strong>Tax</strong></td><td>Finance</td><td>0</td><td><span class="badge badge-medium">待命</span></td><td>按需觸發，合理</td></tr>
+    <tr><td><strong>Nova</strong></td><td>Docs</td><td>0</td><td><span class="badge badge-medium">閒置</span></td><td>Deck 生成由 Klay 直接做</td></tr>
+    <tr><td><strong>Website 團隊</strong></td><td>Website</td><td>0</td><td><span class="badge badge-medium">待命</span></td><td>無網站專案時合理</td></tr>
+    <tr><td><strong>External Workers</strong></td><td>Tier 3</td><td>0-1</td><td><span class="badge badge-medium">待命</span></td><td>按需觸發，合理</td></tr>
+  </tbody>
+</table>
+
+<!-- ===== Recommendations ===== -->
+<h2>4. 改善建議</h2>
+
+<div class="recommendation">
+  <div class="rec-number">1</div>
+  <div class="rec-content">
+    <div class="rec-title">R-01: 強制 Dispatch — Klay 不寫實作程式碼 <span class="badge badge-critical">P0</span></div>
+    <div class="rec-body">
+      修改 Klay 的行為規則：feature/bug_fix 類任務必須透過 Agent tool dispatch 給 Max/Rex/John/Iris，Klay 只做規劃、協調、報告。<br>
+      <strong>實作方式：</strong>在 CLAUDE.md 加入硬規則「Klay 看到 feature/bugfix 任務 → 必須 dispatch，禁止自行實作」。<br>
+      <strong>預期效果：</strong>Klay 負載降至 30% 以下，Core 團隊利用率從 9% 升至 50%+。
+    </div>
+  </div>
+</div>
+
+<div class="recommendation">
+  <div class="rec-number">2</div>
+  <div class="rec-content">
+    <div class="rec-title">R-02: 簡化審查管線 — 從 5 層降為 3 層 <span class="badge badge-high">P1</span></div>
+    <div class="rec-body">
+      當前 5 層審查全部斷裂。建議精簡為：<br>
+      <strong>Layer 1:</strong> Quill code review（Claude Code subagent，自動追蹤到看板）<br>
+      <strong>Layer 2:</strong> Forge CI（整合 lint+test+build 為一個自動 step）<br>
+      <strong>Layer 3:</strong> Ray design review（僅 Critical 任務，修復 Codex 環境後）<br>
+      取消 Sentinel 獨立任務追蹤（保留 git hook 但不上看板）、取消 Probe+Echo 常規 UI 測試（保留手動觸發）。
+    </div>
+  </div>
+</div>
+
+<div class="recommendation">
+  <div class="rec-number">3</div>
+  <div class="rec-content">
+    <div class="rec-title">R-03: 重新定位 Noel — 從「備用助理」到「夜班 + 外部協調」 <span class="badge badge-high">P1</span></div>
+    <div class="rec-body">
+      Noel 的「備用助理」定位太弱，導致永遠不會被選中。建議重新定位：<br>
+      1. <strong>夜班主力執行者</strong>：Night Shift 排程任務由 Noel 執行（非 Klay）<br>
+      2. <strong>External Worker 管理</strong>：Spider/Lynx/Nautilus/Buzz 的任務由 Noel dispatch 並追蹤<br>
+      3. <strong>移除 TW accounting</strong>：此職責完全由 Tax 承擔，Noel 不需要<br>
+      <strong>觸發條件：</strong>夜班任務 / 外部爬蟲任務 / Rain 個人事務
+    </div>
+  </div>
+</div>
+
+<div class="recommendation">
+  <div class="rec-number">4</div>
+  <div class="rec-content">
+    <div class="rec-title">R-04: 降級 Jarvis — 從指揮鏈移除 <span class="badge badge-high">P1</span></div>
+    <div class="rec-body">
+      Jarvis 在指揮鏈中位於 Rain 和 Klay 之間（Rain → Jarvis → Klay），但實際上 Rain 直接和 Klay 對話。建議：<br>
+      1. <strong>移除指揮鏈中間層</strong>：Rain → Klay（直接）<br>
+      2. <strong>Jarvis 降為工具</strong>：保留 Email 寄送功能（若 Kai API 不足時的備用），但不作為獨立 Agent<br>
+      3. <strong>Night Shift 排程</strong>：由 Kai cron 系統直接觸發，不經 Jarvis<br>
+      <strong>預期效果：</strong>減少一個指揮鏈節點，降低組織複雜度。
+    </div>
+  </div>
+</div>
+
+<div class="recommendation">
+  <div class="rec-number">5</div>
+  <div class="rec-content">
+    <div class="rec-title">R-05: 合併冗餘角色 — 減少 Agent 總數 <span class="badge badge-medium">P2</span></div>
+    <div class="rec-body">
+      建議合併：<br>
+      - <strong>Milo → 刪除</strong>：Spider/Lynx 直接向 Noel 報告，Milo 的 ETL 工作由 Max 處理<br>
+      - <strong>Knox + Sentinel → 合併為 Security Lead</strong>：統一管理密鑰 + 安全掃描<br>
+      - <strong>Sage → 合併入 Knox</strong>：account lifecycle 不需要獨立 agent<br>
+      - <strong>Nova → 合併入 Klay</strong>：Deck 報告目前由 Klay 直接生成<br>
+      <strong>合併後：</strong>32 agents → ~26 agents，減少 6 個零活動角色。
+    </div>
+  </div>
+</div>
+
+<div class="recommendation">
+  <div class="rec-number">6</div>
+  <div class="rec-content">
+    <div class="rec-title">R-06: 清理看板 — 刪除空殼任務 + 追蹤改善 <span class="badge badge-medium">P2</span></div>
+    <div class="rec-body">
+      1. 清除 8 個 "Terminal Session" pending 任務<br>
+      2. Subagent 執行（Quill review、Forge CI）需回報到 Kai 看板，否則看板數據不完整<br>
+      3. 加入 agent utilization dashboard（每個 agent 的任務完成率、平均耗時）
+    </div>
+  </div>
+</div>
+
+<!-- ===== Summary Table ===== -->
+<h2>5. 發現摘要</h2>
+<table>
+  <thead>
+    <tr><th>ID</th><th>嚴重度</th><th>發現</th><th>建議</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>F-01</td><td><span class="badge badge-critical">CRITICAL</span></td><td>Klay 單點過載（78% 任務）</td><td>R-01: 強制 dispatch</td></tr>
+    <tr><td>F-02</td><td><span class="badge badge-critical">CRITICAL</span></td><td>3-Phase Planning 從未執行</td><td>R-02: 簡化審查管線</td></tr>
+    <tr><td>F-03</td><td><span class="badge badge-high">HIGH</span></td><td>Noel 閒置 + 角色模糊</td><td>R-03: 重新定位</td></tr>
+    <tr><td>F-04</td><td><span class="badge badge-high">HIGH</span></td><td>Jarvis 指揮鏈冗餘</td><td>R-04: 降級為工具</td></tr>
+    <tr><td>F-05</td><td><span class="badge badge-high">HIGH</span></td><td>審查管線 5 層全斷</td><td>R-02: 降為 3 層</td></tr>
+    <tr><td>F-06</td><td><span class="badge badge-medium">MEDIUM</span></td><td>5 對職責重疊</td><td>R-05: 合併冗餘角色</td></tr>
+    <tr><td>F-07</td><td><span class="badge badge-medium">MEDIUM</span></td><td>Terminal Session 空殼</td><td>R-06: 清理看板</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  Rain AI Team Architecture Review / Night Shift Auto-generated / 2026-03-13<br>
+  Reviewer: Klay (CEO, Claude Opus 4.6) / Task: f4dc8a45
+</footer>
+
+</body>
+</html>

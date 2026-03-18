@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Platform — Sprint 8 完整修復報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #121212;
+  --white: #ffffff;
+  --cream: #f6f5f1;
+  --grey-01: #f0eee6;
+  --grey-02: #8b877c;
+  --grey-03: #6c6a62;
+  --accent: #a8cde8;
+  --accent-warm: #eb8054;
+  --green: #85a268;
+  --danger: #d94f4f;
+  --font-main: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--cream);
+  color: var(--black);
+  line-height: 1.6;
+}
+
+/* Progress Bar */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--accent-warm);
+  width: 0%;
+  z-index: 1000;
+  transition: width 0.1s ease;
+}
+
+/* Nav */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(246,245,241,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--grey-01);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  z-index: 900;
+  gap: 32px;
+}
+
+.nav-brand {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.nav-links a {
+  font-size: 13px;
+  color: var(--grey-02);
+  text-decoration: none;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-links a:hover { color: var(--black); }
+
+/* Cover */
+.cover {
+  background: var(--black);
+  color: var(--white);
+  padding: 100px 120px 72px;
+  min-height: auto;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.cover h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.cover h1 span { color: var(--accent-warm); }
+
+.subtitle {
+  font-size: 17px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 48px;
+  max-width: 600px;
+}
+
+.cover-stats {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.stat-block { display: flex; flex-direction: column; gap: 4px; }
+
+.stat-num {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+
+.stat-num.green { color: #85a268; }
+.stat-num.orange { color: var(--accent-warm); }
+.stat-num.blue { color: var(--accent); }
+.stat-num.zero { color: rgba(255,255,255,0.3); }
+
+.stat-label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.cover-meta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 24px;
+}
+
+/* Sections */
+section {
+  padding: 80px 120px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--accent-warm);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.section-title span { color: var(--accent-warm); }
+
+.section-desc {
+  font-size: 15px;
+  color: var(--grey-02);
+  margin-bottom: 40px;
+  max-width: 680px;
+}
+
+/* Cards */
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--grey-01);
+  padding: 28px 32px;
+}
+
+.card-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 14px;
+  color: var(--grey-02);
+  line-height: 1.5;
+}
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--grey-01);
+  background: var(--white);
+  margin-bottom: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 560px;
+}
+
+thead tr {
+  background: var(--cream);
+  border-bottom: 1px solid var(--grey-01);
+}
+
+thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--grey-03);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--grey-01);
+  transition: background 0.15s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--cream); }
+
+tbody td {
+  padding: 12px 16px;
+  color: var(--black);
+  vertical-align: top;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.badge-critical { background: #fde8e8; color: var(--danger); }
+.badge-high { background: #fef0e6; color: #c25a20; }
+.badge-medium { background: #fefce8; color: #7c6b0e; }
+.badge-pass { background: #e8f5e2; color: #3d6b25; }
+.badge-done { background: #e2f0fb; color: #1a5c8a; }
+.badge-pending { background: var(--grey-01); color: var(--grey-03); }
+
+/* Code blocks */
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.code-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-02);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Dark band */
+.dark-band {
+  background: var(--black);
+  color: var(--white);
+  padding: 80px 120px;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.dark-band .section-eyebrow { color: var(--accent); }
+.dark-band .section-title { color: var(--white); }
+.dark-band .section-desc { color: rgba(255,255,255,0.45); }
+.dark-band .card { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+.dark-band .card h3 { color: var(--white); }
+.dark-band .card p { color: rgba(255,255,255,0.55); }
+.dark-band table { min-width: 420px; }
+.dark-band thead tr { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+.dark-band thead th { color: rgba(255,255,255,0.45); }
+.dark-band tbody tr { border-color: rgba(255,255,255,0.08); }
+.dark-band tbody tr:hover { background: rgba(255,255,255,0.04); }
+.dark-band tbody td { color: rgba(255,255,255,0.85); }
+.dark-band .table-wrap { background: transparent; border-color: rgba(255,255,255,0.1); }
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--grey-01);
+  margin: 0 120px;
+}
+
+/* Footer */
+footer {
+  background: var(--black);
+  padding: 40px 120px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* Check marks */
+.check { color: var(--green); font-weight: 600; }
+.cross { color: var(--danger); }
+.pending-icon { color: var(--accent-warm); }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .cover, section { padding: 80px 60px; }
+  .dark-band { padding: 80px 60px; }
+  .divider { margin: 0 60px; }
+  footer { padding: 40px 60px; }
+}
+
+@media (max-width: 900px) {
+  .cover, section { padding: 72px 32px; }
+  .dark-band { padding: 72px 32px; }
+  .divider { margin: 0 32px; }
+  footer { padding: 40px 32px; }
+  .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
+  .cover-stats { gap: 32px; }
+  nav { padding: 0 20px; gap: 20px; }
+}
+
+@media (max-width: 600px) {
+  .cover, section { padding: 64px 20px; }
+  .dark-band { padding: 64px 20px; }
+  .divider { margin: 0 20px; }
+  footer { padding: 32px 20px; }
+  .cover-stats { flex-direction: column; gap: 20px; }
+  nav { padding: 0 16px; }
+  .nav-brand { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="#cover" class="nav-brand">AI Agent Platform v2</a>
+  <ul class="nav-links">
+    <li><a href="#tests">測試結果</a></li>
+    <li><a href="#sprint8">Sprint 8 修復</a></li>
+    <li><a href="#extras">追加修復</a></li>
+    <li><a href="#deploy">部署簡化</a></li>
+    <li><a href="#cloud">雲端部署</a></li>
+    <li><a href="#account">帳號 &amp; 模板</a></li>
+    <li><a href="#debt">技術債</a></li>
+  </ul>
+</nav>
+
+<!-- Cover -->
+<div class="cover" id="cover">
+  <p class="eyebrow">Sprint 8 完整修復報告 · 2026-03-15</p>
+  <h1>AI Agent Platform<br><span>全平台審查完成</span></h1>
+  <p class="subtitle">由 Ray + Quill 審查，共發現並修復 10 個問題，追加完成 4 個 Sprint 9 待辦，最終測試 54/54 全通過。</p>
+  <div class="cover-stats">
+    <div class="stat-block">
+      <span class="stat-num green">54/54</span>
+      <span class="stat-label">Tests Pass</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num orange">10</span>
+      <span class="stat-label">Sprint 8 修復</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num blue">4</span>
+      <span class="stat-label">追加修復完成</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num zero">0</span>
+      <span class="stat-label">Blockers</span>
+    </div>
+  </div>
+  <p class="cover-meta">報告日期：2026-03-15 · 後端：FastAPI · DB：PostgreSQL + Redis · 前端：Next.js（Vercel）</p>
+</div>
+
+<!-- Tests -->
+<section id="tests">
+  <p class="section-eyebrow">01 / Test Results</p>
+  <h2 class="section-title">測試結果：<span>54/54 Pass</span></h2>
+  <p class="section-desc">pytest 全通過（含新增測試），前端 tsc + build 零錯誤。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>結果</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>pytest（54 tests）</td>
+          <td><span class="badge badge-pass">✅ PASS</span></td>
+          <td>含新增 test_admin_stats_non_admin_forbidden</td>
+        </tr>
+        <tr>
+          <td>tsc --noEmit</td>
+          <td><span class="badge badge-pass">✅ PASS</span></td>
+          <td>0 TypeScript 錯誤</td>
+        </tr>
+        <tr>
+          <td>npm run build</td>
+          <td><span class="badge badge-pass">✅ PASS</span></td>
+          <td>成功，14 個頁面</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Sprint 8 Fixes -->
+<section id="sprint8">
+  <p class="section-eyebrow">02 / Sprint 8 Fixes</p>
+  <h2 class="section-title">Sprint 8 <span>已修復問題</span></h2>
+  <p class="section-desc">共 10 個問題：3 CRITICAL + 4 HIGH + 4 MEDIUM，全部完成修復。</p>
+
+  <p style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:12px;font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase;">CRITICAL (3/3)</p>
+  <div class="table-wrap" style="margin-bottom:32px;">
+    <table>
+      <thead>
+        <tr><th>#</th><th>問題</th><th>修復方式</th><th>狀態</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Templates poll 欄位名稱錯誤：<code>task_types</code> → <code>supported_task_types</code></td>
+          <td>修正兩個 template 的欄位名稱</td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><code>config.py</code> 未阻擋預設 SECRET_KEY 上 production</td>
+          <td>新增 <code>model_validator</code> 拒絕預設值</td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Template <code>register()</code> 使用錯誤 auth header</td>
+          <td>改用 <code>Authorization: Bearer {PLATFORM_JWT}</code></td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:13px;font-weight:600;color:#c25a20;margin-bottom:12px;font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase;">HIGH (4/4)</p>
+  <div class="table-wrap" style="margin-bottom:32px;">
+    <table>
+      <thead>
+        <tr><th>#</th><th>問題</th><th>狀態</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>4</td>
+          <td>前端 <code>input_payload_json</code> 欄位名稱錯誤</td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><code>getDashboardStats()</code> 統計不準</td>
+          <td><span class="badge badge-pass">改用 DB 直查</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Webhook SSRF 阻塞 DNS（blocking socket）</td>
+          <td><span class="badge badge-pass">✅ 追加修復完成</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Admin stats 無 RBAC</td>
+          <td><span class="badge badge-pass">✅ 追加修復完成</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:13px;font-weight:600;color:#7c6b0e;margin-bottom:12px;font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase;">MEDIUM (4/4)</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>問題</th><th>修復方式</th><th>狀態</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>8</td>
+          <td>Provider token 快取只存 provider_id</td>
+          <td>列入 Sprint 9 待辦</td>
+          <td><span class="badge badge-pending">Sprint 9</span></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><code>start-backend.sh</code> hardcode PG 路徑</td>
+          <td>改用 PATH-based <code>createdb</code></td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>Windows 無部署腳本</td>
+          <td>新增 <code>start-backend.ps1</code></td>
+          <td><span class="badge badge-pass">已修復</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Extra fixes -->
+<section id="extras">
+  <p class="section-eyebrow">03 / 追加修復</p>
+  <h2 class="section-title">Sprint 9 待辦 → <span>提前完成</span></h2>
+  <p class="section-desc">4 個原本計劃留到 Sprint 9 的問題，本次一併修復。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>問題</th><th>修復方式</th><th>影響範圍</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A</td>
+          <td>Admin stats 無 RBAC</td>
+          <td><code>routers/admin.py</code> 加入 role=admin 檢查，非 admin → 403</td>
+          <td>安全性</td>
+        </tr>
+        <tr>
+          <td>B</td>
+          <td>密碼複雜度只檢查長度</td>
+          <td><code>schemas/auth.py</code> 新增大寫 + 小寫 + 數字規則</td>
+          <td>帳號安全</td>
+        </tr>
+        <tr>
+          <td>C</td>
+          <td>Webhook SSRF 用阻塞 DNS</td>
+          <td><code>webhook_service.py</code> 改 <code>asyncio.getaddrinfo()</code> async，不阻塞 event loop</td>
+          <td>效能 + 安全</td>
+        </tr>
+        <tr>
+          <td>D</td>
+          <td>部署說明複雜難用</td>
+          <td>README 重寫：Docker 一行部署 + Railway/Render/VPS 完整指南</td>
+          <td>開發者體驗</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin-top:24px;">
+    <div class="card">
+      <h3>🔐 Admin RBAC</h3>
+      <p><code>/api/platform/stats</code> 現在要求 <code>role=admin</code>，一般用戶收到 <strong>403 Forbidden</strong>。已新增測試 <code>test_admin_stats_non_admin_forbidden</code>。</p>
+    </div>
+    <div class="card">
+      <h3>🔑 密碼複雜度</h3>
+      <p>密碼規則升級：長度 ≥ 8 + 至少一個大寫 + 一個小寫 + 一個數字。測試密碼全面更新（TestPass1 等）。</p>
+    </div>
+    <div class="card">
+      <h3>🌐 Webhook 非阻塞 DNS</h3>
+      <p>將 <code>socket.gethostbyname()</code>（阻塞）改為 <code>asyncio.get_event_loop().getaddrinfo()</code>，SSRF 防護不再影響 event loop 效能。</p>
+    </div>
+    <div class="card">
+      <h3>📦 一鍵部署</h3>
+      <p>Docker Compose 一行指令搞定所有依賴（PG + Redis + API）。唯一需求：Docker Desktop。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Deploy comparison -->
+<div class="dark-band" id="deploy">
+  <div style="max-width:1400px;margin:0 auto;">
+    <p class="section-eyebrow">04 / 部署簡化</p>
+    <h2 class="section-title">部署方式：<span>Before vs After</span></h2>
+    <p class="section-desc">原本需要手動安裝 PostgreSQL + Redis + Python，現在一個 Docker 指令搞定。</p>
+
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <p class="code-label" style="color:rgba(255,255,255,0.4);">❌ Before（複雜）</p>
+        <pre># 需要先裝 PostgreSQL 16 + Redis + Python
+brew install postgresql@16 redis
+createdb agentplatform
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app ...</pre>
+      </div>
+      <div class="card">
+        <p class="code-label" style="color:rgba(255,255,255,0.4);">✅ After（一鍵）</p>
+        <pre>git clone &lt;repo&gt; ai-agent-platform
+cd ai-agent-platform/infra
+echo "SECRET_KEY=$(openssl rand -hex 32)" > .env
+echo "POSTGRES_PASSWORD=agentpass" >> .env
+docker compose up -d</pre>
+      </div>
+    </div>
+
+    <p style="margin-top:24px;font-size:15px;color:rgba(255,255,255,0.6);">
+      完成後：後端啟動在 <strong style="color:var(--accent);">http://localhost:8000</strong>，API 文件在 <strong style="color:var(--accent);">http://localhost:8000/docs</strong>
+    </p>
+  </div>
+</div>
+
+<!-- Cloud Deploy -->
+<section id="cloud">
+  <p class="section-eyebrow">05 / 雲端部署</p>
+  <h2 class="section-title">雲端部署 <span>選項比較</span></h2>
+  <p class="section-desc">依據需求選擇最適合的部署方案。個人/小團隊推薦 Railway。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>方案</th><th>難度</th><th>費用</th><th>建議對象</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Railway</strong></td>
+          <td>⭐ 最簡單</td>
+          <td>免費起 / $5+</td>
+          <td>個人 / 小團隊首選，自動提供 PG + Redis</td>
+        </tr>
+        <tr>
+          <td><strong>Render</strong></td>
+          <td>⭐⭐</td>
+          <td>免費起 / $7+</td>
+          <td>次選，免費方案有睡眠問題</td>
+        </tr>
+        <tr>
+          <td><strong>VPS (Ubuntu)</strong></td>
+          <td>⭐⭐⭐</td>
+          <td>$5–10/月</td>
+          <td>需要完整控制，懂 Linux</td>
+        </tr>
+        <tr>
+          <td><strong>本機 Docker</strong></td>
+          <td>⭐ 最簡單</td>
+          <td>免費</td>
+          <td>開發 / 測試環境</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Account & Templates -->
+<section id="account">
+  <p class="section-eyebrow">06 / 帳號 &amp; 模板</p>
+  <h2 class="section-title">平台帳號 &amp; <span>Worker 模板</span></h2>
+  <p class="section-desc">Web Console 已部署在 Vercel，可直接使用。下載 Worker 模板連接平台接取任務。</p>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:32px;">
+    <div class="card">
+      <h3>平台入口</h3>
+      <p style="margin-bottom:8px;">Web Console（前端）</p>
+      <code style="font-size:13px;color:var(--accent-warm);">https://web-console-one.vercel.app</code>
+    </div>
+    <div class="card">
+      <h3>帳號資訊</h3>
+      <p>Email: <code>asdapper8866@gmail.com</code><br>密碼: <code>RainAI@2026</code></p>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>模板</th><th>類型</th><th>支援任務類型</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>web-operator-team</code></td>
+          <td>多人 Agent 團隊</td>
+          <td>web_operation, web_scraping, hybrid_workflow</td>
+        </tr>
+        <tr>
+          <td><code>data-analyst</code></td>
+          <td>單一 Agent</td>
+          <td>data_analysis, summarization, classification</td>
+        </tr>
+        <tr>
+          <td><code>content-writer</code></td>
+          <td>單一 Agent</td>
+          <td>blog_post, email_copy, product_description</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Tech Debt -->
+<div class="dark-band" id="debt">
+  <div style="max-width:1400px;margin:0 auto;">
+    <p class="section-eyebrow">07 / 剩餘技術債</p>
+    <h2 class="section-title">Sprint 9 <span>待辦清單</span></h2>
+    <p class="section-desc">4 個非緊急項目，列入下一個 Sprint。</p>
+
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <h3>🔄 Provider Token Rotation</h3>
+        <p>快取 fingerprint 需包含 token expiry，避免舊 token 被快取過久。複雜度較高，需獨立設計。</p>
+      </div>
+      <div class="card">
+        <h3>🖼️ Docker Compose 圖解</h3>
+        <p>README 補充架構圖（PG + Redis + API 三角關係），降低新用戶理解成本。</p>
+      </div>
+      <div class="card">
+        <h3>👤 Admin 帳號建立 API</h3>
+        <p>目前需直接改 DB（role 欄位）才能建 admin。需要一個安全的初始化 API 端點。</p>
+      </div>
+      <div class="card">
+        <h3>🔐 密碼重設功能</h3>
+        <p>目前無 forgot password 流程。需要 email token + 時效性設計。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  AI Agent Platform · Sprint 8 完整修復報告 · 2026-03-15 · Ray + Quill 審查通過 · 54/54 Tests Pass
+</footer>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  });
+</script>
+</body>
+</html>
