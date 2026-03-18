@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>白話文記帳系統 — 完整運作報告 + 雲端部署方案</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--black:#121212;--white:#fff;--cream:#f6f5f1;--grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;--accent:#e8723a;--cool:#a8cde8;--green:#85a268;--danger:#d94f4f;--yellow:#d4a843;--font:'Inter','Noto Sans TC',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--r:12px;--shadow:0 1px 4px rgba(0,0,0,.06)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:101;transition:width .1s;width:0}
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--mono);white-space:nowrap}
+.nav-links{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;white-space:nowrap;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--black)}
+.cover{background:var(--black);color:var(--white);text-align:center;padding:100px 40px 72px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(232,114,58,.15),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(168,205,232,.1),transparent 60%)}
+.cover-inner{position:relative;max-width:720px;margin:0 auto}
+.cover-label{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.cover h1{font-size:clamp(26px,5vw,44px);font-weight:800;line-height:1.2;margin-bottom:16px}
+.cover h1 span{color:var(--accent)}
+.cover-sub{font-size:15px;color:rgba(255,255,255,.55);max-width:540px;margin:0 auto}
+.s{max-width:820px;margin:0 auto;padding:56px 32px}
+.s-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.s h2{font-size:26px;font-weight:800;margin-bottom:20px;line-height:1.3}
+.s p{margin-bottom:14px;color:var(--grey-03);font-size:15px}
+.card-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:20px 0}
+.card{background:var(--white);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);border:1px solid var(--grey-01)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.card p{font-size:13px;color:var(--grey-02);margin:0}
+.kpi-row{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin:20px 0}
+.kpi{background:var(--white);border-radius:var(--r);padding:20px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--grey-01)}
+.kpi-value{font-size:32px;font-weight:800;font-family:var(--mono);line-height:1.1}
+.kpi-value.green{color:var(--green)}.kpi-value.warm{color:var(--accent)}.kpi-value.cool{color:var(--cool)}.kpi-value.danger{color:var(--danger)}
+.kpi-label{font-size:11px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;border-radius:var(--r);border:1px solid var(--grey-01)}
+.tbl-wrap::-webkit-scrollbar{height:5px}.tbl-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px;background:var(--white)}
+th{background:var(--grey-01);font-weight:600;text-align:left;padding:10px 14px;font-size:11px;color:var(--grey-03);text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 14px;border-top:1px solid var(--grey-01)}
+tr:hover td{background:rgba(246,245,241,.5)}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px}
+.tag-green{background:rgba(133,162,104,.12);color:var(--green)}.tag-warm{background:rgba(232,114,58,.12);color:var(--accent)}.tag-danger{background:rgba(217,79,79,.12);color:var(--danger)}.tag-grey{background:var(--grey-01);color:var(--grey-03)}
+.hl{background:var(--white);border-left:4px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:20px 24px;margin:20px 0;box-shadow:var(--shadow)}
+.hl h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.hl p{font-size:13px;color:var(--grey-03);margin:0}
+.hl ul{margin:6px 0 0;padding-left:18px}.hl li{font-size:13px;color:var(--grey-03);margin-bottom:4px}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:16px 0;justify-content:center}
+.flow-step{background:var(--white);border:2px solid var(--grey-01);border-radius:var(--r);padding:12px 16px;text-align:center;font-size:12px;font-weight:600;min-width:100px}
+.flow-step.active{border-color:var(--accent);background:rgba(232,114,58,.04)}
+.flow-arrow{font-size:16px;color:var(--grey-02)}
+.sd{background:var(--black);color:var(--white);padding:56px 32px}
+.sd .si{max-width:820px;margin:0 auto}
+.sd .s-label{color:var(--accent)}.sd h2{color:var(--white)}.sd p{color:rgba(255,255,255,.55)}
+.sd .card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}.sd .card h3{color:var(--white)}.sd .card p{color:rgba(255,255,255,.5)}
+code{font-family:var(--mono);background:var(--grey-01);padding:1px 6px;border-radius:4px;font-size:12px}
+.footer{text-align:center;padding:32px;font-size:11px;color:var(--grey-02);border-top:1px solid var(--grey-01)}
+@media(max-width:600px){.nav{padding:10px 16px}.cover{padding:80px 20px 48px}.s{padding:36px 16px}.sd{padding:36px 16px}.kpi-row{grid-template-columns:repeat(2,1fr)}.card-grid{grid-template-columns:1fr}.flow{flex-direction:column}.flow-arrow{transform:rotate(90deg)}table{min-width:480px}}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="pb"></div>
+<nav class="nav">
+<div class="nav-brand">RAIN AI TEAM</div>
+<div class="nav-links">
+<a href="#flow">運作流程</a>
+<a href="#audit">入帳驗證</a>
+<a href="#integrity">正確性機制</a>
+<a href="#cloud">雲端部署</a>
+<a href="#cf">Cloudflare</a>
+<a href="#security">安全備份</a>
+<a href="#next">下一步</a>
+</div>
+</nav>
+
+<header class="cover">
+<div class="cover-inner">
+<div class="cover-label">Operations Guide</div>
+<h1><span>白話文記帳</span>系統<br>完整運作報告</h1>
+<p class="cover-sub">入帳正確性驗證 + 雲端部署方案 + 資料完整性機制</p>
+</div>
+</header>
+
+<!-- 1. How it works -->
+<section class="s" id="flow">
+<div class="s-label">01 — How It Works</div>
+<h2>系統怎麼運作</h2>
+
+<div class="flow">
+<div class="flow-step active">使用者<br><small>選分類</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step active">白話文 API<br><small>:8070</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step">科目對應<br><small>10 分類 → 科目</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step">Odoo XML-RPC<br><small>建立分錄</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step" style="border-color:var(--green)">Odoo ERP<br><small>:8069</small></div>
+</div>
+
+<p>使用者只需要做一件事：<strong>選「你做了什麼」+ 填金額</strong>。系統在背後完成三件事：</p>
+
+<div class="card-grid">
+<div class="card">
+<h3>1. 白話文 → 會計科目</h3>
+<p>10 個白話分類各對應一組借方/貸方科目。例如「收到客戶付款」= 借：銀行（111301）/ 貸：銷貨收入（411100）。對應表寫死在 <code>api.py</code> 的 PLAIN_CATEGORIES 字典裡。</p>
+</div>
+<div class="card">
+<h3>2. 自動建立分錄</h3>
+<p>FastAPI 收到前端請求後，透過 Odoo 的 XML-RPC API 呼叫 <code>account.move.create()</code>，建立一筆含兩行 line_ids（借方 + 貸方）的日記簿分錄。</p>
+</div>
+<div class="card">
+<h3>3. 交易對象管理</h3>
+<p>如果使用者填了「對方名稱」，系統先搜尋 Odoo 的 <code>res.partner</code>。找到就連結，沒找到就自動新建。下次記帳同一對象就不用重填。</p>
+</div>
+</div>
+
+<div class="hl">
+<h4>技術架構</h4>
+<ul>
+<li><strong>前端</strong>：靜態 HTML（static/index.html）— 零框架，純 JS fetch API</li>
+<li><strong>API</strong>：FastAPI（api.py, :8070）— 白話文分類 → Odoo XML-RPC 代理</li>
+<li><strong>後端</strong>：Odoo 17 Community（Docker, :8069）— 會計核心 + 台灣科目表</li>
+<li><strong>資料庫</strong>：PostgreSQL 16（Docker）— Odoo 的唯一 DB</li>
+<li><strong>會計科目</strong>：l10n_tw 模組 — 131 個台灣標準科目</li>
+</ul>
+</div>
+</section>
+
+<!-- 2. Audit Results -->
+<section class="s" id="audit">
+<div class="s-label">02 — Accounting Audit</div>
+<h2>入帳正確性驗證結果</h2>
+
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-value green">11</div><div class="kpi-label">已驗證分錄</div></div>
+<div class="kpi"><div class="kpi-value green">11/11</div><div class="kpi-label">借貸平衡</div></div>
+<div class="kpi"><div class="kpi-value green">0</div><div class="kpi-label">錯誤數</div></div>
+<div class="kpi"><div class="kpi-value cool">NT$60K</div><div class="kpi-label">總借方=總貸方</div></div>
+</div>
+
+<div class="tbl-wrap">
+<table style="min-width:750px;">
+<thead><tr><th>#</th><th>分類</th><th>金額</th><th>借方科目</th><th>貸方科目</th><th>平衡</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>收到客戶付款</td><td>NT$50,000</td><td>111101 現金</td><td>411100 銷貨收入</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>2</td><td>收到客戶付款</td><td>NT$1,000</td><td>111301 銀行</td><td>411100 銷貨收入</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>3</td><td>付供應商貨款</td><td>NT$1,000</td><td>512100 進貨</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>4</td><td>付辦公室費用</td><td>NT$1,000</td><td>611200 租金支出</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>5</td><td>付員工薪水</td><td>NT$1,000</td><td>611100 薪資支出</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>6</td><td>買文具/消耗品</td><td>NT$1,000</td><td>611300 文具用品</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>7</td><td>交通費</td><td>NT$1,000</td><td>611400 旅費</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>8</td><td>餐費/交際費</td><td>NT$1,000</td><td>612100 交際費</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>9</td><td>軟體/雲端服務</td><td>NT$1,000</td><td>613400 其他營業費用</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>10</td><td>從銀行領現金</td><td>NT$1,000</td><td>111101 現金</td><td>111301 銀行</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>11</td><td>收到銀行利息</td><td>NT$1,000</td><td>111301 銀行</td><td>711100 利息收入</td><td><span class="tag tag-green">✓</span></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 3. Integrity Mechanism -->
+<section class="s" id="integrity">
+<div class="s-label">03 — Data Integrity</div>
+<h2>入帳正確性保障機制</h2>
+
+<p>「系統會不會記錯帳？」— 有四道防線：</p>
+
+<div class="card-grid" style="grid-template-columns:1fr;">
+<div class="card" style="border-left:4px solid var(--green);">
+<h3>防線 1：科目硬編碼（最關鍵）</h3>
+<p>每個白話分類對應的借方/貸方科目是<strong>寫死在程式碼裡的</strong>，不是 AI 推理出來的。使用者選「交通費」，系統永遠記到 611400（旅費），不會因為任何原因變成其他科目。這跟畠山的 Stage 1（關鍵字辭典）是同一個設計思路。</p>
+</div>
+<div class="card" style="border-left:4px solid var(--accent);">
+<h3>防線 2：Odoo 複式簿記強制</h3>
+<p>Odoo 的 <code>account.move</code> 模型有內建驗證：<strong>每筆分錄的借方合計必須等於貸方合計</strong>，否則 Odoo 拒絕建立。這是 ERP 層級的硬限制，程式碼繞不過去。即使 API 傳入不平衡的金額，Odoo 會直接報錯。</p>
+</div>
+<div class="card" style="border-left:4px solid var(--cool);">
+<h3>防線 3：草稿 → 過帳兩階段</h3>
+<p>白話文記帳建立的分錄狀態是「草稿」(draft)。<strong>需要會計師在 Odoo 後台審閱後手動「過帳」(post)</strong>，才會正式生效。這意味著即使使用者選錯分類，會計師有機會在過帳前修正。</p>
+</div>
+<div class="card" style="border-left:4px solid var(--yellow);">
+<h3>防線 4：審計軌跡</h3>
+<p>Odoo 記錄每一筆分錄的建立時間、建立者、修改歷程。所有操作都有完整的 audit trail。加上我們的白話文 API 在 ref 欄位標註了分類名稱（例如 <code>[收到客戶付款] 3月網站建置費用</code>），方便事後追溯。</p>
+</div>
+</div>
+
+<div class="hl">
+<h4>跟畠山系統的差異</h4>
+<ul>
+<li><strong>畠山</strong>：兩階段判斷（關鍵字 → Claude API 推理），有 AI 介入</li>
+<li><strong>我們</strong>：單階段硬對應（白話分類 → 科目），零 AI 介入</li>
+<li><strong>我們更簡單但更安全</strong>：沒有 AI 推理 = 沒有推理錯誤的可能</li>
+<li><strong>代價</strong>：使用者只能選預設的 10 個分類；超出範圍的要到 Odoo 後台手動記</li>
+<li><strong>未來擴充</strong>：可以加 Stage 2（Claude API 推理），讓使用者打白話文自動判斷分類</li>
+</ul>
+</div>
+</section>
+
+<!-- 4. Cloud Deployment -->
+<div class="sd" id="cloud">
+<div class="si">
+<div class="s-label">04 — Cloud Deployment</div>
+<h2>雲端部署方案比較</h2>
+
+<p style="margin-bottom:20px;">Odoo 是 Python + PostgreSQL 的全端應用，需要持久化儲存和至少 2GB RAM。</p>
+
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;border-radius:var(--r);">
+<table style="min-width:800px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);">
+<thead><tr><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">方案</th><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">規格</th><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">月費</th><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">機房位置</th><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">延遲</th><th style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);">推薦度</th></tr></thead>
+<tbody style="color:rgba(255,255,255,.7);">
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong style="color:#e8723a;">Oracle Cloud Free</strong></td><td style="border-color:rgba(255,255,255,.08);">4 CPU / 24GB RAM</td><td style="border-color:rgba(255,255,255,.08);color:#85a268;font-weight:700;">免費</td><td style="border-color:rgba(255,255,255,.08);">東京/首爾</td><td style="border-color:rgba(255,255,255,.08);">30-50ms</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-green">最佳 CP 值</span></td></tr>
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong>Hetzner CX22</strong></td><td style="border-color:rgba(255,255,255,.08);">2 CPU / 4GB RAM</td><td style="border-color:rgba(255,255,255,.08);">~$6</td><td style="border-color:rgba(255,255,255,.08);">新加坡</td><td style="border-color:rgba(255,255,255,.08);">50-80ms</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-green">最便宜</span></td></tr>
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong>Vultr / Linode</strong></td><td style="border-color:rgba(255,255,255,.08);">1 CPU / 2GB RAM</td><td style="border-color:rgba(255,255,255,.08);">$12</td><td style="border-color:rgba(255,255,255,.08);">東京</td><td style="border-color:rgba(255,255,255,.08);">30-50ms</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-warm">推薦</span></td></tr>
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong>GCP e2-small</strong></td><td style="border-color:rgba(255,255,255,.08);">2 CPU / 2GB RAM</td><td style="border-color:rgba(255,255,255,.08);">~$16</td><td style="border-color:rgba(255,255,255,.08);color:#e8723a;font-weight:600;">彰化（台灣）</td><td style="border-color:rgba(255,255,255,.08);color:#85a268;">&lt;5ms</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-warm">最低延遲</span></td></tr>
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong>AWS Lightsail</strong></td><td style="border-color:rgba(255,255,255,.08);">1 CPU / 2GB RAM</td><td style="border-color:rgba(255,255,255,.08);">$12</td><td style="border-color:rgba(255,255,255,.08);">東京</td><td style="border-color:rgba(255,255,255,.08);">30-50ms</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-grey">穩定</span></td></tr>
+<tr><td style="border-color:rgba(255,255,255,.08);"><strong>Cloudflare Tunnel</strong></td><td style="border-color:rgba(255,255,255,.08);">用你自己的電腦</td><td style="border-color:rgba(255,255,255,.08);color:#85a268;font-weight:700;">免費</td><td style="border-color:rgba(255,255,255,.08);">你的辦公室</td><td style="border-color:rgba(255,255,255,.08);">看你網路</td><td style="border-color:rgba(255,255,255,.08);"><span class="tag tag-warm">最快上線</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- 5. Cloudflare -->
+<section class="s" id="cf">
+<div class="s-label">05 — Cloudflare</div>
+<h2>Cloudflare 適合部署嗎？</h2>
+
+<div class="card-grid">
+<div class="card" style="border-left:4px solid var(--danger);">
+<h3>直接部署 Odoo 在 Cloudflare？不行</h3>
+<p>Workers 記憶體上限 128MB，且不支援 Python 原生套件（lxml, psycopg2）。Pages 只能放靜態網站。Cloudflare 沒有 PostgreSQL 服務。<strong>Odoo 無法直接跑在 Cloudflare 上。</strong></p>
+</div>
+<div class="card" style="border-left:4px solid var(--green);">
+<h3>用 Cloudflare Tunnel？非常適合</h3>
+<p>Odoo 跑在你自己的電腦（或 VPS），透過 Cloudflare Tunnel 建立加密通道暴露到網路。免費、不用開 port、自動 SSL、有 DDoS 防護。<strong>目前最快的上線方式。</strong></p>
+</div>
+</div>
+
+<p><strong>Cloudflare Tunnel 運作方式：</strong></p>
+<div class="flow">
+<div class="flow-step">使用者瀏覽器</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step active">Cloudflare Edge<br><small>SSL + DDoS + WAF</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step" style="border-color:var(--cool);">加密 Tunnel</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step active">你的電腦<br><small>cloudflared daemon</small></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step" style="border-color:var(--green);">Odoo :8069<br><small>+ 白話文 :8070</small></div>
+</div>
+
+<div class="hl">
+<h4>我的建議：兩階段部署</h4>
+<ul>
+<li><strong>Phase 1（現在）</strong>：Cloudflare Tunnel — 免費、10 分鐘上線、Rain 的 Mac Mini 就能跑</li>
+<li><strong>Phase 2（有客戶後）</strong>：搬到 Vultr Tokyo $12/mo — 穩定性更高，不依賴辦公室網路</li>
+<li><strong>Cloudflare 全程保留</strong>：不管 Phase 1 或 2，都用 Cloudflare 做 SSL + CDN + WAF</li>
+</ul>
+</div>
+</section>
+
+<!-- 6. Security & Backup -->
+<section class="s" id="security">
+<div class="s-label">06 — Security & Backup</div>
+<h2>安全性與備份機制</h2>
+
+<div class="card-grid">
+<div class="card">
+<h3>防火牆</h3>
+<p>UFW 只開 22(SSH) + 80 + 443。Odoo 的 8069 和 8072 不對外暴露，只透過 Nginx 反代或 Cloudflare Tunnel 存取。</p>
+</div>
+<div class="card">
+<h3>暴力破解防護</h3>
+<p>Fail2Ban 監控 Odoo 登入日誌。5 次失敗 → 封鎖 IP 1 小時。SSH 改為 key-only、禁 root 登入。</p>
+</div>
+<div class="card">
+<h3>Odoo 硬化</h3>
+<p><code>list_db=False</code>（禁止從網頁列出/建立 DB）、<code>proxy_mode=True</code>、強 admin 密碼。DB 只聽 localhost。</p>
+</div>
+<div class="card">
+<h3>每日自動備份</h3>
+<p>凌晨 2:00 自動 <code>pg_dump</code>（DB）+ <code>tar</code>（filestore）。保留 30 天。上傳到 Cloudflare R2（免費 10GB）作為異地備份。</p>
+</div>
+</div>
+</section>
+
+<!-- 7. Next Steps -->
+<section class="s" id="next">
+<div class="s-label">07 — Next Steps</div>
+<h2>下一步要做什麼</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>優先順序</th><th>項目</th><th>說明</th><th>預估時間</th></tr></thead>
+<tbody>
+<tr><td><span class="tag tag-warm">P0</span></td><td>Cloudflare Tunnel 上線</td><td>讓系統可以從外部網路存取（例如 erp.blankspaces.uk）</td><td>30 分鐘</td></tr>
+<tr><td><span class="tag tag-warm">P0</span></td><td>自動備份腳本</td><td>每日 pg_dump + filestore → R2</td><td>1 小時</td></tr>
+<tr><td><span class="tag tag-green">P1</span></td><td>科目名稱中文化</td><td>Odoo 預設科目名稱是英文（Rent expense），改成中文（租金支出）</td><td>1 小時</td></tr>
+<tr><td><span class="tag tag-green">P1</span></td><td>增加更多白話分類</td><td>水電費、保險費、折舊、捐贈…目前 10 個，可擴充到 20+</td><td>30 分鐘</td></tr>
+<tr><td><span class="tag tag-grey">P2</span></td><td>AI 自動分類（Stage 2）</td><td>使用者打白話文，Claude API 自動判斷分類 + 信賴度</td><td>半天</td></tr>
+<tr><td><span class="tag tag-grey">P2</span></td><td>ECPay 電子發票串接</td><td>安裝 l10n_tw_edi_ecpay 模組，需要 ECPay MerchantID</td><td>2 小時</td></tr>
+<tr><td><span class="tag tag-grey">P2</span></td><td>401 營業稅申報媒體檔</td><td>自動產出財政部格式的申報檔案</td><td>1-2 天</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<footer class="footer">
+Rain AI Team — Operations Guide — 2026-03-18<br>
+<span style="font-size:10px;">Generated by Klay (Claude Opus 4.6)</span>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{const h=document.documentElement;document.getElementById('pb').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+const ss=document.querySelectorAll('[id]'),nl=document.querySelectorAll('.nav-links a');
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))})},{rootMargin:'-40% 0px -60% 0px'}).observe&&ss.forEach(s=>new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)nl.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))})},{rootMargin:'-40% 0px -60% 0px'}).observe(s));
+</script>
+</body>
+</html>

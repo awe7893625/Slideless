@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>畠山謙人逆向拆解 — 0 員工 × 60 家客戶的 AI 稅務師事務所</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:       #121212;
+  --white:       #ffffff;
+  --cream:       #f6f5f1;
+  --grey-01:     #f0eee6;
+  --grey-02:     #8b877c;
+  --grey-03:     #6c6a62;
+  --accent-warm: #e8723a;
+  --accent-cool: #a8cde8;
+  --green:       #85a268;
+  --danger:      #d94f4f;
+  --yellow:      #d4a843;
+  --font-main:   'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  --radius:      12px;
+  --shadow:      0 1px 4px rgba(0,0,0,0.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+body {
+  font-family: var(--font-main);
+  color: var(--black);
+  background: var(--cream);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent-warm);
+  z-index: 101; transition: width .1s; width: 0;
+}
+
+/* Nav */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(246,245,241,0.96);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  border-bottom: 1px solid var(--grey-01);
+  padding: 12px 40px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.nav-brand {
+  font-weight: 700; font-size: 13px;
+  color: var(--grey-03); font-family: var(--font-mono);
+  white-space: nowrap; flex-shrink: 0;
+}
+.nav-links {
+  display: flex; gap: 14px; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 11px; color: var(--grey-02);
+  text-decoration: none; font-weight: 500;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--black); }
+
+/* Cover */
+.cover {
+  background: var(--black); color: var(--white);
+  text-align: center; padding: 100px 40px 72px;
+  position: relative; overflow: hidden;
+}
+.cover::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(232,114,58,0.15), transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(168,205,232,0.1), transparent 60%);
+}
+.cover-inner { position: relative; max-width: 720px; margin: 0 auto; }
+.cover-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent-warm);
+  margin-bottom: 20px;
+}
+.cover h1 {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 800; line-height: 1.2;
+  margin-bottom: 16px;
+}
+.cover h1 span { color: var(--accent-warm); }
+.cover-sub {
+  font-size: 16px; color: rgba(255,255,255,0.6);
+  max-width: 540px; margin: 0 auto 32px;
+}
+.cover-meta {
+  display: flex; gap: 24px; justify-content: center;
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  font-family: var(--font-mono);
+}
+
+/* Section */
+.section { max-width: 820px; margin: 0 auto; padding: 64px 32px; }
+.section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent-warm);
+  margin-bottom: 8px;
+}
+.section h2 {
+  font-size: 28px; font-weight: 800;
+  margin-bottom: 24px; line-height: 1.3;
+}
+.section p { margin-bottom: 16px; color: var(--grey-03); }
+
+/* Cards */
+.card-grid {
+  display: grid; gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 24px 0;
+}
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--grey-01);
+}
+.card-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 14px;
+}
+.card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.card p { font-size: 14px; color: var(--grey-02); margin: 0; }
+
+/* KPI Row */
+.kpi-row {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: 24px 0;
+}
+.kpi {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--grey-01);
+}
+.kpi-value {
+  font-size: 36px; font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1.1;
+}
+.kpi-value.green { color: var(--green); }
+.kpi-value.warm { color: var(--accent-warm); }
+.kpi-value.cool { color: var(--accent-cool); }
+.kpi-value.danger { color: var(--danger); }
+.kpi-label {
+  font-size: 12px; color: var(--grey-02);
+  margin-top: 6px; font-weight: 500;
+}
+
+/* Tables */
+.tbl-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  margin: 20px 0; border-radius: var(--radius);
+  border: 1px solid var(--grey-01);
+}
+.tbl-wrap::-webkit-scrollbar { height: 5px; }
+.tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 14px; min-width: 600px;
+  background: var(--white);
+}
+th {
+  background: var(--grey-01); font-weight: 600;
+  text-align: left; padding: 12px 16px;
+  font-size: 12px; color: var(--grey-03);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+td { padding: 12px 16px; border-top: 1px solid var(--grey-01); }
+tr:hover td { background: rgba(246,245,241,0.5); }
+
+/* Tag */
+.tag {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+}
+.tag-green { background: rgba(133,162,104,0.12); color: var(--green); }
+.tag-warm { background: rgba(232,114,58,0.12); color: var(--accent-warm); }
+.tag-cool { background: rgba(168,205,232,0.2); color: #5a8ab5; }
+.tag-grey { background: var(--grey-01); color: var(--grey-03); }
+.tag-yellow { background: rgba(212,168,67,0.12); color: var(--yellow); }
+
+/* Timeline */
+.timeline { margin: 24px 0; }
+.timeline-item {
+  display: flex; gap: 20px; padding: 16px 0;
+  border-bottom: 1px solid var(--grey-01);
+}
+.timeline-year {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 14px; color: var(--accent-warm);
+  min-width: 50px; flex-shrink: 0;
+}
+.timeline-body h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.timeline-body p { font-size: 13px; color: var(--grey-02); margin: 0; }
+
+/* Flow diagram */
+.flow {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; margin: 20px 0;
+  justify-content: center;
+}
+.flow-step {
+  background: var(--white);
+  border: 2px solid var(--grey-01);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 120px;
+}
+.flow-step.active {
+  border-color: var(--accent-warm);
+  background: rgba(232,114,58,0.06);
+}
+.flow-arrow { font-size: 18px; color: var(--grey-02); }
+
+/* Highlight box */
+.highlight-box {
+  background: var(--white);
+  border-left: 4px solid var(--accent-warm);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 24px 28px;
+  margin: 24px 0;
+  box-shadow: var(--shadow);
+}
+.highlight-box h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.highlight-box p { font-size: 14px; color: var(--grey-03); margin: 0; }
+.highlight-box ul { margin: 8px 0 0; padding-left: 20px; }
+.highlight-box li { font-size: 14px; color: var(--grey-03); margin-bottom: 6px; }
+
+/* Dark section */
+.section-dark {
+  background: var(--black); color: var(--white);
+  padding: 64px 32px;
+}
+.section-dark .section-inner { max-width: 820px; margin: 0 auto; }
+.section-dark .section-label { color: var(--accent-warm); }
+.section-dark h2 { color: var(--white); }
+.section-dark p { color: rgba(255,255,255,0.6); }
+.section-dark .card {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+.section-dark .card h3 { color: var(--white); }
+.section-dark .card p { color: rgba(255,255,255,0.5); }
+
+/* Footer */
+.footer {
+  text-align: center; padding: 40px;
+  font-size: 12px; color: var(--grey-02);
+  border-top: 1px solid var(--grey-01);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .nav { padding: 10px 16px; }
+  .cover { padding: 80px 20px 56px; }
+  .section { padding: 40px 16px; }
+  .section-dark { padding: 40px 16px; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .card-grid { grid-template-columns: 1fr; }
+  .flow { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  table { min-width: 500px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav class="nav">
+  <div class="nav-brand">RAIN AI TEAM</div>
+  <div class="nav-links">
+    <a href="#profile">人物</a>
+    <a href="#numbers">關鍵數字</a>
+    <a href="#services">服務拆解</a>
+    <a href="#architecture">自動化架構</a>
+    <a href="#two-stage">兩階段判斷</a>
+    <a href="#exclusion">排除規則</a>
+    <a href="#business">商業模式</a>
+    <a href="#lessons">對 Rain 的啟發</a>
+  </div>
+</nav>
+
+<!-- Cover -->
+<header class="cover">
+  <div class="cover-inner">
+    <div class="cover-label">Case Study &mdash; Reverse Engineering</div>
+    <h1>畠山謙人<br><span>0 員工 × 60 家客戶</span>的<br>AI 稅務師事務所</h1>
+    <p class="cover-sub">一位不會寫程式的日本公認會計師，如何用 Claude Code 取代 6 名員工、年省 4,000 萬日圓人事成本</p>
+    <div class="cover-meta">
+      <span>2026-03-18</span>
+      <span>Research by Rain AI Team</span>
+      <span>@kandmybike</span>
+    </div>
+  </div>
+</header>
+
+<!-- Section 1: Profile -->
+<section class="section" id="profile">
+  <div class="section-label">01 &mdash; Profile</div>
+  <h2>畠山謙人是誰</h2>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <p style="margin-bottom:4px;font-size:13px;color:var(--grey-02);">姓名</p>
+        <p style="font-weight:700;font-size:18px;color:var(--black);margin:0;">畠山謙人（Kento Hatakeyama）</p>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <p style="margin-bottom:4px;font-size:13px;color:var(--grey-02);">資格</p>
+        <p style="font-weight:600;color:var(--black);margin:0;">公認會計師（CPA）+ 稅理士</p>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <p style="margin-bottom:4px;font-size:13px;color:var(--grey-02);">據點</p>
+        <p style="font-weight:600;color:var(--black);margin:0;">京都｜完全遠端作業</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">2010</div>
+      <div class="timeline-body">
+        <h4>通過公認會計師考試</h4>
+        <p>入職大和工業（製造業會計經驗）</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2014</div>
+      <div class="timeline-body">
+        <h4>Deloitte Touche Tohmatsu（四大會計師事務所）</h4>
+        <p>跨產業審計工作，累積多元行業知識</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2019</div>
+      <div class="timeline-body">
+        <h4>CyberAgent（ABEMA TV）</h4>
+        <p>負責 ~100 家子公司合併報表。主導「ABEMA 4 營業日結帳專案」— 月結從 7 天壓縮到 4 天</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2021</div>
+      <div class="timeline-body">
+        <h4>獨立開業 — AI 稅理士事務所</h4>
+        <p>從零開始，專攻 Seed 階段新創公司。完全遠端、零員工模式</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2022</div>
+      <div class="timeline-body">
+        <h4>出版《NFT 的會計稅務》</h4>
+        <p>Kindle 電子書 + 在日本區塊鏈協會演講「實錄 NFT 稅務」</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2026</div>
+      <div class="timeline-body">
+        <h4>X 發文爆紅 — 200 萬+ 流量</h4>
+        <p>公開 Claude Code 全套運作方式，成為非工程師用 AI 的標竿案例</p>
+      </div>
+    </div>
+  </div>
+
+  <p><strong>關鍵背景</strong>：稅務師世家出身（祖父創辦、父親二代），但選擇了與家族事務所完全不同的路徑 — 零員工 + AI 驅動。專長領域涵蓋新創稅務、加密貨幣/NFT/Web3 稅務、雲端會計（freee/MoneyForward）、股權融資。</p>
+</section>
+
+<!-- Section 2: Key Numbers -->
+<section class="section" id="numbers">
+  <div class="section-label">02 &mdash; Key Numbers</div>
+  <h2>關鍵數字一覽</h2>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-value warm">60</div>
+      <div class="kpi-label">顧問客戶數</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value green">0</div>
+      <div class="kpi-label">正式員工數</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value cool">50min</div>
+      <div class="kpi-label">60 家分錄處理時間<br><small style="color:var(--danger)">原本 5 小時</small></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value warm">300h</div>
+      <div class="kpi-label">年省工時</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-value danger">4,000萬</div>
+      <div class="kpi-label">年省人事成本（日圓）</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value green">70%</div>
+      <div class="kpi-label">分錄 AI 處理率</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value cool">17:00</div>
+      <div class="kpi-label">每日收工時間</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value warm">2 天</div>
+      <div class="kpi-label">系統建置時間</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Services -->
+<section class="section" id="services">
+  <div class="section-label">03 &mdash; Service Breakdown</div>
+  <h2>他提供哪些服務</h2>
+
+  <div class="tbl-wrap">
+    <table style="min-width:700px;">
+      <thead>
+        <tr>
+          <th>服務項目</th>
+          <th>自動化程度</th>
+          <th>技術手段</th>
+          <th>人工介入點</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>每日記帳（60 家）</strong></td>
+          <td><span class="tag tag-green">90% 自動</span></td>
+          <td>freee API + 兩階段判斷 + 排程 21:00</td>
+          <td>低信賴度分錄、排除項目</td>
+        </tr>
+        <tr>
+          <td><strong>發票處理</strong></td>
+          <td><span class="tag tag-green">95% 自動</span></td>
+          <td>PDF 解析 → Python 腳本 → freee 匯入格式</td>
+          <td>最終匯入前確認</td>
+        </tr>
+        <tr>
+          <td><strong>會計軟體搬家</strong></td>
+          <td><span class="tag tag-warm">80% 自動</span></td>
+          <td>CSV 轉換腳本 + Playwright 自動填入</td>
+          <td>科目對應表確認</td>
+        </tr>
+        <tr>
+          <td><strong>月結報告</strong></td>
+          <td><span class="tag tag-warm">70% 自動</span></td>
+          <td>freee MCP 即時查詢 + 報告模板</td>
+          <td>異常數字審查</td>
+        </tr>
+        <tr>
+          <td><strong>客戶提醒郵件</strong></td>
+          <td><span class="tag tag-green">90% 自動</span></td>
+          <td>Gmail MCP 批量草擬</td>
+          <td>發送前確認</td>
+        </tr>
+        <tr>
+          <td><strong>會議準備</strong></td>
+          <td><span class="tag tag-warm">85% 自動</span></td>
+          <td>Notion MCP 讀取記錄 → 自動產出議程</td>
+          <td>議程微調</td>
+        </tr>
+        <tr>
+          <td><strong>稅務申報</strong></td>
+          <td><span class="tag tag-grey">0% 自動</span></td>
+          <td>N/A — 法定人工操作</td>
+          <td><strong>全程人工</strong>（排除規則）</td>
+        </tr>
+        <tr>
+          <td><strong>新創融資顧問</strong></td>
+          <td><span class="tag tag-yellow">40% 輔助</span></td>
+          <td>IPO 分析 Skill（/ipo-analysis）</td>
+          <td>專業判斷 + 客戶溝通</td>
+        </tr>
+        <tr>
+          <td><strong>NFT/Web3 稅務</strong></td>
+          <td><span class="tag tag-yellow">30% 輔助</span></td>
+          <td>交易記錄解析</td>
+          <td>稅法判斷（法規頻繁變動）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <h4>核心觀察</h4>
+    <p>他不是把所有事情都交給 AI。<strong>高度標準化的重複工作</strong>（記帳、發票、提醒）自動化到 85-95%；<strong>需要專業判斷的工作</strong>（申報、融資顧問、新型態稅務）保持人工。這個「自動化邊界」的劃分本身就是他最大的專業價值。</p>
+  </div>
+</section>
+
+<!-- Section 4: Architecture -->
+<div class="section-dark" id="architecture">
+  <div class="section-inner">
+    <div class="section-label">04 &mdash; Technical Architecture</div>
+    <h2>自動化系統架構</h2>
+
+    <p style="margin-bottom:24px;">Claude Code 是指揮塔，透過 MCP 連接 5 個外部服務。有兩種運行模式：排程自動執行（nightly）和手動指令觸發。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(232,114,58,0.15);">&#x1F9E0;</div>
+        <h3>Claude Code</h3>
+        <p>中央指揮塔 — 協調所有服務、寫腳本、執行判斷。CLAUDE.md 作為永久業務手冊。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(133,162,104,0.15);">&#x1F4B0;</div>
+        <h3>freee MCP</h3>
+        <p>雲端會計核心 — 取得交易明細、登錄分錄、建立交易對象主檔、科目查詢。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(168,205,232,0.2);">&#x2709;</div>
+        <h3>Gmail MCP</h3>
+        <p>客戶溝通 — 批量草擬提醒郵件、月報通知、逾期催收信。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(212,168,67,0.15);">&#x1F4C5;</div>
+        <h3>Google Calendar MCP</h3>
+        <p>行程管理 — 列出會議預定、自動產生準備工作項目。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(232,114,58,0.15);">&#x1F4DD;</div>
+        <h3>Notion MCP</h3>
+        <p>知識庫 — 讀取會議記錄 → 產出議程 + 待辦；按客戶管理個別 TODO。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(133,162,104,0.15);">&#x1F4AC;</div>
+        <h3>Slack MCP</h3>
+        <p>任務追蹤 — TODO 管理、bot 通知、工作狀態同步。</p>
+      </div>
+    </div>
+
+    <p style="margin-top:16px;">排程任務：<strong>每晚 21:00</strong> freee 自動分錄（60 家，30-50 分鐘）、<strong>每晚 22:00</strong> X 追蹤數據自動記錄到 Notion。</p>
+  </div>
+</div>
+
+<!-- Section 5: Two-Stage -->
+<section class="section" id="two-stage">
+  <div class="section-label">05 &mdash; Core Design Pattern</div>
+  <h2>兩階段判斷系統（最值得學的設計）</h2>
+
+  <p>會計科目判定不是一股腦丟給 AI，而是用兩個階段分層處理：</p>
+
+  <div class="flow">
+    <div class="flow-step">交易明細進入</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step active">Stage 1<br><small>關鍵字辭典比對</small></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--grey-02);">命中？</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step active">Stage 2<br><small>Claude API 推理</small></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">信賴度篩選</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--green);">登錄 freee</div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Stage 1：關鍵字辭典比對</h3>
+      <ul style="margin-top:8px;padding-left:16px;font-size:14px;color:var(--grey-03);">
+        <li>14 個科目類別，每類 100+ 關鍵字</li>
+        <li>全形→半形、大小寫正規化</li>
+        <li>日語、英語、片假名全支援</li>
+        <li>特殊模式：金額門檻（會議費 vs 交際費）</li>
+        <li><strong>速度快、成本零、準確率高</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Stage 2：Claude API 備援</h3>
+      <ul style="margin-top:8px;padding-left:16px;font-size:14px;color:var(--grey-03);">
+        <li>只處理 Stage 1 無法判定的交易</li>
+        <li>提示可用的 14 個科目，要求 JSON 回答</li>
+        <li>附帶信賴度：high/medium → 登錄</li>
+        <li>low → 跳過，交人工確認</li>
+        <li><strong>節省 API 成本、避免過度依賴</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <h4>為什麼這個設計很成熟</h4>
+    <ul>
+      <li><strong>成本控制</strong>：能用規則解決的不浪費 API 呼叫</li>
+      <li><strong>速度優先</strong>：關鍵字比對是毫秒級，API 推理是秒級</li>
+      <li><strong>可解釋性</strong>：Stage 1 的判斷邏輯透明，出錯容易追蹤</li>
+      <li><strong>漸進擴充</strong>：新模式出現 → 先讓 Stage 2 處理 → 穩定後加入 Stage 1 辭典</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Section 6: Exclusion Rules -->
+<section class="section" id="exclusion">
+  <div class="section-label">06 &mdash; Safety Design</div>
+  <h2>7 條排除規則 — 「不做什麼」的設計</h2>
+
+  <p>自動分錄最可怕的不是漏做，是做了不該做的。畠山在系統中硬編碼 7 種排除情境：</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>排除類型</th><th>排除原因</th><th>處理方式</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>內容不明的借記卡交易</td><td>只有「借記+數字」沒有店名</td><td>跳過，人工確認</td></tr>
+        <tr><td>2</td><td>借款償還</td><td>公庫、融資、貸款等 — 非一般費用</td><td>跳過，人工分類</td></tr>
+        <tr><td>3</td><td>社會保險費與稅金</td><td>年金、健保、扣繳稅 — 特殊處理</td><td>跳過，人工處理</td></tr>
+        <tr><td>4</td><td>薪資支付</td><td>從 freee 人事 API 取得員工名單排除</td><td>跳過（另有薪資系統）</td></tr>
+        <tr><td>5</td><td>投資與資產運用</td><td>證券帳戶交易 — 非營業費用</td><td>跳過，人工判斷</td></tr>
+        <tr><td>6</td><td>ATM 提款與餘額調整</td><td>帳戶間轉帳 — 非費用</td><td>另行處理為轉帳</td></tr>
+        <tr><td>7</td><td>公共事業費</td><td>無對應科目設定</td><td>跳過，人工對應</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <h4>Rain 團隊的對應設計</h4>
+    <p>我們已參考這個思路，建立了 <code>.claude/rules/exclusion-rules.md</code>，涵蓋 20+ 條排除規則：真錢交易、DB migration、DNS 變更、API Key 刪除、個資操作、稅務申報提交等。</p>
+  </div>
+</section>
+
+<!-- Section 7: Business Model -->
+<div class="section-dark" id="business">
+  <div class="section-inner">
+    <div class="section-label">07 &mdash; Business Model</div>
+    <h2>商業模式逆向分析</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>成本結構革命</h3>
+        <p>行業標準：每 10 家客戶需 1 名員工<br>
+        60 家 = 6 名員工 = <strong>3,000 萬日圓/年人事成本</strong><br>
+        加上招聘、訓練、管理成本 → 超過 4,000 萬<br><br>
+        畠山的成本：Claude 訂閱費 + freee 費用<br>
+        <strong>固定成本 → 變動成本的根本轉型</strong></p>
+      </div>
+      <div class="card">
+        <h3>獲客管道</h3>
+        <p>主要來源：X/Twitter DM + 客戶轉介<br>
+        6,400+ 追蹤者（技術 + 稅務雙重定位）<br>
+        5,000 粉達標後開始產生商務機會<br>
+        note.com 免費內容：7 章新創後勤教科書<br><br>
+        <strong>零廣告投入，靠內容行銷 + 口碑</strong></p>
+      </div>
+      <div class="card">
+        <h3>定價策略</h3>
+        <p>未公開具體報價<br>
+        關聯事務所（freee 顧問頁面）：<br>
+        個人客戶 10-30 萬日圓/年<br><br>
+        核心邏輯：零人事成本 → 顧問費能壓低 → <strong>價格競爭力直接回饋客戶</strong></p>
+      </div>
+      <div class="card">
+        <h3>護城河</h3>
+        <p>「公開全部機制也無法複製」<br>
+        差異來自 10+ 年的<strong>稅務實戰知識深度</strong><br><br>
+        分錄規則、排除邏輯、特殊模式 — 全部來自實務經驗<br>
+        <strong>領域知識 = 不可複製的護城河</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 8: CLAUDE.md Design -->
+<section class="section">
+  <div class="section-label">07.5 &mdash; CLAUDE.md Design</div>
+  <h2>他的 CLAUDE.md 怎麼寫</h2>
+
+  <p>CLAUDE.md 不是一次寫完的。他從 3 行開始，逐步累積成完整的業務手冊：</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>區塊</th><th>內容</th><th>等同於</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>分錄分類規則</td><td>餐飲 1 萬以下→會議費、超過→交際費</td><td>資深員工的判斷經驗</td></tr>
+        <tr><td>稅務分類規則</td><td>海外 SaaS→通訊費，稅區分代碼 0</td><td>稅法 + 實務的交叉知識</td></tr>
+        <tr><td>安全政策</td><td>絕對不輸出 API Key、個人編號</td><td>我們的 exclusion-rules.md</td></tr>
+        <tr><td>輸出路徑規則</td><td>客戶資料放指定資料夾，不亂放</td><td>我們的 projects-registry.md</td></tr>
+        <tr><td>判斷界線</td><td>符合過去模式→AI 處理；新出現→先確認</td><td>兩階段判斷原則</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>他的 Skills（斜線指令）：</p>
+  <div class="card-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card" style="text-align:center;padding:20px;">
+      <h3 style="font-family:var(--font-mono);color:var(--accent-warm);">/freee-check</h3>
+      <p>freee 未處理明細檢查</p>
+    </div>
+    <div class="card" style="text-align:center;padding:20px;">
+      <h3 style="font-family:var(--font-mono);color:var(--accent-warm);">/mtg-followup</h3>
+      <p>會議後記錄 + 待辦建立</p>
+    </div>
+    <div class="card" style="text-align:center;padding:20px;">
+      <h3 style="font-family:var(--font-mono);color:var(--accent-warm);">/ipo-analysis</h3>
+      <p>新上市公司登記簿分析</p>
+    </div>
+  </div>
+</section>
+
+<!-- Section 9: Lessons for Rain -->
+<section class="section" id="lessons">
+  <div class="section-label">08 &mdash; Actionable Insights</div>
+  <h2>對 Rain 團隊的啟發</h2>
+
+  <div class="card-grid" style="grid-template-columns:1fr;">
+    <div class="card" style="border-left:4px solid var(--accent-warm);">
+      <h3>1. AI 槓桿倍數追蹤 — 已導入</h3>
+      <p>畠山記錄每個任務的「手動預估時間 vs AI 實際時間」。我們已在 CLAUDE.md task template 新增 <code>manual_estimate_minutes</code> 欄位。下一步：Max 加 Kai 後端欄位 → 月報自動計算槓桿倍數。</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--green);">
+      <h3>2. 排除規則顯式設計 — 已導入</h3>
+      <p>建立了 <code>.claude/rules/exclusion-rules.md</code>（20+ 條），涵蓋真錢交易、DB migration、DNS、稅務申報等。確保 AI 在安全區域內全速運行。</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--accent-cool);">
+      <h3>3. 兩階段判斷模式 — 已寫入 CLAUDE.md</h3>
+      <p>cheap-first-expensive-second。已套用在 smart-scraper→firecrawl、task routing。未來新系統設計 Scout 應主動套用。</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--yellow);">
+      <h3>4. 垂直 SaaS = AI 時代基礎設施</h3>
+      <p>freee 的好 API 是這套系統的基石。有好 API 的垂直 SaaS 不會被 AI 取代，反而成為 AI Agent 的基礎設施。對 SaaS Alternatives 商業策略的啟發：<strong>API 品質 = 在 AI 時代的生存能力</strong>。</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--grey-02);">
+      <h3>5. Tax Agent 升級方向</h3>
+      <p>我們的 Tax agent 目前是諮詢角色。畠山的案例顯示，如果串接台灣的會計軟體 API（如鼎新/正航/NexTrek），Tax 可以演化成自動記帳 + 稅務判斷的混合角色。前提是 Rain 有對應的客戶需求。</p>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top:32px;border-left-color:var(--black);">
+    <h4>他說得最好的一句話</h4>
+    <p style="font-size:18px;font-weight:600;color:var(--black);line-height:1.5;">「重要的是知道『應該自動化什麼』。能做出這個判斷的，只有每天在現場親手操作的你。」</p>
+    <p style="margin-top:8px;">— 畠山謙人，AI 稅理士事務所</p>
+  </div>
+</section>
+
+<!-- Section: Comparison -->
+<section class="section">
+  <div class="section-label">09 &mdash; Comparison</div>
+  <h2>畠山 vs Rain AI Team 架構對照</h2>
+
+  <div class="tbl-wrap">
+    <table style="min-width:700px;">
+      <thead>
+        <tr><th>維度</th><th>畠山事務所</th><th>Rain AI Team</th><th>差異</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>規模</td>
+          <td>1 人 + Claude Code</td>
+          <td>1 人 + 28 AI Agents</td>
+          <td>Rain 更複雜的多 Agent 架構</td>
+        </tr>
+        <tr>
+          <td>指揮模式</td>
+          <td>單一 Claude Code session</td>
+          <td>CEO Agent（Klay）+ 部門 dispatch</td>
+          <td>Rain 有組織架構和審查管線</td>
+        </tr>
+        <tr>
+          <td>外部整合</td>
+          <td>5 個 MCP（freee, Gmail, Calendar, Notion, Slack）</td>
+          <td>Google Workspace MCP + Kai + OpenClaw + Vercel + Supabase</td>
+          <td>相當，不同領域</td>
+        </tr>
+        <tr>
+          <td>排程系統</td>
+          <td>Claude Code 排程任務</td>
+          <td>LaunchAgent（20+ 個）+ 夜班系統</td>
+          <td>Rain 更完善</td>
+        </tr>
+        <tr>
+          <td>安全設計</td>
+          <td>company_id 隔離 + 安全政策</td>
+          <td>Sentinel hook + exclusion rules + Knox</td>
+          <td>Rain 更多層</td>
+        </tr>
+        <tr>
+          <td>時間追蹤</td>
+          <td>每任務記錄手動 vs AI 時間</td>
+          <td>estimated_minutes（剛加 manual_estimate）</td>
+          <td><span class="tag tag-warm">畠山領先</span> — 已量化運行中</td>
+        </tr>
+        <tr>
+          <td>知識累積</td>
+          <td>CLAUDE.md + Skills</td>
+          <td>CLAUDE.md + rules/ + memory/ + 110 skills</td>
+          <td>Rain 更系統化</td>
+        </tr>
+        <tr>
+          <td>審查管線</td>
+          <td>無（一人事務所）</td>
+          <td>3 層（Quill→Forge→Ray）</td>
+          <td>Rain 有完整品質管控</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Sources -->
+<section class="section">
+  <div class="section-label">Sources</div>
+  <h2>資料來源</h2>
+  <ul style="font-size:14px;color:var(--grey-03);padding-left:20px;">
+    <li>X @kandmybike 原文 — 「スタッフ0人の税理士が、Claude Codeで顧問先60社を1人で回している全手法」</li>
+    <li>X @kandmybike 續文 — 「コードが書けない税理士が、Claude Codeを使えるようになるまでにやった4つのこと」</li>
+    <li>cenleaf.com — 完整方法論分析文</li>
+    <li>note.com/kento_0724 — 畠山個人 note.com 內容平台（新創後勤教科書、自我介紹）</li>
+    <li>World Atlas LLC — 關聯顧問公司 profile</li>
+    <li>freee 顧問清單 — 關聯事務所定價資訊</li>
+    <li>BAMBOO INCUBATOR / BUSO AGORA — 創育機構 specialist 資料</li>
+    <li>R25 — CyberAgent/ABEMA 時期訪談</li>
+  </ul>
+</section>
+
+<footer class="footer">
+  Rain AI Team &mdash; Research Report &mdash; 2026-03-18<br>
+  <span style="font-size:11px;color:var(--grey-02);">Generated by Klay (Claude Opus 4.6)</span>
+</footer>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+});
+
+// Active nav link
+const sections = document.querySelectorAll('[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-40% 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
