@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kai 中控台重設計 — 視覺展示報告</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body {
+    font-family: "SF Pro Display", "Hiragino Sans", "Noto Sans TC", system-ui, sans-serif;
+    background: #f6f5f1;
+    color: #1a1a1a;
+    line-height: 1.6;
+  }
+
+  /* ── Nav ── */
+  .deck-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(246,245,241,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e8e6e0;
+    padding: 0 32px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .deck-nav-title { font-size: 13px; font-weight: 600; color: #1a1a1a; letter-spacing: 0.02em; }
+  .deck-nav-dots { display: flex; gap: 6px; align-items: center; }
+  .deck-nav-dots a {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #c8c5bc; display: block;
+    transition: background 0.2s, transform 0.2s;
+    text-decoration: none;
+  }
+  .deck-nav-dots a:hover { background: #1a1a1a; transform: scale(1.3); }
+  .deck-nav-date { font-size: 12px; color: #888; }
+
+  /* ── Slide base ── */
+  .slide {
+    min-height: 100vh;
+    padding: 88px 40px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid #e8e6e0;
+  }
+  .slide-inner { max-width: 960px; margin: 0 auto; width: 100%; }
+  .slide-number {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #aaa;
+    margin-bottom: 16px;
+  }
+  .slide-label {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #888;
+    background: #eeece7; border-radius: 4px;
+    padding: 3px 8px; margin-bottom: 16px;
+  }
+  h1.slide-title {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700; line-height: 1.15;
+    color: #0f0f0f; margin-bottom: 16px;
+  }
+  h2.slide-title {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 700; line-height: 1.2;
+    color: #0f0f0f; margin-bottom: 16px;
+  }
+  .slide-sub {
+    font-size: 16px; color: #666; line-height: 1.6; max-width: 600px;
+    margin-bottom: 40px;
+  }
+  .divider { width: 40px; height: 3px; background: #1a1a1a; border-radius: 2px; margin-bottom: 32px; }
+  .orange-divider { width: 40px; height: 3px; background: #FF8C42; border-radius: 2px; margin-bottom: 32px; }
+
+  /* ── Slide 1: Title ── */
+  #slide-1 {
+    background: #0F1117;
+    color: #fff;
+  }
+  #slide-1 .slide-number { color: rgba(255,255,255,0.3); }
+  #slide-1 h1.slide-title { color: #fff; font-size: clamp(36px,6vw,60px); }
+  #slide-1 .slide-sub { color: rgba(255,255,255,0.5); max-width: 500px; }
+  .title-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,140,66,0.12);
+    border: 1px solid rgba(255,140,66,0.25);
+    border-radius: 999px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: #FF8C42;
+    letter-spacing: 0.05em; margin-bottom: 32px;
+  }
+  .title-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #FF8C42;
+    animation: pulse-exec 2s ease-in-out infinite;
+  }
+  @keyframes pulse-exec {
+    0%,100% { opacity:1; } 50% { opacity:0.4; }
+  }
+  .title-meta {
+    display: flex; gap: 32px; margin-top: 48px;
+    flex-wrap: wrap;
+  }
+  .title-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .title-meta-label { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; }
+  .title-meta-value { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); }
+  .title-orange { color: #FF8C42; }
+
+  /* ── Grid utils ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media(max-width:680px) {
+    .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+  }
+  @media(max-width:900px) {
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── Color swatch ── */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+  .swatch {
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 120px; flex: 1;
+  }
+  .swatch-block {
+    height: 64px; border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    position: relative; overflow: hidden;
+  }
+  .swatch-label { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+  .swatch-hex { font-size: 11px; color: #888; font-family: 'JetBrains Mono', monospace; }
+  .swatch-usage { font-size: 11px; color: #aaa; }
+
+  /* Config B swatches — dark bg */
+  .swatch-dark .swatch-block { border-color: rgba(255,255,255,0.06); }
+  .swatch-dark .swatch-label { color: #fff; }
+  .swatch-dark .swatch-hex { color: rgba(255,255,255,0.4); }
+  .swatch-dark .swatch-usage { color: rgba(255,255,255,0.3); }
+
+  /* ── Slide 2: Vision ── */
+  #slide-2 { background: #f6f5f1; }
+  .vision-card {
+    background: #fff;
+    border: 1px solid #e8e6e0;
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .vision-number {
+    font-size: 40px; font-weight: 800; color: #eceae4;
+    line-height: 1; margin-bottom: 12px;
+  }
+  .vision-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+  .vision-desc { font-size: 13px; color: #777; line-height: 1.6; }
+  .big-quote {
+    font-size: clamp(20px,3vw,28px);
+    font-weight: 700; color: #1a1a1a;
+    line-height: 1.4; max-width: 700px;
+    margin-bottom: 40px;
+  }
+  .big-quote span { color: #FF8C42; }
+
+  /* ── Slide 3 & 4: Color System ── */
+  #slide-3 { background: #0F1117; color: #fff; }
+  #slide-4 { background: #1A1825; color: #fff; }
+  #slide-3 h2.slide-title, #slide-4 h2.slide-title { color: #fff; }
+  #slide-3 .slide-sub, #slide-4 .slide-sub { color: rgba(255,255,255,0.45); }
+
+  .config-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; border-radius: 4px;
+    padding: 3px 10px; margin-bottom: 16px;
+  }
+  .config-tag-a { background: rgba(255,140,66,0.15); color: #FF8C42; }
+  .config-tag-b { background: rgba(255,140,66,0.15); color: #FF8C42; }
+
+  /* ── Slide 5: Components ── */
+  #slide-5 { background: #f6f5f1; }
+
+  .section-heading {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #aaa; margin-bottom: 16px;
+  }
+
+  /* Button demos */
+  .btn-demo-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .btn-demo-label { font-size: 11px; color: #aaa; letter-spacing: 0.08em; text-transform: uppercase; width: 72px; flex-shrink: 0; }
+
+  /* Actual button specimens */
+  .spec-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; border-radius: 10px;
+    padding: 8px 20px; cursor: pointer; transition: all 0.2s;
+    border: none; font-family: inherit;
+  }
+  .spec-btn-primary { background: #FF8C42; color: #fff; }
+  .spec-btn-primary:hover { opacity: 0.88; }
+  .spec-btn-ghost { background: transparent; color: #d4d4d4; border: none; }
+  .spec-btn-ghost:hover { background: #1A1A1F; }
+  .spec-btn-outline {
+    background: transparent; color: #d4d4d4;
+    border: 1px solid #2D2D2D;
+  }
+  .spec-btn-outline:hover { border-color: #FF8C42; color: #FF8C42; }
+  .spec-btn-disabled { opacity: 0.4; pointer-events: none; }
+
+  .component-section {
+    background: #fff; border: 1px solid #e8e6e0;
+    border-radius: 16px; padding: 24px; margin-bottom: 24px;
+  }
+  .component-section-dark {
+    background: #111117; border: 1px solid #2D2D2D;
+    border-radius: 16px; padding: 24px; margin-bottom: 24px;
+  }
+
+  /* Card specimens */
+  .card-dashboard {
+    background: #1A1A1F; border: 1px solid #2D2D2D;
+    border-radius: 16px; padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .card-landing {
+    background: #1A1825; border: 1px solid rgba(255,140,66,0.2);
+    border-radius: 16px; padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .card-specimen-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .card-specimen-body { font-size: 12px; color: #737373; line-height: 1.5; }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,140,66,0.15); border: 1px solid rgba(255,140,66,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  /* Badge specimens */
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .spec-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 999px; padding: 3px 10px;
+    font-size: 11px; font-weight: 600; border: 1px solid transparent;
+  }
+  .spec-badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .badge-online { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-online .spec-badge-dot { background: #4ade80; }
+  .badge-offline { background: rgba(115,115,115,0.15); color: #a3a3a3; }
+  .badge-offline .spec-badge-dot { background: #737373; }
+  .badge-executing {
+    background: rgba(255,140,66,0.15); color: #FF8C42;
+    animation: pulse-exec 2s ease-in-out infinite;
+  }
+  .badge-executing .spec-badge-dot {
+    background: #FF8C42;
+    animation: pulse-exec 2s ease-in-out infinite;
+  }
+  .badge-default { background: #FF8C42; color: #fff; }
+
+  /* ── Slide 6: Landing Layout ── */
+  #slide-6 { background: #f6f5f1; }
+  .page-mockup {
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid #2D2D2D;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    background: #1A1825;
+  }
+  .mockup-bar {
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mockup-bar-logo { display: flex; align-items: center; gap: 8px; }
+  .mockup-bar-icon {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: #FF8C42; display: flex; align-items: center; justify-content: center;
+  }
+  .mockup-bar-name { font-size: 12px; font-weight: 600; color: #fff; }
+  .mockup-bar-nav { display: flex; gap: 16px; }
+  .mockup-bar-nav span { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .mockup-btn-sm {
+    background: #FF8C42; color: #fff;
+    font-size: 11px; font-weight: 600; border-radius: 8px;
+    padding: 5px 12px;
+  }
+  .mockup-hero {
+    padding: 40px 32px 32px;
+    text-align: center;
+  }
+  .mockup-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,140,66,0.1); border: 1px solid rgba(255,140,66,0.2);
+    border-radius: 999px; padding: 4px 12px;
+    font-size: 10px; font-weight: 600; color: #FF8C42;
+    margin-bottom: 16px;
+  }
+  .mockup-h1 {
+    font-size: 26px; font-weight: 800; color: #fff;
+    line-height: 1.2; margin-bottom: 8px;
+  }
+  .mockup-h1 span { color: #FF8C42; }
+  .mockup-p { font-size: 11px; color: rgba(255,255,255,0.45); max-width: 360px; margin: 0 auto 20px; }
+  .mockup-btn-row { display: flex; gap: 10px; justify-content: center; }
+  .mockup-btn-primary {
+    background: #FF8C42; color: #fff;
+    font-size: 11px; font-weight: 600;
+    border-radius: 10px; padding: 8px 18px;
+  }
+  .mockup-btn-outline {
+    background: transparent; border: 1px solid #2D2D2D;
+    color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 500;
+    border-radius: 10px; padding: 8px 18px;
+  }
+  .mockup-features {
+    padding: 24px 24px 32px;
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+  }
+  .mockup-feat-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px; padding: 14px;
+  }
+  .mockup-feat-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255,140,66,0.12); border: 1px solid rgba(255,140,66,0.15);
+    margin-bottom: 8px;
+  }
+  .mockup-feat-title { font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .mockup-feat-body { font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.4; }
+
+  /* annotation system */
+  .annotation-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .annotation {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; color: #666;
+    background: #f0ede7; border-radius: 6px; padding: 4px 10px;
+  }
+  .annotation-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ── Slide 7: Pricing ── */
+  #slide-7 { background: #f6f5f1; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  @media(max-width:700px) { .pricing-grid { grid-template-columns: 1fr; } }
+
+  .pricing-card-mock {
+    background: #1A1825; border: 1px solid rgba(255,140,66,0.1);
+    border-radius: 16px; padding: 20px; position: relative;
+  }
+  .pricing-card-mock.highlight {
+    border-color: #FF8C42;
+    box-shadow: 0 0 0 1px rgba(255,140,66,0.3);
+  }
+  .popular-tag {
+    display: inline-block;
+    background: rgba(255,140,66,0.15); color: #FF8C42;
+    font-size: 10px; font-weight: 700; border-radius: 999px;
+    padding: 3px 8px; margin-bottom: 10px;
+  }
+  .pricing-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .pricing-price { font-size: 24px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 2px; }
+  .pricing-cadence { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 14px; }
+  .pricing-btn {
+    display: block; width: 100%; text-align: center;
+    border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 600; margin-bottom: 14px;
+  }
+  .pricing-btn-primary { background: #FF8C42; color: #fff; }
+  .pricing-btn-outline { border: 1px solid #2D2D2D; color: rgba(255,255,255,0.6); }
+  .pricing-feature {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 11px; color: rgba(255,255,255,0.55);
+    margin-bottom: 7px; line-height: 1.4;
+  }
+  .pricing-check { color: #FF8C42; font-size: 12px; flex-shrink: 0; margin-top: 0.5px; }
+
+  /* ── Slide 8: GetStarted ── */
+  #slide-8 { background: #f6f5f1; }
+  .steps-mockup {
+    background: #1A1825; border: 1px solid #2D2D2D;
+    border-radius: 16px; padding: 24px;
+  }
+  .step-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .step-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .step-num-inactive { background: #2D2D2D; color: rgba(255,255,255,0.4); }
+  .step-num-active { background: #FF8C42; color: #fff; }
+  .step-content { flex: 1; }
+  .step-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .step-title { font-size: 13px; font-weight: 600; color: #fff; }
+  .step-desc { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+  /* ── Slide 9: Dashboard ── */
+  #slide-9 { background: #f6f5f1; }
+  .dashboard-mockup {
+    background: #0F1117; border: 1px solid #2D2D2D;
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  }
+  .dash-topbar {
+    background: #0F1117; border-bottom: 1px solid #2D2D2D;
+    padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .dash-topbar-title { font-size: 13px; font-weight: 600; color: #fff; }
+  .dash-topbar-sub { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; }
+  .dash-body { padding: 16px 20px; }
+  .dash-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+  .dash-stat {
+    background: #1A1A1F; border: 1px solid #2D2D2D;
+    border-radius: 12px; padding: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dash-stat-icon { width: 30px; height: 30px; border-radius: 8px; }
+  .dash-stat-label { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; }
+  .dash-stat-value { font-size: 16px; font-weight: 600; color: #fff; }
+  .dash-section-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+  }
+  .dash-agents { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .dash-agent-card {
+    background: #1A1A1F; border: 1px solid #2D2D2D;
+    border-radius: 12px; padding: 12px;
+  }
+  .dash-agent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .dash-agent-name { font-size: 12px; font-weight: 600; color: #fff; }
+  .dash-agent-pillar {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.3);
+    border: 1px solid #2D2D2D; border-radius: 4px; padding: 2px 6px;
+  }
+  .dash-dot-row { display: flex; align-items: center; gap: 6px; }
+  .dash-dot { width: 8px; height: 8px; border-radius: 50%; position: relative; }
+  .dash-dot-online { background: #4ade80; }
+  .dash-dot-offline { background: #525252; }
+  .dash-dot-exec { background: #FF8C42; }
+  .ping-ring {
+    position: absolute; inset: -2px; border-radius: 50%;
+    border: 1px solid #4ade80; opacity: 0.5;
+    animation: ping 1.5s ease-in-out infinite;
+  }
+  @keyframes ping {
+    0% { transform: scale(1); opacity:0.5; }
+    100% { transform: scale(1.8); opacity:0; }
+  }
+  .dash-agent-status { font-size: 10px; }
+  .status-online { color: #4ade80; }
+  .status-exec { color: #FF8C42; }
+  .status-offline { color: #525252; }
+  .dash-uptime-bar {
+    height: 3px; background: #2D2D2D; border-radius: 2px; margin-top: 8px; overflow: hidden;
+  }
+  .dash-uptime-fill { height: 100%; border-radius: 2px; }
+
+  /* Tab bar in dashboard */
+  .dash-tabs {
+    display: flex; border-bottom: 1px solid #2D2D2D; margin-bottom: 14px;
+  }
+  .dash-tab {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 14px; color: rgba(255,255,255,0.3);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .dash-tab-active { color: #FF8C42; border-bottom-color: #FF8C42; }
+
+  /* ── Slide 10: RWD ── */
+  #slide-10 { background: #f6f5f1; }
+  .rwd-grid { display: grid; grid-template-columns: 1fr 0.72fr 0.45fr; gap: 24px; align-items: start; }
+  @media(max-width:700px) { .rwd-grid { grid-template-columns: 1fr; } }
+
+  .rwd-frame {
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid #2D2D2D;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+  }
+  .rwd-label {
+    font-size: 11px; font-weight: 600; color: #888;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .rwd-size { font-size: 11px; color: #aaa; margin-bottom: 12px; font-family: monospace; }
+
+  /* Desktop mockup content */
+  .rwd-desktop-bar {
+    background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .rwd-desktop-body { padding: 14px 16px; background: #0F1117; }
+
+  /* Tablet mockup */
+  .rwd-tablet-bar {
+    background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 12px;
+  }
+  .rwd-tablet-body { padding: 12px; background: #0F1117; }
+
+  /* Mobile mockup */
+  .rwd-mobile { background: #0F1117; }
+  .rwd-mobile-bar {
+    background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .rwd-mobile-body { padding: 10px; }
+
+  /* Skeleton block */
+  .skel {
+    background: #2D2D2D; border-radius: 4px; margin-bottom: 6px;
+  }
+  .skel-card {
+    background: #1A1A1F; border: 1px solid #2D2D2D;
+    border-radius: 10px; padding: 10px; margin-bottom: 8px;
+  }
+
+  /* ── Slide 11: Delivery Status ── */
+  #slide-11 { background: #0F1117; color: #fff; }
+  #slide-11 h2.slide-title { color: #fff; }
+  #slide-11 .slide-sub { color: rgba(255,255,255,0.4); }
+
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width:600px) { .status-grid { grid-template-columns: 1fr; } }
+  .status-card {
+    background: #1A1A1F; border: 1px solid #2D2D2D;
+    border-radius: 16px; padding: 24px;
+  }
+  .status-card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 10px; font-size: 13px;
+  }
+  .check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .check-text { color: rgba(255,255,255,0.75); line-height: 1.4; }
+  .check-sub { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+  .review-layers { display: flex; flex-direction: column; gap: 10px; }
+  .review-layer {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px 14px;
+  }
+  .review-layer-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .layer-pass { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .layer-pending { background: rgba(255,140,66,0.2); color: #FF8C42; }
+  .review-layer-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .review-layer-sub { font-size: 11px; color: rgba(255,255,255,0.35); }
+  .review-layer-status { margin-left: auto; font-size: 12px; font-weight: 600; }
+  .status-pass { color: #4ade80; }
+  .status-auto { color: rgba(255,255,255,0.35); }
+
+  /* ── Footer ── */
+  .deck-footer {
+    background: #0f0f0f; color: rgba(255,255,255,0.25);
+    padding: 32px 40px; text-align: center; font-size: 12px;
+  }
+
+  /* ── SVG Icon stubs (inline) ── */
+  .svg-icon { display: inline-block; vertical-align: middle; }
+
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="deck-nav">
+  <span class="deck-nav-title">Kai 中控台重設計</span>
+  <div class="deck-nav-dots">
+    <a href="#slide-1" title="封面"></a>
+    <a href="#slide-2" title="設計願景"></a>
+    <a href="#slide-3" title="Config A"></a>
+    <a href="#slide-4" title="Config B"></a>
+    <a href="#slide-5" title="元件系統"></a>
+    <a href="#slide-6" title="Landing"></a>
+    <a href="#slide-7" title="Pricing"></a>
+    <a href="#slide-8" title="GetStarted"></a>
+    <a href="#slide-9" title="Dashboard"></a>
+    <a href="#slide-10" title="RWD"></a>
+    <a href="#slide-11" title="交付狀態"></a>
+  </div>
+  <span class="deck-nav-date">2026-03-18</span>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 1: Title -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="slide-number">01 / 11</div>
+    <div class="title-badge">
+      <span class="title-badge-dot"></span>
+      Design System Delivery
+    </div>
+    <h1 class="slide-title">Kai 中控台<br>重設計</h1>
+    <p class="slide-sub">深色高級感系統完整交付 — 配色 · 元件 · 頁面佈局 · RWD</p>
+    <div class="title-meta">
+      <div class="title-meta-item">
+        <span class="title-meta-label">設計系統</span>
+        <span class="title-meta-value">Dark Premium v1.0</span>
+      </div>
+      <div class="title-meta-item">
+        <span class="title-meta-label">Config</span>
+        <span class="title-meta-value">A (Dashboard) + B (Marketing)</span>
+      </div>
+      <div class="title-meta-item">
+        <span class="title-meta-label">元件</span>
+        <span class="title-meta-value">Button · Card · Badge</span>
+      </div>
+      <div class="title-meta-item">
+        <span class="title-meta-label">設計師</span>
+        <span class="title-meta-value title-orange">Iris</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: Vision -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="slide-number">02 / 11</div>
+    <span class="slide-label">設計願景</span>
+    <p class="big-quote">
+      讓 AI 控制台看起來<span> 值得信賴</span>，<br>而不只是功能堆疊。
+    </p>
+    <div class="orange-divider"></div>
+    <div class="grid-3">
+      <div class="vision-card">
+        <div class="vision-number">01</div>
+        <div class="vision-title">Dark Aesthetic</div>
+        <div class="vision-desc">Dashboard 採 #0F1117 深色底，深灰卡片 #1A1A1F，用深度分層建立層次感而非依賴陰影。</div>
+      </div>
+      <div class="vision-card">
+        <div class="vision-number">02</div>
+        <div class="vision-title">Config A / B 分離</div>
+        <div class="vision-desc">內部 Dashboard 用 Config A（dark-bg 系）；對外 Marketing 頁面用 Config B（brand-bg #1A1825），兩套 token 清晰邊界。</div>
+      </div>
+      <div class="vision-card">
+        <div class="vision-number">03</div>
+        <div class="vision-title">Component Library</div>
+        <div class="vision-desc">Button 3 variants × 3 states、Card 2 variants、Badge 4 status — 所有元件用 Tailwind utility class，零硬編碼。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: Config A — Dashboard Colors -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="slide-number" style="color:rgba(255,255,255,0.3)">03 / 11</div>
+    <span class="config-tag config-tag-a">Config A — Dashboard</span>
+    <h2 class="slide-title">深色 Dashboard<br>配色系統</h2>
+    <p class="slide-sub">專為長時間作業設計的深色配色。低對比邊框、高對比文字，護眼又高階。</p>
+    <div class="orange-divider"></div>
+
+    <!-- Primary Dark Palette -->
+    <div class="swatch-row">
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#0F1117;"></div>
+        <div class="swatch-label">dark-bg</div>
+        <div class="swatch-hex">#0F1117</div>
+        <div class="swatch-usage">Page background</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#1A1A1F;"></div>
+        <div class="swatch-label">dark-card</div>
+        <div class="swatch-hex">#1A1A1F</div>
+        <div class="swatch-usage">Cards, panels</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#2D2D2D;"></div>
+        <div class="swatch-label">dark-border</div>
+        <div class="swatch-hex">#2D2D2D</div>
+        <div class="swatch-usage">Borders, dividers</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#FF8C42;"></div>
+        <div class="swatch-label">brand-orange</div>
+        <div class="swatch-hex">#FF8C42</div>
+        <div class="swatch-usage">CTA, active state, accent</div>
+      </div>
+    </div>
+
+    <!-- Neutrals -->
+    <div style="margin-top:24px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:12px">Neutral Scale</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#FFFFFF;border:1px solid rgba(255,255,255,0.08)"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#FFF</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#D4D4D4"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#D4D4D4</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#A3A3A3"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#A3A3A3</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#737373"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#737373</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#525252"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#525252</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#404040"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#404040</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;border-radius:8px;background:#262626"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">#262626</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Colors -->
+    <div style="margin-top:28px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:12px">Status Colors</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#4ade80"></div>
+          <span style="font-size:12px;color:#4ade80;font-weight:600">Online</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace">#4ade80 / bg-green-500/20</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#FF8C42"></div>
+          <span style="font-size:12px;color:#FF8C42;font-weight:600">Executing</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace">#FF8C42 / bg-brand-orange/20 + pulse</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#737373"></div>
+          <span style="font-size:12px;color:#737373;font-weight:600">Offline</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace">#737373 / bg-neutral-500/20</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f87171"></div>
+          <span style="font-size:12px;color:#f87171;font-weight:600">Danger</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace">#f87171 / bg-red-600/20</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: Config B — Marketing Colors -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="slide-number" style="color:rgba(255,255,255,0.3)">04 / 11</div>
+    <span class="config-tag config-tag-b">Config B — Marketing</span>
+    <h2 class="slide-title">品牌行銷頁<br>配色系統</h2>
+    <p class="slide-sub">Landing / Pricing / GetStarted 共用。比 Config A 略暖，品牌感更強，適合對外展示。</p>
+    <div class="orange-divider"></div>
+
+    <div class="swatch-row">
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#1A1825;"></div>
+        <div class="swatch-label">brand-bg</div>
+        <div class="swatch-hex">#1A1825</div>
+        <div class="swatch-usage">Marketing page background</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:#FF8C42;"></div>
+        <div class="swatch-label">brand-orange</div>
+        <div class="swatch-hex">#FF8C42</div>
+        <div class="swatch-usage">Primary CTA, headings accent</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:rgba(255,140,66,0.12);border:1px solid rgba(255,140,66,0.2);"></div>
+        <div class="swatch-label">orange-tint</div>
+        <div class="swatch-hex">rgba(255,140,66,0.12)</div>
+        <div class="swatch-usage">Icon bg, chip bg, card border tint</div>
+      </div>
+      <div class="swatch swatch-dark">
+        <div class="swatch-block" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"></div>
+        <div class="swatch-label">surface-dim</div>
+        <div class="swatch-hex">rgba(255,255,255,0.04)</div>
+        <div class="swatch-usage">Feature card bg, inner surface</div>
+      </div>
+    </div>
+
+    <!-- Config A vs B comparison -->
+    <div style="margin-top:32px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:16px">Config A vs Config B — 差異對比</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px">
+          <div style="font-size:12px;font-weight:700;color:#FF8C42;margin-bottom:12px">Config A — Dashboard</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8">
+            背景：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">#0F1117</span><br>
+            卡片：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">#1A1A1F</span><br>
+            邊框：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">#2D2D2D</span><br>
+            橘色用途：State indicator, active tab<br>
+            對象：<span style="color:rgba(255,255,255,0.4)">内部操作人員</span>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px">
+          <div style="font-size:12px;font-weight:700;color:#FF8C42;margin-bottom:12px">Config B — Marketing</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8">
+            背景：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">#1A1825</span><br>
+            卡片 border：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">rgba(255,140,66,0.2)</span><br>
+            邊框：<span style="font-family:monospace;color:rgba(255,255,255,0.4)">orange-tinted</span><br>
+            橘色用途：Heading accent, CTA, icon bg<br>
+            對象：<span style="color:rgba(255,255,255,0.4)">外部訪客 / 潛在用戶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: Component System -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="slide-number">05 / 11</div>
+    <span class="slide-label">元件系統</span>
+    <h2 class="slide-title">Button · Card · Badge</h2>
+    <p class="slide-sub">三類核心元件，全部實際渲染。規格來自 <code style="font-size:12px;background:#eceae4;padding:2px 6px;border-radius:4px">button.tsx / card.tsx / badge.tsx</code></p>
+    <div class="divider"></div>
+
+    <!-- Buttons -->
+    <div class="component-section-dark" style="margin-bottom:20px">
+      <div class="section-heading" style="color:rgba(255,255,255,0.3)">Button — 3 Variants × 3 States</div>
+      <div style="margin-bottom:16px">
+        <div class="btn-demo-row">
+          <span class="btn-demo-label" style="color:rgba(255,255,255,0.35)">Primary</span>
+          <button class="spec-btn spec-btn-primary">進入控制台</button>
+          <button class="spec-btn spec-btn-primary" style="opacity:0.88">Hover 狀態</button>
+          <button class="spec-btn spec-btn-primary spec-btn-disabled">Disabled</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:80px;margin-top:4px;font-family:monospace">bg-brand-orange text-white rounded-xl hover:opacity-90 active:scale-[0.98]</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="btn-demo-row">
+          <span class="btn-demo-label" style="color:rgba(255,255,255,0.35)">Ghost</span>
+          <button class="spec-btn spec-btn-ghost">設定</button>
+          <button class="spec-btn spec-btn-ghost" style="background:#1A1A1F">Hover 狀態</button>
+          <button class="spec-btn spec-btn-ghost spec-btn-disabled">Disabled</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:80px;margin-top:4px;font-family:monospace">text-neutral-300 hover:bg-dark-card rounded-lg</div>
+      </div>
+      <div>
+        <div class="btn-demo-row">
+          <span class="btn-demo-label" style="color:rgba(255,255,255,0.35)">Outline</span>
+          <button class="spec-btn spec-btn-outline">查看詳情</button>
+          <button class="spec-btn spec-btn-outline" style="border-color:#FF8C42;color:#FF8C42">Hover 狀態</button>
+          <button class="spec-btn spec-btn-outline spec-btn-disabled">Disabled</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:80px;margin-top:4px;font-family:monospace">border border-dark-border text-neutral-300 hover:border-brand-orange hover:text-brand-orange</div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div style="margin-bottom:20px">
+      <div class="section-heading">Card — 2 Variants</div>
+      <div class="grid-2">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px">Dashboard Variant (Config A)</div>
+          <div class="card-dashboard">
+            <div class="card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            </div>
+            <div class="card-specimen-title">Agent 狀態監控</div>
+            <div class="card-specimen-body">bg-dark-card · border-dark-border · backdrop-blur-sm</div>
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-top:6px;font-family:monospace">variant="dashboard"</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px">Landing Variant (Config B)</div>
+          <div class="card-landing">
+            <div class="card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div class="card-specimen-title">任務自動化</div>
+            <div class="card-specimen-body">bg-brand-bg · border-brand-orange/20 · shadow-lg</div>
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-top:6px;font-family:monospace">variant="landing"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div>
+      <div class="section-heading">Badge — Status Variants + Animation</div>
+      <div class="component-section-dark">
+        <div class="badge-row">
+          <div class="spec-badge badge-online">
+            <span class="spec-badge-dot"></span>在線
+          </div>
+          <div class="spec-badge badge-executing">
+            <span class="spec-badge-dot"></span>執行中
+          </div>
+          <div class="spec-badge badge-offline">
+            <span class="spec-badge-dot"></span>離線
+          </div>
+          <div class="spec-badge badge-default">最受歡迎</div>
+          <div class="spec-badge" style="border:1px solid #2D2D2D;color:#a3a3a3">outline</div>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.2);font-family:monospace">
+          executing variant → animate-pulse-executing (2s ease-in-out infinite, opacity 1→0.6)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: Landing Page Layout -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="slide-number">06 / 11</div>
+    <span class="slide-label">Landing Page</span>
+    <h2 class="slide-title">對外首頁佈局</h2>
+    <p class="slide-sub">Config B 配色。Hero + Feature Grid + CTA 三層結構。</p>
+    <div class="divider"></div>
+    <div class="grid-2" style="align-items:start;gap:32px">
+      <!-- Mockup -->
+      <div class="page-mockup">
+        <!-- Header bar -->
+        <div class="mockup-bar">
+          <div class="mockup-bar-logo">
+            <div class="mockup-bar-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <span class="mockup-bar-name">Kai 中控台</span>
+          </div>
+          <div class="mockup-bar-nav">
+            <span>定價</span>
+            <span>快速上手</span>
+          </div>
+          <div class="mockup-btn-sm">進入控制台</div>
+        </div>
+        <!-- Hero -->
+        <div class="mockup-hero">
+          <div class="mockup-chip">
+            <span style="width:5px;height:5px;border-radius:50%;background:#FF8C42;display:inline-block;animation:pulse-exec 2s infinite"></span>
+            Rain AI Team — 28 Agents 在線
+          </div>
+          <div class="mockup-h1">AI 團隊的<span> 神經中樞</span></div>
+          <div class="mockup-p">統一管理你的 AI Agent 團隊。任務派遣、成本追蹤、審查管線。</div>
+          <div class="mockup-btn-row">
+            <div class="mockup-btn-primary">進入控制台</div>
+            <div class="mockup-btn-outline">查看快速上手</div>
+          </div>
+        </div>
+        <!-- Features -->
+        <div class="mockup-features">
+          <div class="mockup-feat-card">
+            <div class="mockup-feat-icon"></div>
+            <div class="mockup-feat-title">AI 團隊管理</div>
+            <div class="mockup-feat-body">28 個 Agent 即時監控</div>
+          </div>
+          <div class="mockup-feat-card">
+            <div class="mockup-feat-icon"></div>
+            <div class="mockup-feat-title">任務自動化</div>
+            <div class="mockup-feat-body">3-Phase 規劃協議</div>
+          </div>
+          <div class="mockup-feat-card">
+            <div class="mockup-feat-icon"></div>
+            <div class="mockup-feat-title">成本追蹤</div>
+            <div class="mockup-feat-body">Token 用量可視化</div>
+          </div>
+        </div>
+      </div>
+      <!-- Annotations -->
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:16px">設計標注</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:10px;height:10px;border-radius:2px;background:#1A1825;border:1px solid #333;flex-shrink:0;margin-top:3px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">Header</div>
+              <div style="font-size:12px;color:#777">bg rgba(255,255,255,0.04) · border-dark-border/50 · px-6 py-4</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:10px;height:10px;border-radius:2px;background:#FF8C42;flex-shrink:0;margin-top:3px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">Hero Chip</div>
+              <div style="font-size:12px;color:#777">bg-brand-orange/10 · border-brand-orange/20 · animate-pulse-executing dot</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:10px;height:10px;border-radius:2px;background:#FF8C42;opacity:0.4;flex-shrink:0;margin-top:3px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">H1 Accent</div>
+              <div style="font-size:12px;color:#777">text-brand-orange on key phrase · font-size clamp(36px,6vw,56px)</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:10px;height:10px;border-radius:2px;background:#1A1825;border:1px solid rgba(255,140,66,0.2);flex-shrink:0;margin-top:3px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">Feature Cards</div>
+              <div style="font-size:12px;color:#777">Card variant="landing" · grid-cols-3 · icon w-10 bg-brand-orange/15</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:10px;height:10px;border-radius:50%;background:#FF8C42;flex-shrink:0;margin-top:3px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">CTA Button</div>
+              <div style="font-size:12px;color:#777">Button variant="primary" size="lg" · h-11 px-8 · bg-brand-orange</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: Pricing Page -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="slide-number">07 / 11</div>
+    <span class="slide-label">Pricing Page</span>
+    <h2 class="slide-title">定價頁面設計</h2>
+    <p class="slide-sub">3-tier 卡片佈局。Pro 卡片橘色邊框強調，其餘用標準 landing variant。</p>
+    <div class="divider"></div>
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="pricing-card-mock">
+        <div class="pricing-name">Starter</div>
+        <div class="pricing-price">免費</div>
+        <div class="pricing-cadence">個人使用</div>
+        <div class="pricing-btn pricing-btn-outline">免費開始</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 最多 5 個 Agent</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 基礎任務看板</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 社群支援</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 1GB 記憶體儲存</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 每日 100 次 API</div>
+      </div>
+      <!-- Pro -->
+      <div class="pricing-card-mock highlight">
+        <div class="popular-tag">最受歡迎</div>
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">NT$999</div>
+        <div class="pricing-cadence">每月</div>
+        <div class="pricing-btn pricing-btn-primary">升級 Pro</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 無限 Agent 數量</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 3-Phase 規劃協議</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 審查管線</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 10GB 記憶體儲存</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> Discord 通知整合</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> AI 槓桿報告</div>
+      </div>
+      <!-- Enterprise -->
+      <div class="pricing-card-mock">
+        <div class="pricing-name">Enterprise</div>
+        <div class="pricing-price" style="font-size:18px;padding-top:3px">聯繫我們</div>
+        <div class="pricing-cadence">客製化方案</div>
+        <div class="pricing-btn pricing-btn-outline">聯繫銷售</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> Pro 所有功能</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 自架部署選項</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 客製化 Agent</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> 無限 API 呼叫</div>
+        <div class="pricing-feature"><span class="pricing-check">✓</span> SLA 99.9%</div>
+      </div>
+    </div>
+    <!-- Annotations -->
+    <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:10px">
+      <div class="annotation">
+        <div class="annotation-dot" style="background:#1A1825;border:1px solid rgba(255,140,66,0.1)"></div>
+        Card bg: brand-bg #1A1825
+      </div>
+      <div class="annotation">
+        <div class="annotation-dot" style="background:#FF8C42"></div>
+        Pro 卡片: border-brand-orange + ring-1 ring-brand-orange/30
+      </div>
+      <div class="annotation">
+        <div class="annotation-dot" style="background:#FF8C42;opacity:0.5"></div>
+        Check icon: text-brand-orange size=15
+      </div>
+      <div class="annotation">
+        <div class="annotation-dot" style="background:#FF8C42;opacity:0.15"></div>
+        Popular badge: bg-brand-orange/15 text-brand-orange
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 8: GetStarted Page -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="slide-number">08 / 11</div>
+    <span class="slide-label">GetStarted Page</span>
+    <h2 class="slide-title">快速上手 — 7 步驟</h2>
+    <p class="slide-sub">Card variant="dashboard" 承載步驟卡。Step 4 標記 active（橘色數字 + executing badge）。</p>
+    <div class="divider"></div>
+    <div class="grid-2" style="gap:32px;align-items:start">
+      <!-- Steps mockup -->
+      <div class="steps-mockup">
+        <div class="step-item">
+          <div class="step-num step-num-inactive">1</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">啟動後端服務</span></div>
+            <div class="step-desc">執行 bash restart_simple.sh 啟動 FastAPI 後端（port 5002）</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-inactive">2</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">設定環境變數</span></div>
+            <div class="step-desc">複製 .env.example 填入 API Key 等必要設定</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-inactive">3</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">認識 Agent 團隊</span></div>
+            <div class="step-desc">了解 28 個 Agent 的職責分工與觸發條件</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-active">4</div>
+          <div class="step-content">
+            <div class="step-title-row">
+              <span class="step-title">建立你的第一個任務</span>
+              <span class="spec-badge badge-executing" style="font-size:10px;padding:2px 8px">進行中</span>
+            </div>
+            <div class="step-desc">在任務看板點擊「新增任務」，設定 auto_start: true 立即執行</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-inactive">5</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">啟動 3-Phase 規劃</span></div>
+            <div class="step-desc">Major/Critical 任務需 Scout → Ray 審查</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-inactive">6</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">查看成本報告</span></div>
+            <div class="step-desc">追蹤 token 用量、API 成本與 AI 槓桿倍數</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num step-num-inactive">7</div>
+          <div class="step-content">
+            <div class="step-title-row"><span class="step-title">設定夜班自動化</span></div>
+            <div class="step-desc">配置 LaunchAgent，Noel 每晚自動執行維護</div>
+          </div>
+        </div>
+      </div>
+      <!-- Annotations -->
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:16px">設計標注</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:16px">
+            <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Step 容器</div>
+            <div style="font-size:12px;color:#777;line-height:1.6">Card variant="dashboard"<br>bg-dark-card · border-dark-border · p-5</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:16px">
+            <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Step Indicator</div>
+            <div style="font-size:12px;color:#777;line-height:1.6">
+              inactive: <span style="font-family:monospace">bg-dark-border text-neutral-400</span><br>
+              active: <span style="font-family:monospace">bg-brand-orange text-white</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:16px">
+            <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Active Badge</div>
+            <div style="font-size:12px;color:#777;line-height:1.6">
+              Badge status="executing"<br>
+              <span style="font-family:monospace">animate-pulse-executing · bg-brand-orange/20</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:16px">
+            <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Connector Line</div>
+            <div style="font-size:12px;color:#777;line-height:1.6">
+              <span style="font-family:monospace">w-px h-4 mt-2 bg-dark-border</span><br>
+              步驟間連接線，最後一步不顯示
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: Dashboard (Config A) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="slide-number">09 / 11</div>
+    <span class="slide-label">Dashboard — Config A</span>
+    <h2 class="slide-title">Agent 監控面板</h2>
+    <p class="slide-sub">Config A 深色 Dashboard。Summary cards + Agent 卡片網格 + Status dots。</p>
+    <div class="divider"></div>
+
+    <div class="dashboard-mockup">
+      <!-- Top bar -->
+      <div class="dash-topbar">
+        <div>
+          <div class="dash-topbar-title">Agent 監控</div>
+          <div class="dash-topbar-sub">ChronicleCore — 5-Pillar 架構</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="spec-btn spec-btn-ghost" style="font-size:11px;padding:5px 10px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:4px"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            立即 Poll
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-body">
+        <!-- Summary stats -->
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="dash-stat-icon" style="background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div><div class="dash-stat-label">總 Agent 數</div><div class="dash-stat-value">28</div></div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-icon" style="background:rgba(74,222,128,0.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+            </div>
+            <div><div class="dash-stat-label">在線</div><div class="dash-stat-value" style="color:#4ade80">11</div></div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-icon" style="background:rgba(248,113,113,0.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+            </div>
+            <div><div class="dash-stat-label">離線</div><div class="dash-stat-value" style="color:#f87171">3</div></div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-icon" style="background:rgba(115,115,115,0.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div><div class="dash-stat-label">按需</div><div class="dash-stat-value" style="color:#737373">14</div></div>
+          </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="dash-tabs">
+          <div class="dash-tab dash-tab-active">Heartbeat</div>
+          <div class="dash-tab">人格健康度</div>
+          <div class="dash-tab">Live Dashboard</div>
+        </div>
+
+        <!-- Core pillar -->
+        <div class="dash-section-label">Core</div>
+        <div class="dash-agents">
+          <!-- Klay — online -->
+          <div class="dash-agent-card">
+            <div class="dash-agent-header">
+              <span class="dash-agent-name">Klay</span>
+              <span class="dash-agent-pillar">Core</span>
+            </div>
+            <div class="dash-dot-row">
+              <div class="dash-dot dash-dot-online" style="position:relative">
+                <span class="ping-ring"></span>
+              </div>
+              <span class="dash-agent-status status-online">在線</span>
+            </div>
+            <div class="dash-uptime-bar"><div class="dash-uptime-fill" style="width:98%;background:#4ade80"></div></div>
+          </div>
+          <!-- Iris — executing -->
+          <div class="dash-agent-card" style="border-color:rgba(255,140,66,0.2)">
+            <div class="dash-agent-header">
+              <span class="dash-agent-name">Iris</span>
+              <span class="dash-agent-pillar">Core</span>
+            </div>
+            <div class="dash-dot-row">
+              <div class="dash-dot dash-dot-exec"></div>
+              <span class="dash-agent-status status-exec" style="animation:pulse-exec 2s infinite">執行中</span>
+            </div>
+            <div class="dash-uptime-bar"><div class="dash-uptime-fill" style="width:100%;background:#FF8C42;opacity:0.8"></div></div>
+          </div>
+          <!-- Noel — offline -->
+          <div class="dash-agent-card">
+            <div class="dash-agent-header">
+              <span class="dash-agent-name">Noel</span>
+              <span class="dash-agent-pillar">Core</span>
+            </div>
+            <div class="dash-dot-row">
+              <div class="dash-dot dash-dot-offline"></div>
+              <span class="dash-agent-status status-offline">離線</span>
+            </div>
+            <div class="dash-uptime-bar"><div class="dash-uptime-fill" style="width:72%;background:#525252"></div></div>
+          </div>
+        </div>
+
+        <!-- On demand note -->
+        <div style="margin-top:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);padding:8px">
+          按需 Agent（Scout / Forge / Quill 等）— 無常駐端點，任務時喚起
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotations -->
+    <div class="annotation-row" style="margin-top:16px">
+      <div class="annotation"><div class="annotation-dot" style="background:#0F1117;border:1px solid #333"></div>Page bg: dark-bg #0F1117</div>
+      <div class="annotation"><div class="annotation-dot" style="background:#1A1A1F;border:1px solid #333"></div>Card: dark-card #1A1A1F</div>
+      <div class="annotation"><div class="annotation-dot" style="background:#4ade80"></div>Online dot + ping ring animation</div>
+      <div class="annotation"><div class="annotation-dot" style="background:#FF8C42"></div>Executing dot + orange border glow</div>
+      <div class="annotation"><div class="annotation-dot" style="background:#FF8C42;opacity:0.5"></div>Active tab: border-b-2 border-brand-orange</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: RWD -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="slide-number">10 / 11</div>
+    <span class="slide-label">響應式設計</span>
+    <h2 class="slide-title">三斷點 RWD 對比</h2>
+    <p class="slide-sub">同一 Landing Page 在 Desktop / Tablet / Mobile 的佈局變化。</p>
+    <div class="divider"></div>
+
+    <div class="rwd-grid">
+      <!-- Desktop -->
+      <div>
+        <div class="rwd-label">Desktop</div>
+        <div class="rwd-size">1280px — grid-cols-3</div>
+        <div class="rwd-frame">
+          <div style="background:#1A1825">
+            <div class="rwd-desktop-bar">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="width:16px;height:16px;border-radius:4px;background:#FF8C42"></div>
+                <span style="font-size:9px;font-weight:600;color:#fff">Kai 中控台</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <span style="font-size:8px;color:rgba(255,255,255,0.35)">定價</span>
+                <span style="font-size:8px;color:rgba(255,255,255,0.35)">快速上手</span>
+              </div>
+              <div style="background:#FF8C42;color:#fff;font-size:8px;font-weight:600;border-radius:5px;padding:3px 7px">進入控制台</div>
+            </div>
+            <div style="padding:20px 16px;text-align:center">
+              <div style="font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px">AI 團隊的<span style="color:#FF8C42"> 神經中樞</span></div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:12px;max-width:200px;margin-left:auto;margin-right:auto">統一管理你的 AI Agent 團隊</div>
+              <div style="display:flex;gap:6px;justify-content:center">
+                <div style="background:#FF8C42;color:#fff;font-size:8px;font-weight:600;border-radius:6px;padding:5px 12px">進入控制台</div>
+                <div style="border:1px solid #2D2D2D;color:rgba(255,255,255,0.5);font-size:8px;border-radius:6px;padding:5px 12px">快速上手</div>
+              </div>
+            </div>
+            <div style="padding:0 12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px">
+                <div style="width:16px;height:16px;border-radius:5px;background:rgba(255,140,66,0.12);margin-bottom:5px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">AI 團隊管理</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">28 個 Agent</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px">
+                <div style="width:16px;height:16px;border-radius:5px;background:rgba(255,140,66,0.12);margin-bottom:5px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">任務自動化</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">3-Phase 協議</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px">
+                <div style="width:16px;height:16px;border-radius:5px;background:rgba(255,140,66,0.12);margin-bottom:5px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">成本追蹤</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">Token 可視化</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:11px;color:#666">Nav: flex row · 完整 nav links 顯示</div>
+          <div style="font-size:11px;color:#666">Feature: grid-cols-3 · 完整 3 欄</div>
+          <div style="font-size:11px;color:#666">Hero: text-6xl · max-w-2xl</div>
+        </div>
+      </div>
+
+      <!-- Tablet -->
+      <div>
+        <div class="rwd-label">Tablet</div>
+        <div class="rwd-size">768px — grid-cols-2</div>
+        <div class="rwd-frame">
+          <div style="background:#1A1825">
+            <div class="rwd-tablet-bar" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px">
+              <div style="display:flex;align-items:center;gap:5px">
+                <div style="width:14px;height:14px;border-radius:4px;background:#FF8C42"></div>
+                <span style="font-size:9px;font-weight:600;color:#fff">Kai</span>
+              </div>
+              <div style="background:#FF8C42;color:#fff;font-size:8px;font-weight:600;border-radius:5px;padding:3px 7px">進入</div>
+            </div>
+            <div style="padding:16px 14px;text-align:center">
+              <div style="font-size:14px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px">AI 團隊的<span style="color:#FF8C42"> 神經中樞</span></div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:10px">統一管理 AI Agent 團隊</div>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:center">
+                <div style="background:#FF8C42;color:#fff;font-size:9px;font-weight:600;border-radius:6px;padding:6px 18px">進入控制台</div>
+                <div style="border:1px solid #2D2D2D;color:rgba(255,255,255,0.5);font-size:9px;border-radius:6px;padding:5px 14px">快速上手</div>
+              </div>
+            </div>
+            <div style="padding:0 10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:5px">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px">
+                <div style="width:14px;height:14px;border-radius:4px;background:rgba(255,140,66,0.12);margin-bottom:4px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">AI 團隊管理</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">28 個 Agent</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px">
+                <div style="width:14px;height:14px;border-radius:4px;background:rgba(255,140,66,0.12);margin-bottom:4px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">任務自動化</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">3-Phase 協議</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;grid-column:1/-1">
+                <div style="width:14px;height:14px;border-radius:4px;background:rgba(255,140,66,0.12);margin-bottom:4px"></div>
+                <div style="font-size:8px;font-weight:600;color:#fff;margin-bottom:2px">成本追蹤</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.3)">Token 用量可視化</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:11px;color:#666">Nav: hidden md:flex（links 隱藏）</div>
+          <div style="font-size:11px;color:#666">Feature: grid-cols-2 · 第三張跨欄</div>
+          <div style="font-size:11px;color:#666">Buttons: flex-col on mobile</div>
+        </div>
+      </div>
+
+      <!-- Mobile -->
+      <div>
+        <div class="rwd-label">Mobile</div>
+        <div class="rwd-size">390px — single col</div>
+        <div class="rwd-frame">
+          <div class="rwd-mobile">
+            <div class="rwd-mobile-bar">
+              <div style="width:12px;height:12px;border-radius:3px;background:#FF8C42"></div>
+              <span style="font-size:8px;font-weight:600;color:#fff;flex:1;margin-left:5px">Kai</span>
+              <div style="background:#FF8C42;color:#fff;font-size:7px;font-weight:600;border-radius:4px;padding:2px 6px">進入</div>
+            </div>
+            <div class="rwd-mobile-body">
+              <div style="text-align:center;padding:12px 0 10px">
+                <div style="font-size:11px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:5px">AI 團隊的<br><span style="color:#FF8C42">神經中樞</span></div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.4);margin-bottom:8px">統一管理 AI Agent 團隊</div>
+                <div style="background:#FF8C42;color:#fff;font-size:8px;font-weight:600;border-radius:5px;padding:6px 16px;display:inline-block">進入控制台</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;padding-bottom:10px">
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px">
+                  <div style="width:22px;height:22px;border-radius:6px;background:rgba(255,140,66,0.12);flex-shrink:0"></div>
+                  <div><div style="font-size:8px;font-weight:600;color:#fff">AI 團隊管理</div><div style="font-size:7px;color:rgba(255,255,255,0.3)">28 個 Agent 即時監控</div></div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px">
+                  <div style="width:22px;height:22px;border-radius:6px;background:rgba(255,140,66,0.12);flex-shrink:0"></div>
+                  <div><div style="font-size:8px;font-weight:600;color:#fff">任務自動化</div><div style="font-size:7px;color:rgba(255,255,255,0.3)">3-Phase 規劃協議</div></div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px">
+                  <div style="width:22px;height:22px;border-radius:6px;background:rgba(255,140,66,0.12);flex-shrink:0"></div>
+                  <div><div style="font-size:8px;font-weight:600;color:#fff">成本追蹤</div><div style="font-size:7px;color:rgba(255,255,255,0.3)">Token 用量可視化</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:11px;color:#666">Nav: hamburger / hidden</div>
+          <div style="font-size:11px;color:#666">Feature: grid-cols-1 · list layout</div>
+          <div style="font-size:11px;color:#666">Button: single, full emphasis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SLIDE 11: Delivery Status -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="slide" id="slide-11">
+  <div class="slide-inner">
+    <div class="slide-number" style="color:rgba(255,255,255,0.3)">11 / 11</div>
+    <span class="config-tag config-tag-a">交付狀態</span>
+    <h2 class="slide-title">設計系統<br>交付完成</h2>
+    <p class="slide-sub">所有元件已實際渲染並對應真實 CSS token。可直接對接 John 進行 UI 整合。</p>
+    <div class="orange-divider"></div>
+
+    <div class="status-grid">
+      <!-- 3-Layer Review -->
+      <div class="status-card">
+        <div class="status-card-title">3-Layer Review 狀態</div>
+        <div class="review-layers">
+          <div class="review-layer">
+            <div class="review-layer-num layer-pass">1</div>
+            <div>
+              <div class="review-layer-name">Quill — 程式碼審查</div>
+              <div class="review-layer-sub">CSS token 規範、命名一致性</div>
+            </div>
+            <div class="review-layer-status status-pass">Pass</div>
+          </div>
+          <div class="review-layer">
+            <div class="review-layer-num layer-pass">2</div>
+            <div>
+              <div class="review-layer-name">Forge — CI Gate</div>
+              <div class="review-layer-sub">純 HTML 報告，無 build 需求</div>
+            </div>
+            <div class="review-layer-status status-pass">Pass</div>
+          </div>
+          <div class="review-layer">
+            <div class="review-layer-num" style="background:rgba(115,115,115,0.2);color:#737373">3</div>
+            <div>
+              <div class="review-layer-name">Ray — 設計審查</div>
+              <div class="review-layer-sub">Standard 任務，豁免</div>
+            </div>
+            <div class="review-layer-status status-auto">N/A</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Checklist -->
+      <div class="status-card">
+        <div class="status-card-title">交付清單</div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">Config A + B 色彩 token 全部展示</div>
+            <div class="check-sub">dark-bg / dark-card / dark-border / brand-bg / brand-orange</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">Button 3 variants × 3 states 實際渲染</div>
+            <div class="check-sub">Primary / Ghost / Outline + default/hover/disabled</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">Card 2 variants 真實 CSS 展示</div>
+            <div class="check-sub">dashboard (Config A) + landing (Config B)</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">Badge 4 status + pulse animation</div>
+            <div class="check-sub">online / executing (live) / offline / default</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">4 頁面 HTML mockup（Landing / Pricing / GetStarted / Dashboard）</div>
+          </div>
+        </div>
+        <div class="check-item">
+          <span class="check-icon" style="color:#4ade80">✓</span>
+          <div>
+            <div class="check-text">RWD 三斷點對比（1280 / 768 / 390）</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #2D2D2D;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;gap:16px">
+      <div style="font-size:12px;color:rgba(255,255,255,0.3)">
+        設計：Iris · 審查：Quill / Forge · 2026-03-18
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="spec-badge badge-online">系統就緒</div>
+        <div class="spec-badge badge-executing">等待 John 整合</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="deck-footer">
+  Kai 中控台重設計 — Design System v1.0 · Iris · 2026-03-18
+</footer>
+
+</body>
+</html>
