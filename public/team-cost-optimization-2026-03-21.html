@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 團隊配置優化報告 2026-03-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --white:#ffffff;
+  --black:#121212;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --accent:#e87a00;
+  --accent-warm:#c46800;
+  --accent-blue:#a8cde8;
+  --green:#85a268;
+  --green-bg:#e8f5e0;
+  --green-text:#3d7a1c;
+  --yellow:#c9a73a;
+  --yellow-bg:#fef9e5;
+  --danger:#d94f4f;
+  --danger-bg:#fdeaea;
+  --warn:#c97a00;
+  --warn-bg:#fff3e0;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:88px 32px 64px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-blue);margin-bottom:14px;font-family:var(--mono)}
+.cover h1{font-size:clamp(24px,4.5vw,42px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:12px}
+.cover h1 span{color:var(--accent)}
+.cover .subtitle{font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:24px;max-width:600px;margin-left:auto;margin-right:auto}
+.cover-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.cover-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 22px;border-radius:6px;font-weight:700;font-size:13px;letter-spacing:0.04em;font-family:var(--mono)}
+.cover-badge.green{border:1.5px solid #5a9e40;color:#5a9e40}
+.cover-badge.orange{border:1.5px solid #e87a00;color:#e87a00}
+.cover-badge.blue{border:1.5px solid #6eaad4;color:#6eaad4}
+.cover .meta{font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1px}
+.cover .signers{display:flex;justify-content:center;gap:32px;margin-top:28px;flex-wrap:wrap}
+.cover .signer{text-align:center}
+.cover .signer .role{font-size:11px;color:rgba(255,255,255,0.35);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px}
+.cover .signer .name{font-size:14px;font-weight:600;color:rgba(255,255,255,0.8)}
+
+/* Main layout */
+.main{max-width:780px;margin:0 auto;padding:56px 28px 80px}
+@media(max-width:600px){.main{padding:36px 20px 60px}.cover{padding:60px 24px 48px}.cover .signers{flex-direction:column;gap:16px}}
+
+/* Section */
+.section{margin-bottom:56px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
+.section h2{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px}
+.section .section-desc{font-size:14px;color:var(--grey-02);margin-bottom:24px;font-family:var(--mono)}
+.section p{font-size:15px;color:#333;margin-bottom:12px}
+.section ul{margin:0 0 12px 20px;color:#333;font-size:15px}
+.section li{margin-bottom:6px}
+
+/* Divider */
+.divider{height:1px;background:var(--grey-01);margin:0 0 48px}
+
+/* Summary stats */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+.summary-stat{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px 16px;text-align:center}
+.summary-stat .num{font-size:28px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:var(--black);margin-bottom:4px}
+.summary-stat .num.green{color:var(--green-text)}
+.summary-stat .num.orange{color:var(--accent)}
+.summary-stat .num.red{color:var(--danger)}
+.summary-stat .label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);line-height:1.4}
+
+/* Review table */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:4px}
+.tbl-wrap::-webkit-scrollbar{height:5px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.review-table{width:100%;min-width:600px;border-collapse:collapse;font-size:14px;background:var(--white);border-radius:10px;overflow:hidden;border:1px solid var(--grey-01)}
+.review-table th{background:var(--cream-alt);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-03);padding:11px 16px;text-align:left;font-family:var(--mono)}
+.review-table td{padding:13px 16px;border-top:1px solid var(--grey-01);vertical-align:top;color:#333;line-height:1.55}
+.review-table tr:last-child td{border-bottom:none}
+.review-table .td-before{color:var(--danger);font-family:var(--mono);font-size:13px}
+.review-table .td-after{color:var(--green-text);font-family:var(--mono);font-size:13px}
+.review-table .td-label{font-weight:700;color:var(--black);font-size:13px}
+.review-table .td-savings{font-weight:700;text-align:center}
+.review-table .savings-high{color:var(--green-text)}
+.review-table .savings-med{color:var(--accent-warm)}
+.review-table .savings-low{color:var(--grey-02)}
+
+/* Cards */
+.card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:22px 24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-label{font-size:11px;font-weight:700;color:var(--grey-02);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:var(--mono)}
+.card h4{font-size:15px;font-weight:700;margin-bottom:8px}
+.card p,.card li{font-size:14px;color:#444;line-height:1.6}
+.card ul{margin-left:18px}
+.card li{margin-bottom:5px}
+
+/* Update card with left accent */
+.update-card{background:var(--white);border:1px solid var(--grey-01);border-left:4px solid var(--danger);border-radius:0 10px 10px 0;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+.update-card.fix{border-left-color:var(--green)}
+.update-card.cost{border-left-color:var(--accent)}
+.update-card.web{border-left-color:var(--accent-blue)}
+.update-card .update-num{font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.update-card.fix .update-num{color:var(--green-text)}
+.update-card.cost .update-num{color:var(--accent)}
+.update-card.web .update-num{color:#2d78b5}
+.update-card h3{font-size:16px;font-weight:700;margin-bottom:10px;color:var(--black)}
+.update-card p,.update-card li{font-size:14px;color:#444;line-height:1.6}
+.update-card ul{margin-left:18px;margin-bottom:0}
+.update-card li{margin-bottom:5px}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:0.03em;font-family:var(--mono)}
+.badge-green{background:var(--green-bg);color:var(--green-text)}
+.badge-orange{background:#fff3e0;color:var(--accent-warm)}
+.badge-red{background:var(--danger-bg);color:var(--danger)}
+.badge-grey{background:var(--grey-01);color:var(--grey-03)}
+.badge-blue{background:#e8f2fb;color:#2d78b5}
+
+/* Alert */
+.alert{border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:14px;line-height:1.6}
+.alert-warn{background:var(--warn-bg);border:1px solid #f0c56a;color:#7a4f00}
+.alert-info{background:#e8f2fb;border:1px solid #b0d0ee;color:#1a5a8a}
+.alert-success{background:var(--green-bg);border:1px solid #b8d9a4;color:#2a6010}
+.alert-danger{background:var(--danger-bg);border:1px solid #f0b0b0;color:#8a1a1a}
+
+/* Before/After visual */
+.ba-row{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:12px}
+.ba-box{background:var(--white);border:1px solid var(--grey-01);border-radius:8px;padding:14px 16px}
+.ba-box.before{border-color:var(--danger);background:var(--danger-bg)}
+.ba-box.after{border-color:#b8d9a4;background:var(--green-bg)}
+.ba-box .ba-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:var(--mono)}
+.ba-box.before .ba-label{color:var(--danger)}
+.ba-box.after .ba-label{color:var(--green-text)}
+.ba-box p{font-size:13px;color:#333;line-height:1.5}
+.ba-arrow{font-size:20px;color:var(--grey-02);text-align:center;flex-shrink:0}
+@media(max-width:560px){.ba-row{grid-template-columns:1fr;}.ba-arrow{transform:rotate(90deg)}}
+
+/* Cost model callout */
+.cost-callout{background:var(--black);color:var(--white);border-radius:10px;padding:24px 28px;margin-bottom:16px}
+.cost-callout .cc-title{font-size:12px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;font-family:var(--mono)}
+.cost-callout p{font-size:15px;line-height:1.65;color:rgba(255,255,255,0.82)}
+.cost-callout strong{color:var(--accent)}
+
+/* Model row */
+.model-rows{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.model-row{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--grey-01);border-radius:8px;padding:12px 16px;flex-wrap:wrap}
+.model-row .agent-name{font-size:13px;font-weight:700;min-width:80px;color:var(--black)}
+.model-row .model-before{font-size:12px;font-family:var(--mono);color:var(--danger);text-decoration:line-through;flex:1}
+.model-row .arrow{color:var(--grey-02);font-size:13px}
+.model-row .model-after{font-size:12px;font-family:var(--mono);color:var(--green-text);flex:1}
+.model-row .saving-tag{margin-left:auto;flex-shrink:0}
+
+/* Steps */
+.steps{counter-reset:step}
+.step{display:flex;gap:16px;margin-bottom:20px}
+.step-num{flex-shrink:0;width:32px;height:32px;background:var(--black);color:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:var(--mono);margin-top:2px}
+.step-content h4{font-size:15px;font-weight:700;margin-bottom:4px}
+.step-content p{font-size:14px;color:#444;line-height:1.6}
+
+/* Footer */
+.footer{text-align:center;padding:32px 20px 56px;font-size:12px;color:var(--grey-02);font-family:var(--mono);letter-spacing:0.5px;border-top:1px solid var(--grey-01)}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">AI Team Operations Report · 2026-03-21</div>
+  <h1>AI 團隊配置<br><span>優化報告</span></h1>
+  <div class="subtitle">Bug 修復 · 成本優化 · 網站調整 — 本次系統全面 Before/After 對比</div>
+  <div class="cover-badges">
+    <div class="cover-badge green">✅ 2 個 Bug 已修復</div>
+    <div class="cover-badge orange">💰 成本大幅下降（Noel ×23）</div>
+    <div class="cover-badge blue">🔒 OpenRouter Key 已更換</div>
+  </div>
+  <div class="meta">2026-03-21 · CONFIDENTIAL · Rain AI Team · Nova Prepared</div>
+  <div class="signers">
+    <div class="signer">
+      <div class="role">Report Author</div>
+      <div class="name">Nova（Docs）</div>
+    </div>
+    <div class="signer">
+      <div class="role">Business Review</div>
+      <div class="name">Klay（CEO / Opus）</div>
+    </div>
+    <div class="signer">
+      <div class="role">Recipient</div>
+      <div class="name">Rain（Lin Rain）</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Executive Summary -->
+  <div class="section">
+    <div class="section-eyebrow">01 · Executive Summary</div>
+    <h2>本次優化摘要</h2>
+    <div class="section-desc">本次系統調整橫跨 Bug 修復、成本架構、模型路由、網站導引四個層面</div>
+
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="num red">2</div>
+        <div class="label">Bug 修復</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num orange">23×</div>
+        <div class="label">Noel 成本降幅</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">4</div>
+        <div class="label">腳本直連 API</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">1</div>
+        <div class="label">安全修復（Key 輪替）</div>
+      </div>
+    </div>
+
+    <div class="alert alert-success">
+      <strong>核心效益</strong>：移除 <code>FORCE_OPENROUTER=1</code> 後，所有 Kai backend 的 Claude call 改走 claw-claude-proxy（Claude Code 訂閱，零邊際成本）。Noel 夜班主力從 gemini-2.5-pro 降至 gemini-2.5-flash，單次呼叫成本降低約 23 倍。
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Bug Fixes -->
+  <div class="section">
+    <div class="section-eyebrow">02 · Bug 修復</div>
+    <h2>兩個系統性 Bug 已修復</h2>
+    <div class="section-desc">這兩個 Bug 都會導致任務板爆炸式增長，已全部清除</div>
+
+    <!-- Bug 1 -->
+    <div class="update-card fix">
+      <div class="update-num">BUG-01 · evaluation_feedback 暴風</div>
+      <h3>評分觸發任務無上限</h3>
+      <p>每個評分低於 4.0 的任務都會自動建立 Kai 任務，且沒有速率限制，導致任務板在短時間內產生大量改善任務，擠佔真實工作。</p>
+
+      <div class="ba-row" style="margin-top:14px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p>評分 &lt;4.0 → 自動建 Kai 任務，無上限、無過濾。<code>improvement</code>/<code>feedback</code> 來源的任務也會再觸發，形成遞迴。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p>加入 <strong>max 3 件/小時</strong>速率限制。跳過 <code>source=improvement</code> 或 <code>source=feedback</code> 的任務，斷開遞迴鏈。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bug 2 -->
+    <div class="update-card fix">
+      <div class="update-num">BUG-02 · 遞迴任務鏈（3–4 層）</div>
+      <h3>子任務不斷繁殖</h3>
+      <p>dedup_window 設為 15 秒，比 retry backoff（30/60/120 秒）還短。每次 retry 都通過去重檢查，導致同一任務被建立 3–4 層子任務，任務板充斥殭屍任務。</p>
+
+      <div class="ba-row" style="margin-top:14px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p><code>dedup_window = 15s</code>，比 retry backoff 30s 短，每次 retry 都能通過去重。子任務可繼續生子任務，無深度限制。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p><code>dedup_window = 300s</code>（5 分鐘），涵蓋完整 retry 週期。加入 <strong>chain depth guard</strong>：子任務不再允許建立下一層子任務。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Cost Optimization -->
+  <div class="section">
+    <div class="section-eyebrow">03 · 成本優化</div>
+    <h2>API 路由與模型重新配置</h2>
+    <div class="section-desc">從 OpenRouter markup 走向零邊際成本訂閱制 + 直連 API</div>
+
+    <div class="cost-callout">
+      <div class="cc-title">訂閱制成本模型說明</div>
+      <p>Claude Code Max 訂閱：claude-sonnet-4.6 <strong>無限制</strong>使用，透過 <strong>claw-claude-proxy（port 38780）</strong>讓 Kai backend 的所有 Claude call 免費。OpenRouter 有 markup，舊設定 <code>FORCE_OPENROUTER=1</code> 讓每個 Claude call 都有額外費用，移除後改走訂閱制，<strong>邊際成本歸零</strong>。</p>
+    </div>
+
+    <!-- Claude routing fix -->
+    <div class="update-card cost">
+      <div class="update-num">COST-01 · Claude 路由修正</div>
+      <h3>移除 FORCE_OPENROUTER=1</h3>
+      <div class="ba-row" style="margin-top:12px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p>Kai backend 所有 Claude call 強制走 OpenRouter，每次都有額外 markup 費用。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p>改走 <strong>claw-claude-proxy</strong>（port 38780），使用 Claude Code Max 訂閱，零邊際成本。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google API routing -->
+    <div class="update-card cost">
+      <div class="update-num">COST-02 · Google API 直連</div>
+      <h3>優先直連 Google API（新 Key 可用）</h3>
+      <div class="ba-row" style="margin-top:12px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p><code>llm_service.py</code> 強制走 OpenRouter（因舊 Google key 被封），所有 Gemini call 都有 markup。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p>改為優先直連 Google API（新 key 可用），OpenRouter 降為 fallback。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- OpenRouter key rotation -->
+    <div class="update-card fix">
+      <div class="update-num">COST-03 · OpenRouter Key 輪替（安全修復）</div>
+      <h3>洩漏的舊 Key 已停用</h3>
+      <div class="ba-row" style="margin-top:12px">
+        <div class="ba-box before">
+          <div class="ba-label">Before（已洩漏）</div>
+          <p><code>sk-or-v1-f326f41...</code>（舊 key，已洩漏）</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p><code>sk-or-v1-92da34...</code>（新 key，已輪替並更新到所有設定檔）</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model downgrades -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-label">模型降級明細 — 依 Agent</div>
+      <div class="model-rows">
+        <div class="model-row">
+          <span class="agent-name">Noel</span>
+          <span class="model-before">google/gemini-2.5-pro（$3.5/1M in）</span>
+          <span class="arrow">→</span>
+          <span class="model-after">google/gemini-2.5-flash（$0.15/1M in）</span>
+          <span class="saving-tag"><span class="badge badge-green">~23× 降費</span></span>
+        </div>
+        <div class="model-row">
+          <span class="agent-name">Probe</span>
+          <span class="model-before">google/gemini-2.5-flash</span>
+          <span class="arrow">→</span>
+          <span class="model-after">google/gemini-3.1-flash-lite</span>
+          <span class="saving-tag"><span class="badge badge-orange">中幅降費</span></span>
+        </div>
+        <div class="model-row">
+          <span class="agent-name">Echo</span>
+          <span class="model-before">google/gemini-2.5-flash</span>
+          <span class="arrow">→</span>
+          <span class="model-after">google/gemini-3.1-flash-lite</span>
+          <span class="saving-tag"><span class="badge badge-orange">中幅降費</span></span>
+        </div>
+        <div class="model-row">
+          <span class="agent-name">Tax fallbacks</span>
+          <span class="model-before">含 gemini-2.5-pro</span>
+          <span class="arrow">→</span>
+          <span class="model-after">替換為 flash 系列</span>
+          <span class="saving-tag"><span class="badge badge-grey">低幅降費</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <div class="card">
+      <div class="card-label">4 支腳本 — OpenRouter → 直連 API</div>
+      <p style="font-size:14px;color:#444;margin-bottom:12px">以下腳本原本走 OpenRouter（有 markup），改為直連 Anthropic/Google API：</p>
+      <div class="tbl-wrap">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>腳本</th>
+              <th>Before</th>
+              <th>After</th>
+              <th>節省</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-label">update-market-briefing.py</td>
+              <td class="td-before">OpenRouter（markup）</td>
+              <td class="td-after">Anthropic 直連</td>
+              <td class="td-savings savings-med">中</td>
+            </tr>
+            <tr>
+              <td class="td-label">ieobserve-podcast-pipeline.py</td>
+              <td class="td-before">OpenRouter（markup）</td>
+              <td class="td-after">Anthropic 直連</td>
+              <td class="td-savings savings-med">中</td>
+            </tr>
+            <tr>
+              <td class="td-label">ieobserve-telegram-scraper.py</td>
+              <td class="td-before">OpenRouter（markup）</td>
+              <td class="td-after">Google 直連</td>
+              <td class="td-savings savings-med">中</td>
+            </tr>
+            <tr>
+              <td class="td-label">macromicro-podcast-pipeline.py</td>
+              <td class="td-before">OpenRouter（markup）</td>
+              <td class="td-after">Anthropic 直連</td>
+              <td class="td-savings savings-med">中</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Cost Summary Table -->
+  <div class="section">
+    <div class="section-eyebrow">04 · 成本影響全覽</div>
+    <h2>Before / After 成本對比表</h2>
+    <div class="section-desc">完整彙整所有成本相關變更及估算節省幅度</div>
+
+    <div class="tbl-wrap">
+      <table class="review-table" style="min-width:700px">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>Before</th>
+            <th>After</th>
+            <th>節省估算</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-label">Kai backend Claude routing</td>
+            <td class="td-before">FORCE_OPENROUTER=1（有 markup）</td>
+            <td class="td-after">claw-claude-proxy port 38780（Claude Code 訂閱，零邊際成本）</td>
+            <td class="td-savings savings-high">高</td>
+          </tr>
+          <tr>
+            <td class="td-label">Google API 路由</td>
+            <td class="td-before">llm_service.py 強制走 OpenRouter（舊 key 被封）</td>
+            <td class="td-after">優先直連 Google API（新 key 可用）</td>
+            <td class="td-savings savings-med">中</td>
+          </tr>
+          <tr>
+            <td class="td-label">OpenRouter key 安全</td>
+            <td class="td-before" style="word-break:break-all">sk-or-v1-f326f41...（洩漏）</td>
+            <td class="td-after" style="word-break:break-all">sk-or-v1-92da34...（新 key）</td>
+            <td class="td-savings savings-high">安全修復</td>
+          </tr>
+          <tr>
+            <td class="td-label">Noel（夜班主力）</td>
+            <td class="td-before">gemini-2.5-pro（~$3.5/1M input）</td>
+            <td class="td-after">gemini-2.5-flash（~$0.15/1M input）</td>
+            <td class="td-savings savings-high">~23× 降費</td>
+          </tr>
+          <tr>
+            <td class="td-label">Probe（網站測試）</td>
+            <td class="td-before">gemini-2.5-flash</td>
+            <td class="td-after">gemini-3.1-flash-lite（更便宜）</td>
+            <td class="td-savings savings-med">中</td>
+          </tr>
+          <tr>
+            <td class="td-label">Echo（備援測試）</td>
+            <td class="td-before">gemini-2.5-flash</td>
+            <td class="td-after">gemini-3.1-flash-lite（更便宜）</td>
+            <td class="td-savings savings-med">中</td>
+          </tr>
+          <tr>
+            <td class="td-label">Tax fallbacks</td>
+            <td class="td-before">含 gemini-2.5-pro</td>
+            <td class="td-after">替換為 flash 系列</td>
+            <td class="td-savings savings-low">低</td>
+          </tr>
+          <tr>
+            <td class="td-label">4 支腳本（市場晨報 + IEO ×2 + MacroMicro）</td>
+            <td class="td-before">OpenRouter（有 markup）</td>
+            <td class="td-after">Anthropic/Google 直連 API</td>
+            <td class="td-savings savings-med">中</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Website Updates -->
+  <div class="section">
+    <div class="section-eyebrow">05 · 網站調整</div>
+    <h2>Slideless 舊頁導引 + Stockcast SEO 修復</h2>
+    <div class="section-desc">舊晨報 URL 不再孤立，流量導引到新站</div>
+
+    <div class="update-card web">
+      <div class="update-num">WEB-01 · slideless 舊晨報頁面</div>
+      <h3>slideless.vercel.app/market-briefing.html</h3>
+      <div class="ba-row" style="margin-top:12px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p>顯示舊版晨報 HTML，已停止維護但仍可訪問，內容過時且無更新。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After</div>
+          <p>改為<strong>導引頁</strong>，顯示遷移說明，<strong>5 秒自動跳轉 stockcast.tw</strong>。<code>&lt;meta http-equiv="refresh"&gt;</code> + JS 雙重保障。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="update-card web">
+      <div class="update-num">WEB-02 · Stockcast SEO 補強（進行中）</div>
+      <h3>stockcast.tw SEO 基礎建設</h3>
+      <div class="ba-row" style="margin-top:12px">
+        <div class="ba-box before">
+          <div class="ba-label">Before</div>
+          <p>無 meta description、無 OG tags、無 GA4 追蹤、無 JSON-LD 結構化資料。</p>
+        </div>
+        <div class="ba-arrow">→</div>
+        <div class="ba-box after">
+          <div class="ba-label">After（John 執行中）</div>
+          <p>補齊 meta description、OG tags、GA4 安裝、JSON-LD Schema markup。</p>
+        </div>
+      </div>
+      <div class="alert alert-warn" style="margin-top:12px">
+        <strong>注意</strong>：此項尚在執行中，John 負責實作，Forge 完成 CI Gate 後上線。
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Subscription config -->
+  <div class="section">
+    <div class="section-eyebrow">06 · 訂閱配置說明</div>
+    <h2>現行訂閱架構</h2>
+    <div class="section-desc">三層訂閱確保成本可預期且邊際成本最低</div>
+
+    <div class="card">
+      <div class="card-label">訂閱配置一覽</div>
+      <div class="tbl-wrap">
+        <table class="review-table" style="min-width:600px">
+          <thead>
+            <tr>
+              <th>訂閱項目</th>
+              <th>用途</th>
+              <th>邊際成本</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-label">Claude Code Max</td>
+              <td>claude-sonnet-4.6 無限制使用；claw-claude-proxy 讓 Kai backend Claude call 免費</td>
+              <td style="color:var(--green-text);font-weight:700">零</td>
+              <td><span class="badge badge-green">✅ 啟用</span></td>
+            </tr>
+            <tr>
+              <td class="td-label">Codex CLI 基礎版</td>
+              <td>Ray 設計審查使用，保持不變</td>
+              <td style="color:var(--grey-02)">固定月費</td>
+              <td><span class="badge badge-grey">維持不變</span></td>
+            </tr>
+            <tr>
+              <td class="td-label">OpenClaw per-agent billing</td>
+              <td>Tier 3 外部 Agent（Spider/Lynx/Nautilus/Probe/Echo/Buzz/Noel）</td>
+              <td style="color:var(--accent-warm)">按使用量</td>
+              <td><span class="badge badge-orange">已降級高費模型</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Next Steps -->
+  <div class="section">
+    <div class="section-eyebrow">07 · 下一步</div>
+    <h2>待跟進事項</h2>
+    <div class="section-desc">已完成的修復無需跟進；以下為尚在進行或建議追蹤的項目</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Stockcast SEO 補強 — 等待 John 完成</h4>
+        <p>meta description、OG tags、GA4、JSON-LD 補齊後，由 Forge 執行 CI Gate，確認無誤後上線。完成後 Silo 確認 GSC 提交狀態。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>OpenRouter 舊 Key 確認已在所有設定檔更新</h4>
+        <p>Knox 確認新 key <code>sk-or-v1-92da34...</code> 已更新到 Kai backend、所有腳本、credentials.md，並驗證舊 key 已在 OpenRouter 後台停用。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>夜班觀察 — 遞迴任務鏈修復效果確認</h4>
+        <p>Noel 夜班後回報：任務板是否仍有異常增長？dedup_window=300s 是否成功阻止重複子任務？如仍有問題，Kai 調整 chain depth 邏輯。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>evaluation_feedback 速率監控</h4>
+        <p>觀察一週，確認 max 3件/小時 的限制是否足夠，若高評分任務較多可考慮調整閾值（目前 &lt;4.0）。Kai 在夜班報告中加入「evaluation_feedback 觸發次數」統計。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  AI 團隊配置優化報告 · 2026-03-21 · Rain AI Team<br>
+  Prepared by <a href="#">Nova（Docs）</a> · Confidential · Internal Use Only
+</div>
+
+</body>
+</html>
