@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>品質評分改善方案設計</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #121212;
+            --white: #ffffff;
+            --cream: #f6f5f1;
+            --grey-01: #f0eee6;
+            --grey-02: #8b877c;
+            --grey-03: #6c6a62;
+            --accent: #a8cde8;
+            --accent-warm: #eb8054;
+            --green: #85a268;
+            --danger: #d94f4f;
+            --font-main: 'Inter','Noto Sans TC',system-ui,sans-serif;
+            --font-mono: 'JetBrains Mono',monospace;
+        }
+        html, body { background-color: var(--cream); color: var(--grey-03); font-family: var(--font-main); line-height: 1.6; }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background-color: var(--accent-warm);
+            width: 0%;
+            z-index: 1000;
+        }
+
+        /* Nav Bar */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(246, 245, 241, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--grey-01);
+            z-index: 999;
+            padding: 0 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            font-size: 14px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--grey-03);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 13px;
+            text-decoration: none;
+            color: var(--grey-02);
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-warm);
+        }
+
+        /* Main Content */
+        main {
+            padding-top: 60px;
+        }
+
+        /* Cover Section */
+        .cover {
+            background-color: var(--black);
+            color: var(--white);
+            padding: 72px 120px;
+            text-align: center;
+        }
+
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .cover h1 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .cover h1 span {
+            color: var(--accent-warm);
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cover-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .stat-block {
+            text-align: center;
+        }
+
+        .stat-block .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-warm);
+            margin-bottom: 8px;
+        }
+
+        .stat-block .label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cover-meta {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1px;
+        }
+
+        /* Content Sections */
+        section {
+            padding: 80px 120px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-warm);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            color: var(--black);
+        }
+
+        .section-title span {
+            color: var(--accent-warm);
+        }
+
+        .section-desc {
+            font-size: 15px;
+            color: var(--grey-02);
+            margin-bottom: 40px;
+            max-width: 800px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--grey-01);
+            border-radius: 12px;
+            padding: 32px;
+            transition: box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--grey-02);
+            line-height: 1.7;
+        }
+
+        .card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .card li {
+            font-size: 14px;
+            color: var(--grey-02);
+            line-height: 1.8;
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .card li:last-child {
+            margin-bottom: 0;
+        }
+
+        .card li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-warm);
+            font-weight: 600;
+        }
+
+        /* Table */
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 32px;
+        }
+
+        .table-wrap::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+            background: var(--white);
+            border: 1px solid var(--grey-01);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table thead {
+            background: var(--grey-01);
+        }
+
+        table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--grey-03);
+            font-size: 14px;
+            border-bottom: 1px solid var(--grey-01);
+        }
+
+        table td {
+            padding: 16px;
+            font-size: 14px;
+            color: var(--grey-02);
+            border-bottom: 1px solid var(--grey-01);
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tr:nth-child(even) {
+            background: rgba(240, 238, 230, 0.3);
+        }
+
+        /* Dark Section */
+        .dark-section {
+            background-color: var(--black);
+            color: var(--white);
+            padding: 80px 120px;
+        }
+
+        .dark-section .section-title {
+            color: var(--white);
+        }
+
+        .dark-section .section-desc {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--black);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 40px 120px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .nav-bar { padding: 0 60px; }
+            section { padding: 80px 60px; }
+            .cover { padding: 72px 60px; }
+            .dark-section { padding: 80px 60px; }
+            footer { padding: 40px 60px; }
+            .cover h1 { font-size: 44px; }
+            .section-title { font-size: 36px; }
+            .cards-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        }
+
+        @media (max-width: 900px) {
+            .nav-bar { padding: 0 32px; }
+            section { padding: 72px 32px; }
+            .cover { padding: 72px 32px; }
+            .dark-section { padding: 72px 32px; }
+            footer { padding: 40px 32px; }
+            .nav-links { display: none; }
+            .cover h1 { font-size: 36px; }
+            .section-title { font-size: 28px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .cover-stats { flex-direction: column; gap: 20px; }
+        }
+
+        @media (max-width: 600px) {
+            .nav-bar { padding: 0 20px; }
+            section { padding: 64px 20px; }
+            .cover { padding: 64px 20px; }
+            .dark-section { padding: 64px 20px; }
+            footer { padding: 32px 20px; }
+            .cover h1 { font-size: 28px; }
+            .section-title { font-size: 24px; }
+            .subtitle { font-size: 15px; }
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar"></div>
+
+    <nav class="nav-bar">
+        <div class="nav-brand">QUALITY PLAN</div>
+        <ul class="nav-links">
+            <li><a href="#diagnostic">診斷</a></li>
+            <li><a href="#analysis">分析</a></li>
+            <li><a href="#solutions">方案</a></li>
+            <li><a href="#roadmap">優先級</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Cover -->
+        <section class="cover">
+            <div class="eyebrow">Quality Improvement Plan</div>
+            <h1>品質評分<span>改善方案</span></h1>
+            <p class="subtitle">從 4.4/10 到 6.0+ 的三層次改善設計</p>
+            <div class="cover-stats">
+                <div class="stat-block">
+                    <div class="value">4.4</div>
+                    <div class="label">現狀評分</div>
+                </div>
+                <div class="stat-block">
+                    <div class="value">6.0</div>
+                    <div class="label">目標評分</div>
+                </div>
+                <div class="stat-block">
+                    <div class="value">+80</div>
+                    <div class="label">預期提升</div>
+                </div>
+            </div>
+            <div class="cover-meta">2026-03-20 | Quality Assessment</div>
+        </section>
+
+        <!-- Diagnostic -->
+        <section id="diagnostic">
+            <div class="section-eyebrow">CURRENT STATE</div>
+            <h2 class="section-title">現狀<span>診斷</span></h2>
+            <p class="section-desc">近 20 筆任務評分平均 4.4/10，低於閾值 6.0。根據 lessons.md 和 session review 數據，發現根本問題五個。</p>
+        </section>
+
+        <!-- Root Cause Analysis -->
+        <section id="analysis">
+            <div class="section-eyebrow">ROOT CAUSES</div>
+            <h2 class="section-title">根本原因<span>分析</span></h2>
+            <p class="section-desc">品質下降的五個核心問題，影響範圍涵蓋流程、測試、追蹤和溝通層面。</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>1. Session Review 機制失效</h3>
+                    <p>require-session-review.sh Bash heredoc bug → 751 次 hook 全自動 approve → 合規率 20%</p>
+                </div>
+                <div class="card">
+                    <h3>2. 派發分工規則未執行</h3>
+                    <p>Major 任務（3+ 檔案）應 dispatch，但大量由單人完成 → Quill 缺席、Silo 缺席</p>
+                </div>
+                <div class="card">
+                    <h3>3. 測試框架空殼</h3>
+                    <p>CI 只驗「有跑」不驗「質量」→ 假測試照樣 PASS → 覆蓋率 ≈ 0</p>
+                </div>
+                <div class="card">
+                    <h3>4. 工作指令未登記</h3>
+                    <p>Session 沒立即建 Kai task → 無追蹤、無統計、無透明度</p>
+                </div>
+                <div class="card">
+                    <h3>5. Prompt 指導不足</h3>
+                    <p>Scope Card（R-00）存在但未強制執行 → Major 等級判斷混亂</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solutions Layer 1 -->
+        <section id="solutions">
+            <div class="section-eyebrow">LAYER 1: PROCESS</div>
+            <h2 class="section-title">改善方案：流程<span>硬規則</span></h2>
+            <p class="section-desc">立即可執行的三項流程修正，預期 3-5 天內見效。</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>第一個工作指令強制登記</h3>
+                    <ul>
+                        <li>Session 開始 → 立即 curl POST /api/tasks（auto_start: true）</li>
+                        <li>無 task = session 無法 exit（hook 強制擋住）</li>
+                        <li>預期效果：<strong>+15 分</strong></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Major 任務強制分工</h3>
+                    <ul>
+                        <li>3+ 檔案 = Major → 必須 dispatch</li>
+                        <li>Code → Quill、SEO → Silo、Arch → Ray</li>
+                        <li>預期效果：<strong>+20 分</strong></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>測試品質把關（標準已定義）</h3>
+                    <ul>
+                        <li>每 API endpoint = happy path + ≥1 error case</li>
+                        <li>空測試/假測試 = Quill Blocker</li>
+                        <li>預期效果：<strong>+15 分</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solutions Layer 2 -->
+        <section>
+            <div class="section-eyebrow">LAYER 2: PROMPTS</div>
+            <h2 class="section-title">改善方案：Prompt<span>強化</span></h2>
+            <p class="section-desc">強化協作提示，鞏固流程硬規則，1-2 週內見效。</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Scope Card 前置檢查</h3>
+                    <ul>
+                        <li>自動提示：有新任務嗎？</li>
+                        <li>錯誤 → 提醒改正</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Session Review 強制完成</h3>
+                    <ul>
+                        <li>停在 /compact 前必須完成五問+反思</li>
+                        <li>不能空答（hook 檢查）</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>SKILL_DELTA 自動升級</h3>
+                    <ul>
+                        <li>Session 發現 → 自動抓入 speed-improvements.md</li>
+                        <li>Quill 72h 內升級</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solutions Layer 3 -->
+        <section>
+            <div class="section-eyebrow">LAYER 3: AUTOMATION</div>
+            <h2 class="section-title">改善方案：自動化<span>防護</span></h2>
+            <p class="section-desc">長期制度化監控，4 週內完成部署，持續防止品質滑落。</p>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Task Board 完成率追蹤</h3>
+                    <ul>
+                        <li>夜班 Module J 統計 dispatch rate</li>
+                        <li>< 50% → Discord 通知 Klay</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Health Check 品質信號</h3>
+                    <ul>
+                        <li>日檢：review 合規率、test pass rate、dispatch rate</li>
+                        <li>任一 < 60% → 建 quality-review task</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>自動回退機制</h3>
+                    <ul>
+                        <li>評分連 3 天下降 → 暫停新任務</li>
+                        <li>強制做「品質改善周」</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section id="roadmap">
+            <div class="section-eyebrow">IMPLEMENTATION</div>
+            <h2 class="section-title">實施優先級與<span>預期效果</span></h2>
+            <p class="section-desc">分階段實施，從 P0 快速見效，到 P2 長期穩定。</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>優先級</th>
+                            <th>項目</th>
+                            <th>完成時間</th>
+                            <th>預期效果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>P0</td>
+                            <td>Task 登記強制執行</td>
+                            <td>今天</td>
+                            <td><strong>+15 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P0</td>
+                            <td>Scope Card 規則強化</td>
+                            <td>今天</td>
+                            <td><strong>+10 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P1</td>
+                            <td>Major 分工規則強制</td>
+                            <td>明天</td>
+                            <td><strong>+20 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P1</td>
+                            <td>Testing standards 執行</td>
+                            <td>明天</td>
+                            <td><strong>+15 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P2</td>
+                            <td>Session review 二次驗證</td>
+                            <td>3 天內</td>
+                            <td><strong>+10 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P2</td>
+                            <td>Nightly health check</td>
+                            <td>1 週內</td>
+                            <td><strong>+10 分</strong></td>
+                        </tr>
+                        <tr style="background-color: var(--grey-01); font-weight: 600;">
+                            <td colspan="2">合計</td>
+                            <td></td>
+                            <td><strong>+80 分 → 6.0+</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Decision Matrix -->
+        <div class="dark-section">
+            <div class="section-eyebrow">STRATEGIC ALIGNMENT</div>
+            <h2 class="section-title">決策<span>矩陣</span></h2>
+            <p class="section-desc">三層改善是遞進的：<br><strong>Layer 1（流程）</strong> = 最快見效（3-5 天）<br><strong>Layer 2（Prompt）</strong> = 中期鞏固（1-2 週）<br><strong>Layer 3（自動化）</strong> = 長期制度（4 週）<br><br>建議同步進行，先從 P0 開始。</p>
+        </div>
+    </main>
+
+    <footer>
+        Generated on 2026-03-20 · Quality Assessment Report v1.0
+    </footer>
+
+    <script>
+        // Progress bar
+        function updateProgressBar() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.querySelector('.progress-bar').style.width = scrollPercent + '%';
+        }
+        window.addEventListener('scroll', updateProgressBar);
+    </script>
+</body>
+</html>
