@@ -21,6 +21,7 @@
             --font-main: 'Inter','Noto Sans TC',system-ui,sans-serif;
             --font-mono: 'JetBrains Mono',monospace;
         }
+        html { scroll-behavior: smooth; }
         html, body { background-color: var(--cream); color: var(--grey-03); font-family: var(--font-main); line-height: 1.6; }
 
         /* Progress Bar */
@@ -29,9 +30,10 @@
             top: 0;
             left: 0;
             height: 4px;
-            background-color: var(--accent-warm);
+            background: linear-gradient(90deg, var(--accent-warm), #f4a261);
             width: 0%;
             z-index: 1000;
+            transition: width 0.1s ease-out;
         }
 
         /* Nav Bar */
@@ -87,7 +89,7 @@
         .cover {
             background-color: var(--black);
             color: var(--white);
-            padding: 72px 120px;
+            padding: 80px 120px;
             text-align: center;
         }
 
@@ -125,7 +127,7 @@
         .cover-stats {
             display: flex;
             justify-content: center;
-            gap: 40px;
+            gap: 48px;
             margin-bottom: 48px;
             flex-wrap: wrap;
         }
@@ -135,10 +137,23 @@
         }
 
         .stat-block .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: var(--accent-warm);
             margin-bottom: 8px;
+        }
+
+        .stat-block .value.current {
+            color: var(--danger);
+        }
+
+        .stat-block .value.target {
+            color: var(--green);
+        }
+
+        .stat-block .value.arrow {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 28px;
         }
 
         .stat-block .label {
@@ -155,6 +170,62 @@
             color: rgba(255, 255, 255, 0.3);
             letter-spacing: 1px;
         }
+
+        /* Score Visual */
+        .score-visual {
+            max-width: 480px;
+            margin: 0 auto 48px;
+        }
+
+        .score-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .score-bar-label {
+            font-size: 13px;
+            font-family: var(--font-mono);
+            color: rgba(255, 255, 255, 0.5);
+            width: 48px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .score-bar-track {
+            flex: 1;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1s ease-out;
+        }
+
+        .score-bar-fill.before {
+            width: 44%;
+            background: var(--danger);
+        }
+
+        .score-bar-fill.after {
+            width: 60%;
+            background: linear-gradient(90deg, var(--accent-warm), var(--green));
+        }
+
+        .score-bar-value {
+            font-size: 14px;
+            font-weight: 700;
+            width: 48px;
+            flex-shrink: 0;
+        }
+
+        .score-bar-value.before { color: var(--danger); }
+        .score-bar-value.after { color: var(--green); }
 
         /* Content Sections */
         section {
@@ -199,6 +270,12 @@
             gap: 24px;
         }
 
+        .cards-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
         .card {
             background: var(--white);
             border: 1px solid var(--grey-01);
@@ -209,6 +286,20 @@
 
         .card:hover {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent-warm);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
 
         .card h3 {
@@ -244,11 +335,38 @@
         }
 
         .card li:before {
-            content: "→";
+            content: "\2192";
             position: absolute;
             left: 0;
             color: var(--accent-warm);
             font-weight: 600;
+        }
+
+        .card .impact {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .card .impact.high {
+            background: rgba(235, 128, 84, 0.1);
+            color: var(--accent-warm);
+        }
+
+        .card .impact.medium {
+            background: rgba(168, 205, 232, 0.2);
+            color: #5a8aad;
+        }
+
+        /* Root cause grid: 3-2 layout */
+        .root-cause-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
         }
 
         /* Table */
@@ -270,7 +388,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 700px;
             background: var(--white);
             border: 1px solid var(--grey-01);
             border-radius: 12px;
@@ -282,7 +400,7 @@
         }
 
         table th {
-            padding: 16px;
+            padding: 16px 20px;
             text-align: left;
             font-weight: 600;
             color: var(--grey-03);
@@ -291,7 +409,7 @@
         }
 
         table td {
-            padding: 16px;
+            padding: 16px 20px;
             font-size: 14px;
             color: var(--grey-02);
             border-bottom: 1px solid var(--grey-01);
@@ -303,6 +421,36 @@
 
         table tr:nth-child(even) {
             background: rgba(240, 238, 230, 0.3);
+        }
+
+        .priority-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .priority-tag.p0 {
+            background: rgba(217, 79, 79, 0.12);
+            color: var(--danger);
+        }
+
+        .priority-tag.p1 {
+            background: rgba(235, 128, 84, 0.12);
+            color: var(--accent-warm);
+        }
+
+        .priority-tag.p2 {
+            background: rgba(168, 205, 232, 0.15);
+            color: #5a8aad;
+        }
+
+        .total-row td {
+            background: var(--grey-01) !important;
+            font-weight: 700;
+            color: var(--black);
         }
 
         /* Dark Section */
@@ -320,6 +468,71 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .timeline {
+            display: flex;
+            gap: 0;
+            margin-top: 48px;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-phase {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 0 16px;
+        }
+
+        .timeline-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin: 32px auto 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-dot.phase1 { background: var(--danger); box-shadow: 0 0 12px rgba(217, 79, 79, 0.4); }
+        .timeline-dot.phase2 { background: var(--accent-warm); box-shadow: 0 0 12px rgba(235, 128, 84, 0.4); }
+        .timeline-dot.phase3 { background: var(--green); box-shadow: 0 0 12px rgba(133, 162, 104, 0.4); }
+
+        .timeline-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+        }
+
+        .timeline-time {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--accent-warm);
+            margin-top: 12px;
+        }
+
         /* Footer */
         footer {
             background-color: var(--black);
@@ -329,6 +542,12 @@
             font-family: var(--font-mono);
             font-size: 12px;
             letter-spacing: 1px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        footer a {
+            color: var(--accent-warm);
+            text-decoration: none;
         }
 
         /* Responsive */
@@ -341,6 +560,8 @@
             .cover h1 { font-size: 44px; }
             .section-title { font-size: 36px; }
             .cards-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+            .cards-grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+            .root-cause-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
         }
 
         @media (max-width: 900px) {
@@ -353,7 +574,11 @@
             .cover h1 { font-size: 36px; }
             .section-title { font-size: 28px; }
             .cards-grid { grid-template-columns: 1fr; }
-            .cover-stats { flex-direction: column; gap: 20px; }
+            .cards-grid-3 { grid-template-columns: 1fr; }
+            .root-cause-grid { grid-template-columns: 1fr; }
+            .cover-stats { gap: 24px; }
+            .timeline { flex-direction: column; gap: 32px; }
+            .timeline::before { display: none; }
         }
 
         @media (max-width: 600px) {
@@ -387,225 +612,346 @@
         <section class="cover">
             <div class="eyebrow">Quality Improvement Plan</div>
             <h1>品質評分<span>改善方案</span></h1>
-            <p class="subtitle">從 4.4/10 到 6.0+ 的三層次改善設計</p>
+            <p class="subtitle">從 44/100 到 60+ 的系統性三層改善設計</p>
+
+            <div class="score-visual">
+                <div class="score-bar-row">
+                    <span class="score-bar-label">現狀</span>
+                    <div class="score-bar-track">
+                        <div class="score-bar-fill before"></div>
+                    </div>
+                    <span class="score-bar-value before">44</span>
+                </div>
+                <div class="score-bar-row">
+                    <span class="score-bar-label">目標</span>
+                    <div class="score-bar-track">
+                        <div class="score-bar-fill after"></div>
+                    </div>
+                    <span class="score-bar-value after">60+</span>
+                </div>
+            </div>
+
             <div class="cover-stats">
                 <div class="stat-block">
-                    <div class="value">4.4</div>
+                    <div class="value current">44</div>
                     <div class="label">現狀評分</div>
                 </div>
                 <div class="stat-block">
-                    <div class="value">6.0</div>
+                    <div class="value arrow">&rarr;</div>
+                    <div class="label">&nbsp;</div>
+                </div>
+                <div class="stat-block">
+                    <div class="value target">60+</div>
                     <div class="label">目標評分</div>
                 </div>
                 <div class="stat-block">
-                    <div class="value">+80</div>
+                    <div class="value">+16</div>
                     <div class="label">預期提升</div>
                 </div>
+                <div class="stat-block">
+                    <div class="value">6</div>
+                    <div class="label">改善項目</div>
+                </div>
             </div>
-            <div class="cover-meta">2026-03-20 | Quality Assessment</div>
+            <div class="cover-meta">2026-03-20 | Rain AI Team Quality Assessment</div>
         </section>
 
         <!-- Diagnostic -->
         <section id="diagnostic">
             <div class="section-eyebrow">CURRENT STATE</div>
             <h2 class="section-title">現狀<span>診斷</span></h2>
-            <p class="section-desc">近 20 筆任務評分平均 4.4/10，低於閾值 6.0。根據 lessons.md 和 session review 數據，發現根本問題五個。</p>
+            <p class="section-desc">近 20 筆任務評分平均 44/100，遠低於閾值 60 分。根據 lessons.md 和 session review 數據分析，歸納出五個根本問題，涵蓋流程執行、品質把關和知識閉環三大領域。</p>
         </section>
 
         <!-- Root Cause Analysis -->
         <section id="analysis">
             <div class="section-eyebrow">ROOT CAUSES</div>
             <h2 class="section-title">根本原因<span>分析</span></h2>
-            <p class="section-desc">品質下降的五個核心問題，影響範圍涵蓋流程、測試、追蹤和溝通層面。</p>
-            <div class="cards-grid">
+            <p class="section-desc">品質下降的五個核心問題，影響範圍涵蓋流程、測試、追蹤和溝通層面。每個問題都有具體數據佐證。</p>
+            <div class="root-cause-grid">
                 <div class="card">
-                    <h3>1. Session Review 機制失效</h3>
-                    <p>require-session-review.sh Bash heredoc bug → 751 次 hook 全自動 approve → 合規率 20%</p>
+                    <div class="card-number">1</div>
+                    <h3>Session Review 機制失效</h3>
+                    <p>require-session-review.sh 的 Bash heredoc 存在 bug，導致 751 次 hook 全部自動 approve，實際合規率僅 20%。五問 + 反思形同虛設，錯誤無法被捕捉和歸檔，知識閉環斷裂。</p>
+                    <span class="impact high">影響：知識流失</span>
                 </div>
                 <div class="card">
-                    <h3>2. 派發分工規則未執行</h3>
-                    <p>Major 任務（3+ 檔案）應 dispatch，但大量由單人完成 → Quill 缺席、Silo 缺席</p>
+                    <div class="card-number">2</div>
+                    <h3>派發分工規則未執行</h3>
+                    <p>Major 任務（3+ 檔案修改）應強制 dispatch 給專職 Agent，但大量由 Klay 單人完成。Quill 程式碼審查缺席、Silo SEO 結構缺席，導致品質把關環節空轉。dispatch rate 遠低於 Week 2 目標的 50%。</p>
+                    <span class="impact high">影響：審查缺失</span>
                 </div>
                 <div class="card">
-                    <h3>3. 測試框架空殼</h3>
-                    <p>CI 只驗「有跑」不驗「質量」→ 假測試照樣 PASS → 覆蓋率 ≈ 0</p>
+                    <div class="card-number">3</div>
+                    <h3>測試框架空殼</h3>
+                    <p>Forge CI 只驗證「測試有執行」而非「測試品質」。空殼測試（assert true）和無 error case 的假測試照樣 PASS。Kai Backend 和 TheOrder 核心路徑測試覆蓋率趨近 0%。</p>
+                    <span class="impact high">影響：假綠燈</span>
                 </div>
                 <div class="card">
-                    <h3>4. 工作指令未登記</h3>
-                    <p>Session 沒立即建 Kai task → 無追蹤、無統計、無透明度</p>
+                    <div class="card-number">4</div>
+                    <h3>工作指令未登記 Task Board</h3>
+                    <p>Rain 在 session 中給出工作指令後，Agent 未立即建立 Kai task（auto_start: true），導致無法追蹤進度、無法統計完成率、看板資訊不透明。夜班 Module J 統計失真。</p>
+                    <span class="impact medium">影響：追蹤盲區</span>
                 </div>
                 <div class="card">
-                    <h3>5. Prompt 指導不足</h3>
-                    <p>Scope Card（R-00）存在但未強制執行 → Major 等級判斷混亂</p>
+                    <div class="card-number">5</div>
+                    <h3>Scope Card 規則未強制執行</h3>
+                    <p>R-00 Scope Card 已定義但缺乏執行力。scope-card-gate.sh hook 未正確攔截，導致 Major 等級判斷混亂：Files &ge; 4 或 Layers &ge; 2 的客觀升級規則被繞過，Klay 做了本該 dispatch 的工作。</p>
+                    <span class="impact medium">影響：等級錯判</span>
                 </div>
             </div>
         </section>
 
         <!-- Solutions Layer 1 -->
         <section id="solutions">
-            <div class="section-eyebrow">LAYER 1: PROCESS</div>
-            <h2 class="section-title">改善方案：流程<span>硬規則</span></h2>
-            <p class="section-desc">立即可執行的三項流程修正，預期 3-5 天內見效。</p>
-            <div class="cards-grid">
+            <div class="section-eyebrow">LAYER 1 &mdash; PROCESS</div>
+            <h2 class="section-title">流程<span>硬規則</span></h2>
+            <p class="section-desc">立即可執行的三項流程修正，直接堵住最大的品質漏洞。預期 3-5 天內看到評分反彈。</p>
+            <div class="cards-grid-3">
                 <div class="card">
-                    <h3>第一個工作指令強制登記</h3>
+                    <div class="card-number">A</div>
+                    <h3>工作指令強制登記</h3>
                     <ul>
-                        <li>Session 開始 → 立即 curl POST /api/tasks（auto_start: true）</li>
-                        <li>無 task = session 無法 exit（hook 強制擋住）</li>
-                        <li>預期效果：<strong>+15 分</strong></li>
+                        <li>Rain 的第一個工作指令 &rarr; 立即 <code>curl POST /api/tasks</code>（auto_start: true）</li>
+                        <li>session-start.sh hook 檢查：無 task 建立 = 所有 Edit/Write 被攔截</li>
+                        <li>Session 結束前必須 <code>POST /api/tasks/{id}/done</code>，確保完整生命週期</li>
+                        <li>讓看板即時反映工作狀態，夜班 Module J 統計資料完整</li>
                     </ul>
+                    <span class="impact high">預期 +3 分</span>
                 </div>
                 <div class="card">
+                    <div class="card-number">B</div>
                     <h3>Major 任務強制分工</h3>
                     <ul>
-                        <li>3+ 檔案 = Major → 必須 dispatch</li>
-                        <li>Code → Quill、SEO → Silo、Arch → Ray</li>
-                        <li>預期效果：<strong>+20 分</strong></li>
+                        <li>Scope Card 判定 Files &ge; 4 或 Layers &ge; 2 &rarr; 自動升級 Major</li>
+                        <li>Major = Klay 不 implement，必須 dispatch：Code &rarr; Quill、SEO &rarr; Silo、Arch &rarr; Ray</li>
+                        <li>dispatch-reminder.sh hook：3+ 檔案 &rarr; 警告、5+ 檔案 &rarr; 強制攔截</li>
+                        <li>每次 dispatch 記錄 <code>dispatched_to</code>，夜班追蹤 dispatch rate</li>
                     </ul>
+                    <span class="impact high">預期 +4 分</span>
                 </div>
                 <div class="card">
-                    <h3>測試品質把關（標準已定義）</h3>
+                    <div class="card-number">C</div>
+                    <h3>測試品質把關</h3>
                     <ul>
-                        <li>每 API endpoint = happy path + ≥1 error case</li>
-                        <li>空測試/假測試 = Quill Blocker</li>
-                        <li>預期效果：<strong>+15 分</strong></li>
+                        <li>每個 API endpoint 至少：happy path + &ge;1 error case（400/401/404）</li>
+                        <li>Quill code review 依 testing-standards.md 檢查：空殼測試 = Blocker 退回</li>
+                        <li>Forge CI 新增語義驗證：有 route file 但無 test file &rarr; Warning</li>
+                        <li>優先補齊：TheOrder checkout + Kai tasks API 核心路徑</li>
                     </ul>
+                    <span class="impact high">預期 +3 分</span>
                 </div>
             </div>
         </section>
 
         <!-- Solutions Layer 2 -->
         <section>
-            <div class="section-eyebrow">LAYER 2: PROMPTS</div>
-            <h2 class="section-title">改善方案：Prompt<span>強化</span></h2>
-            <p class="section-desc">強化協作提示，鞏固流程硬規則，1-2 週內見效。</p>
-            <div class="cards-grid">
+            <div class="section-eyebrow">LAYER 2 &mdash; PROMPTS</div>
+            <h2 class="section-title">Prompt<span>強化</span></h2>
+            <p class="section-desc">強化 Agent 的行為引導，將流程硬規則內化到 CLAUDE.md 和 hook 系統中。1-2 週內鞏固效果。</p>
+            <div class="cards-grid-3">
                 <div class="card">
+                    <div class="card-number">D</div>
                     <h3>Scope Card 前置檢查</h3>
                     <ul>
-                        <li>自動提示：有新任務嗎？</li>
-                        <li>錯誤 → 提醒改正</li>
+                        <li>scope-card-gate.sh 修復：確保每個 Edit/Write 前驗證 Scope Card 是否已填寫</li>
+                        <li>缺少 Scope Card &rarr; 自動提示「請先填寫 [SCOPE CARD]」，攔截後續操作</li>
+                        <li>Grade 升級規則寫入 hook 邏輯，不依賴 Agent 自主判斷</li>
+                        <li>每次 Scope Card 自動附加到 Kai task description，供 Noel 統計</li>
                     </ul>
+                    <span class="impact medium">預期 +2 分</span>
                 </div>
                 <div class="card">
+                    <div class="card-number">E</div>
                     <h3>Session Review 強制完成</h3>
                     <ul>
-                        <li>停在 /compact 前必須完成五問+反思</li>
-                        <li>不能空答（hook 檢查）</li>
+                        <li>修復 require-session-review.sh 的 heredoc bug（已於 v4 修復）</li>
+                        <li>五問 + 反思必須實質填答，不可「無」「N/A」連續 3 次</li>
+                        <li>Q4 有 generalizable error &rarr; 自動寫入 lessons.md 歸檔</li>
+                        <li>反思區的 SKILL_DELTA &rarr; 自動抓入 speed-improvements.md</li>
                     </ul>
+                    <span class="impact medium">預期 +2 分</span>
                 </div>
                 <div class="card">
-                    <h3>SKILL_DELTA 自動升級</h3>
+                    <div class="card-number">F</div>
+                    <h3>SKILL_DELTA 自動升級管線</h3>
                     <ul>
-                        <li>Session 發現 → 自動抓入 speed-improvements.md</li>
-                        <li>Quill 72h 內升級</li>
+                        <li>Session 發現更好做法 &rarr; 標記 <code>[SKILL_DELTA: TYPE &mdash; desc]</code></li>
+                        <li>自動寫入 speed-improvements.md，標記 P=N（尚未驗證）</li>
+                        <li>Quill 在 72 小時內驗證 &rarr; P=Y &rarr; 升級到 SKILL.md 對應 Agent</li>
+                        <li>超過 72 小時未處理 &rarr; 夜班 Module B 標記逾期提醒</li>
                     </ul>
+                    <span class="impact medium">預期 +1 分</span>
                 </div>
             </div>
         </section>
 
         <!-- Solutions Layer 3 -->
         <section>
-            <div class="section-eyebrow">LAYER 3: AUTOMATION</div>
-            <h2 class="section-title">改善方案：自動化<span>防護</span></h2>
-            <p class="section-desc">長期制度化監控，4 週內完成部署，持續防止品質滑落。</p>
-            <div class="cards-grid">
+            <div class="section-eyebrow">LAYER 3 &mdash; AUTOMATION</div>
+            <h2 class="section-title">自動化<span>防護</span></h2>
+            <p class="section-desc">長期制度化的自動監控系統，4 週內完成部署。持續偵測品質滑落並自動觸發修復流程。</p>
+            <div class="cards-grid-3">
                 <div class="card">
+                    <div class="card-number">G</div>
                     <h3>Task Board 完成率追蹤</h3>
                     <ul>
-                        <li>夜班 Module J 統計 dispatch rate</li>
-                        <li>< 50% → Discord 通知 Klay</li>
+                        <li>夜班 Module J 每日統計 dispatch rate：<code>dispatched / (dispatched + solo)</code></li>
+                        <li>Standard+ 任務 dispatch rate &lt; 50% &rarr; Discord 通知 Klay</li>
+                        <li>Task 完成率（done / created）每日追蹤，連續 3 天 &lt; 70% &rarr; 自動建 review task</li>
+                        <li>月報匯總：dispatch rate 趨勢、完成率、平均處理時間</li>
                     </ul>
+                    <span class="impact medium">預期 +1 分</span>
                 </div>
                 <div class="card">
-                    <h3>Health Check 品質信號</h3>
+                    <div class="card-number">H</div>
+                    <h3>品質信號日檢</h3>
                     <ul>
-                        <li>日檢：review 合規率、test pass rate、dispatch rate</li>
-                        <li>任一 < 60% → 建 quality-review task</li>
+                        <li>夜班 night-shift-comprehensive.py 新增品質信號模組</li>
+                        <li>三項指標：review 合規率、test pass rate、dispatch rate</li>
+                        <li>任一指標 &lt; 60% &rarr; 自動建立 <code>quality-review</code> task（assigned_to: klay）</li>
+                        <li>連續 3 天三項全 &ge; 80% &rarr; 晨報標記「品質穩定」</li>
                     </ul>
+                    <span class="impact medium">預期 +1 分</span>
                 </div>
                 <div class="card">
-                    <h3>自動回退機制</h3>
+                    <div class="card-number">I</div>
+                    <h3>品質自動回退機制</h3>
                     <ul>
-                        <li>評分連 3 天下降 → 暫停新任務</li>
-                        <li>強制做「品質改善周」</li>
+                        <li>品質評分連續 3 天下降 &rarr; Discord 告警 + 暫停新 feature task</li>
+                        <li>進入「品質改善周」：只做 bugfix + 測試補齊 + 文件補充</li>
+                        <li>評分回到 60+ &rarr; 自動解除限制，恢復正常任務流</li>
+                        <li>每次觸發自動回退 &rarr; 記錄到 lessons.md，分析滑落根因</li>
                     </ul>
+                    <span class="impact medium">預期 +1 分</span>
                 </div>
             </div>
         </section>
 
         <!-- Roadmap -->
         <section id="roadmap">
-            <div class="section-eyebrow">IMPLEMENTATION</div>
+            <div class="section-eyebrow">IMPLEMENTATION ROADMAP</div>
             <h2 class="section-title">實施優先級與<span>預期效果</span></h2>
-            <p class="section-desc">分階段實施，從 P0 快速見效，到 P2 長期穩定。</p>
+            <p class="section-desc">分三個優先級實施。P0 今天立即執行，P1 本週內完成，P2 持續建設。</p>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th>優先級</th>
-                            <th>項目</th>
-                            <th>完成時間</th>
-                            <th>預期效果</th>
+                            <th style="width:100px">優先級</th>
+                            <th>改善項目</th>
+                            <th>負責人</th>
+                            <th style="width:120px">完成期限</th>
+                            <th style="width:100px">預期效果</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>P0</td>
-                            <td>Task 登記強制執行</td>
-                            <td>今天</td>
-                            <td><strong>+15 分</strong></td>
+                            <td><span class="priority-tag p0">P0</span></td>
+                            <td>A. Task 登記強制執行</td>
+                            <td>Klay + Hook</td>
+                            <td>2026-03-20</td>
+                            <td><strong>+3 分</strong></td>
                         </tr>
                         <tr>
-                            <td>P0</td>
-                            <td>Scope Card 規則強化</td>
-                            <td>今天</td>
-                            <td><strong>+10 分</strong></td>
+                            <td><span class="priority-tag p0">P0</span></td>
+                            <td>D. Scope Card hook 修復 + 強制執行</td>
+                            <td>Klay + Forge</td>
+                            <td>2026-03-20</td>
+                            <td><strong>+2 分</strong></td>
                         </tr>
                         <tr>
-                            <td>P1</td>
-                            <td>Major 分工規則強制</td>
-                            <td>明天</td>
-                            <td><strong>+20 分</strong></td>
+                            <td><span class="priority-tag p1">P1</span></td>
+                            <td>B. Major 任務分工規則強制</td>
+                            <td>Klay</td>
+                            <td>2026-03-21</td>
+                            <td><strong>+4 分</strong></td>
                         </tr>
                         <tr>
-                            <td>P1</td>
-                            <td>Testing standards 執行</td>
-                            <td>明天</td>
-                            <td><strong>+15 分</strong></td>
+                            <td><span class="priority-tag p1">P1</span></td>
+                            <td>C. Testing standards 執行 + Quill 把關</td>
+                            <td>Quill + Forge</td>
+                            <td>2026-03-21</td>
+                            <td><strong>+3 分</strong></td>
                         </tr>
                         <tr>
-                            <td>P2</td>
-                            <td>Session review 二次驗證</td>
-                            <td>3 天內</td>
-                            <td><strong>+10 分</strong></td>
+                            <td><span class="priority-tag p1">P1</span></td>
+                            <td>E. Session review hook 修復 + 強制驗證</td>
+                            <td>Forge</td>
+                            <td>2026-03-23</td>
+                            <td><strong>+2 分</strong></td>
                         </tr>
                         <tr>
-                            <td>P2</td>
-                            <td>Nightly health check</td>
-                            <td>1 週內</td>
-                            <td><strong>+10 分</strong></td>
+                            <td><span class="priority-tag p2">P2</span></td>
+                            <td>F. SKILL_DELTA 自動升級管線</td>
+                            <td>Quill</td>
+                            <td>2026-03-27</td>
+                            <td><strong>+1 分</strong></td>
                         </tr>
-                        <tr style="background-color: var(--grey-01); font-weight: 600;">
-                            <td colspan="2">合計</td>
-                            <td></td>
-                            <td><strong>+80 分 → 6.0+</strong></td>
+                        <tr>
+                            <td><span class="priority-tag p2">P2</span></td>
+                            <td>G. Task Board 完成率自動追蹤</td>
+                            <td>Noel + Kai</td>
+                            <td>2026-03-27</td>
+                            <td><strong>+1 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td><span class="priority-tag p2">P2</span></td>
+                            <td>H. 品質信號日檢模組</td>
+                            <td>Noel</td>
+                            <td>2026-04-03</td>
+                            <td><strong>+1 分</strong></td>
+                        </tr>
+                        <tr>
+                            <td><span class="priority-tag p2">P2</span></td>
+                            <td>I. 品質自動回退機制</td>
+                            <td>Klay + Noel</td>
+                            <td>2026-04-17</td>
+                            <td><strong>+1 分</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="3">合計（9 項改善）</td>
+                            <td>4 週</td>
+                            <td><strong>+18 分</strong></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Decision Matrix -->
+        <!-- Decision Matrix (Dark) -->
         <div class="dark-section">
             <div class="section-eyebrow">STRATEGIC ALIGNMENT</div>
-            <h2 class="section-title">決策<span>矩陣</span></h2>
-            <p class="section-desc">三層改善是遞進的：<br><strong>Layer 1（流程）</strong> = 最快見效（3-5 天）<br><strong>Layer 2（Prompt）</strong> = 中期鞏固（1-2 週）<br><strong>Layer 3（自動化）</strong> = 長期制度（4 週）<br><br>建議同步進行，先從 P0 開始。</p>
+            <h2 class="section-title">三階段<span>實施路線</span></h2>
+            <p class="section-desc">三層改善是遞進的：流程先止血，Prompt 再鞏固，自動化最後制度化。建議三層同步推進，以 P0 為最高優先。</p>
+
+            <div class="timeline">
+                <div class="timeline-phase">
+                    <div class="timeline-label">Phase 1</div>
+                    <div class="timeline-dot phase1"></div>
+                    <div class="timeline-title">流程硬規則</div>
+                    <div class="timeline-desc">Task 登記、Major 分工、測試把關 — 堵住最大品質漏洞</div>
+                    <div class="timeline-time">3-5 天見效</div>
+                </div>
+                <div class="timeline-phase">
+                    <div class="timeline-label">Phase 2</div>
+                    <div class="timeline-dot phase2"></div>
+                    <div class="timeline-title">Prompt 強化</div>
+                    <div class="timeline-desc">Scope Card 前置、Session Review 修復、SKILL_DELTA 管線 — 內化規則</div>
+                    <div class="timeline-time">1-2 週鞏固</div>
+                </div>
+                <div class="timeline-phase">
+                    <div class="timeline-label">Phase 3</div>
+                    <div class="timeline-dot phase3"></div>
+                    <div class="timeline-title">自動化防護</div>
+                    <div class="timeline-desc">完成率追蹤、品質日檢、自動回退 — 制度化防止滑落</div>
+                    <div class="timeline-time">4 週完成</div>
+                </div>
+            </div>
         </div>
     </main>
 
     <footer>
-        Generated on 2026-03-20 · Quality Assessment Report v1.0
+        Generated on 2026-03-20 &middot; Rain AI Team &middot; <a href="https://slideless.vercel.app">Slideless</a>
     </footer>
 
     <script>
@@ -613,6 +959,7 @@
         function updateProgressBar() {
             const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (docHeight <= 0) return;
             const scrollPercent = (scrollTop / docHeight) * 100;
             document.querySelector('.progress-bar').style.width = scrollPercent + '%';
         }
