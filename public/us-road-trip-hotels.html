@@ -178,131 +178,124 @@
   </div>
 </div>
 
-<!-- Interactive Map -->
+<!-- Interactive Map — Pikmin Style -->
 <div class="section-title">路線地圖</div>
-<div id="trip-map-wrap" style="position:relative;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);margin-bottom:28px;">
-  <div id="trip-map" style="width:100%;height:520px;"></div>
-  <!-- Day Info Panel -->
-  <div id="map-panel" style="position:absolute;top:12px;right:12px;width:260px;background:rgba(255,255,255,0.96);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:18px;font-size:13px;display:none;z-index:1000;backdrop-filter:blur(8px);">
-    <div id="panel-close" style="position:absolute;top:8px;right:12px;cursor:pointer;font-size:16px;color:#888;">✕</div>
-    <div id="panel-day" style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#eb8054;margin-bottom:4px;"></div>
-    <div id="panel-title" style="font-size:16px;font-weight:800;color:#1a1a2e;margin-bottom:8px;line-height:1.3;"></div>
-    <div id="panel-hotel" style="margin-bottom:6px;"></div>
-    <div id="panel-price" style="margin-bottom:6px;"></div>
-    <div id="panel-amex" style="font-size:12px;color:#0f3460;"></div>
+<style>
+  #trip-map-wrap { position:relative;background:#f0ead6;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(139,119,80,0.15);margin-bottom:28px;border:3px solid #e6dcc6; }
+  #map-panel { position:absolute;top:12px;right:12px;width:250px;background:rgba(255,253,245,0.97);border-radius:16px;box-shadow:0 4px 20px rgba(139,119,80,0.18);padding:18px 16px;font-size:13px;display:none;z-index:1000;border:2px solid #e6dcc6; }
+  #map-panel::before { content:'🌱';position:absolute;top:-12px;left:16px;font-size:20px; }
+  #map-timeline { display:flex;gap:0;padding:0;background:linear-gradient(180deg,#f5efe0,#ece4d0);overflow-x:auto;border-top:2px solid #e6dcc6; }
+  .tl-btn { flex:1;min-width:60px;padding:10px 6px;text-align:center;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;position:relative; }
+  .tl-btn:hover { background:rgba(139,119,80,0.08); }
+  .tl-btn.active { background:rgba(139,119,80,0.12); }
+  .pikmin-marker { width:44px;height:52px;position:relative;cursor:pointer;transition:transform .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.15)); }
+  .pikmin-marker:hover { transform:scale(1.2) translateY(-4px); }
+  .pikmin-leaf { position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:12px;animation:leaf-bob 2s ease-in-out infinite; }
+  .pikmin-body { width:38px;height:38px;border-radius:50% 50% 50% 50% / 40% 40% 60% 60%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2.5px solid rgba(255,255,255,0.9);margin:0 auto; }
+  .pikmin-label { font-size:9px;font-weight:800;color:#6b5b3e;text-align:center;margin-top:2px;white-space:nowrap;letter-spacing:0.5px; }
+  @keyframes leaf-bob { 0%,100%{transform:translateX(-50%) rotate(-8deg)} 50%{transform:translateX(-50%) rotate(8deg)} }
+</style>
+<div id="trip-map-wrap">
+  <div id="trip-map" style="width:100%;height:540px;"></div>
+  <div id="map-panel">
+    <div id="panel-close" style="position:absolute;top:8px;right:12px;cursor:pointer;font-size:14px;color:#a09070;font-weight:700;">✕</div>
+    <div id="panel-day" style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#b08040;margin-bottom:4px;"></div>
+    <div id="panel-title" style="font-size:16px;font-weight:800;color:#4a3c28;margin-bottom:10px;line-height:1.3;"></div>
+    <div id="panel-hotel" style="margin-bottom:6px;color:#5a4e3a;"></div>
+    <div id="panel-price" style="margin-bottom:6px;color:#5a4e3a;"></div>
+    <div id="panel-amex" style="font-size:12px;color:#6b8e5a;font-weight:600;"></div>
   </div>
-  <!-- Timeline -->
-  <div id="map-timeline" style="display:flex;gap:0;padding:0;background:#1a1a2e;overflow-x:auto;">
-  </div>
+  <div id="map-timeline"></div>
 </div>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
   var stops = [
-    {day:1,date:'4/15',label:'Day 1',title:'抵達舊金山',loc:'SFO → 市區',lat:37.7749,lng:-122.4194,hotel:'Taj Campton Place',price:'~US$280/晚',amex:'FHR：早餐+$100額度+升等+4PM退房',color:'#e74c3c',icon:'✈️'},
-    {day:2,date:'4/16',label:'Day 2',title:'優勝美地壯遊',loc:'舊金山 ↔ 優勝美地',lat:37.8651,lng:-119.5383,hotel:'（回舊金山住）',price:'—',amex:'',color:'#27ae60',icon:'🏔️'},
-    {day:3,date:'4/17',label:'Day 3',title:'矽谷→一號公路',loc:'矽谷 → 聖西蒙',lat:35.6443,lng:-121.1898,hotel:'一般旅館（高CP）',price:'~US$150/晚',amex:'無 AMEX 飯店',color:'#2980b9',icon:'🌊'},
-    {day:4,date:'4/18',label:'Day 4',title:'海岸線→好萊塢',loc:'聖西蒙 → 環球影城',lat:34.1381,lng:-118.3534,hotel:'Loews Hollywood',price:'~US$300/晚',amex:'THC：$100體驗額度',color:'#f39c12',icon:'🎬'},
-    {day:5,date:'4/19',label:'Day 5',title:'環球影城',loc:'Universal Studios',lat:34.1381,lng:-118.3534,hotel:'Loews Hollywood',price:'（同上）',amex:'',color:'#f39c12',icon:'🎢'},
-    {day:6,date:'4/20',label:'Day 6',title:'LA 地標 + NBA',loc:'LA → Marina del Rey',lat:33.9803,lng:-118.4517,hotel:'Ritz-Carlton Marina del Rey',price:'~US$450/晚',amex:'FHR：早餐+$100額度+升等',color:'#f39c12',icon:'🏀'},
-    {day:7,date:'4/21',label:'Day 7',title:'Route 66→佩吉',loc:'LA → Route 66 → Page',lat:36.9147,lng:-111.4558,hotel:'一般旅館（高CP）',price:'~US$150/晚',amex:'無 AMEX 飯店',color:'#e67e22',icon:'🛣️'},
-    {day:8,date:'4/22',label:'Day 8',title:'羚羊谷→Vegas',loc:'Page → 馬蹄灣 → Vegas',lat:36.1699,lng:-115.1398,hotel:'Wynn Las Vegas',price:'~US$300/晚',amex:'FHR：全套福利＋免費停車',color:'#8e44ad',icon:'🎰'},
-    {day:9,date:'4/23',label:'Day 9',title:'Vegas→迪士尼',loc:'Vegas → Anaheim',lat:33.8121,lng:-117.9190,hotel:'Westin Anaheim',price:'~US$400/晚',amex:'FHR：早餐+$150額度+升等',color:'#e84393',icon:'🏰'},
-    {day:10,date:'4/24',label:'Day 10',title:'迪士尼經典樂園',loc:'Disneyland',lat:33.8121,lng:-117.9190,hotel:'Westin Anaheim',price:'（同上）',amex:'',color:'#e84393',icon:'🎆'},
-    {day:11,date:'4/25',label:'Day 11',title:'精品採買→返台',loc:'Anaheim → LAX',lat:33.9425,lng:-118.4081,hotel:'✈️ 飛機上',price:'—',amex:'',color:'#00b894',icon:'🛍️'}
+    {day:1,date:'4/15',label:'Day 1',title:'抵達舊金山',lat:37.7749,lng:-122.4194,hotel:'Taj Campton Place',price:'~US$280/晚',amex:'FHR：早餐+$100額度+升等+4PM退房',color:'#e8726a',bg:'#fce8e6',icon:'✈️',leaf:'🌿'},
+    {day:2,date:'4/16',label:'Day 2',title:'優勝美地壯遊',lat:37.8651,lng:-119.5383,hotel:'（回舊金山住）',price:'—',amex:'',color:'#5ba85b',bg:'#e6f4e6',icon:'🏔️',leaf:'🍃'},
+    {day:3,date:'4/17',label:'Day 3',title:'矽谷→一號公路',lat:35.6443,lng:-121.1898,hotel:'一般旅館（高CP）',price:'~US$150/晚',amex:'無 AMEX 飯店',color:'#5b9ec8',bg:'#e0f0ff',icon:'🌊',leaf:'🌿'},
+    {day:4,date:'4/18',label:'Day 4',title:'海岸線→好萊塢',lat:34.1381,lng:-118.3534,hotel:'Loews Hollywood',price:'~US$300/晚',amex:'THC：$100體驗額度',color:'#e8a84c',bg:'#fff3dc',icon:'🎬',leaf:'🌱'},
+    {day:5,date:'4/19',label:'Day 5',title:'環球影城',lat:34.1381,lng:-118.3534,hotel:'Loews Hollywood',price:'（同上）',amex:'',color:'#e8a84c',bg:'#fff3dc',icon:'🎢',leaf:'🍀'},
+    {day:6,date:'4/20',label:'Day 6',title:'LA 地標 + NBA',lat:33.9803,lng:-118.4517,hotel:'Ritz-Carlton Marina del Rey',price:'~US$450/晚',amex:'FHR：早餐+$100額度+升等',color:'#d4855c',bg:'#fdecd8',icon:'🏀',leaf:'🌿'},
+    {day:7,date:'4/21',label:'Day 7',title:'Route 66→佩吉',lat:36.9147,lng:-111.4558,hotel:'一般旅館（高CP）',price:'~US$150/晚',amex:'無 AMEX 飯店',color:'#c87840',bg:'#f8e8d6',icon:'🛣️',leaf:'🍃'},
+    {day:8,date:'4/22',label:'Day 8',title:'羚羊谷→Vegas',lat:36.1699,lng:-115.1398,hotel:'Wynn Las Vegas',price:'~US$300/晚',amex:'FHR：全套福利＋免費停車',color:'#9b6cb0',bg:'#f0e4f8',icon:'🎰',leaf:'🌱'},
+    {day:9,date:'4/23',label:'Day 9',title:'Vegas→迪士尼',lat:33.8121,lng:-117.9190,hotel:'Westin Anaheim',price:'~US$400/晚',amex:'FHR：早餐+$150額度+升等',color:'#d46a8a',bg:'#fce4ec',icon:'🏰',leaf:'🌸'},
+    {day:10,date:'4/24',label:'Day 10',title:'迪士尼經典樂園',lat:33.8121,lng:-117.9190,hotel:'Westin Anaheim',price:'（同上）',amex:'',color:'#d46a8a',bg:'#fce4ec',icon:'🎆',leaf:'🌸'},
+    {day:11,date:'4/25',label:'Day 11',title:'精品採買→返台',lat:33.9425,lng:-118.4081,hotel:'✈️ 飛機上',price:'—',amex:'',color:'#5bab8a',bg:'#e0f4ec',icon:'🛍️',leaf:'🍀'}
   ];
 
   var map = L.map('trip-map',{zoomControl:false,scrollWheelZoom:true}).setView([36.5,-117],6);
   L.control.zoom({position:'bottomleft'}).addTo(map);
 
-  // Dark elegant tile
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'&copy; <a href="https://carto.com/">CARTO</a>',
-    maxZoom:18
+  // Watercolor-style warm tiles
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg',{
+    attribution:'&copy; <a href="https://stamen.com/">Stamen</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>',
+    maxZoom:16
+  }).addTo(map);
+  // Add subtle labels on top
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_terrain_labels/{z}/{x}/{y}{r}.png',{
+    maxZoom:16,opacity:0.5
   }).addTo(map);
 
-  // Draw route polyline
-  var coords = [];
-  var unique = [];
-  stops.forEach(function(s){
-    var key = s.lat+','+s.lng;
-    if(unique.indexOf(key)===-1){unique.push(key);coords.push([s.lat,s.lng]);}
-  });
+  var coords=[],unique=[];
+  stops.forEach(function(s){var k=s.lat+','+s.lng;if(unique.indexOf(k)===-1){unique.push(k);coords.push([s.lat,s.lng]);}});
 
-  // Animated dashed route
-  L.polyline(coords,{color:'rgba(255,255,255,0.15)',weight:4,dashArray:'8,12'}).addTo(map);
-  L.polyline(coords,{color:'#eb8054',weight:3,opacity:0.85,dashArray:'12,8',lineCap:'round'}).addTo(map);
+  // Soft dashed route — looks like a trail on a treasure map
+  L.polyline(coords,{color:'#d4a76a',weight:5,opacity:0.3,lineCap:'round',lineJoin:'round'}).addTo(map);
+  L.polyline(coords,{color:'#8b6e3e',weight:3,opacity:0.6,dashArray:'10,8',lineCap:'round',lineJoin:'round'}).addTo(map);
 
-  // Direction arrows along route
+  // Little footstep dots along route
   for(var i=0;i<coords.length-1;i++){
-    var mid=[(coords[i][0]+coords[i+1][0])/2,(coords[i][1]+coords[i+1][1])/2];
-    var angle=Math.atan2(coords[i+1][1]-coords[i][1],coords[i+1][0]-coords[i][0])*180/Math.PI;
-    L.marker(mid,{icon:L.divIcon({className:'',html:'<div style="font-size:14px;transform:rotate('+(90-angle)+'deg);opacity:0.6;color:#eb8054;">▶</div>',iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map);
+    var steps=3;
+    for(var j=1;j<=steps;j++){
+      var t=j/(steps+1);
+      var pt=[coords[i][0]+(coords[i+1][0]-coords[i][0])*t,coords[i][1]+(coords[i+1][1]-coords[i][1])*t];
+      L.circleMarker(pt,{radius:2.5,fillColor:'#8b6e3e',fillOpacity:0.4,stroke:false}).addTo(map);
+    }
   }
 
-  // Panel logic
+  // Panel
   var panel=document.getElementById('map-panel');
-  var panelDay=document.getElementById('panel-day');
-  var panelTitle=document.getElementById('panel-title');
-  var panelHotel=document.getElementById('panel-hotel');
-  var panelPrice=document.getElementById('panel-price');
-  var panelAmex=document.getElementById('panel-amex');
   document.getElementById('panel-close').onclick=function(){panel.style.display='none';};
-
   function showPanel(s){
-    panelDay.textContent=s.label+' · '+s.date;
-    panelTitle.textContent=s.icon+' '+s.title;
-    panelHotel.innerHTML='<span style="color:#888">住宿：</span><strong>'+s.hotel+'</strong>';
-    panelPrice.innerHTML='<span style="color:#888">房價：</span><strong style="color:#0f3460">'+s.price+'</strong>';
-    panelAmex.innerHTML=s.amex?'💳 '+s.amex:'';
+    document.getElementById('panel-day').textContent=s.label+' · '+s.date;
+    document.getElementById('panel-title').textContent=s.icon+' '+s.title;
+    document.getElementById('panel-hotel').innerHTML='<span style="color:#8b877c">🏨 住宿：</span><strong>'+s.hotel+'</strong>';
+    document.getElementById('panel-price').innerHTML='<span style="color:#8b877c">💰 房價：</span><strong style="color:#6b5020">'+s.price+'</strong>';
+    document.getElementById('panel-amex').innerHTML=s.amex?'💳 '+s.amex:'';
     panel.style.display='block';
   }
 
-  // Day markers
-  var markers=[];
-  stops.forEach(function(s,idx){
-    var size=s.day===1||s.day===11?40:34;
-    var el=document.createElement('div');
-    el.style.cssText='width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+s.color+';border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:'+(size>36?18:15)+'px;cursor:pointer;transition:transform .2s;';
-    el.textContent=s.icon;
-    el.onmouseenter=function(){this.style.transform='scale(1.25)';};
-    el.onmouseleave=function(){this.style.transform='scale(1)';};
-
+  // Pikmin-style markers
+  stops.forEach(function(s){
+    var html='<div class="pikmin-marker">'
+      +'<div class="pikmin-leaf">'+s.leaf+'</div>'
+      +'<div class="pikmin-body" style="background:'+s.bg+';box-shadow:0 2px 8px '+s.color+'40;">'+s.icon+'</div>'
+      +'<div class="pikmin-label">'+s.label+'</div>'
+      +'</div>';
     var marker=L.marker([s.lat,s.lng],{
-      icon:L.divIcon({className:'',html:el.outerHTML,iconSize:[size,size],iconAnchor:[size/2,size/2]})
+      icon:L.divIcon({className:'',html:html,iconSize:[44,56],iconAnchor:[22,28]})
     }).addTo(map);
-
-    // Day label below marker
-    L.marker([s.lat,s.lng],{
-      icon:L.divIcon({className:'',html:'<div style="font-size:10px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.8);white-space:nowrap;margin-top:22px;">'+s.label+'</div>',iconSize:[60,20],iconAnchor:[30,-8]})
-    }).addTo(map);
-
     marker.on('click',function(){
       showPanel(s);
-      map.flyTo([s.lat,s.lng],map.getZoom()<8?8:map.getZoom(),{duration:0.5});
+      map.flyTo([s.lat,s.lng],map.getZoom()<8?8:map.getZoom(),{duration:0.6});
     });
-    markers.push(marker);
   });
 
-  // Timeline bar
+  // Timeline
   var tl=document.getElementById('map-timeline');
-  stops.forEach(function(s,idx){
+  stops.forEach(function(s){
     var btn=document.createElement('div');
-    btn.style.cssText='flex:1;min-width:60px;padding:10px 6px;text-align:center;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;';
-    btn.innerHTML='<div style="font-size:14px;margin-bottom:2px;">'+s.icon+'</div><div style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:600;">'+s.date+'</div>';
-    btn.onmouseenter=function(){this.style.background='rgba(255,255,255,0.08)';this.style.borderBottomColor=s.color;};
-    btn.onmouseleave=function(){this.style.background='transparent';this.style.borderBottomColor='transparent';};
-    btn.onclick=function(){
-      showPanel(s);
-      map.flyTo([s.lat,s.lng],9,{duration:0.8});
-    };
+    btn.className='tl-btn';
+    btn.innerHTML='<div style="font-size:16px;margin-bottom:2px;">'+s.icon+'</div><div style="font-size:10px;color:#8b7e6a;font-weight:700;">'+s.date+'</div>';
+    btn.onmouseenter=function(){this.style.borderBottomColor=s.color;};
+    btn.onmouseleave=function(){this.style.borderBottomColor='transparent';};
+    btn.onclick=function(){showPanel(s);map.flyTo([s.lat,s.lng],9,{duration:0.8});};
     tl.appendChild(btn);
   });
 
-  // Auto-fit all markers
-  var bounds=L.latLngBounds(coords);
-  map.fitBounds(bounds,{padding:[40,40]});
+  map.fitBounds(L.latLngBounds(coords),{padding:[50,50]});
 })();
 </script>
 
