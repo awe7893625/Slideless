@@ -160,6 +160,15 @@
   .tbl-wrap td { padding: 10px 12px; border-bottom: 1px solid #f0eeea; }
   .tbl-wrap tr:hover td { background: #faf9f6; }
 
+  /* Map Link */
+  .map-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #edf4ff; color: #2980b9; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 6px; text-decoration: none;
+    margin-top: 6px; transition: background .2s;
+  }
+  .map-link:hover { background: #d6e8ff; }
+
   /* Print */
   @media print {
     .hero { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1001,5 +1010,115 @@
 
 </div><!-- container -->
 
+<script>
+// 地點對照表：顯示名稱 → Google Maps 搜尋關鍵字
+const places = [
+  // Day 1
+  ["舊金山國際機場", "San Francisco International Airport SFO"],
+  ["SFO Rental Car Center", "SFO Rental Car Center"],
+  ["漁人碼頭", "Fisherman's Wharf San Francisco"],
+  ["Boudin Bakery", "Boudin Bakery Fisherman's Wharf"],
+  ["In-N-Out Burger", "In-N-Out Burger San Francisco"],
+  // Day 2
+  ["Tunnel View", "Tunnel View Yosemite"],
+  ["Yosemite Falls", "Yosemite Falls Trail"],
+  ["El Capitan Meadow", "El Capitan Meadow Yosemite"],
+  ["Mirror Lake", "Mirror Lake Yosemite"],
+  ["Yosemite Village", "Yosemite Village"],
+  ["Glacier Point", "Glacier Point Yosemite"],
+  ["Bridalveil Fall", "Bridalveil Fall Yosemite"],
+  ["Chinatown", "Chinatown San Francisco"],
+  // Day 3
+  ["Stanford University", "Stanford University"],
+  ["Googleplex", "Googleplex Mountain View"],
+  ["Apple Park Visitor Center", "Apple Park Visitor Center Cupertino"],
+  ["Din Tai Fung", "Din Tai Fung Cupertino"],
+  ["Bixby Creek Bridge", "Bixby Creek Bridge Big Sur"],
+  ["McWay Falls", "McWay Falls Big Sur"],
+  ["Pfeiffer Beach", "Pfeiffer Beach Big Sur"],
+  ["San Simeon", "San Simeon California"],
+  ["Cavalier Oceanfront Resort", "Cavalier Oceanfront Resort San Simeon"],
+  // Day 4
+  ["Elephant Seal Vista Point", "Elephant Seal Vista Point San Simeon"],
+  ["Solvang", "Solvang California"],
+  ["Santa Barbara", "Santa Barbara California"],
+  ["La Super-Rica Taqueria", "La Super-Rica Taqueria Santa Barbara"],
+  ["Santa Monica Pier", "Santa Monica Pier"],
+  ["Third Street Promenade", "Third Street Promenade Santa Monica"],
+  // Day 5
+  ["Universal Studios Hollywood", "Universal Studios Hollywood"],
+  ["Super Nintendo World", "Super Nintendo World Universal Studios Hollywood"],
+  ["Harry Potter", "Wizarding World of Harry Potter Universal Hollywood"],
+  ["Three Broomsticks", "Three Broomsticks Universal Studios Hollywood"],
+  ["Studio Tour", "Studio Tour Universal Studios Hollywood"],
+  ["Jurassic World", "Jurassic World Ride Universal Studios Hollywood"],
+  ["CityWalk", "Universal CityWalk Hollywood"],
+  // Day 6
+  ["Griffith Observatory", "Griffith Observatory Los Angeles"],
+  ["Hollywood Sign", "Hollywood Sign"],
+  ["UCLA", "UCLA Campus Los Angeles"],
+  ["Westwood Village", "Westwood Village Los Angeles"],
+  ["The Grove", "The Grove Los Angeles"],
+  ["Farmers Market", "The Original Farmers Market Los Angeles"],
+  ["Tesla Diner", "Tesla Diner Hollywood"],
+  ["Crypto.com Arena", "Crypto.com Arena Los Angeles"],
+  // Day 7
+  ["Barstow", "Barstow California"],
+  ["Route 66", "Route 66 Museum Barstow"],
+  ["Kingman", "Kingman Arizona"],
+  ["Mr. D'z Route 66 Diner", "Mr D'z Route 66 Diner Kingman"],
+  ["Big John's Texas BBQ", "Big John's Texas BBQ Page Arizona"],
+  ["Wahweap Overlook", "Wahweap Overlook Page Arizona"],
+  ["Lake Powell", "Lake Powell Page Arizona"],
+  // Day 8
+  ["Antelope Canyon", "Upper Antelope Canyon Page Arizona"],
+  ["Horseshoe Bend", "Horseshoe Bend Page Arizona"],
+  ["Vermilion Cliffs", "Vermilion Cliffs National Monument"],
+  ["The Sphere", "The Sphere Las Vegas"],
+  ["Vegas Loop", "Vegas Loop Las Vegas Convention Center"],
+  ["Bellagio", "Bellagio Fountains Las Vegas"],
+  // Day 9
+  ["Tanger Outlets Barstow", "Tanger Outlets Barstow"],
+  ["Disney California Adventure", "Disney California Adventure Park"],
+  ["Radiator Springs Racers", "Radiator Springs Racers Disney California Adventure"],
+  ["Guardians of the Galaxy", "Guardians of the Galaxy Mission Breakout Disney"],
+  ["Incredicoaster", "Incredicoaster Disney California Adventure"],
+  ["Carthay Circle Restaurant", "Carthay Circle Restaurant Disney California Adventure"],
+  ["World of Color", "World of Color Disney California Adventure"],
+  // Day 10
+  ["Rise of the Resistance", "Star Wars Rise of the Resistance Disneyland"],
+  ["Space Mountain", "Space Mountain Disneyland"],
+  ["Matterhorn", "Matterhorn Bobsleds Disneyland"],
+  ["Pirates of the Caribbean", "Pirates of the Caribbean Disneyland"],
+  ["Haunted Mansion", "Haunted Mansion Disneyland"],
+  ["Blue Bayou", "Blue Bayou Restaurant Disneyland"],
+  ["Indiana Jones", "Indiana Jones Adventure Disneyland"],
+  ["Big Thunder Mountain", "Big Thunder Mountain Railroad Disneyland"],
+  ["Galaxy's Edge", "Star Wars Galaxy's Edge Disneyland"],
+  ["Main Street U.S.A.", "Main Street USA Disneyland"],
+  ["Sleeping Beauty Castle", "Sleeping Beauty Castle Disneyland"],
+  // Day 11
+  ["South Coast Plaza", "South Coast Plaza Costa Mesa"],
+  ["Newport Beach", "Newport Beach California"],
+  ["Balboa Peninsula", "Balboa Peninsula Newport Beach"],
+];
+
+document.querySelectorAll('.tl-desc').forEach(el => {
+  const text = el.textContent;
+  for (const [name, query] of places) {
+    if (text.includes(name)) {
+      const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+      const link = document.createElement('a');
+      link.className = 'map-link';
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = '📍 Google Maps';
+      el.appendChild(link);
+      break; // 每個 tl-desc 只加一個連結
+    }
+  }
+});
+</script>
 </body>
 </html>
