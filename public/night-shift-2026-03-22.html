@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夜班報告 2026-03-22 | Rain AI Team</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f6f5f1; font-family: 'Helvetica Neue', Arial, sans-serif; color: #2c2c2c; }
+
+  .hero {
+    background: #1a1a2e;
+    color: #f6f5f1;
+    padding: 56px 40px 48px;
+    text-align: center;
+  }
+  .hero .label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #c8b88a;
+    margin-bottom: 16px;
+  }
+  .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .hero .subtitle { font-size: 15px; color: #aaa; margin-bottom: 32px; }
+  .hero .meta { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+  .hero .meta-item { text-align: center; }
+  .hero .meta-item .val { font-size: 28px; font-weight: 700; color: #c8b88a; }
+  .hero .meta-item .key { font-size: 11px; color: #888; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .section { padding: 40px 40px 32px; max-width: 900px; margin: 0 auto; }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #c8b88a;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e2db;
+    padding-bottom: 8px;
+  }
+
+  .task-grid { display: flex; flex-direction: column; gap: 12px; }
+  .task-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border-left: 4px solid #ddd;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .task-card.success { border-left-color: #5aa875; }
+  .task-card.failed { border-left-color: #d94f4f; }
+  .task-card.cancelled { border-left-color: #bbb; }
+  .task-card.claimed { border-left-color: #e8a020; }
+  .task-card.pending { border-left-color: #6b8cba; }
+  .task-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .badge.success { background: #e8f5ef; color: #3a7a56; }
+  .badge.failed { background: #fdecea; color: #c0392b; }
+  .badge.cancelled { background: #f0f0f0; color: #888; }
+  .badge.claimed { background: #fef3e2; color: #a56910; }
+  .badge.pending { background: #e8eef7; color: #3a5a8a; }
+  .task-title { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .task-summary { font-size: 13px; color: #555; line-height: 1.6; margin-top: 4px; }
+
+  .alert-grid { display: flex; flex-direction: column; gap: 10px; }
+  .alert-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    border-left: 4px solid #e8a020;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .alert-card.critical { border-left-color: #d94f4f; }
+  .alert-card.info { border-left-color: #6b8cba; }
+  .alert-card.ok { border-left-color: #5aa875; }
+  .alert-card strong { color: #1a1a2e; }
+
+  .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .health-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .health-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+  .health-status { font-size: 12px; color: #5aa875; }
+
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 13px; }
+  th { background: #1a1a2e; color: #c8b88a; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f0ede8; color: #444; line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9f8f5; }
+
+  .action-list { display: flex; flex-direction: column; gap: 10px; }
+  .action-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    border-left: 4px solid #1a1a2e;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .action-num {
+    background: #1a1a2e;
+    color: #c8b88a;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .action-text { font-size: 13px; color: #444; line-height: 1.6; }
+  .action-text strong { color: #1a1a2e; }
+
+  .knowledge-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    border-left: 4px solid #c8b88a;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+  }
+  .knowledge-item strong { color: #1a1a2e; }
+
+  .footer {
+    background: #1a1a2e;
+    color: #666;
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    margin-top: 24px;
+  }
+  .footer a { color: #c8b88a; text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 20px 36px; }
+    .hero h1 { font-size: 26px; }
+    .section { padding: 28px 20px 20px; }
+    .hero .meta { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="label">Rain AI Team · Night Shift Report</div>
+  <h1>夜班晨間報告</h1>
+  <div class="subtitle">2026-03-22（週日）· 凌晨執行 → 晨間交付</div>
+  <div class="meta">
+    <div class="meta-item">
+      <div class="val">5/8</div>
+      <div class="key">任務完成</div>
+    </div>
+    <div class="meta-item">
+      <div class="val">6/6</div>
+      <div class="key">網站健康</div>
+    </div>
+    <div class="meta-item">
+      <div class="val">2</div>
+      <div class="key">需要決策</div>
+    </div>
+    <div class="meta-item">
+      <div class="val">4</div>
+      <div class="key">待處理警示</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">任務執行結果</div>
+  <div class="task-grid">
+
+    <div class="task-card success">
+      <div class="task-header">
+        <span class="badge success">✅ 完成</span>
+        <span class="task-title">每日工作品質審查</span>
+      </div>
+      <div class="task-summary">讀取 4 sessions 回顧，驗證 5 條 SKILL_DELTA（全通過已寫入 speed-improvements.md），清理 4 條逾期條目，識別 3 個可預防系統性問題，Email 報告已發送。</div>
+    </div>
+
+    <div class="task-card success">
+      <div class="task-header">
+        <span class="badge success">✅ 完成</span>
+        <span class="task-title">商業方案會議 — 方案 #9 智慧財經訂閱</span>
+      </div>
+      <div class="task-summary">三方會議完成。Ray 打回方案（法律風險 + 假設未驗證 + 時程低估）。企劃書已部署，revenue-plan.md 已更新，Email 已寄 Rain。需要 Rain 決定下一步方向。</div>
+    </div>
+
+    <div class="task-card success">
+      <div class="task-header">
+        <span class="badge success">✅ 完成</span>
+        <span class="task-title">知識管線升級</span>
+      </div>
+      <div class="task-summary">清理 speed-improvements.md 重複條目（4 條 duplicate 刪除）、新增 preferences.md DP-08（Kai review-evidence 靜默失敗規則）、標記 9 條已驗證條目待升 SKILL.md（需 Rain 授權）。</div>
+    </div>
+
+    <div class="task-card success">
+      <div class="task-header">
+        <span class="badge success">✅ 完成</span>
+        <span class="task-title">Noel &amp; Jarvis 健康檢查</span>
+      </div>
+      <div class="task-summary">Jarvis 運行中（PID 34718，自 2026-03-12）；Noel openclaw 回應 HEARTBEAT_OK，回應時間 ~67 秒；兩者健康，無需修復。</div>
+    </div>
+
+    <div class="task-card success">
+      <div class="task-header">
+        <span class="badge success">✅ 完成</span>
+        <span class="task-title">Module R — Auto Research Loop（TheOrder）</span>
+      </div>
+      <div class="task-summary">TheOrder coding mode 4 次迭代，score=1.0（0 type errors, 0 lint errors），Early stop 觸發，無需修復。觀察記錄到 speed-improvements.md（建議補 ESLint 設定）。</div>
+    </div>
+
+    <div class="task-card claimed">
+      <div class="task-header">
+        <span class="badge claimed">🔄 進行中</span>
+        <span class="task-title">專案維護：市場晨報 + 排程</span>
+      </div>
+      <div class="task-summary">進度 90%：執行成功、LaunchAgent 已載入、三大資料來源可用。但綜合審查 cache 顯示 market-briefing.html 疑有問題（size 過小 + 缺少必要段落），需追蹤。</div>
+    </div>
+
+    <div class="task-card cancelled">
+      <div class="task-header">
+        <span class="badge cancelled">⊘ 取消</span>
+        <span class="task-title">LaunchAgent + 排程任務巡檢</span>
+      </div>
+      <div class="task-summary">本任務已取消。LaunchAgent 狀態整合於下方警示區塊。</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">網站健康狀態（全數正常）</div>
+  <div class="health-grid">
+    <div class="health-item">
+      <div class="health-name">TheOrder</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+    <div class="health-item">
+      <div class="health-name">SomethingSelect</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+    <div class="health-item">
+      <div class="health-name">Blankspaces</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+    <div class="health-item">
+      <div class="health-name">BankExamQuiz</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+    <div class="health-item">
+      <div class="health-name">Slideless</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+    <div class="health-item">
+      <div class="health-name">SaaSAlternatives</div>
+      <div class="health-status">✅ HTTP 200</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">警示 &amp; 已知問題</div>
+  <div class="alert-grid">
+
+    <div class="alert-card critical">
+      <strong>🔴 Market Briefing 資料異常</strong><br>
+      market-briefing.html 大小僅 2,154 bytes（正常應 &gt;50KB），缺少「市場溫度計」「Pelosi」「產業佼佼者」必要段落，且日期超過 1 天。市場晨報腳本可能有 silent failure，需要人工確認。
+    </div>
+
+    <div class="alert-card">
+      <strong>⚠️ com.rain.ray-bot 未載入（broken）</strong><br>
+      LaunchAgent com.rain.ray-bot 狀態為 not loaded。Ray（Codex CLI）任務接收可能受影響。建議手動重啟或排查原因。
+    </div>
+
+    <div class="alert-card">
+      <strong>⚠️ 9 個 LaunchAgent stale（長期無 log）</strong><br>
+      ai.rain.openclaw-watchdog（396h）、com.rain.supabase-keepalive（420h）、com.rain.opencode.web（999h）等為最嚴重。建議逐一確認是否仍需要。
+    </div>
+
+    <div class="alert-card info">
+      <strong>ℹ️ FIRECRAWL_API_KEY 未設定</strong><br>
+      付費爬蟲功能不可用。爬蟲任務將優先用免費管道（smart-scraper / Nautilus）。
+    </div>
+
+    <div class="alert-card ok">
+      <strong>📋 TheOrder SEO 問題（持續追蹤）</strong><br>
+      /brand/jimbo 返回 HTTP 0；缺少 Product / FAQPage / ItemList Schema。此問題已記錄多次夜班報告，建議排進下次 Website Dept sprint。
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">知識管線升級成果</div>
+
+  <div class="knowledge-item">
+    <strong>DP-08（新增）— Kai review-evidence 靜默失敗規則</strong><br>
+    /api/tasks/{id}/review-evidence 傳入 "action": "approve" 不會成功；正確值為 "approved"。已寫入 preferences.md，防止夜班重蹈覆轍。
+  </div>
+  <div class="knowledge-item">
+    <strong>9 條已驗證條目待升 SKILL.md（需 Rain 授權）</strong><br>
+    包含：Claude Code plugin 安裝流程、external_plugin cp -r 技巧、timeout bug 偵測法、untracked 變更歷史調查法等實戰驗證技巧。
+  </div>
+  <div class="knowledge-item">
+    <strong>4 條重複條目已清理</strong><br>
+    speed-improvements.md 的 2026-03-20 重複條目已刪除，知識庫整潔度恢復。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Agent 效能審計</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>Span 數</th>
+          <th>Error Rate</th>
+          <th>Token 成本</th>
+          <th>異常</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Klay（高頻）</td>
+          <td>106</td>
+          <td>0.0%</td>
+          <td>$0.00</td>
+          <td>✅ 正常</td>
+        </tr>
+        <tr>
+          <td>Klay（中頻）</td>
+          <td>20</td>
+          <td>5.0%</td>
+          <td>$0.00</td>
+          <td>✅ 正常</td>
+        </tr>
+        <tr>
+          <td>Kai</td>
+          <td>3</td>
+          <td>0.0%</td>
+          <td>$0.00</td>
+          <td>✅ 正常</td>
+        </tr>
+        <tr>
+          <td>Noel</td>
+          <td>2</td>
+          <td>0.0%</td>
+          <td>$0.0273</td>
+          <td>✅ 正常</td>
+        </tr>
+        <tr>
+          <td>Knox</td>
+          <td>1</td>
+          <td>0.0%</td>
+          <td>$0.00</td>
+          <td>✅ 正常</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:12px; color:#888; margin-top:10px;">本夜班總外部 Token 成本：$0.0273（Noel API）</div>
+</div>
+
+<div class="section">
+  <div class="section-title">需要 Rain 決定的事項</div>
+  <div class="action-list">
+
+    <div class="action-item">
+      <div class="action-num">1</div>
+      <div class="action-text">
+        <strong>方案 #9 智慧財經訂閱 — Ray 打回，下一步？</strong><br>
+        Ray 理由：法律風險（股市分析內容監管）、假設未驗證（用戶付費意願）、時程低估。<br>
+        選項：(A) 修改後重送；(B) 暫停，選下一個方案；(C) 讓 Strategist 先做市場驗證。
+      </div>
+    </div>
+
+    <div class="action-item">
+      <div class="action-num">2</div>
+      <div class="action-text">
+        <strong>授權 9 條 speed-improvements 升級為 SKILL.md</strong><br>
+        均為實戰驗證技巧，說一句「授權升級」即可正式寫入 klay/SKILL.md，讓未來工作更快。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <div>Rain AI Team · Night Shift 2026-03-22 · 自動生成</div>
+  <div style="margin-top:8px;">
+    <a href="https://slideless.vercel.app/night-shift-2026-03-22.html">查看此報告</a>
+  </div>
+</div>
+
+</body>
+</html>
