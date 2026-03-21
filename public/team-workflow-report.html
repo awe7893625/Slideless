@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rain AI 團隊 — 指令處理與分工流程</title>
+  <style>
+    :root {
+      --cream: #f6f5f1;
+      --warm-tan: #c8a882;
+      --warm-brown: #a07850;
+      --dark-text: #2c2416;
+      --mid-text: #5a4a38;
+      --light-text: #8a7a68;
+      --border: #e0d8cc;
+      --card-bg: #faf9f5;
+      --accent-light: #f0ebe2;
+      --green: #5a8a5a;
+      --blue: #4a6a9a;
+      --red: #9a4a4a;
+      --orange: #c87a38;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--cream);
+      color: var(--dark-text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--dark-text);
+      color: #f6f5f1;
+      padding: 48px 24px 40px;
+      text-align: center;
+    }
+    .site-header .tag {
+      display: inline-block;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--warm-tan);
+      border: 1px solid var(--warm-tan);
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 20px;
+    }
+    .site-header h1 {
+      font-size: clamp(24px, 4vw, 40px);
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: #f6f5f1;
+      margin-bottom: 12px;
+    }
+    .site-header .subtitle {
+      color: #b0a898;
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #faf9f5;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    nav ul li a {
+      display: block;
+      padding: 14px 18px;
+      color: var(--mid-text);
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+    }
+    nav ul li a:hover {
+      color: var(--warm-brown);
+      border-bottom-color: var(--warm-tan);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    section {
+      margin-bottom: 72px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--warm-tan);
+    }
+    .section-number {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--warm-tan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header h2 {
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 400;
+      color: var(--dark-text);
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--warm-brown);
+      margin: 32px 0 14px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--mid-text);
+      margin: 20px 0 10px;
+      font-style: italic;
+    }
+
+    p {
+      color: var(--mid-text);
+      margin-bottom: 14px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark-text);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 13px;
+      background: var(--warm-tan);
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* ── Session type cards ── */
+    .session-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .session-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      border-top: 4px solid var(--warm-tan);
+    }
+    .session-card.blue { border-top-color: var(--blue); }
+    .session-card.green { border-top-color: var(--green); }
+    .session-card.orange { border-top-color: var(--orange); }
+    .session-card h3 {
+      margin-top: 0;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .session-card .model-badge {
+      display: inline-block;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      background: var(--accent-light);
+      color: var(--light-text);
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 12px;
+    }
+    .session-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .session-card ul li {
+      color: var(--mid-text);
+      font-size: 14px;
+      padding: 4px 0;
+      padding-left: 16px;
+      position: relative;
+    }
+    .session-card ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--warm-tan);
+      font-size: 12px;
+    }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 24px 0;
+    }
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .flow-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--dark-text);
+      white-space: nowrap;
+    }
+    .flow-box.highlight {
+      background: var(--warm-tan);
+      color: white;
+      border-color: var(--warm-tan);
+      font-weight: 600;
+    }
+    .flow-box.phase {
+      background: var(--accent-light);
+      border-color: var(--warm-tan);
+    }
+    .flow-box.review {
+      background: #e8f0e8;
+      border-color: var(--green);
+      color: #2a5a2a;
+    }
+    .flow-box.warning {
+      background: #f5ede0;
+      border-color: var(--orange);
+      color: #7a3a18;
+    }
+    .flow-box.critical {
+      background: #f5e0e0;
+      border-color: var(--red);
+      color: #5a1a1a;
+    }
+    .flow-arrow {
+      color: var(--warm-tan);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .flow-down {
+      text-align: center;
+      color: var(--warm-tan);
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    /* ── Grade pills ── */
+    .grade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .grade-card {
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .grade-card.tiny { background: #f0f8f0; border-color: #90c890; }
+    .grade-card.standard { background: #f0f0f8; border-color: #9090c8; }
+    .grade-card.major { background: #f8f4e8; border-color: #c8b060; }
+    .grade-card.critical { background: #f8eeee; border-color: #c87070; }
+    .grade-label {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .grade-card.tiny .grade-label { color: #2a7a2a; }
+    .grade-card.standard .grade-label { color: #2a2a7a; }
+    .grade-card.major .grade-label { color: #7a6010; }
+    .grade-card.critical .grade-label { color: #7a1010; }
+    .grade-card p {
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    /* ── Code block ── */
+    pre, .code-block {
+      background: #2c2416;
+      color: #d8cfc4;
+      padding: 20px 24px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .code-block .comment { color: #8a7a68; }
+    .code-block .key { color: var(--warm-tan); }
+    .code-block .value { color: #90c890; }
+
+    /* ── Tables ── */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 16px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    table {
+      min-width: 600px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead {
+      background: var(--dark-text);
+      color: #f6f5f1;
+    }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr:nth-child(even) { background: var(--accent-light); }
+    tbody tr:last-child { border-bottom: none; }
+    td {
+      padding: 12px 16px;
+      color: var(--mid-text);
+      vertical-align: top;
+    }
+    td strong { color: var(--dark-text); }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .badge.green { background: #e0f0e0; color: #2a6a2a; }
+    .badge.blue { background: #e0e8f8; color: #1a3a7a; }
+    .badge.orange { background: #f8eee0; color: #6a3a10; }
+    .badge.red { background: #f8e0e0; color: #6a1a1a; }
+    .badge.gray { background: var(--accent-light); color: var(--light-text); }
+
+    /* ── Phase timeline ── */
+    .phase-timeline {
+      position: relative;
+      padding-left: 32px;
+      margin: 24px 0;
+    }
+    .phase-timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .phase-item {
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .phase-item::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--warm-tan);
+      background: var(--cream);
+    }
+    .phase-item.active::before {
+      background: var(--warm-tan);
+    }
+    .phase-item h4 {
+      margin-top: 0;
+      font-size: 15px;
+    }
+    .phase-item .meta {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--light-text);
+      margin-bottom: 8px;
+    }
+    .phase-output {
+      background: var(--accent-light);
+      border-left: 3px solid var(--warm-tan);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--mid-text);
+      margin-top: 8px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── Review layers ── */
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .layer-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .layer-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--dark-text);
+      color: #f6f5f1;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .layer-num.auto { background: var(--green); }
+    .layer-num.manual { background: var(--blue); }
+    .layer-num.advisory { background: var(--orange); }
+    .layer-body h4 { margin-top: 0; margin-bottom: 4px; }
+    .layer-body p { margin-bottom: 0; font-size: 14px; }
+
+    /* ── Codex comparison ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    @media (max-width: 600px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+    .compare-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .compare-card h4 {
+      margin-top: 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 12px;
+    }
+    .compare-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .compare-card ul li {
+      font-size: 14px;
+      color: var(--mid-text);
+      padding: 5px 0;
+      padding-left: 18px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-card ul li:last-child { border-bottom: none; }
+    .compare-card ul li::before {
+      position: absolute;
+      left: 0;
+      font-size: 12px;
+    }
+    .compare-card.maker ul li::before { content: '🔨'; }
+    .compare-card.checker ul li::before { content: '🔍'; }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: var(--accent-light);
+      border: 1px solid var(--warm-tan);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .highlight-box h4 {
+      margin-top: 0;
+      color: var(--warm-brown);
+    }
+    .highlight-box p {
+      margin-bottom: 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--dark-text);
+      color: #8a7a68;
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
+    footer span { color: var(--warm-tan); }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .section-grid { grid-template-columns: 1fr; }
+      nav ul li a { padding: 10px 12px; font-size: 11px; }
+      .flow-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="tag">Internal Documentation · 2026-03-21</div>
+  <h1>Rain AI 團隊</h1>
+  <h1>指令處理與分工流程</h1>
+  <p class="subtitle">Session 類型 · Scope Card · 3-Phase 規劃 · 3 層審查 · Codex 應用</p>
+</header>
+
+<!-- Nav -->
+<nav>
+  <ul>
+    <li><a href="#ch1">第一章：Session 類型</a></li>
+    <li><a href="#ch2">第二章：Scope Card</a></li>
+    <li><a href="#ch3">第三章：3-Phase 流程</a></li>
+    <li><a href="#ch4">第四章：審查層</a></li>
+    <li><a href="#ch5">第五章：Codex CLI</a></li>
+    <li><a href="#ch6">第六章：Hook 系統</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第一章：Session 類型 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch1">
+    <div class="section-header">
+      <span class="section-number">Chapter 01</span>
+      <h2>三種 Session 類型</h2>
+    </div>
+
+    <p>Rain AI 團隊的所有工作都透過三種不同的 Session 模式進行。每種模式有不同的觸發方式、執行流程和適用場景。</p>
+
+    <div class="session-grid">
+      <div class="session-card blue">
+        <div class="model-badge">Claude Code · Orchestrator</div>
+        <h3>普通 Session</h3>
+        <ul>
+          <li>Rain 在終端機直接下指令</li>
+          <li>Orchestrator 輸出 Scope Card</li>
+          <li>依 Grade 決定行動路徑</li>
+          <li>用 Agent tool 呼叫子 agent</li>
+          <li>子 agent 完成後回傳結果</li>
+        </ul>
+      </div>
+      <div class="session-card orange">
+        <div class="model-badge">Telegram · klayt tmux</div>
+        <h3>Klay Telegram Session</h3>
+        <ul>
+          <li>Rain 在 Telegram 傳訊息</li>
+          <li>klayt 收到後先回「收到」</li>
+          <li>建立 Kai task 再進行規劃</li>
+          <li>edit_message 模擬進度更新</li>
+          <li>完成後發新訊息觸發通知</li>
+          <li>heartbeat 每 30s 更新狀態</li>
+        </ul>
+      </div>
+      <div class="session-card green">
+        <div class="model-badge">Noel · Gemini 2.5 Pro · 凌晨 1:00</div>
+        <h3>夜班 Session</h3>
+        <ul>
+          <li>night-shift-prep.py 建任務</li>
+          <li>固定：健康檢查 / 知識管線</li>
+          <li>固定：LaunchAgent 巡檢</li>
+          <li>輪替：7天循環維護不同專案</li>
+          <li>dispatch Tier 3 外部 Agent</li>
+          <li>晨間 Email 彙整報告</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Session 1 detail -->
+    <h3>1.1 普通 Session — 指令處理流程</h3>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box highlight">Rain 下指令</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase">Orchestrator 讀取任務</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase">輸出 Scope Card</div>
+      </div>
+      <div class="flow-down">↓</div>
+      <div class="flow-row">
+        <div class="flow-box review">Grade = Tiny</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Klay 直接處理（無 dispatch）</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box">Grade = Standard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Dispatch 單一 agent（Agent tool）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box review">Quill + Forge 審查</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box warning">Grade = Major</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box warning">3-Phase 規劃</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">並行 dispatch</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box review">完整 3 層審查</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box critical">Grade = Critical</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box critical">3-Phase + Ray Veto</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">並行 dispatch</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box review">完整 3 層審查</div>
+      </div>
+    </div>
+
+    <!-- Session 2 detail -->
+    <h3>1.2 Klay Telegram Session — 互動流程</h3>
+    <div class="card">
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-box highlight">Rain @ Telegram</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">klayt tmux 接收</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">回覆「收到 ✅」</div>
+        </div>
+        <div class="flow-down">↓</div>
+        <div class="flow-row">
+          <div class="flow-box phase">建立 Kai Task（auto_start: true）</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box phase">輸出 Scope Card</div>
+        </div>
+        <div class="flow-down">↓</div>
+        <div class="flow-row">
+          <div class="flow-box">執行中：edit_message 更新進度</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">heartbeat ⏳ Xm</div>
+        </div>
+        <div class="flow-down">↓</div>
+        <div class="flow-row">
+          <div class="flow-box review">完成：發新訊息（觸發手機通知）</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box review">Kai task mark done</div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <h4>為什麼用 edit_message 而不是多則訊息？</h4>
+      <p>edit_message 在同一則訊息原地更新進度，不刷屏；完成後才發新訊息，這樣手機才會收到推播通知。compact-watch script 偵測到 context 壓縮事件時也會通知 Rain。</p>
+    </div>
+
+    <!-- Session 3 detail -->
+    <h3>1.3 夜班 Session — 固定 + 輪替任務</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>任務類型</th>
+            <th>內容</th>
+            <th>頻率</th>
+            <th>執行者</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>健康檢查</strong></td>
+            <td>HTTP 200 驗證 + 內容驗證（size/關鍵字/日期新鮮度）</td>
+            <td>每晚</td>
+            <td>Noel</td>
+          </tr>
+          <tr>
+            <td><strong>知識管線升級</strong></td>
+            <td>speed-improvements.md 逾期項目 + lessons.md 高頻教訓處理</td>
+            <td>每晚</td>
+            <td>Noel</td>
+          </tr>
+          <tr>
+            <td><strong>LaunchAgent 巡檢</strong></td>
+            <td>Module C 檢查所有 com.rain.* 與 ai.rain.* plist 運行狀況</td>
+            <td>每晚</td>
+            <td>Noel</td>
+          </tr>
+          <tr>
+            <td><strong>網站監控</strong></td>
+            <td>GA4 流量 WoW + GSC 點擊/排名 + 關鍵字偵測</td>
+            <td>每晚</td>
+            <td>Noel + Silo</td>
+          </tr>
+          <tr>
+            <td><strong>專案輪替維護</strong></td>
+            <td>7 天循環，每天一個專案主動維護</td>
+            <td>每晚（輪替）</td>
+            <td>Noel + dispatch</td>
+          </tr>
+          <tr>
+            <td><strong>Tier 3 外部 dispatch</strong></td>
+            <td>Spider / Lynx / Nautilus 爬蟲任務</td>
+            <td>需要時</td>
+            <td>Noel → Spider/Lynx/Nautilus</td>
+          </tr>
+          <tr>
+            <td><strong>晨間報告</strong></td>
+            <td>彙整所有夜班結果 → Email Rain</td>
+            <td>每晚結束</td>
+            <td>Noel → Kai GmailService</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第二章：Scope Card -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch2">
+    <div class="section-header">
+      <span class="section-number">Chapter 02</span>
+      <h2>Scope Card 與任務分級</h2>
+    </div>
+
+    <p>每個任務開工前，Orchestrator 必須輸出 Scope Card。這是任務分級的唯一依據，基於客觀數字，不做主觀判斷。</p>
+
+    <h3>2.1 Scope Card 格式</h3>
+    <pre class="code-block">[SCOPE CARD]
+<span class="key">Task:</span>   <span class="value">一句話描述任務目標</span>
+<span class="key">Files:</span>  <span class="value">逐一列出預估要改的檔案（不確定寫 unknown）</span>
+<span class="key">Layers:</span> <span class="value">Frontend / Backend / DB / Config / Infra</span>
+<span class="key">Hours:</span>  <span class="value">預估完成時間（如 2h / 4h）</span>
+<span class="key">Grade:</span>  <span class="value">Tiny / Standard / Major / Critical</span></pre>
+
+    <h3>2.2 升級規則（客觀數字，自動判斷）</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>條件</th>
+            <th>自動升級到</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Files 列表 <strong>≥ 4 個</strong></td>
+            <td><span class="badge orange">Major</span></td>
+            <td>多檔案修改表示跨模組影響</td>
+          </tr>
+          <tr>
+            <td>Layers <strong>≥ 2 種</strong></td>
+            <td><span class="badge orange">Major</span></td>
+            <td>跨技術棧，需要前後端協調</td>
+          </tr>
+          <tr>
+            <td>Files 含 <code>unknown</code> + Hours &gt; 2h</td>
+            <td><span class="badge orange">Major</span></td>
+            <td>不確定 = 複雜，保守評級</td>
+          </tr>
+          <tr>
+            <td>包含 <strong>auth / payment / migration</strong> 關鍵字</td>
+            <td><span class="badge red">Critical</span></td>
+            <td>高風險操作，需 Ray veto 保護</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.3 任務等級對應行為</h3>
+    <div class="grade-grid">
+      <div class="grade-card tiny">
+        <div class="grade-label">Tiny</div>
+        <p>單檔修改、1-2 行 bugfix、config 調整</p>
+        <p style="margin-top:8px;font-size:13px;"><strong>Klay 直接處理</strong>，無需 dispatch</p>
+      </div>
+      <div class="grade-card standard">
+        <div class="grade-label">Standard</div>
+        <p>一般 CRUD、單一 API endpoint、單一 component</p>
+        <p style="margin-top:8px;font-size:13px;"><strong>Dispatch 單一 agent</strong>，Klay 不實作</p>
+      </div>
+      <div class="grade-card major">
+        <div class="grade-label">Major</div>
+        <p>2+ 檔案 + 跨層修改、新模組</p>
+        <p style="margin-top:8px;font-size:13px;"><strong>強制 3-Phase</strong> + 並行 dispatch</p>
+      </div>
+      <div class="grade-card critical">
+        <div class="grade-label">Critical</div>
+        <p>auth / payment / schema migration / infra</p>
+        <p style="margin-top:8px;font-size:13px;"><strong>3-Phase + Ray veto 簽核</strong></p>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <h4>核心原則：Standard 以上，Klay 只做規劃和 dispatch，不自己 implement</h4>
+      <p>Scope Card 的數字（Files 數量、Layers 數量）決定等級，Klay 不做主觀判斷。違反此規則會在 session review Q4 中被記錄，連續 3 次觸發 Klay audit。</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第三章：3-Phase 流程 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch3">
+    <div class="section-header">
+      <span class="section-number">Chapter 03</span>
+      <h2>大型任務的 3-Phase 流程</h2>
+    </div>
+
+    <p>Major 和 Critical 任務必須經過三個階段規劃，由三個不同的 agent 依序執行，確保商業、技術、風險三個維度都被充分審查。</p>
+
+    <h3>3.1 三個階段總覽</h3>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box phase" style="min-width:180px;">
+          <strong>Phase 1 — Klay</strong><br>
+          <small style="color:var(--light-text)">Claude Opus · 商業規劃</small>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase" style="min-width:180px;">
+          <strong>Phase 2 — Scout</strong><br>
+          <small style="color:var(--light-text)">Claude Sonnet · 系統架構</small>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase" style="min-width:180px;">
+          <strong>Phase 3 — Ray</strong><br>
+          <small style="color:var(--light-text)">Codex CLI · 風險審查</small>
+        </div>
+      </div>
+      <div class="flow-down">↓</div>
+      <div class="flow-row">
+        <div class="flow-box highlight">並行 Dispatch 實作</div>
+        <div class="flow-arrow">（Max 後端 + John 前端，各自 git worktree）</div>
+      </div>
+    </div>
+
+    <h3>3.2 各 Phase 詳細說明</h3>
+    <div class="phase-timeline">
+      <div class="phase-item active">
+        <div class="meta">Phase 1 · Claude Opus · Klay（CEO）</div>
+        <h4>商業規劃層</h4>
+        <p style="font-size:14px;color:var(--mid-text);">確立任務的商業目標、範圍邊界和成功指標。Klay 在這個階段做決策，之後不再干預實作。</p>
+        <div class="phase-output">
+          輸出：① 專案目標（一句話）② 約束條件（技術/時間/預算）③ 成功指標 ④ 範圍（做什麼/不做什麼）⑤ 優先級（P0-P3）⑥ 安全與架構預檢（auth 設計、模組策略、環境變數清單）
+        </div>
+      </div>
+      <div class="phase-item active">
+        <div class="meta">Phase 2 · Claude Sonnet · Scout（系統架構師）</div>
+        <h4>系統架構層</h4>
+        <p style="font-size:14px;color:var(--mid-text);">基於 Phase 1 的商業規格，設計技術實作方案。Scout 只做設計，不自行調整需求範圍。</p>
+        <div class="phase-output">
+          輸出：① System Components 表 ② API Contracts（端點/請求/回應）③ Data Models（DB schema）④ Integration Points（修改點）⑤ Dependencies（外部服務/環境變數）⑥ Implementation Order ⑦ Recommended Skills
+        </div>
+        <p style="font-size:13px;color:var(--light-text);margin-top:8px;font-style:italic;">網站任務同步觸發：Webb（規格包）+ Iris（UI/UX 規格）+ Silo（SEO 結構）</p>
+      </div>
+      <div class="phase-item active">
+        <div class="meta">Phase 3 · Codex CLI · Ray（設計審查官）</div>
+        <h4>風險審查層</h4>
+        <p style="font-size:14px;color:var(--mid-text);">Ray 審查設計的正確性與風險，不審程式碼品質。Critical 任務有一票否決權（veto）。</p>
+        <div class="phase-output">
+          輸出：① Task Definition Check ② Risk Assessment（清單+嚴重度）③ Edge Cases ④ Skeptic Check（「不做這個呢？」「有更簡單替代？」）⑤ Architecture Sign-off（✅/❌/⚠️）⑥ Requirement Traceability（Major/Critical 強制）
+        </div>
+      </div>
+    </div>
+
+    <h3>3.3 並行實作：worktree 隔離</h3>
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">⚙</span>
+        雙人並行 dispatch（符合以下任一條件自動升級）
+      </div>
+      <div class="tbl-wrap" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>觸發條件</th>
+              <th>主力</th>
+              <th>配對</th>
+              <th>分工</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>複雜後端（5+ 檔案）</td>
+              <td><strong>Max</strong>（架構/邏輯）</td>
+              <td>Rex（CRUD/API）</td>
+              <td>Max 做核心，Rex 做周邊 endpoint</td>
+            </tr>
+            <tr>
+              <td>前端重度（3+ 前端檔）</td>
+              <td><strong>John</strong>（邏輯/狀態）</td>
+              <td>Iris（CSS/RWD）</td>
+              <td>John 做功能，Iris 做 UI 層</td>
+            </tr>
+            <tr>
+              <td>全端功能（前後端同時）</td>
+              <td><strong>Max</strong>（後端）</td>
+              <td>John（前端）</td>
+              <td>各自在獨立 worktree，最後 merge</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:13px;color:var(--light-text);margin-top:12px;">⚠️ 兩個 subagent 必須修改不同檔案才能並行，否則退回單人順序執行</p>
+    </div>
+
+    <h3>3.4 衝突裁決規則</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>衝突類型</th>
+            <th>最終決定權</th>
+            <th>例子</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>產品方向 / 商業決策</td>
+            <td><strong>Klay</strong></td>
+            <td>做不做某功能、MVP 範圍、優先順序</td>
+          </tr>
+          <tr>
+            <td>技術實作方案</td>
+            <td><strong>Scout</strong></td>
+            <td>API 怎麼切、service boundary、DB schema</td>
+          </tr>
+          <tr>
+            <td>安全 / 穩定 / 回滾風險</td>
+            <td><strong>Ray（有 veto 權）</strong></td>
+            <td>auth、payment、migration、production incident risk</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第四章：3 層審查 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch4">
+    <div class="section-header">
+      <span class="section-number">Chapter 04</span>
+      <h2>3 層審查流程</h2>
+    </div>
+
+    <p>所有 Standard 以上的任務，在實作完成後必須通過三層審查才能部署。三層各司其職，不重疊。</p>
+
+    <div class="layer-stack">
+      <div class="layer-item">
+        <div class="layer-num">L1</div>
+        <div class="layer-body">
+          <h4>Quill — 程式碼審查（Code Review）</h4>
+          <p>審查 PR/diff、規格合規性、可讀性、DRY 原則、測試缺口。Standard 任務做 Lightweight review，Major/Critical 做 Full review。<br><strong>Quill 不做：</strong>執行 lint/test、架構決策、veto。</p>
+          <div style="margin-top:8px;">
+            <span class="badge blue">Standard → Lightweight</span>
+            <span class="badge orange">Major → Full</span>
+            <span class="badge red">Critical → Full</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L2</div>
+        <div class="layer-body">
+          <h4>Forge — CI Gate（持續整合驗證）</h4>
+          <p>執行 lint / typecheck / unit test / build / preview deploy。所有部署前必過。Major 以上需額外提供 Known Issues 清單和依賴變動清單；Critical 需 Rollback plan + Smoke test result。<br><strong>Forge 不做：</strong>程式碼品質審查、架構決策。</p>
+          <div style="margin-top:8px;">
+            <span class="badge green">所有部署前強制</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">L3</div>
+        <div class="layer-body">
+          <h4>Ray — 設計審查（Pre-Implementation，Phase 3）</h4>
+          <p>審查任務定義正確性、方案架構風險、邊界情況。Critical 任務有一票否決權。Ray 在<strong>實作前</strong>（Phase 3）執行審查，不在事後審程式碼。<br><strong>Ray 不做：</strong>lint/typecheck、PR diff review、命名可讀性。</p>
+          <div style="margin-top:8px;">
+            <span class="badge orange">Major → Full 審查</span>
+            <span class="badge red">Critical → Full + Veto 權</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num auto">自動</div>
+        <div class="layer-body">
+          <h4>Sentinel — git hook 密鑰掃描</h4>
+          <p>所有 commit 自動執行，掃描 20 種 secret pattern + 15 種敏感檔名。警報後不可跳過，即使 Quill/Forge/Ray 已通過。</p>
+          <div style="margin-top:8px;">
+            <span class="badge green">所有 commit 自動</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num manual">手動</div>
+        <div class="layer-body">
+          <h4>Probe + Echo — UI 驗收（Chrome MCP）</h4>
+          <p>桌機（1280×900）+ 手機（390×844）UI 驗收。Forge CI 偵測到 payment/auth/RWD/3+ 前端檔案變更時標記 <code>needs-ui-test</code>，由 Klay 決定是否觸發。每日上限 3 次。</p>
+          <div style="margin-top:8px;">
+            <span class="badge gray">Klay 判斷後手動觸發</span>
+          </div>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num advisory">顧問</div>
+        <div class="layer-body">
+          <h4>Codex co-review — Advisory Pass（2026-03-21 新增）</h4>
+          <p>Major/Critical 任務在 Quill Full review 完成後，自動追加 Codex CLI advisory pass。結果僅供參考，不阻擋 pipeline。Tiny/Standard 豁免。</p>
+          <div style="margin-top:8px;">
+            <span class="badge orange">Major/Critical 自動</span>
+            <span class="badge gray">結果不阻擋 pipeline</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>4.1 審查矩陣（任務等級 × 審查層）</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>任務等級</th>
+            <th>Sentinel</th>
+            <th>Quill (L1)</th>
+            <th>Forge (L2)</th>
+            <th>Ray (L3)</th>
+            <th>Probe+Echo</th>
+            <th>Codex Advisory</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge green">Tiny</span></td>
+            <td>✅ 自動</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+          </tr>
+          <tr>
+            <td><span class="badge blue">Standard</span></td>
+            <td>✅ 自動</td>
+            <td>✅ Lightweight</td>
+            <td>✅</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+          </tr>
+          <tr>
+            <td><span class="badge orange">Major</span></td>
+            <td>✅ 自動</td>
+            <td>✅ Full</td>
+            <td>✅</td>
+            <td>✅ Full</td>
+            <td>手動觸發</td>
+            <td>✅ Advisory</td>
+          </tr>
+          <tr>
+            <td><span class="badge red">Critical</span></td>
+            <td>✅ 自動</td>
+            <td>✅ Full</td>
+            <td>✅</td>
+            <td>✅ Full+Veto</td>
+            <td>手動觸發</td>
+            <td>✅ Advisory</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第五章：Codex CLI -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch5">
+    <div class="section-header">
+      <span class="section-number">Chapter 05</span>
+      <h2>Codex CLI 在團隊的應用</h2>
+    </div>
+
+    <p>Codex CLI 在 Rain AI 團隊中承擔「審查端」的核心角色。設計的核心思想是 <strong>maker-checker 分離</strong>——不同模型互相制衡，避免同一個模型既設計又審查的盲點。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card maker">
+        <h4 style="color:var(--blue);">Maker 端（設計與實作）</h4>
+        <ul>
+          <li>Klay（Claude Opus）—— Phase 1 商業規劃</li>
+          <li>Scout（Claude Sonnet）—— Phase 2 架構設計</li>
+          <li>Max（Claude Opus）—— 後端實作</li>
+          <li>John（Claude Sonnet）—— 前端實作</li>
+          <li>Rex / Iris —— API / UI 實作</li>
+        </ul>
+      </div>
+      <div class="compare-card checker">
+        <h4 style="color:var(--red);">Checker 端（審查與制衡）</h4>
+        <ul>
+          <li><strong>Ray（Codex CLI）</strong> —— Phase 3 設計審查</li>
+          <li><strong>Ray（Codex CLI）</strong> —— veto 否決權</li>
+          <li>Codex Advisory Pass —— 事後程式碼 advisory</li>
+          <li>Quill —— 程式碼品質（Claude Sonnet）</li>
+          <li>Sentinel —— 密鑰掃描（git hook）</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>5.1 Ray：Codex CLI 的核心應用</h3>
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">R</span>
+        Ray — 方案架構審查官（Codex Plus CLI）
+      </div>
+      <p style="font-size:14px;color:var(--mid-text);">Ray 整個 agent 跑在 Codex Plus CLI 上。所有 Major/Critical 任務的 Phase 3 設計審查、架構風險評估、開工簽核都是 Codex 執行。</p>
+      <div style="margin-top:16px;">
+        <h4>Ray 做什麼</h4>
+        <ul style="color:var(--mid-text);font-size:14px;padding-left:20px;">
+          <li style="margin-bottom:6px;">任務定義正確性（需求有沒有漏？目標是否明確？）</li>
+          <li style="margin-bottom:6px;">方案架構風險（設計是否合理？邊界情況？）</li>
+          <li style="margin-bottom:6px;">高風險設計偵測（是否應升為 Critical？）</li>
+          <li style="margin-bottom:6px;">Skeptic Check 魔鬼代言人（主動挑戰假設）</li>
+          <li style="margin-bottom:6px;">開工簽核（✅ 通過 / ❌ 打回 / ⚠️ 有條件通過）</li>
+          <li>auth/payment/migration 的一票否決權（veto）</li>
+        </ul>
+        <h4 style="margin-top:16px;">Ray 不做什麼</h4>
+        <ul style="color:var(--light-text);font-size:14px;padding-left:20px;">
+          <li style="margin-bottom:4px;">程式碼品質（命名、可讀性 → Quill）</li>
+          <li style="margin-bottom:4px;">lint / typecheck / pytest 執行（→ Forge）</li>
+          <li style="margin-bottom:4px;">密鑰掃描（→ Sentinel hook）</li>
+          <li>日常 post-implementation code review（→ Quill）</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>5.2 Codex co-review：Advisory Pass（2026-03-21 新增）</h3>
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">A</span>
+        Codex Advisory — 事後程式碼顧問審查
+      </div>
+      <div class="flow" style="margin:12px 0;">
+        <div class="flow-row">
+          <div class="flow-box review">Quill Full Review 完成</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box phase">自動觸發 Codex Advisory Pass</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">結果標記為「僅供參考」</div>
+        </div>
+        <div class="flow-down">↓</div>
+        <div class="flow-row">
+          <div class="flow-box review">不阻擋 pipeline</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">設計衝突 → Ray 決定</div>
+          <div class="flow-arrow">/</div>
+          <div class="flow-box">程式碼衝突 → Quill 決定</div>
+        </div>
+      </div>
+      <p style="font-size:14px;color:var(--mid-text);margin-bottom:0;">Tiny/Standard 任務豁免，不觸發 Advisory Pass。</p>
+    </div>
+
+    <h3>5.3 為什麼選 Codex 作為審查端？</h3>
+    <div class="highlight-box">
+      <h4>Maker-Checker 分離原則</h4>
+      <p>Claude（Klay/Scout 設計，Sonnet/Opus 實作）和 Codex（Ray 審查）是不同的模型，各有不同的訓練偏差和盲點。讓設計者和審查者使用不同模型，可以有效避免「自我確認偏誤」—— 即同一個模型對自己的設計過於寬容的問題。</p>
+      <p style="margin-bottom:0;margin-top:12px;font-size:14px;color:var(--light-text);">衝突時最終決定權：設計問題 → Ray（Codex），程式碼問題 → Quill（Claude Sonnet）</p>
+    </div>
+
+    <h3>5.4 Codex 應用全覽</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>應用場景</th>
+            <th>角色</th>
+            <th>觸發條件</th>
+            <th>結果是否阻擋</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ray Phase 3 設計審查</strong></td>
+            <td>Ray（Codex Plus）</td>
+            <td>Major/Critical 任務開工前（Phase 3）</td>
+            <td>✅ 會（可 veto）</td>
+          </tr>
+          <tr>
+            <td><strong>Codex co-review Advisory</strong></td>
+            <td>Codex CLI（anonymous）</td>
+            <td>Quill Full Review 完成後（事後）</td>
+            <td>❌ 不會（僅參考）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 第六章：Hook 自動化系統 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="ch6">
+    <div class="section-header">
+      <span class="section-number">Chapter 06</span>
+      <h2>Hook 自動化系統</h2>
+    </div>
+
+    <p>Hook 是 Claude Code 的事件驅動自動化機制，掛載在 <code style="font-family:'Courier New',monospace;background:var(--accent-light);padding:2px 6px;border-radius:3px;font-size:13px;">~/.claude/settings.json</code>。共四個事件層，涵蓋 Session 全生命週期的自動化。</p>
+
+    <h3>6.1 SessionStart — Session 開始時</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Hook</th>
+            <th>作用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>session-start.sh</strong></td>
+            <td>讀取上次 handoff 檔案，載入前次工作 context</td>
+          </tr>
+          <tr>
+            <td><strong>session-start-handoff.sh</strong></td>
+            <td>檢查是否有未完成任務需要接續</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.2 PreToolUse — 每次工具呼叫前</h3>
+    <p>PreToolUse hook 在工具執行前攔截，可回傳 non-zero exit code 阻止執行。</p>
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>Hook</th>
+            <th>觸發工具</th>
+            <th>作用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>scope-card-gate.sh</strong></td>
+            <td>Read / Bash / Edit / Write / Glob / Grep</td>
+            <td>開工前確認有輸出 Scope Card，否則攔截</td>
+          </tr>
+          <tr>
+            <td><strong>dispatch-gate.sh</strong></td>
+            <td>Edit / Write</td>
+            <td>確認 Standard+ 任務有 dispatch，不可 Klay 自己做</td>
+          </tr>
+          <tr>
+            <td><strong>block-random-md.sh</strong></td>
+            <td>Write</td>
+            <td>禁止隨意建立 .md 文件（防止亂建文件）</td>
+          </tr>
+          <tr>
+            <td><strong>config-protection.sh</strong></td>
+            <td>Edit / Write</td>
+            <td>保護設定檔不被誤改</td>
+          </tr>
+          <tr>
+            <td><strong>deck-quality-gate.sh</strong></td>
+            <td>Write</td>
+            <td>阻擋低品質 Deck HTML（必須由 Nova 製作）</td>
+          </tr>
+          <tr>
+            <td><strong>scan-secrets.sh</strong></td>
+            <td>Bash</td>
+            <td>每次執行 Bash 前掃描密鑰洩漏風險</td>
+          </tr>
+          <tr>
+            <td><strong>block-dangerous.sh</strong></td>
+            <td>Bash</td>
+            <td>攔截危險指令（rm -rf / force push 等）</td>
+          </tr>
+          <tr>
+            <td><strong>warn-push.sh</strong></td>
+            <td>Bash</td>
+            <td>git push 前警告確認</td>
+          </tr>
+          <tr>
+            <td><strong>heartbeat-auto.sh</strong></td>
+            <td>全部工具</td>
+            <td>記錄 agent 活動心跳</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.3 PostToolUse — 每次工具呼叫後</h3>
+    <p>PostToolUse hook 在工具執行後觸發。async hook 背景執行，不影響主流程。</p>
+    <div class="tbl-wrap">
+      <table style="min-width:750px;">
+        <thead>
+          <tr>
+            <th>Hook</th>
+            <th>觸發工具</th>
+            <th>模式</th>
+            <th>作用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>activity-logger.sh</strong></td>
+            <td>全部</td>
+            <td><span class="badge gray">async</span></td>
+            <td>記錄所有工具使用到 activity log</td>
+          </tr>
+          <tr>
+            <td><strong>auto-format-v2.sh</strong></td>
+            <td>Edit / Write</td>
+            <td><span class="badge gray">async</span></td>
+            <td>自動格式化修改過的程式碼</td>
+          </tr>
+          <tr>
+            <td><strong>warn-console-log.sh</strong></td>
+            <td>Edit / Write</td>
+            <td><span class="badge gray">async</span></td>
+            <td>偵測 console.log 未移除，發出警告</td>
+          </tr>
+          <tr>
+            <td><strong>compact-reminder.sh</strong></td>
+            <td>Edit / Write</td>
+            <td><span class="badge gray">async</span></td>
+            <td>context 接近上限時提醒 compact</td>
+          </tr>
+          <tr>
+            <td><strong>dispatch-reminder.sh</strong></td>
+            <td>Edit / Write</td>
+            <td><span class="badge gray">async</span></td>
+            <td>修改 3+ 檔案時提醒 dispatch（3 檔 ⚠️ 5 檔 🔴）</td>
+          </tr>
+          <tr>
+            <td><strong>typecheck-debounce.sh</strong></td>
+            <td>Edit</td>
+            <td><span class="badge gray">async</span></td>
+            <td>編輯後自動跑 TypeScript typecheck（防抖）</td>
+          </tr>
+          <tr>
+            <td><strong>log-pr-url.sh</strong></td>
+            <td>Bash</td>
+            <td><span class="badge gray">async</span></td>
+            <td>記錄 PR URL 到日誌</td>
+          </tr>
+          <tr>
+            <td><strong>error-capture.sh</strong></td>
+            <td>Bash</td>
+            <td><span class="badge gray">async</span></td>
+            <td>捕捉錯誤寫入 lessons.md（自我改進）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.4 Stop — Session 結束時</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:650px;">
+        <thead>
+          <tr>
+            <th>Hook</th>
+            <th>模式</th>
+            <th>作用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>require-session-review.sh</strong></td>
+            <td><span class="badge red">同步（阻擋）</span></td>
+            <td>強制五問 Session Review，不完整就無法結束</td>
+          </tr>
+          <tr>
+            <td><strong>verify-before-done.sh</strong></td>
+            <td><span class="badge gray">async</span></td>
+            <td>確認宣稱「完成」前已執行驗證</td>
+          </tr>
+          <tr>
+            <td><strong>notify-done.sh</strong></td>
+            <td><span class="badge gray">async</span></td>
+            <td>發送完成通知</td>
+          </tr>
+          <tr>
+            <td><strong>save-session-log.sh</strong></td>
+            <td><span class="badge gray">async</span></td>
+            <td>儲存本次 session 完整記錄</td>
+          </tr>
+          <tr>
+            <td><strong>auto-handoff.sh</strong></td>
+            <td><span class="badge gray">async</span></td>
+            <td>自動寫入 handoff 檔，供下次 session 接續</td>
+          </tr>
+          <tr>
+            <td><strong>session-activity-tracker.sh</strong></td>
+            <td><span class="badge gray">async</span></td>
+            <td>統計本次 session 活動數據</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.5 關鍵設計原則</h3>
+    <div class="highlight-box">
+      <h4>同步 vs 非同步 Hook</h4>
+      <p><strong>同步 Hook</strong>（無 async 標記）→ 可攔截行為。回傳 non-zero exit code 即阻止後續執行，是真正的「護欄」機制。</p>
+      <p style="margin-top:10px;"><strong>非同步 Hook</strong>（async: true）→ 背景執行，不影響主流程。用於記錄、通知、格式化等不需阻擋的副作用。</p>
+      <p style="margin-top:10px;margin-bottom:0;font-size:14px;color:var(--light-text);"><code style="font-family:'Courier New',monospace;">require-session-review.sh</code> 是唯一掛在 Stop 的<strong>同步阻擋</strong> Hook，確保每個 session 都留下五問回顧記錄，形成強制的品質閉環。</p>
+    </div>
+
+    <div class="layer-stack">
+      <div class="layer-item">
+        <div class="layer-num auto">S</div>
+        <div class="layer-body">
+          <h4>SessionStart（2 hooks）</h4>
+          <p>載入前次 context，檢查未完成任務。確保 session 有完整的工作記憶接續。</p>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:var(--red);">P</div>
+        <div class="layer-body">
+          <h4>PreToolUse（9 hooks）— 安全護欄</h4>
+          <p>Scope Card 強制、dispatch 合規、危險指令攔截、密鑰掃描、文件建立管控。任何 hook 回傳 non-zero → 工具呼叫被取消。</p>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num manual">P</div>
+        <div class="layer-body">
+          <h4>PostToolUse（8 hooks）— 品質自動化</h4>
+          <p>格式化、型別檢查、dispatch 提醒、錯誤捕捉、PR URL 記錄。全部非同步執行，不影響主流程速度。</p>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num advisory">E</div>
+        <div class="layer-body">
+          <h4>Stop（6 hooks）— Session 閉環</h4>
+          <p>Session Review 強制（同步阻擋）、驗證確認、通知發送、日誌儲存、handoff 寫入、活動統計。確保每個 session 有完整生命週期記錄。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Summary -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="summary">
+    <div class="section-header">
+      <span class="section-number">Summary</span>
+      <h2>完整流程一覽</h2>
+    </div>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box highlight">Rain 下指令</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase">Scope Card 評估</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Grade 判定</div>
+      </div>
+      <div class="flow-down">↓</div>
+      <div class="flow-row">
+        <div class="flow-box review">Tiny → Klay 直接做</div>
+        <div style="width:24px;"></div>
+        <div class="flow-box">Standard → 單 Agent dispatch</div>
+        <div style="width:24px;"></div>
+        <div class="flow-box warning">Major/Critical → 3-Phase</div>
+      </div>
+      <div class="flow-down">↓（Major/Critical）</div>
+      <div class="flow-row">
+        <div class="flow-box phase">Phase 1: Klay 商業規劃</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase">Phase 2: Scout 架構設計</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box phase">Phase 3: Ray 風險審查（Codex）</div>
+      </div>
+      <div class="flow-down">↓（審查通過）</div>
+      <div class="flow-row">
+        <div class="flow-box">並行 dispatch（Max + John）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">各自 git worktree 實作</div>
+      </div>
+      <div class="flow-down">↓</div>
+      <div class="flow-row">
+        <div class="flow-box review">L1: Quill Code Review</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box review">L2: Forge CI Gate</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box review">Codex Advisory（Major+）</div>
+      </div>
+      <div class="flow-down">↓</div>
+      <div class="flow-row">
+        <div class="flow-box highlight">部署上線 ✅</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Kai Task Mark Done</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Session Review 五問</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>製作：<span>Nova</span>｜Rain AI 團隊文件系統</p>
+  <p style="margin-top:6px;">日期：<span>2026-03-21</span>｜版本 v1.1</p>
+</footer>
+
+</body>
+</html>
