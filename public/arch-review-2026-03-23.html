@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — 架構週審 2026-03-23</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --accent: #c8860a;
+    --accent2: #1a6b3c;
+    --warn: #c0392b;
+    --text: #2c2c2c;
+    --muted: #6b6b6b;
+    --border: #e2e0da;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', 'Noto Serif TC', serif; line-height: 1.7; }
+  .hero { background: #1c1c1e; color: #fff; padding: 48px 32px; text-align: center; }
+  .hero h1 { font-size: 2rem; font-weight: 700; letter-spacing: 0.04em; }
+  .hero .sub { color: #aaa; margin-top: 8px; font-size: 0.95rem; }
+  .tag { display: inline-block; background: var(--accent); color: #fff; font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; margin-top: 12px; letter-spacing: 0.05em; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+  .section { margin-bottom: 36px; }
+  .section-title { font-size: 1.2rem; font-weight: 700; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 0.92rem; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; margin-left: 8px; }
+  .badge-red { background: #fde8e8; color: #c0392b; }
+  .badge-yellow { background: #fef9e7; color: #c0921a; }
+  .badge-green { background: #e8f8ef; color: #1a6b3c; }
+  .badge-grey { background: #f0f0f0; color: #6b6b6b; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .metric { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; text-align: center; }
+  .metric .val { font-size: 2.2rem; font-weight: 700; }
+  .metric .lbl { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+  .metric.warn .val { color: var(--warn); }
+  .metric.ok .val { color: var(--accent2); }
+  .metric.caution .val { color: var(--accent); }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: 0.88rem; }
+  th { background: #f0ede8; text-align: left; padding: 10px 12px; font-weight: 700; color: var(--text); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .rec { background: #fff8ed; border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 0 8px 8px 0; margin-bottom: 12px; }
+  .rec strong { color: var(--accent); }
+  .red { color: var(--warn); }
+  .green { color: var(--accent2); }
+  .priority { font-weight: 700; font-size: 0.8rem; }
+  .p0 { color: #c0392b; }
+  .p1 { color: #c0921a; }
+  .p2 { color: #1a6b3c; }
+  footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 20px; border-top: 1px solid var(--border); }
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.5rem; }
+    .metric .val { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Rain AI Team — 架構週審</h1>
+  <div class="sub">Ray 設計審查觀點 | 每週一 | 由 Klay 夜班代執行</div>
+  <div class="tag">2026-03-23 &nbsp;·&nbsp; Night Shift</div>
+</div>
+
+<div class="container">
+
+  <!-- 本週關鍵指標 -->
+  <div class="section">
+    <div class="section-title">📊 本週關鍵指標</div>
+    <div class="metric-grid">
+      <div class="metric warn">
+        <div class="val">10.7%</div>
+        <div class="lbl">Dispatch Rate（目標 ≥70%）</div>
+      </div>
+      <div class="metric warn">
+        <div class="val">184</div>
+        <div class="lbl">Klay 待辦積壓（主要為 SM-T7 測試）</div>
+      </div>
+      <div class="metric ok">
+        <div class="val">85</div>
+        <div class="lbl">本週成功任務</div>
+      </div>
+      <div class="metric caution">
+        <div class="val">19</div>
+        <div class="lbl">Dispatch 到非 Klay Agent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent 活躍度分析 -->
+  <div class="section">
+    <div class="section-title">👥 Agent 活躍度分析（近 7 天 Task Board）</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Agent</th><th>角色</th><th>任務數</th><th>成功數</th><th>狀態</th><th>備注</th>
+        </tr>
+        <tr>
+          <td><strong>Klay</strong></td><td>CEO / Opus</td><td>59+</td><td>75</td>
+          <td><span class="badge badge-yellow">⚠ 過載</span></td>
+          <td>大量 SM-T7 測試任務堆積（184 pending），dispatch 率嚴重偏低</td>
+        </tr>
+        <tr>
+          <td><strong>Rex</strong></td><td>Backend API</td><td>11</td><td>5</td>
+          <td><span class="badge badge-green">✓ 活躍</span></td>
+          <td>正常，TaskOps 相關 API 任務</td>
+        </tr>
+        <tr>
+          <td><strong>Noel</strong></td><td>夜班主力</td><td>5</td><td>0(n/a)</td>
+          <td><span class="badge badge-yellow">⚠ 低量</span></td>
+          <td>夜班排程任務少，考慮主動增加夜班工作量</td>
+        </tr>
+        <tr>
+          <td><strong>Max</strong></td><td>Backend / Opus</td><td>1</td><td>1</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>Lazy Agent 觸發（連續 3d+ 無任務）— 建議主動分派後端維護任務</td>
+        </tr>
+        <tr>
+          <td><strong>Scout</strong></td><td>Phase 2 Architect</td><td>1</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>幾乎無 Phase 2 任務 — 代表 Major+ 任務未走完整 3-Phase 流程</td>
+        </tr>
+        <tr>
+          <td><strong>John</strong></td><td>Frontend</td><td>1</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>前端任務全由 Klay 自行完成，未 dispatch</td>
+        </tr>
+        <tr>
+          <td><strong>Iris</strong></td><td>UI/UX</td><td>0</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>無任何任務紀錄。網站設計任務需路由到 Iris</td>
+        </tr>
+        <tr>
+          <td><strong>Forge</strong></td><td>CI/CD Gate</td><td>0</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>無部署任務。代表 Layer 2 CI Gate 未被執行</td>
+        </tr>
+        <tr>
+          <td><strong>Quill</strong></td><td>Code Review</td><td>0</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>Layer 1 Code Review 完全缺席 — 所有 Standard+ 任務應觸發 Quill</td>
+        </tr>
+        <tr>
+          <td><strong>Ray</strong></td><td>Design Review / Codex</td><td>0</td><td>0</td>
+          <td><span class="badge badge-grey">— N/A</span></td>
+          <td>Ray 只做 Major/Critical Phase 3。本週無 Major+ 走完整流程，故 0 任務正常</td>
+        </tr>
+        <tr>
+          <td><strong>Webb / Silo / Keeper</strong></td><td>Website Dept</td><td>0</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>Website Dept 整部門閒置。若有網站任務需強制路由</td>
+        </tr>
+        <tr>
+          <td><strong>Nova</strong></td><td>Deck / Docs</td><td>0</td><td>0</td>
+          <td><span class="badge badge-red">● 閒置</span></td>
+          <td>報告應強制 dispatch Nova，目前 Klay 自行做報告（違反規則）</td>
+        </tr>
+        <tr>
+          <td><strong>OM</strong></td><td>Operations Manager（新）</td><td>0</td><td>0</td>
+          <td><span class="badge badge-yellow">⚠ 未啟用</span></td>
+          <td>2026-03-23 剛加入團隊，任務協調角色尚未落地</td>
+        </tr>
+        <tr>
+          <td><strong>GooayeAI</strong></td><td>Podcast Intel Daemon</td><td>—</td><td>—</td>
+          <td><span class="badge badge-green">✓ Daemon</span></td>
+          <td>以 daemon 形式運行，不走 Task Board</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 核心問題 -->
+  <div class="section">
+    <div class="section-title">🔍 識別問題 — 5 大關鍵缺口</div>
+
+    <div class="card">
+      <h3>⚠️ P0 — Dispatch Rate 嚴重偏低（10.7% vs 目標 70%）</h3>
+      <p>Week 3+ 規定 Major+ 任務 100% 強制 dispatch，Standard+ ≥70%。實際僅 10.7%。Klay solo 完成了 159 個任務。根因：SM-T7 TaskOps 測試任務大量建在 klay 名下（184 個 pending），這些都是 Klay 自己的測試工作，但也拉低整體 dispatch 數據。剔除 SM-T7 後，實際業務 dispatch 率同樣偏低。</p>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ P0 — 3-Phase 審查流程幾乎未被執行</h3>
+      <p>Scout = 1 任務，Ray Phase 3 = 0 任務，Quill = 0 任務，Forge = 0 任務。代表本週所有任務（包括 TaskOps 這個明確 Major+ 的項目）都未走完整 3-Phase 流程。失敗的 TaskOps Phase 2-4 任務正是因為缺少 Scout Phase 2 架構設計和 Ray Phase 3 審核就直接實作，導致 scope 過大無法完成。</p>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ P1 — SM-T7 測試任務積壓（184 pending）</h3>
+      <p>看板上 184 個 pending 任務均為 [SM-T7] 前綴的 TaskOps 狀態機測試任務，全部 assigned to klay。這些是開發過程中建立的測試任務，應在 TaskOps 開發完成後清理或設定 tag 區分。目前嚴重污染 Task Board，影響真實任務能見度。</p>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ P1 — Nova 報告規則違反</h3>
+      <p>CLAUDE.md 明定「禁止主 Agent 自己做報告 — 有 Nova 就必須 dispatch 做報告，無例外」。本次週審夜班因 Nova = 0 任務且 Deck 強制規定，由 Klay 代替執行。這是豁免情況，但平日應嚴格遵守。</p>
+    </div>
+
+    <div class="card">
+      <h3>ℹ️ P2 — OM（Operations Manager）角色尚未落地</h3>
+      <p>OM 於 2026-03-23 正式加入，定義：每日 09:00 作戰室摘要、RUNNING > 2h escalate、識別閒置 Agent。但目前無任何任務紀錄，daily summary 機制未建立。建議 Klay 建立 OM 的 LaunchAgent 排程任務。</p>
+    </div>
+  </div>
+
+  <!-- 角色重疊 / 缺口分析 -->
+  <div class="section">
+    <div class="section-title">🔄 角色重疊與缺口</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>領域</th><th>現況</th><th>問題類型</th><th>處理建議</th>
+        </tr>
+        <tr>
+          <td>Code Review</td>
+          <td>Quill（應做）vs Klay（實際做）</td>
+          <td>缺口</td>
+          <td>Standard+ 完成後，Klay 必須 dispatch /review-loop 觸發 Quill</td>
+        </tr>
+        <tr>
+          <td>前端實作</td>
+          <td>John + Iris（定義）vs Klay（實際）</td>
+          <td>缺口</td>
+          <td>任何前端任務 → dispatch John（邏輯）+ Iris（UI）</td>
+        </tr>
+        <tr>
+          <td>架構設計</td>
+          <td>Scout（Phase 2）vs Klay 跳過</td>
+          <td>缺口</td>
+          <td>Major+ 任務必須先 dispatch Scout Phase 2</td>
+        </tr>
+        <tr>
+          <td>投資研究</td>
+          <td>Investment Manager + MarketIntel + NewsCollector</td>
+          <td>新部門 Phase A</td>
+          <td>GooayeAI 已穩定運行；Phase B（Fundamental/Technical Analyst）待 Phase A 驗證後啟動</td>
+        </tr>
+        <tr>
+          <td>夜班協調</td>
+          <td>Noel（主力）vs 任務量偏低</td>
+          <td>效率缺口</td>
+          <td>OM 應識別閒置 Agent 並通知 Noel，增加夜班任務密度</td>
+        </tr>
+        <tr>
+          <td>外部爬蟲</td>
+          <td>Spider / Lynx / Nautilus 三層</td>
+          <td>無重疊，架構清晰</td>
+          <td>維持現狀；注意 Nautilus 在 OpenClaw 需要保持在線</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 具體改善建議 -->
+  <div class="section">
+    <div class="section-title">💡 具體改善建議（本週執行優先）</div>
+
+    <div class="rec">
+      <strong>REC-1 [P0]</strong>：清理 SM-T7 積壓任務 — 對 184 個 SM-T7 pending 任務執行批量 cancel 或移至 archive tag，恢復 Task Board 能見度。由 Klay + Max 執行。
+    </div>
+
+    <div class="rec">
+      <strong>REC-2 [P0]</strong>：Dispatch Rate 恢復計畫 — 下週起，每個 Standard+ 任務（實作類）必須先確認 assigned_to 非 klay 才可開始。Klay 只做 Phase 1 規劃。建立 hook 或 pre-flight check。
+    </div>
+
+    <div class="rec">
+      <strong>REC-3 [P1]</strong>：啟動 OM 日常機制 — 建立 LaunchAgent `ai.rain.om-daily-brief.plist`，每日 09:00 執行 OM summary（讀取 Kai tasks API → 摘要 RUNNING/BLOCKED 任務 → Discord 通知 Klay）。
+    </div>
+
+    <div class="rec">
+      <strong>REC-4 [P1]</strong>：Lazy Agent 主動分派 — 對 Max、John、Iris（連續 3d 無任務）各分派一個主動維護任務：Max → Kai Backend health check + test coverage；John → TheOrder 前端 Bug triage；Iris → Website design system 文件更新。
+    </div>
+
+    <div class="rec">
+      <strong>REC-5 [P2]</strong>：Investment Dept Phase A 驗收 — GooayeAI bot 穩定運行中（✓），Investment Manager + MarketIntel + NewsCollector 已定義 persona。建議本週由 Klay 指派一個測試性研究任務（單一股票分析），驗證 Data Unit → Investment Manager 的輸出格式（Agent Output Schema v1.0 合規性）。
+    </div>
+
+    <div class="rec">
+      <strong>REC-6 [P2]</strong>：TaskOps 失敗任務後驗 — 兩個 Failed TaskOps 任務（Phase 2-4 大型整合）的根因是 scope 未分拆、無 3-Phase 設計就直接實作。建議拆分為 5 個 Standard 子任務，各 dispatch 對應 Agent（Rex→API endpoints, Max→DB, John→Frontend view）。
+    </div>
+  </div>
+
+  <!-- 整體評估 -->
+  <div class="section">
+    <div class="section-title">📋 整體評估</div>
+    <div class="card">
+      <h3>架構健康分數：<span class="caution">55 / 100</span> &nbsp;<span class="badge badge-yellow">需改善</span></h3>
+      <p style="margin-top:10px">
+        <strong>強項</strong>：核心 Klay + Rex + Noel 流程穩定；GooayeAI daemon 運行正常；TaskOps 基礎架構（6-state machine）已落地；Investment Dept Phase A 正式成立；角色定義清晰（Ray vs Quill 分工已明確）。
+      </p>
+      <p style="margin-top:10px">
+        <strong>弱項</strong>：Dispatch Rate 遠低於目標（10.7% vs 70%）；3-Phase 流程未被執行；大量 Agent 長期閒置（Iris/Forge/Quill/Webb/Nova = 0 任務）；OM 角色尚未落地；SM-T7 任務污染看板。
+      </p>
+      <p style="margin-top:10px">
+        <strong>本週最高優先</strong>：清理 SM-T7 積壓（REC-1）+ 重建 Dispatch 習慣（REC-2）。
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Rain AI Team — Ray 架構週審 | 由 Klay 夜班代執行 | 2026-03-23 | task-25fed7ec
+</footer>
+</body>
+</html>
