@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rain AI Team — 團隊架構週審 2026-03-23</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --cream-dark: #ede9e1;
+      --accent: #d4a96a;
+      --accent-light: #f0dbb8;
+      --text-primary: #2a2520;
+      --text-secondary: #5c5248;
+      --text-muted: #8a7f76;
+      --border: #ddd8cf;
+      --red: #c0392b;
+      --yellow: #d4850a;
+      --green: #2d7d46;
+      --blue: #1a5ea8;
+      --shadow: 0 2px 12px rgba(42,37,32,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── scrollbar ── */
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    /* ── layout ── */
+    .page-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(246,245,241,0.96);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-logo {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      padding: 14px 20px 14px 0;
+      border-right: 1px solid var(--border);
+      margin-right: 4px;
+      letter-spacing: 0.03em;
+    }
+    nav a {
+      display: block;
+      padding: 14px 14px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    nav a:hover { color: var(--accent); }
+
+    /* ── hero ── */
+    .hero {
+      padding: 60px 0 40px;
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: 48px;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .hero-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .hero-meta span { margin-right: 20px; }
+
+    .callout {
+      background: #fff8ee;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ── sections ── */
+    .section {
+      margin-bottom: 56px;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      min-width: 28px;
+    }
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ── kpi cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-label {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+    .kpi-note {
+      font-size: 11px;
+      margin-top: 5px;
+    }
+    .kpi-card.warn .kpi-value { color: #c0392b; }
+    .kpi-card.ok .kpi-value { color: #2d7d46; }
+    .kpi-card.caution .kpi-value { color: #d4850a; }
+
+    /* ── tables ── */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 13.5px;
+    }
+    thead tr {
+      background: var(--cream-dark);
+    }
+    th {
+      text-align: left;
+      padding: 11px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0ece6;
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #fdf9f4; }
+
+    /* ── issue cards ── */
+    .issue-list { display: flex; flex-direction: column; gap: 16px; }
+    .issue-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+      border-left: 5px solid var(--border);
+    }
+    .issue-card.p0 { border-left-color: #c0392b; }
+    .issue-card.p1 { border-left-color: #e74c3c; }
+    .issue-card.p2 { border-left-color: #e67e22; }
+    .issue-card.p3 { border-left-color: #d4850a; }
+    .issue-card.p4 { border-left-color: #2d7d46; }
+
+    .issue-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      letter-spacing: 0.06em;
+    }
+    .issue-card.p0 .issue-badge { background: #fde8e6; color: #c0392b; }
+    .issue-card.p1 .issue-badge { background: #fde8e6; color: #e74c3c; }
+    .issue-card.p2 .issue-badge { background: #fef3e2; color: #d4850a; }
+    .issue-card.p3 .issue-badge { background: #fef3e2; color: #a0620a; }
+    .issue-card.p4 .issue-badge { background: #eaf7ee; color: #2d7d46; }
+
+    .issue-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .issue-row {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 6px 10px;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .issue-row-label {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding-top: 1px;
+    }
+    .issue-row-val { color: var(--text-primary); }
+
+    /* ── score grid ── */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .score-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .score-agent {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .score-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.green { background: #2d7d46; }
+    .dot.yellow { background: #e67e22; }
+    .dot.red { background: #c0392b; }
+    .dot.blue { background: #1a5ea8; }
+    .dot.gray { background: #aaa; }
+
+    /* ── action table ── */
+    .action-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .action-badge.p0 { background: #fde8e6; color: #c0392b; }
+    .action-badge.p1 { background: #fde8e6; color: #e74c3c; }
+    .action-badge.p2 { background: #fef3e2; color: #d4850a; }
+    .action-badge.p3 { background: #fef3e2; color: #a0620a; }
+    .action-badge.p4 { background: #eaf7ee; color: #2d7d46; }
+
+    /* ── summary box ── */
+    .summary-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 30px;
+      box-shadow: var(--shadow);
+    }
+    .summary-box h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 14px;
+      letter-spacing: 0.02em;
+    }
+    .summary-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .summary-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .summary-list li::before {
+      content: "▸";
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── footer ── */
+    .footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── section divider ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--accent-light), transparent);
+      margin: 48px 0;
+    }
+
+    @media (max-width: 600px) {
+      .page-wrap { padding: 0 16px 60px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .score-grid { grid-template-columns: 1fr; }
+      .issue-row { grid-template-columns: 56px 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">Rain AI Team</div>
+    <a href="#summary">摘要</a>
+    <a href="#data">任務數據</a>
+    <a href="#issues">架構問題</a>
+    <a href="#clarity">角色清晰度</a>
+    <a href="#capacity">人力配置</a>
+    <a href="#actions">行動項目</a>
+    <a href="#conclusion">總結</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Hero -->
+  <div class="hero" id="summary">
+    <div class="hero-tag">週架構審查</div>
+    <h1>Rain AI Team<br>團隊架構週審 2026-03-23</h1>
+    <div class="hero-meta">
+      <span>審查日期：2026-03-23</span>
+      <span>審查者：Klay（代 Ray）</span>
+      <span>方法：task board 數據分析 + team.json 審計</span>
+    </div>
+    <div class="callout">
+      核心發現：Dispatch Rate 僅 7%，Klay 承擔 88% 任務 → 團隊效能嚴重低估
+    </div>
+  </div>
+
+  <!-- Section 1: Task Data -->
+  <div class="section" id="data">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>任務板數據（基礎事實）</h2>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">總任務數（非測試）</div>
+        <div class="kpi-value">57</div>
+        <div class="kpi-note" style="color:var(--text-muted);">全部活躍任務</div>
+      </div>
+      <div class="kpi-card warn">
+        <div class="kpi-label">Klay 承擔比例</div>
+        <div class="kpi-value">88%</div>
+        <div class="kpi-note" style="color:#c0392b;">50/57 ⚠️ 過高</div>
+      </div>
+      <div class="kpi-card warn">
+        <div class="kpi-label">Dispatch Rate</div>
+        <div class="kpi-value">~7%</div>
+        <div class="kpi-note" style="color:#c0392b;">❌ 目標 ≥30%</div>
+      </div>
+      <div class="kpi-card caution">
+        <div class="kpi-label">有任務記錄的 Agent</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-note" style="color:#d4850a;">Klay/Noel/John/Scout</div>
+      </div>
+      <div class="kpi-card warn">
+        <div class="kpi-label">零任務 Agent 數</div>
+        <div class="kpi-value">24+</div>
+        <div class="kpi-note" style="color:#c0392b;">🔴 完全閒置</div>
+      </div>
+    </div>
+
+    <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:16px; font-weight:600;">各 Agent 任務分佈</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>任務數</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Klay</strong></td>
+            <td>50</td>
+            <td><span style="color:#c0392b; font-weight:600;">過載</span></td>
+          </tr>
+          <tr>
+            <td>Noel</td>
+            <td>5</td>
+            <td><span style="color:#d4850a; font-weight:600;">低用</span></td>
+          </tr>
+          <tr>
+            <td>John</td>
+            <td>1</td>
+            <td><span style="color:#d4850a;">閒置</span></td>
+          </tr>
+          <tr>
+            <td>Scout</td>
+            <td>1</td>
+            <td><span style="color:#d4850a;">閒置</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted);">其餘 24+ agents</td>
+            <td>0</td>
+            <td><span style="color:#c0392b; font-weight:600;">完全閒置</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 2: Issues -->
+  <div class="section" id="issues">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>架構問題識別（6 項）</h2>
+    </div>
+
+    <div class="issue-list">
+
+      <div class="issue-card p0">
+        <span class="issue-badge">🔴 P0</span>
+        <div class="issue-title">Dispatch 執行率嚴重不足</div>
+        <div class="issue-row">
+          <div class="issue-row-label">問題</div>
+          <div class="issue-row-val">CLAUDE.md 規定 Standard+ 任務必須 dispatch，Week 3+ 目標 ≥70%，實際僅 7%</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">影響</div>
+          <div class="issue-row-val">Klay 成為系統瓶頸；28 人團隊的投資幾乎浪費</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">根因</div>
+          <div class="issue-row-val">Session 中任務分類判斷仍由 Klay 自行處理，未落實 Scope Card 升級觸發 dispatch</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">建議</div>
+          <div class="issue-row-val">強化 dispatch hook（<code>dispatch-reminder.sh</code>）的攔截強度，從警告升為強制阻擋</div>
+        </div>
+      </div>
+
+      <div class="issue-card p1">
+        <span class="issue-badge">🔴 P1</span>
+        <div class="issue-title">Spider/Lynx <code>reports_to</code> 資料錯誤</div>
+        <div class="issue-row">
+          <div class="issue-row-label">問題</div>
+          <div class="issue-row-val"><code>team.json</code> 中 Spider 和 Lynx 的 <code>reports_to</code> 仍指向 <code>"milo"</code>，但 Milo 已凍結（2026-03-13）</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">影響</div>
+          <div class="issue-row-val">爬蟲任務的指揮鏈斷裂，夜班 dispatch 可能路由失敗</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">修復</div>
+          <div class="issue-row-val">更新 <code>team.json</code> 中 Spider/Lynx 的 <code>reports_to</code> 為 <code>"noel"</code>，並同步 <code>agent_task_service.py</code> 的 TASK_ROUTING</div>
+        </div>
+      </div>
+
+      <div class="issue-card p2">
+        <span class="issue-badge">🟡 P2</span>
+        <div class="issue-title">Investment Phase B 啟動條件未定義</div>
+        <div class="issue-row">
+          <div class="issue-row-label">問題</div>
+          <div class="issue-row-val">Fundamental/Technical/Macro Analyst + Bull/Bear Researcher（5 位）已加入 team.json，但「Phase B」何時啟動完全沒有文件</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">影響</div>
+          <div class="issue-row-val">5 位 Opus/Sonnet 等級 Agent 白白列在 roster，造成 roster 虛胖</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">建議</div>
+          <div class="issue-row-val">明確定義 Phase B 啟動條件（例如：Phase A 完成 10 份報告且 Rain 評估正確率 ≥70%）</div>
+        </div>
+      </div>
+
+      <div class="issue-card p2">
+        <span class="issue-badge">🟡 P2</span>
+        <div class="issue-title">Knox vs Sentinel task_types 重疊</div>
+        <div class="issue-row">
+          <div class="issue-row-label">問題</div>
+          <div class="issue-row-val">Knox 的 <code>task_types: ["security", "vault", "api_key"]</code> 與 Sentinel 職責有重疊</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">澄清</div>
+          <div class="issue-row-val">Sentinel = 掃描/偵測（git hook 自動執行）；Knox = 密鑰管理/帳號生命週期（人工觸發）</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">建議</div>
+          <div class="issue-row-val">更新 Knox 的 <code>task_types</code> 為 <code>["vault", "account_lifecycle", "key_rotation"]</code>，避免 router 混淆</div>
+        </div>
+      </div>
+
+      <div class="issue-card p3">
+        <span class="issue-badge">🟡 P3</span>
+        <div class="issue-title">夜班任務重複建立</div>
+        <div class="issue-row">
+          <div class="issue-row-label">問題</div>
+          <div class="issue-row-val">任務板顯示同一個夜班任務（如「Ray 團隊架構週審」）有 3 個重複實例同時執行</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">根因</div>
+          <div class="issue-row-val"><code>night-shift-prep.py</code> 可能在多次執行時未檢查重複，或 <code>auto_start: true</code> 沒有 dedup 保護</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">建議</div>
+          <div class="issue-row-val">夜班任務建立前加 idempotency 檢查（依 title + date 去重）</div>
+        </div>
+      </div>
+
+      <div class="issue-card p4">
+        <span class="issue-badge">🟢 P4</span>
+        <div class="issue-title">OM（Operations Manager）評估中</div>
+        <div class="issue-row">
+          <div class="issue-row-label">狀況</div>
+          <div class="issue-row-val">OM 於今日（2026-03-23）正式加入，<code>task_types: ["coordination", "escalation"]</code>，但 task board 尚無記錄</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-label">建議</div>
+          <div class="issue-row-val">2 週後（2026-04-06）評估 OM 的 09:00 作戰室摘要是否準確觸發；Quill 在第一次 OM 任務後做 lightweight review</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 3: Clarity -->
+  <div class="section" id="clarity">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>角色定義清晰度評分</h2>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>定義清晰度</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Klay / Max / Rex / John / Iris / Forge</strong></td>
+            <td><span style="color:#2d7d46; font-weight:700;">✅ 清晰</span></td>
+            <td>職責邊界明確</td>
+          </tr>
+          <tr>
+            <td><strong>Scout / Ray / Quill</strong></td>
+            <td><span style="color:#2d7d46; font-weight:700;">✅ 清晰</span></td>
+            <td>三階段審查鏈清楚</td>
+          </tr>
+          <tr>
+            <td>Knox / Tax / Sentinel</td>
+            <td><span style="color:#d4850a; font-weight:700;">⚠️ 需細化</span></td>
+            <td>Knox vs Sentinel task_types 有重疊</td>
+          </tr>
+          <tr>
+            <td>Spider / Lynx</td>
+            <td><span style="color:#d4850a; font-weight:700;">⚠️ 需修復</span></td>
+            <td>reports_to 指向凍結的 Milo</td>
+          </tr>
+          <tr>
+            <td>Investment Phase B agents</td>
+            <td><span style="color:#c0392b; font-weight:700;">❌ 未啟動</span></td>
+            <td>5 位 Agent 無定義啟動條件</td>
+          </tr>
+          <tr>
+            <td>OM</td>
+            <td><span style="color:#1a5ea8; font-weight:700;">⏳ 評估中</span></td>
+            <td>剛加入，待觀察</td>
+          </tr>
+          <tr>
+            <td>Orion / Lab / Lens</td>
+            <td><span style="color:#d4850a; font-weight:700;">⚠️ 低頻</span></td>
+            <td>有定義但觸發條件不夠清晰</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 4: Capacity -->
+  <div class="section" id="capacity">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>人力配置評估</h2>
+    </div>
+
+    <div class="summary-box" style="margin-bottom:24px;">
+      <h3>配置合理性</h3>
+      <ul class="summary-list">
+        <li>核心工程鏈（Max→Rex→John→Iris→Forge→Scout→Ray→Quill）設計完整，但實際上幾乎所有工作都回流到 Klay</li>
+        <li><strong>根本問題：</strong>Dispatch 是人（Klay）的行為規範問題，不是架構問題。架構設計本身合理，但執行層的 dispatch 意願/機制不足</li>
+      </ul>
+    </div>
+
+    <div class="summary-box">
+      <h3>建議重點改善</h3>
+      <ul class="summary-list">
+        <li>把 dispatch hook 從「提醒」升為「強制阻擋」（3+ 檔案修改 → 不填 dispatched_to → 拒絕執行）</li>
+        <li>每週架構審查應包含 dispatch rate 趨勢圖（目標：Week 4 達 50%）</li>
+        <li>對 Orion/Lab/Lens 定義「主動觸發日曆」（例如：Lab 每月第一週做模型 benchmark）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 5: Actions -->
+  <div class="section" id="actions">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>具體行動項目</h2>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>優先</th>
+            <th>行動</th>
+            <th>負責</th>
+            <th>期限</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="action-badge p0">🔴 P0</span></td>
+            <td>Dispatch hook 升格為強制阻擋</td>
+            <td>Max（backend hook）</td>
+            <td>本週</td>
+          </tr>
+          <tr>
+            <td><span class="action-badge p1">🔴 P1</span></td>
+            <td>team.json Spider/Lynx reports_to 修正</td>
+            <td>Klay</td>
+            <td>今晚</td>
+          </tr>
+          <tr>
+            <td><span class="action-badge p2">🟡 P2</span></td>
+            <td>Phase B 啟動條件文件化</td>
+            <td>Klay → Investment Manager</td>
+            <td>本週</td>
+          </tr>
+          <tr>
+            <td><span class="action-badge p2">🟡 P2</span></td>
+            <td>Knox task_types 更新</td>
+            <td>Klay</td>
+            <td>本週</td>
+          </tr>
+          <tr>
+            <td><span class="action-badge p3">🟡 P3</span></td>
+            <td>夜班任務 idempotency 修復</td>
+            <td>Noel/Max</td>
+            <td>本週</td>
+          </tr>
+          <tr>
+            <td><span class="action-badge p4">🟢 P4</span></td>
+            <td>OM 兩週後評估 check-in</td>
+            <td>Klay</td>
+            <td>2026-04-06</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 6: Conclusion -->
+  <div class="section" id="conclusion">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>總結</h2>
+    </div>
+
+    <div class="summary-box">
+      <h3>架構設計本身健康，問題集中在執行落差</h3>
+      <ul class="summary-list">
+        <li>文件規定 dispatch ≥70%，實際 7%</li>
+        <li>28 位 Agent 中 24 位完全閒置</li>
+        <li>核心修復：Spider/Lynx reports_to（資料問題）+ 夜班 dedup（執行問題）+ Dispatch 強制化（文化問題）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>報告生成：Klay（代 Ray）｜ 2026-03-23 夜班｜資料來源：Kai task board + team.json</div>
+    <div>Rain AI Team Weekly Architecture Review</div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+</body>
+</html>
