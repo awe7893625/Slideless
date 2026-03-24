@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gstack 整合 Rain 系統 — P0 實施計畫</title>
+  <style>
+    :root {
+      --cream: #f6f5f1;
+      --warm-white: #faf9f6;
+      --ink: #1a1a1a;
+      --ink-light: #4a4640;
+      --ink-muted: #7a7570;
+      --accent: #eb8054;
+      --accent-light: #f5d4c8;
+      --accent-pale: #fef4f0;
+      --border: #e0ddd6;
+      --success: #3a7d44;
+      --success-bg: #edf6ef;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --danger: #c0392b;
+      --danger-bg: #fdecea;
+      --card-shadow: 0 2px 16px rgba(26,26,26,0.07);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Georgia', 'Noto Serif TC', serif;
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    /* ── Cover Slide ── */
+    .slide {
+      min-height: 100vh;
+      padding: 80px 10vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--cream);
+      border-bottom: 2px solid var(--ink);
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.cover {
+      align-items: flex-start;
+    }
+
+    .slide.cover::before {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--accent-light) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .slide > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide h1 {
+      font-size: clamp(36px, 5vw, 72px);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 12px;
+      max-width: 900px;
+    }
+
+    .slide h1 span {
+      color: var(--accent);
+    }
+
+    .slide h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 48px;
+      margin-top: 0;
+      padding-top: 40px;
+    }
+
+    .slide-label {
+      font-family: 'Helvetica Neue', 'Arial', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+
+    .subtitle {
+      font-family: 'Helvetica Neue', 'Arial', sans-serif;
+      font-size: 18px;
+      color: var(--ink-muted);
+      font-weight: 300;
+      margin-bottom: 48px;
+    }
+
+    .slide-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-top: 60px;
+      font-family: 'Helvetica Neue', 'Arial', sans-serif;
+      font-size: 13px;
+    }
+
+    .meta-item {
+      color: var(--ink-muted);
+    }
+
+    .meta-item strong {
+      color: var(--ink);
+    }
+
+    /* ── Content Slides ── */
+    .slide.content {
+      padding: 60px 10vw;
+    }
+
+    .slide.content h2 {
+      margin-top: 0;
+      padding-top: 0;
+      margin-bottom: 40px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .status-box {
+      padding: 24px;
+      border-radius: 4px;
+      border-left: 4px solid;
+      background: var(--warm-white);
+    }
+
+    .status-box.success {
+      border-left-color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .status-box.warning {
+      border-left-color: var(--warning);
+      background: var(--warning-bg);
+    }
+
+    .status-box.danger {
+      border-left-color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .status-box p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .status-box strong {
+      color: var(--ink);
+    }
+
+    /* ── Tables ── */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 32px;
+    }
+
+    .tbl-wrap::-webkit-scrollbar {
+      height: 5px;
+    }
+
+    .tbl-wrap::-webkit-scrollbar-track {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .tbl-wrap::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 600px;
+      font-size: 15px;
+    }
+
+    th {
+      background: var(--accent-pale);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      background: var(--warm-white);
+    }
+
+    tr:nth-child(even) td {
+      background: var(--cream);
+    }
+
+    /* ── Lists ── */
+    ul, ol {
+      margin-left: 24px;
+      margin-bottom: 24px;
+    }
+
+    li {
+      margin-bottom: 12px;
+      line-height: 1.8;
+    }
+
+    /* ── Highlights ── */
+    .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .number-box {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 2px;
+      font-weight: 600;
+      margin: 0 4px;
+    }
+
+    /* ── Risk Badges ── */
+    .risk-high { color: var(--danger); font-weight: 600; }
+    .risk-medium { color: var(--warning); font-weight: 600; }
+    .risk-low { color: var(--success); font-weight: 600; }
+
+    /* ── Cards ── */
+    .card {
+      padding: 24px;
+      border-radius: 4px;
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 12px;
+      margin-top: 0;
+    }
+
+    .card p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Checkmarks & Bullets ── */
+    .check { color: var(--success); font-weight: 700; }
+    .cross { color: var(--danger); font-weight: 700; }
+    .pending { color: var(--warning); font-weight: 700; }
+
+    /* ── Footer ── */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Helvetica Neue', 'Arial', sans-serif;
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .page-num {
+      text-align: right;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      .slide, .slide.cover {
+        padding: 48px 6vw;
+      }
+
+      .slide h1 {
+        font-size: 36px;
+      }
+
+      .slide h2 {
+        font-size: 28px;
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .slide-meta {
+        gap: 16px;
+        flex-direction: column;
+      }
+    }
+
+    /* ── Decision Matrix Special ── */
+    .decision-table {
+      font-size: 14px;
+    }
+
+    .decision-table th, .decision-table td {
+      padding: 10px 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============== SLIDE 1: COVER ============== -->
+<div class="slide cover">
+  <div class="slide-label">gstack 整合計畫</div>
+  <h1>gstack 整合 <span>Rain 系統</span></h1>
+  <p class="subtitle">P0 最小可行方案實施計畫</p>
+  <div class="slide-meta">
+    <div class="meta-item"><strong>日期：</strong>2026年3月24日</div>
+    <div class="meta-item"><strong>階段：</strong>Codex 審查 CONDITIONAL sign-off</div>
+    <div class="meta-item"><strong>預算：</strong>&lt;$50/月（Codex hard cap）</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 2: CODEX REVIEW ============== -->
+<div class="slide content">
+  <h2>Codex 審查結果</h2>
+
+  <div class="content-grid">
+    <div class="status-box success">
+      <p><strong>✓ Phase 3 設計審查完成</strong></p>
+      <p style="margin-top: 8px;">Ray Codex 執行完整的架構風險分析和方案評估。</p>
+    </div>
+
+    <div class="status-box warning">
+      <p><strong>⚠ CONDITIONAL Sign-off</strong></p>
+      <p style="margin-top: 8px;">核准通過，需補齊 <span class="highlight">7 個修改項</span>。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>核心結論</h3>
+    <p>方向可行且必要。整合 gstack 能顯著提升 Codex 應用廣度，但 <span class="highlight">必須收斂為 P0 最小整合</span>，避免架構蔓延。高風險項目需在實施前取得明確設計。</p>
+  </div>
+
+  <div class="card">
+    <h3>識別的關鍵風險</h3>
+    <ul>
+      <li><span class="risk-high">🔴 High：</span>架構蔓延、驗證層衝突、session 狀態洩漏（3 項）</li>
+      <li><span class="risk-medium">🟠 Medium：</span>成本超支、併發崩潰、權責模糊、routing 不明確（4 項）</li>
+    </ul>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 2 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 3: CURRENT vs TARGET ============== -->
+<div class="slide content">
+  <h2>現況 vs 目標</h2>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>面向</th>
+          <th>現況</th>
+          <th>目標</th>
+          <th>P0 實施</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>瀏覽器自動化</td>
+          <td>Probe+Echo（手動觸發）</td>
+          <td>/browse daemon（持久化）</td>
+          <td><span class="check">✓</span> 新增 daemon</td>
+        </tr>
+        <tr>
+          <td>架構審查</td>
+          <td>Ray Phase 3 only</td>
+          <td>4+ Codex skills</td>
+          <td><span class="check">✓</span> /plan-review</td>
+        </tr>
+        <tr>
+          <td>安全審查</td>
+          <td>無自動化</td>
+          <td>Codex STRIDE 建模</td>
+          <td><span class="check">✓</span> /cso skill</td>
+        </tr>
+        <tr>
+          <td>效率分析</td>
+          <td>無</td>
+          <td>週報自動化</td>
+          <td><span class="pending">⏳</span> P1 延後</td>
+        </tr>
+        <tr>
+          <td>並行執行</td>
+          <td>worktree 隔離</td>
+          <td>10 session 支援</td>
+          <td><span class="pending">⏳</span> 基礎設施調整</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>P0 範圍策略</h3>
+    <p>聚焦於 <span class="highlight">最高價值、最低風險</span> 的整合。延後效率分析和高並行支援至 P1/P2，確保首批上線穩定可靠。</p>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 3 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 4: P0 SCOPE ============== -->
+<div class="slide content">
+  <h2>P0 實施範圍</h2>
+
+  <p>包含 <span class="number-box">3 個 Skills</span> + <span class="number-box">1 個 Daemon</span>：</p>
+
+  <div style="margin-top: 32px;">
+    <div class="card">
+      <h3>① gstack-browse daemon</h3>
+      <ul>
+        <li>基礎設施：Playwright Chromium，由 /browse skill 管理</li>
+        <li>效能指標：100-200ms 響應時間，保留 session 狀態</li>
+        <li>用途：複雜流程自動化、TheOrder E2E 驗收、敏感流程模擬</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>② gstack-plan-review skill</h3>
+      <ul>
+        <li>功能：Codex 架構風險分析與設計驗證</li>
+        <li>呼叫者：Ray Phase 3 檢查點（手動觸發或部分自動）</li>
+        <li>輸出格式：與 Agent Output Schema v1.0 對齊</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>③ gstack-cso skill</h3>
+      <ul>
+        <li>功能：Codex 安全威脅建模（OWASP + STRIDE）</li>
+        <li>觸發：Critical 任務必填、Major 選填</li>
+        <li>輸出：risk 清單 + mitigation 建議</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px; background: var(--accent-pale);">
+    <h3 style="color: var(--accent);">💰 成本估算</h3>
+    <p><strong>$15-20/月</strong>（遠低於 $50 hard cap）。包括 daemon 運維、skill 執行、state 管理成本。</p>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 4 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 5: HIGH RISKS ============== -->
+<div class="slide content">
+  <h2>高風險項目清單</h2>
+
+  <p style="margin-bottom: 24px;">Codex 識別的 7 個風險項，按等級排序：</p>
+
+  <div class="card">
+    <h3 style="color: var(--danger);">🔴 Critical Risks</h3>
+    <ul>
+      <li><strong>Architecture sprawl：</strong>新 skill 可能與現有 dispatch/routing 產生交集衝突</li>
+      <li><strong>Probe+Echo regression：</strong>/browse daemon 擴展可能削弱獨立驗證層職責</li>
+      <li><strong>State leakage：</strong>持久化 browser session 的隔離邊界不明確，跨任務污染風險</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top: 20px;">
+    <h3 style="color: var(--warning);">🟠 Medium Risks</h3>
+    <ul>
+      <li><strong>Cost overrun：</strong>browser daemon + retries + Codex skill 並行執行可能超預算</li>
+      <li><strong>Concurrency collapse：</strong>10 併發 session 可能耗盡記憶體/檔案描述符</li>
+      <li><strong>Governance bypass：</strong>Codex 角色急速擴展可能模糊職責邊界與審批流程</li>
+      <li><strong>Skill routing ambiguity：</strong>全 28 skills vs 選擇性整合的決策未最終確定</li>
+    </ul>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 5 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 6: RAY MODIFICATIONS ============== -->
+<div class="slide content">
+  <h2>Ray 的 7 個必修項</h2>
+
+  <p style="margin-bottom: 28px;">CONDITIONAL sign-off 的核准條件。補齊後自動升級為 APPROVED。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>要求</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. /browse 角色定義</td>
+          <td>與 Probe+Echo 的明確職責邊界（採方案 A：替代）</td>
+          <td><span class="check">✓ 完成</span></td>
+        </tr>
+        <tr>
+          <td>2. 範圍鎖定</td>
+          <td>P0 只實施 3 skills + 1 daemon，其餘延後</td>
+          <td><span class="check">✓ 完成</span></td>
+        </tr>
+        <tr>
+          <td>3. Browser 隔離規則</td>
+          <td>Session profile、強制登出、cleanup 機制詳述</td>
+          <td><span class="pending">⏳ 待補</span></td>
+        </tr>
+        <tr>
+          <td>4. 成本模型</td>
+          <td>checkout 和 /plan-review 成本預估與 hard cap 確認</td>
+          <td><span class="pending">⏳ 待補</span></td>
+        </tr>
+        <tr>
+          <td>5. Failover 設計</td>
+          <td>daemon 故障時的降級路徑與 SLA</td>
+          <td><span class="pending">⏳ 待補</span></td>
+        </tr>
+        <tr>
+          <td>6. TheOrder E2E 驗收標準</td>
+          <td>成功率、重試策略、artifact 清理規則</td>
+          <td><span class="pending">⏳ 待補</span></td>
+        </tr>
+        <tr>
+          <td>7. Upstream sync 策略</td>
+          <td>gstack 版本更新監測與自動應用計畫</td>
+          <td><span class="pending">⏳ 待補</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top: 28px; color: var(--ink-muted); font-size: 14px;">
+    <strong>預期交付：</strong>3 個工作日內完成項目 3-7，提交 Ray 複審。
+  </p>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 6 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 7: TIMELINE ============== -->
+<div class="slide content">
+  <h2>實施時間表</h2>
+
+  <p style="margin-bottom: 28px;">計畫總工時 <span class="highlight">~40 小時</span>（5-7 個工作日）。</p>
+
+  <div style="margin-bottom: 32px;">
+    <div class="card">
+      <h3>第 1 週</h3>
+      <ul>
+        <li><strong>Day 1-3（24h）：</strong>gstack-browse daemon 基礎架構實裝<br/>
+          <em style="color: var(--ink-muted);">負責人：Max（架構）+ Forge（部署）</em></li>
+        <li><strong>Day 4-5（16h）：</strong>gstack-plan-review + gstack-cso skill 設計<br/>
+          <em style="color: var(--ink-muted);">負責人：Scout（架構）</em></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>第 2 週</h3>
+      <ul>
+        <li><strong>Day 1-3（24h）：</strong>TheOrder checkout E2E 整合與自動化<br/>
+          <em style="color: var(--ink-muted);">負責人：John（前端）+ Iris（UI validation）</em></li>
+        <li><strong>Day 4（8h）：</strong>Codex co-review + Quill code 審查<br/>
+          <em style="color: var(--ink-muted);">負責人：Quill + Codex</em></li>
+        <li><strong>Day 5（8h）：</strong>Production 驗收 + 上線部署<br/>
+          <em style="color: var(--ink-muted);">負責人：Forge + Ray 最終確認</em></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="status-box success" style="margin-top: 24px;">
+    <p><strong>✓ Go/No-go 決策點（Day 7 下午）</strong></p>
+    <p style="margin-top: 8px;">所有驗收標準通過後方可進入 Production deployment。</p>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 7 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 8: DECISION MATRIX ============== -->
+<div class="slide content">
+  <h2>決策矩陣</h2>
+
+  <p style="margin-bottom: 24px;">P0 階段的 4 個核心決策與驗收標準。</p>
+
+  <div class="tbl-wrap">
+    <table class="decision-table">
+      <thead>
+        <tr>
+          <th>決策項</th>
+          <th>P0 方案</th>
+          <th>選擇理由</th>
+          <th>驗收條件</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>/browse 角色</strong></td>
+          <td>替代 Probe+Echo<br/>主力驗證工具</td>
+          <td>100-200ms 響應快、支援複雜流程、cost 可控</td>
+          <td>TheOrder checkout 自動化成功率 &gt;95%</td>
+        </tr>
+        <tr>
+          <td><strong>P0 Skill 數量</strong></td>
+          <td>2 個<br/>(/plan-review, /cso)</td>
+          <td>降低初期維護負擔，專注核心功能</td>
+          <td>1 週內上線，無測試失敗</td>
+        </tr>
+        <tr>
+          <td><strong>Codex 成本限制</strong></td>
+          <td>$50/月 hard cap</td>
+          <td>防止預算超支，與現有預測 $15-20/月 對齊</td>
+          <td>月度成本報告自動通知、超過立即警告</td>
+        </tr>
+        <tr>
+          <td><strong>Browser Session<br/>隔離</strong></td>
+          <td>強制登出 + profile reset<br/>per task</td>
+          <td>防止跨任務狀態洩漏，滿足安全邊界</td>
+          <td>所有敏感流程自動清理、無洩漏事件</td>
+        </tr>
+        <tr>
+          <td><strong>Failover 策略</strong></td>
+          <td>daemon 故障 → 自動降級<br/>至 Probe+Echo（手動）</td>
+          <td>維持驗收可用性，避免全站block</td>
+          <td>failover 自動觸發 &lt;30s、恢復 &lt;2 min</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 8 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 9: SUCCESS METRICS ============== -->
+<div class="slide content">
+  <h2>成功指標</h2>
+
+  <p style="margin-bottom: 28px;">P0 實施的驗收清單（所有項必須達成）：</p>
+
+  <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+    <div class="card">
+      <p><span class="check">✓</span> <strong>Codex 審查通過</strong></p>
+      <p style="margin-top: 8px; margin-left: 24px;">CONDITIONAL sign-off 補齊 7 個修改項 → 升級為 APPROVED status</p>
+    </div>
+
+    <div class="card">
+      <p><span class="check">✓</span> <strong>/browse daemon 部署成功</strong></p>
+      <p style="margin-top: 8px; margin-left: 24px;">TheOrder checkout 自動化成功率 ≥ 95%（測試 20+ 流程）</p>
+    </div>
+
+    <div class="card">
+      <p><span class="check">✓</span> <strong>Skills 上線與整合</strong></p>
+      <p style="margin-top: 8px; margin-left: 24px;">/plan-eng-review + /cso 部署完畢，可被 Ray Phase 3 及 Critical 任務調用</p>
+    </div>
+
+    <div class="card">
+      <p><span class="check">✓</span> <strong>成本控制</strong></p>
+      <p style="margin-top: 8px; margin-left: 24px;">月度 Codex 成本 &lt; $20（hard cap $50 以內）</p>
+    </div>
+
+    <div class="card">
+      <p><span class="check">✓</span> <strong>併發穩定性測試</strong></p>
+      <p style="margin-top: 8px; margin-left: 24px;">3-5 並行 session 無崩潰、無 state leak；10+ session 需限流警告</p>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 9 頁</div>
+  </div>
+</div>
+
+<!-- ============== SLIDE 10: P1/P2 ROADMAP ============== -->
+<div class="slide content">
+  <h2>後續 P1/P2 計畫</h2>
+
+  <p style="margin-bottom: 28px;">P0 穩定後的擴展方向。</p>
+
+  <div class="card">
+    <h3 style="color: var(--accent);">P1 — 近期（2-3 週後）</h3>
+    <ul>
+      <li><strong>/retro skill：</strong>Codex 週報效率分析（token 消耗、模型分佈、並行度趨勢）</li>
+      <li><strong>TheOrder payment E2E：</strong>完整支付流程端到端驗收（含退款、發票、異常處理）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3 style="color: var(--accent);">P2 — 中期（4-6 週後）</h3>
+    <ul>
+      <li><strong>gstack 其他 skills 選擇性整合：</strong>/office-hours, /ship, /ask-codex 等（評估價值-成本比）</li>
+      <li><strong>Upstream sync 自動化：</strong>gstack 版本更新監測與 Rain 系統自動應用</li>
+      <li><strong>並行度提升：</strong>10+ concurrent session 支援（需資源擴展評估）</li>
+    </ul>
+  </div>
+
+  <div class="status-box warning" style="margin-top: 28px;">
+    <p><strong>⚠️ P1/P2 決策點</strong></p>
+    <p style="margin-top: 8px;">P0 上線 2 週後，基於實際成本、使用率、穩定性數據，進行 P1 優先級排序。</p>
+  </div>
+
+  <div class="slide-footer">
+    <div>Rain AI Team</div>
+    <div class="page-num">第 10 頁</div>
+  </div>
+</div>
+
+</body>
+</html>
