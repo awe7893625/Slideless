@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hook 系統優化報告 — 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --warm-tan: #c8a882;
+      --warm-brown: #9c7a5a;
+      --dark-text: #2d2d2d;
+      --mid-text: #5a5a5a;
+      --light-text: #888;
+      --border: #e0dbd2;
+      --card-bg: #fefefe;
+      --accent-red: #c0392b;
+      --accent-orange: #d68910;
+      --accent-green: #27ae60;
+      --accent-blue: #2980b9;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--dark-text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      line-height: 1.7;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(246,245,241,0.96);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 54px;
+    }
+    nav .nav-brand {
+      font-size: 0.85rem;
+      color: var(--warm-tan);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    nav .nav-links {
+      display: flex;
+      gap: 1.4rem;
+      flex-wrap: wrap;
+    }
+    nav .nav-links a {
+      font-size: 0.78rem;
+      color: var(--mid-text);
+      text-decoration: none;
+      font-family: sans-serif;
+      transition: color 0.2s;
+    }
+    nav .nav-links a:hover { color: var(--warm-brown); }
+
+    /* SECTIONS */
+    section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7rem 2rem 4rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* COVER */
+    #cover {
+      background: linear-gradient(135deg, #f6f5f1 0%, #ede9e1 100%);
+      text-align: center;
+    }
+    .cover-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--warm-tan);
+      font-family: sans-serif;
+      margin-bottom: 1.5rem;
+    }
+    .cover-title {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: var(--dark-text);
+      line-height: 1.2;
+      margin-bottom: 0.8rem;
+    }
+    .cover-subtitle {
+      font-size: 1.1rem;
+      color: var(--mid-text);
+      margin-bottom: 2rem;
+    }
+    .tags {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .tag {
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-family: sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .tag-red { background: #fde8e6; color: var(--accent-red); border: 1px solid #f5c0bb; }
+    .tag-orange { background: #fef3e2; color: #b7770d; border: 1px solid #f8d88a; }
+    .tag-blue { background: #e3f0f9; color: var(--accent-blue); border: 1px solid #b0d4ed; }
+    .cover-divider {
+      width: 60px;
+      height: 3px;
+      background: var(--warm-tan);
+      margin: 0 auto;
+      border-radius: 2px;
+    }
+    .cover-meta {
+      margin-top: 2rem;
+      font-size: 0.82rem;
+      color: var(--light-text);
+      font-family: sans-serif;
+    }
+
+    /* CHAPTER HEADER */
+    .chapter-num {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--warm-tan);
+      font-family: sans-serif;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      color: var(--dark-text);
+      margin-bottom: 0.5rem;
+      line-height: 1.25;
+    }
+    .chapter-desc {
+      color: var(--mid-text);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      font-family: sans-serif;
+    }
+    .section-divider {
+      width: 40px;
+      height: 2px;
+      background: var(--warm-tan);
+      border-radius: 2px;
+      margin-bottom: 2rem;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.6rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--warm-brown);
+      font-family: sans-serif;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+    }
+    .card p {
+      font-size: 0.95rem;
+      color: var(--mid-text);
+      font-family: sans-serif;
+      line-height: 1.65;
+    }
+
+    /* BLOCKQUOTE */
+    blockquote {
+      border-left: 4px solid var(--warm-tan);
+      background: #faf8f4;
+      border-radius: 0 10px 10px 0;
+      padding: 1.2rem 1.5rem;
+      margin: 1.2rem 0;
+      font-style: italic;
+      color: var(--mid-text);
+      font-size: 0.95rem;
+      font-family: sans-serif;
+      line-height: 1.7;
+    }
+    blockquote cite {
+      display: block;
+      margin-top: 0.7rem;
+      font-style: normal;
+      font-size: 0.78rem;
+      color: var(--warm-tan);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* TABLES */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.2rem;
+    }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      font-family: sans-serif;
+      font-size: 0.88rem;
+      background: var(--card-bg);
+    }
+    thead tr {
+      background: #f0ede6;
+    }
+    th {
+      padding: 0.8rem 1rem;
+      text-align: left;
+      color: var(--warm-brown);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.75rem 1rem;
+      color: var(--mid-text);
+      border-top: 1px solid #eee;
+      vertical-align: top;
+    }
+    tr:hover td { background: #faf8f4; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 12px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+    .badge-p0 { background: #fde8e6; color: var(--accent-red); }
+    .badge-p1 { background: #fef3e2; color: #b7770d; }
+    .badge-p2 { background: #e3f0f9; color: var(--accent-blue); }
+    .badge-ok { background: #e8f8f0; color: var(--accent-green); }
+    .badge-no { background: #fde8e6; color: var(--accent-red); }
+
+    /* METRIC GRID */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .metric-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--light-text);
+      font-family: sans-serif;
+      margin-bottom: 0.5rem;
+    }
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--warm-brown);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .metric-sub {
+      font-size: 0.8rem;
+      color: var(--light-text);
+      font-family: sans-serif;
+    }
+
+    /* DECISION ROW */
+    .decision-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .decision-row {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .decision-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .decision-body { flex: 1; font-family: sans-serif; }
+    .decision-name {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--dark-text);
+      margin-bottom: 0.2rem;
+    }
+    .decision-reason {
+      font-size: 0.83rem;
+      color: var(--mid-text);
+      line-height: 1.5;
+    }
+
+    /* BEFORE/AFTER */
+    .ba-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    @media (max-width: 600px) {
+      .ba-grid { grid-template-columns: 1fr; }
+    }
+    .ba-card {
+      border-radius: 10px;
+      padding: 1.2rem;
+      font-family: sans-serif;
+      font-size: 0.88rem;
+    }
+    .ba-card.before {
+      background: #fff5f5;
+      border: 1px solid #f5c0bb;
+    }
+    .ba-card.after {
+      background: #f0faf5;
+      border: 1px solid #a8e0c0;
+    }
+    .ba-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+    .ba-card.before .ba-label { color: var(--accent-red); }
+    .ba-card.after .ba-label { color: var(--accent-green); }
+    .ba-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ba-card li {
+      color: var(--mid-text);
+      line-height: 1.6;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .ba-card li:last-child { border-bottom: none; }
+
+    /* FOOTER */
+    footer {
+      background: #f0ede6;
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      color: var(--light-text);
+    }
+    footer strong { color: var(--warm-brown); }
+
+    /* UTIL */
+    .mt-sm { margin-top: 0.8rem; }
+    .mt-md { margin-top: 1.5rem; }
+    .text-sans { font-family: sans-serif; font-size: 0.95rem; color: var(--mid-text); }
+    .highlight { color: var(--warm-brown); font-weight: 700; }
+
+    @media (max-width: 680px) {
+      nav .nav-links { display: none; }
+      section { padding: 5rem 1.2rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Hook Optimization</div>
+  <div class="nav-links">
+    <a href="#cover">封面</a>
+    <a href="#chapter1">執行摘要</a>
+    <a href="#chapter2">Ray 建議</a>
+    <a href="#chapter3">Klay 決定</a>
+    <a href="#chapter4">改動效果</a>
+    <a href="#chapter5">未執行</a>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section id="cover">
+  <div class="container">
+    <div class="cover-eyebrow">Nova · Rain AI Team · 2026-03-21</div>
+    <h1 class="cover-title">Hook 系統優化報告</h1>
+    <p class="cover-subtitle">Ray × Klay 協同審查 — 五個檔案，一個 P0 Bug，三個勝利</p>
+    <div class="tags">
+      <span class="tag tag-red">P0 Bug Fix</span>
+      <span class="tag tag-orange">P1 效能優化</span>
+      <span class="tag tag-blue">P2 夜班優化</span>
+    </div>
+    <div class="cover-divider"></div>
+    <div class="cover-meta">commit 44ac700 · 5 files changed · Klay + Ray</div>
+  </div>
+</section>
+
+<!-- CHAPTER 1 -->
+<section id="chapter1">
+  <div class="container">
+    <div class="chapter-num">Chapter 01</div>
+    <h2>做了什麼（執行摘要）</h2>
+    <p class="chapter-desc">本次共修改 5 個檔案，涵蓋安全修復、效能優化、夜班行為調整三個層面。</p>
+    <div class="section-divider"></div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>優先級</th>
+            <th>類型</th>
+            <th>檔案</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-p0">P0</span></td>
+            <td>Bug Fix</td>
+            <td><code>scan-secrets.sh</code></td>
+            <td>修復 stdin 讀取錯誤（Sentinel 從未實際執行）</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-p1">P1</span></td>
+            <td>效能優化</td>
+            <td><code>scope-card-gate.sh</code></td>
+            <td>python3 → jq（30ms → 5ms per call）</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-p1">P1</span></td>
+            <td>效能優化</td>
+            <td><code>dispatch-gate.sh</code></td>
+            <td>python3 → jq（30ms → 5ms per call）</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-p1">P1</span></td>
+            <td>效能優化</td>
+            <td><code>heartbeat-auto.sh</code></td>
+            <td>python3 → jq（30ms → 5ms per call）</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-p2">P2</span></td>
+            <td>行為調整</td>
+            <td><code>night-shift-comprehensive.py</code></td>
+            <td>Module K 分頻：輕量每日 + 完整週一</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="metric-grid mt-md">
+      <div class="metric-card">
+        <div class="metric-label">修改檔案數</div>
+        <div class="metric-value">5</div>
+        <div class="metric-sub">commit 44ac700</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">每次 Edit/Write 節省</div>
+        <div class="metric-value">~75ms</div>
+        <div class="metric-sub">3 hooks × 25ms</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">安全護欄恢復</div>
+        <div class="metric-value">1</div>
+        <div class="metric-sub">Sentinel 密鑰掃描</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">被 Ray 否決的提案</div>
+        <div class="metric-value">2</div>
+        <div class="metric-sub">避免了回歸風險</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER 2 -->
+<section id="chapter2">
+  <div class="container">
+    <div class="chapter-num">Chapter 02</div>
+    <h2>Ray 提出了什麼建議</h2>
+    <p class="chapter-desc">Ray 作為方案架構審查官，在本次審查中發現了 Klay 未察覺的關鍵 bug，並否決了兩個投資報酬率不足的提案。</p>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">P0 發現 — Klay 未察覺的 Bug</div>
+      <p>Ray 審查時發現 <code>scan-secrets.sh</code> 第 9 行使用 <code>TOOL_INPUT="${TOOL_INPUT:-}"</code> 讀取環境變數，但 Claude Code hooks 的輸入實際上是透過 <strong>stdin</strong> 傳入的，不是環境變數。</p>
+      <p class="mt-sm">這意味著這個安全 hook 自建立以來從未正確執行過，<strong>Sentinel 密鑰掃描一直是失效狀態</strong>。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">拒絕 Proposal A — 合併 Hooks</div>
+      <p>Ray 說明三個理由：</p>
+      <ul style="margin-top:0.6rem;padding-left:1.2rem;font-family:sans-serif;font-size:0.9rem;color:var(--mid-text);line-height:1.8">
+        <li>目前 7 個 hook 使用三種不同的 blocking 機制（exit code 2、JSON <code>decision:block</code>、<code>deny_with_reason</code>），合併會造成語義衝突</li>
+        <li>失去 <strong>failure isolation</strong> — 一個 hook crash 不應影響其他 6 個</li>
+        <li>真正的 bottleneck 是 python3 啟動時間（30ms），而非 subprocess 數量，換 jq 即可解決</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">拒絕 Proposal C — 精簡 session-start</div>
+      <p>Ray 指出兩點核心理由：</p>
+      <ul style="margin-top:0.6rem;padding-left:1.2rem;font-family:sans-serif;font-size:0.9rem;color:var(--mid-text);line-height:1.8">
+        <li>訂閱制下 Claude Code token 是零成本（<code>feedback_subscription-cost-model.md</code> 記錄）</li>
+        <li>BLOCKER 文字存在的原因是 Klay 曾在沒有它時跳過任務登記被糾正（<code>lessons.md</code> 記錄）</li>
+      </ul>
+      <p class="mt-sm">移除高回歸風險，節省成本為零，不值得做。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">條件通過 — Module K 分頻</div>
+      <p>Ray 同意分頻方向，但反對「純週一完整，其他日完全不跑」，建議改為：</p>
+      <p class="mt-sm"><strong>輕量每日</strong>（WoW 異常偵測）<strong>+ 完整週一</strong>（含 query 分析）</p>
+      <p class="mt-sm">避免 SEO 異常偵測延遲超過一天。</p>
+    </div>
+
+    <div class="mt-md">
+      <div class="card-title" style="font-family:sans-serif;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--warm-brown);font-weight:700;margin-bottom:0.8rem">Skeptic Check — Ray 的魔鬼代言人</div>
+      <blockquote>
+        「如果根本不做這些優化呢？Hook 系統一直都在工作，沒有 session 因為 hook 延遲失敗。scan-secrets 雖然壞了，但我們也沒有發生 secrets 洩漏事件。Token 消耗在訂閱制下是零成本。」
+        <cite>— Ray，Skeptic Check 必要輸出</cite>
+      </blockquote>
+      <div class="card" style="margin-top:0.8rem">
+        <div class="card-title">Ray 的結論</div>
+        <p><strong>P0 bug 無論如何必須修</strong>（這是安全護欄壞了），P1 jq 替換是低風險高品質的改善，P2 是合理的調整。其他提案投資報酬率不足，不做。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER 3 -->
+<section id="chapter3">
+  <div class="container">
+    <div class="chapter-num">Chapter 03</div>
+    <h2>Klay 的決定</h2>
+    <p class="chapter-desc">採納 Ray 的所有建議，否決兩個投資報酬率不足的提案，執行三個有明確收益的改動。</p>
+    <div class="section-divider"></div>
+
+    <div class="decision-grid">
+      <div class="decision-row">
+        <div class="decision-icon">❌</div>
+        <div class="decision-body">
+          <div class="decision-name">合併 PreToolUse Hooks（Proposal A）</div>
+          <div class="decision-reason">採納 Ray 意見：失去 isolation，語義混亂，jq 已解決 bottleneck。不做。</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-icon">✅</div>
+        <div class="decision-body">
+          <div class="decision-name">scan-secrets stdin 修復</div>
+          <div class="decision-reason">P0 安全 bug，無論如何必須修。Sentinel 密鑰掃描恢復正常。</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-icon">✅</div>
+        <div class="decision-body">
+          <div class="decision-name">python3 → jq（3 個 hooks）</div>
+          <div class="decision-reason">低風險，每次 Edit/Write 節省 ~75ms（3 hooks × 25ms）。立即可見的效能改善。</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-icon">❌</div>
+        <div class="decision-body">
+          <div class="decision-name">session-start.sh 精簡（Proposal C）</div>
+          <div class="decision-reason">採納 Ray 意見：零成本節省，高回歸風險。BLOCKER 文字是有歷史原因的行為護欄。</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-icon">✅</div>
+        <div class="decision-body">
+          <div class="decision-name">Module K 分頻（修改版）</div>
+          <div class="decision-reason">輕量每日 + 完整週一，不是純週一。確保 SEO 異常偵測不延遲超過一天。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-md">
+      <div class="card-title">核心原則</div>
+      <p>Ray 的 Skeptic Check 提醒了我們優化要有量化目標。本次改動以「<strong>修 bug + 低風險快速勝利</strong>」為優先，拒絕了兩個投資報酬率低的提案。</p>
+    </div>
+
+    <div class="mt-md">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>提案</th>
+              <th>決定</th>
+              <th>理由</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>合併 PreToolUse hooks</td>
+              <td><span class="badge badge-no">不做</span></td>
+              <td>失去 isolation，語義混亂，jq 已解決 bottleneck</td>
+            </tr>
+            <tr>
+              <td>scan-secrets stdin 修復</td>
+              <td><span class="badge badge-ok">執行</span></td>
+              <td>P0 安全 bug，無論如何必須修</td>
+            </tr>
+            <tr>
+              <td>python3 → jq</td>
+              <td><span class="badge badge-ok">執行</span></td>
+              <td>低風險，每次 Edit/Write 節省 ~75ms</td>
+            </tr>
+            <tr>
+              <td>session-start 精簡</td>
+              <td><span class="badge badge-no">不做</span></td>
+              <td>零成本節省，高回歸風險</td>
+            </tr>
+            <tr>
+              <td>Module K 分頻</td>
+              <td><span class="badge badge-ok">執行（修改版）</span></td>
+              <td>輕量每日 + 完整週一，不是純週一</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER 4 -->
+<section id="chapter4">
+  <div class="container">
+    <div class="chapter-num">Chapter 04</div>
+    <h2>改動後的效果</h2>
+    <p class="chapter-desc">三個執行項目帶來可量化的改善：安全護欄恢復 + 效能提升 + 夜班 API 效率優化。</p>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">Hook 效能提升（每次 Edit/Write 呼叫）</div>
+      <div class="ba-grid" style="margin-top:0.8rem">
+        <div class="ba-card before">
+          <div class="ba-label">Before</div>
+          <ul>
+            <li>7 個 hooks 全部執行</li>
+            <li>其中 3 個用 python3 解析 JSON</li>
+            <li>每個 python3 call ~30ms</li>
+            <li>每次 Edit/Write 額外負擔 ~90ms</li>
+          </ul>
+        </div>
+        <div class="ba-card after">
+          <div class="ba-label">After</div>
+          <ul>
+            <li>同樣 7 個 hooks 全部執行</li>
+            <li>3 個改用 jq 解析 JSON</li>
+            <li>每個 jq call ~5ms</li>
+            <li>每次 Edit/Write 額外負擔 ~15ms</li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-sans">節省：<span class="highlight">~75ms per Edit/Write call</span>（3 hooks × 25ms）</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Sentinel 安全掃描恢復正常</div>
+      <div class="ba-grid" style="margin-top:0.8rem">
+        <div class="ba-card before">
+          <div class="ba-label">Before（失效狀態）</div>
+          <ul>
+            <li>讀空的環境變數 <code>TOOL_INPUT</code></li>
+            <li>永遠拿到空字串</li>
+            <li>永遠 approve → 從未真正掃描</li>
+            <li>git commit 密鑰掃描 = 失效</li>
+          </ul>
+        </div>
+        <div class="ba-card after">
+          <div class="ba-label">After（正常運作）</div>
+          <ul>
+            <li>正確讀取 stdin 輸入</li>
+            <li>取得真實的 staged diff 內容</li>
+            <li>真正掃描 20 種 secret pattern</li>
+            <li>偵測到密鑰時 block commit</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Module K 夜班週期調整</div>
+      <div class="ba-grid" style="margin-top:0.8rem">
+        <div class="ba-card before">
+          <div class="ba-label">Before</div>
+          <ul>
+            <li>每晚執行完整分析</li>
+            <li>含 query 深度分析</li>
+            <li>API 呼叫量約 3x</li>
+            <li>每天消耗相同資源</li>
+          </ul>
+        </div>
+        <div class="ba-card after">
+          <div class="ba-label">After</div>
+          <ul>
+            <li>週二～週日：輕量（WoW 異常偵測）</li>
+            <li>週一：完整（含 declining queries）</li>
+            <li>每日仍有異常偵測能力</li>
+            <li>API 效率提升，不犧牲即時性</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAPTER 5 -->
+<section id="chapter5">
+  <div class="container">
+    <div class="chapter-num">Chapter 05</div>
+    <h2>未執行的項目與原因</h2>
+    <p class="chapter-desc">兩個被 Ray 否決的提案記錄在此，作為未來決策參考。</p>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">Hook 合併（Proposal A）— 不做</div>
+      <p>Ray 說找到了更好的替代方案（python3 → jq），合併的風險大於收益。</p>
+      <p class="mt-sm">如果未來 hooks 繼續增加到 <strong>15+ 個</strong>才需要重新考慮合併策略。目前 7 個 hooks 的規模不構成架構問題。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">session-start.sh 精簡（Proposal C）— 不做</div>
+      <p>訂閱制下 token 是零成本，BLOCKER 文字是行為規範護欄，不應為了節省 0 成本而冒回歸風險。</p>
+      <p class="mt-sm">這個護欄的存在有明確的歷史原因，記錄於 <code>lessons.md</code>，不應在沒有替代方案的情況下移除。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">決策原則小結</div>
+      <p>本次優化的選擇框架：</p>
+      <ul style="margin-top:0.6rem;padding-left:1.2rem;font-family:sans-serif;font-size:0.9rem;color:var(--mid-text);line-height:1.8">
+        <li><strong>有量化收益 + 低回歸風險</strong> → 執行</li>
+        <li><strong>零收益 + 有回歸風險</strong> → 不做</li>
+        <li><strong>P0 安全問題</strong> → 無條件執行，不考慮 ROI</li>
+        <li><strong>架構變更</strong> → 需要 Ray 顯式批准，不因「看起來更整潔」而做</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>Hook 系統優化報告</strong> · commit 44ac700 · 5 files changed</p>
+  <p style="margin-top:0.4rem">2026-03-21 &nbsp;·&nbsp; 製作：Nova &nbsp;·&nbsp; 審查：Klay + Ray &nbsp;·&nbsp; Rain AI Team</p>
+</footer>
+
+</body>
+</html>

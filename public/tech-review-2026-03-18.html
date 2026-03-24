@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技術採用審查報告 — Hyperspace AGI + Chrome DevTools MCP（2026-03-18）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --white:#ffffff;
+  --black:#121212;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --accent:#e87a00;
+  --accent-warm:#c46800;
+  --accent-blue:#a8cde8;
+  --green:#85a268;
+  --green-bg:#e8f5e0;
+  --green-text:#3d7a1c;
+  --yellow:#c9a73a;
+  --yellow-bg:#fef9e5;
+  --danger:#d94f4f;
+  --danger-bg:#fdeaea;
+  --warn:#c97a00;
+  --warn-bg:#fff3e0;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* Cover */
+.cover{background:var(--black);color:var(--white);padding:88px 32px 64px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-blue);margin-bottom:14px;font-family:var(--mono)}
+.cover h1{font-size:clamp(24px,4.5vw,42px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:12px}
+.cover h1 span{color:var(--accent)}
+.cover .subtitle{font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:24px;max-width:600px;margin-left:auto;margin-right:auto}
+.cover-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.cover-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 22px;border-radius:6px;font-weight:700;font-size:13px;letter-spacing:0.04em;font-family:var(--mono)}
+.cover-badge.green{border:1.5px solid #5a9e40;color:#5a9e40}
+.cover-badge.red{border:1.5px solid #d94f4f;color:#d94f4f}
+.cover-badge.blue{border:1.5px solid #6eaad4;color:#6eaad4}
+.cover .meta{font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1px}
+.cover .signers{display:flex;justify-content:center;gap:32px;margin-top:28px;flex-wrap:wrap}
+.cover .signer{text-align:center}
+.cover .signer .role{font-size:11px;color:rgba(255,255,255,0.35);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px}
+.cover .signer .name{font-size:14px;font-weight:600;color:rgba(255,255,255,0.8)}
+
+/* Main layout */
+.main{max-width:780px;margin:0 auto;padding:56px 28px 80px}
+@media(max-width:600px){.main{padding:36px 20px 60px}.cover{padding:60px 24px 48px}.cover .signers{flex-direction:column;gap:16px}}
+
+/* Section */
+.section{margin-bottom:56px}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
+.section h2{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px}
+.section .section-desc{font-size:14px;color:var(--grey-02);margin-bottom:24px;font-family:var(--mono)}
+.section p{font-size:15px;color:#333;margin-bottom:12px}
+.section ul{margin:0 0 12px 20px;color:#333;font-size:15px}
+.section li{margin-bottom:6px}
+
+/* Divider */
+.divider{height:1px;background:var(--grey-01);margin:0 0 48px}
+
+/* Summary stats */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+.summary-stat{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px 16px;text-align:center}
+.summary-stat .num{font-size:28px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:var(--black);margin-bottom:4px}
+.summary-stat .num.green{color:var(--green-text)}
+.summary-stat .num.orange{color:var(--accent)}
+.summary-stat .num.red{color:var(--danger)}
+.summary-stat .label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);line-height:1.4}
+
+/* Tech compare grid */
+.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:600px){.tech-grid{grid-template-columns:1fr}}
+.tech-card{background:var(--white);border:1.5px solid var(--grey-01);border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.tech-card.nogo{border-top:4px solid var(--danger)}
+.tech-card.installed{border-top:4px solid var(--green)}
+.tech-card .tech-verdict{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;font-family:var(--mono);letter-spacing:0.05em;margin-bottom:14px}
+.tech-card .tech-verdict.nogo{background:var(--danger-bg);color:var(--danger)}
+.tech-card .tech-verdict.installed{background:var(--green-bg);color:var(--green-text)}
+.tech-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.tech-card .tech-source{font-size:11px;color:var(--grey-02);font-family:var(--mono);margin-bottom:14px}
+.tech-card p,.tech-card li{font-size:13px;color:#444;line-height:1.6}
+.tech-card ul{margin-left:16px;margin-bottom:10px}
+.tech-card li{margin-bottom:4px}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:22px 24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-label{font-size:11px;font-weight:700;color:var(--grey-02);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:var(--mono)}
+.card h4{font-size:15px;font-weight:700;margin-bottom:8px}
+.card p,.card li{font-size:14px;color:#444;line-height:1.6}
+.card ul{margin-left:18px}
+.card li{margin-bottom:5px}
+
+/* Risk table */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+.tbl-wrap::-webkit-scrollbar{height:5px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.review-table{width:100%;border-collapse:collapse;font-size:14px;background:var(--white);border-radius:10px;overflow:hidden;border:1px solid var(--grey-01);min-width:500px}
+.review-table th{background:var(--cream-alt);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-03);padding:11px 16px;text-align:left;font-family:var(--mono)}
+.review-table td{padding:13px 16px;border-top:1px solid var(--grey-01);vertical-align:middle;color:#333;line-height:1.5}
+.review-table tr:last-child td{border-bottom:none}
+
+/* Update card (accent left border) */
+.update-card{background:var(--white);border:1px solid var(--grey-01);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+.update-card .update-num{font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.update-card h3{font-size:16px;font-weight:700;margin-bottom:10px;color:var(--black)}
+.update-card p,.update-card li{font-size:14px;color:#444;line-height:1.6}
+.update-card ul{margin-left:18px;margin-bottom:0}
+.update-card li{margin-bottom:5px}
+
+/* Concept cards */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:16px}
+@media(max-width:600px){.concept-grid{grid-template-columns:1fr}}
+.concept-card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.concept-card .concept-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.concept-card .concept-check{font-size:20px;flex-shrink:0}
+.concept-card .concept-title{font-size:14px;font-weight:700;color:var(--black)}
+.concept-card .concept-source{font-size:11px;color:var(--grey-02);font-family:var(--mono);margin-top:1px}
+.concept-card p{font-size:13px;color:#444;line-height:1.6;margin-bottom:6px}
+.concept-card .concept-impl{background:var(--green-bg);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green-text);font-family:var(--mono);margin-top:8px;line-height:1.5}
+
+/* Step list */
+.step-list{list-style:none;margin:0 0 16px;padding:0}
+.step-list li{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--grey-01)}
+.step-list li:last-child{border-bottom:none}
+.step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--black);color:var(--white);font-size:12px;font-weight:700;font-family:var(--mono);display:flex;align-items:center;justify-content:center}
+.step-content{flex:1}
+.step-content strong{font-size:14px;font-weight:700;display:block;margin-bottom:3px}
+.step-content span{font-size:13px;color:var(--grey-02)}
+
+/* Code block */
+.code-block{background:var(--black);border-radius:10px;padding:20px 24px;font-family:var(--mono);font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:14px;overflow-x:auto}
+.code-block .cm{color:rgba(255,255,255,0.35)}
+.code-block .ck{color:#7ec8e3}
+.code-block .cv{color:#98d982}
+.code-block .pass{color:#6fcf5e}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:0.03em;font-family:var(--mono)}
+.badge-green{background:var(--green-bg);color:var(--green-text)}
+.badge-orange{background:#fff3e0;color:var(--accent-warm)}
+.badge-warn{background:var(--warn-bg);color:var(--warn)}
+.badge-grey{background:var(--grey-01);color:var(--grey-03)}
+.badge-red{background:var(--danger-bg);color:var(--danger)}
+.badge-blue{background:#e8f2fb;color:#2d78b5}
+
+/* Exclusion rules */
+.exclusion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:600px){.exclusion-grid{grid-template-columns:1fr}}
+.exclusion-item{background:var(--white);border:1px solid var(--grey-01);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:12px 16px}
+.exclusion-item .exc-code{font-size:11px;font-weight:700;color:var(--warn);font-family:var(--mono);letter-spacing:1px;margin-bottom:4px}
+.exclusion-item .exc-rule{font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px}
+.exclusion-item .exc-note{font-size:12px;color:var(--grey-02)}
+
+/* Todo table */
+.todo-table{width:100%;border-collapse:collapse;font-size:14px;background:var(--white);border-radius:10px;overflow:hidden;border:1px solid var(--grey-01);min-width:560px}
+.todo-table th{background:var(--cream-alt);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-03);padding:11px 16px;text-align:left;font-family:var(--mono)}
+.todo-table td{padding:13px 16px;border-top:1px solid var(--grey-01);vertical-align:middle;color:#333;line-height:1.5}
+.todo-table tr:last-child td{border-bottom:none}
+
+/* Alert box */
+.alert{border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:14px;line-height:1.6}
+.alert-warn{background:var(--warn-bg);border:1px solid #f0c56a;color:#7a4f00}
+.alert-info{background:#e8f2fb;border:1px solid #b0d0ee;color:#1a5a8a}
+.alert-green{background:var(--green-bg);border:1px solid #b8d9a4;color:var(--green-text)}
+
+/* Ray decision */
+.ray-box{background:var(--cream-alt);border:1.5px solid var(--grey-01);border-radius:10px;padding:20px 22px;margin-bottom:14px}
+.ray-box .ray-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ray-box .ray-icon{font-size:20px}
+.ray-box .ray-meta{font-size:11px;color:var(--grey-02);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
+.ray-box h4{font-size:15px;font-weight:700;color:var(--black)}
+.ray-box .ray-verdict{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:16px;font-size:12px;font-weight:700;font-family:var(--mono);margin-top:8px}
+.ray-box .ray-verdict.nogo{background:var(--danger-bg);color:var(--danger)}
+.ray-box p{font-size:14px;color:#444;line-height:1.6;margin-top:8px}
+.ray-box blockquote{border-left:3px solid var(--grey-02);padding-left:14px;margin:10px 0;font-style:italic;font-size:13px;color:var(--grey-03)}
+
+/* Footer */
+.footer{text-align:center;padding:32px 20px 56px;font-size:12px;color:var(--grey-02);font-family:var(--mono);letter-spacing:0.5px;border-top:1px solid var(--grey-01)}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="eyebrow">Rain AI Team · Tech Adoption Review · 2026-03-18</div>
+  <h1>技術採用審查報告<br><span>Hyperspace AGI + Chrome DevTools MCP</span></h1>
+  <div class="subtitle">兩項外部技術評估：一個 Ray 兩次 No-Go，一個已安裝連線成功——加上偷師 4 個架構概念全部實作完畢</div>
+  <div class="cover-badges">
+    <div class="cover-badge red">🚫 Hyperspace AGI · No-Go</div>
+    <div class="cover-badge green">✅ Chrome DevTools MCP · Connected</div>
+    <div class="cover-badge blue">✅ 4 Concepts · All Implemented</div>
+  </div>
+  <div class="meta">2026-03-18 · CONFIDENTIAL · Rain AI Team · Nova Prepared</div>
+  <div class="signers">
+    <div class="signer">
+      <div class="role">Tech Research</div>
+      <div class="name">Klay（評估主導）</div>
+    </div>
+    <div class="signer">
+      <div class="role">Risk Review</div>
+      <div class="name">Ray（2x No-Go / Codex）</div>
+    </div>
+    <div class="signer">
+      <div class="role">Implementation</div>
+      <div class="name">Noel（夜班實作）</div>
+    </div>
+    <div class="signer">
+      <div class="role">Report</div>
+      <div class="name">Nova（Docs）</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Executive Summary -->
+  <div class="section">
+    <div class="section-eyebrow">Executive Summary</div>
+    <h2>今日研究摘要</h2>
+    <div class="section-desc">2026-03-18 · 2 技術評估 · 4 概念實作 · 5 安全護欄</div>
+
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="num">2</div>
+        <div class="label">技術評估</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num red">2</div>
+        <div class="label">Ray No-Go 決定</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">1</div>
+        <div class="label">技術採用成功</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num green">4</div>
+        <div class="label">概念已實作</div>
+      </div>
+      <div class="summary-stat">
+        <div class="num orange">5</div>
+        <div class="label">安全護欄新增</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Tech Comparison -->
+  <div class="section">
+    <div class="section-eyebrow">Section 1 · Technology Overview</div>
+    <h2>兩個技術並排對比</h2>
+    <div class="section-desc">一個 No-Go，一個 ✅ 已安裝</div>
+
+    <div class="tech-grid">
+      <!-- Hyperspace -->
+      <div class="tech-card nogo">
+        <div class="tech-verdict nogo">🚫 No-Go（Ray 兩次否決）</div>
+        <h3>Hyperspace AGI</h3>
+        <div class="tech-source">github.com/hyperspaceai/agi · MIT · 1k+ Stars</div>
+        <p>分散式 P2P AI 研究網路，節點間用 GossipSub 協議共享實驗結果</p>
+        <ul>
+          <li>本地 OpenAI-compatible API（localhost:8080/v1）</li>
+          <li>支援 Gemma 3 / GLM-4 / Qwen2.5 Coder 本地推論</li>
+          <li>P2P 節點模式連接全球不可信節點</li>
+          <li>curl | bash 安裝流程</li>
+        </ul>
+        <div style="margin-top:12px">
+          <span class="badge badge-red">CRITICAL RISK</span>
+          <span class="badge badge-orange" style="margin-left:6px">P2P Exposure</span>
+          <span class="badge badge-grey" style="margin-left:6px">Replaced by Ollama</span>
+        </div>
+      </div>
+
+      <!-- Chrome DevTools MCP -->
+      <div class="tech-card installed">
+        <div class="tech-verdict installed">✅ Connected（v0.20.2）</div>
+        <h3>Chrome DevTools MCP</h3>
+        <div class="tech-source">ChromeDevTools 官方 · Google 出品 · npm</div>
+        <p>MCP server，讓 Claude Code 直接控制真實 Chrome 瀏覽器（含 cookie/session）</p>
+        <ul>
+          <li>50+ 工具：click、fill、navigate、screenshot</li>
+          <li>console log、network 分析、Core Web Vitals</li>
+          <li>接管現有 Chrome session（含 Google、GA4、GitHub）</li>
+          <li>需要 <code style="font-family:var(--mono);font-size:12px;background:var(--cream-alt);padding:1px 5px;border-radius:3px">--remote-debugging-port=9222</code></li>
+        </ul>
+        <div style="margin-top:12px">
+          <span class="badge badge-green">✓ Connected</span>
+          <span class="badge badge-blue" style="margin-left:6px">5 Safety Guards</span>
+          <span class="badge badge-orange" style="margin-left:6px">Rain 確認才執行</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Hyperspace Ray Review -->
+  <div class="section">
+    <div class="section-eyebrow">Section 2 · Ray Review</div>
+    <h2>Hyperspace AGI — Ray 兩次審查過程</h2>
+    <div class="section-desc">完整 No-Go 決策記錄 · 含 Skeptic Check 分析</div>
+
+    <!-- First No-Go -->
+    <div class="ray-box">
+      <div class="ray-header">
+        <div class="ray-icon">🔴</div>
+        <div>
+          <div class="ray-meta">Ray · 第一次審查 · P2P 完整節點模式</div>
+          <h4>第一次 No-Go — 安全風險過高</h4>
+        </div>
+      </div>
+      <div class="ray-verdict nogo">🚫 No-Go（Veto 生效）</div>
+      <p>完整 P2P 節點模式存在 CRITICAL 等級安全風險，Ray 行使 veto 否決整合：</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>風險項目</th>
+            <th>等級</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>WASM 外部代碼執行</td>
+            <td><span class="badge badge-red">CRITICAL</span></td>
+            <td>匿名節點推來的任意邏輯在本機執行</td>
+          </tr>
+          <tr>
+            <td>P2P 網路暴露</td>
+            <td><span class="badge badge-red">HIGH</span></td>
+            <td>本機直接連接全球不可信節點</td>
+          </tr>
+          <tr>
+            <td>pipe-to-bash 安裝</td>
+            <td><span class="badge badge-red">HIGH</span></td>
+            <td><code style="font-family:var(--mono);font-size:12px">curl | bash</code> 安裝，無代碼審查</td>
+          </tr>
+          <tr>
+            <td>localhost:8080 無認證</td>
+            <td><span class="badge badge-orange">MEDIUM</span></td>
+            <td>本地 API 無任何身份驗證</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Deep research finding -->
+    <div class="alert alert-info" style="margin-top:16px;margin-bottom:16px">
+      <strong>深研發現新事實：</strong>存在 <code style="font-family:var(--mono);font-size:13px">--api</code> 模式（只跑本地推論，不加入 P2P）。CRITICAL 和 HIGH 風險全部消除。→ 重新送審
+    </div>
+
+    <!-- Second No-Go -->
+    <div class="ray-box">
+      <div class="ray-header">
+        <div class="ray-icon">🔴</div>
+        <div>
+          <div class="ray-meta">Ray · 第二次審查 · Skeptic Check 命中根本問題</div>
+          <h4>第二次 No-Go — 功能重複，已有更好替代</h4>
+        </div>
+      </div>
+      <div class="ray-verdict nogo">🚫 No-Go（Skeptic Check）</div>
+      <p>Ray 的 Skeptic Check 提出關鍵問題，命中根本問題：</p>
+      <blockquote>
+        「API-only 模式 = 功能更少的 Ollama。<br>
+        Ollama 已安裝在系統上（v0.17.4），OpenAI-compatible API，零額外風險，無需引入任何閉源依賴。<br>
+        如果根本不裝 Hyperspace，用 Ollama 就好，為什麼要引入更多依賴？」
+      </blockquote>
+      <p>最終決定：<strong>不整合 Hyperspace。改用已安裝的 Ollama 做本地推論 fallback。</strong></p>
+    </div>
+
+    <div class="alert alert-green">
+      <strong>✅ 最終決策：</strong>使用 Ollama v0.17.4（已安裝）作為本地推論 fallback，OpenAI-compatible API，零額外風險，無任何新依賴。
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 4 Concepts Implemented -->
+  <div class="section">
+    <div class="section-eyebrow">Section 3 · Knowledge Transfer</div>
+    <h2>偷師 4 個架構概念 — 全部已實作</h2>
+    <div class="section-desc">Hyperspace 整合雖被否決，但架構設計有 4 個可學習概念，今晚全部實作完畢</div>
+
+    <div class="concept-grid">
+      <!-- Concept 1 -->
+      <div class="concept-card">
+        <div class="concept-header">
+          <div class="concept-check">✅</div>
+          <div>
+            <div class="concept-title">概念 1：Presence + Work 雙指標</div>
+            <div class="concept-source">來源：Hyperspace 節點獎勵機制</div>
+          </div>
+        </div>
+        <p>Hyperspace 每個節點有在線獎勵（Presence）+ 工作報酬（Work）兩個維度分開計算</p>
+        <div class="concept-impl">
+          我們實作：Module N 每晚計算 daemon agents 在線率 + 各 agent 完成任務數<br>
+          Smoke test：noel ✅ gooaye ✅ kai ✅（3/3 online）
+        </div>
+      </div>
+
+      <!-- Concept 2 -->
+      <div class="concept-card">
+        <div class="concept-header">
+          <div class="concept-check">✅</div>
+          <div>
+            <div class="concept-title">概念 2：每晚 Git 快照</div>
+            <div class="concept-source">來源：Hyperspace 每小時狀態推送 GitHub</div>
+          </div>
+        </div>
+        <p>Hyperspace 每小時把所有 agent 狀態推到 GitHub，確保完整可追溯的歷史記錄</p>
+        <div class="concept-impl">
+          我們實作：Module GIT 每晚抓今日所有 Kai 任務 → 存 ~/.claude/snapshots/{date}.json → git commit<br>
+          Rain 隔天直接看 git log 就有完整夜班紀錄
+        </div>
+      </div>
+
+      <!-- Concept 3 -->
+      <div class="concept-card">
+        <div class="concept-header">
+          <div class="concept-check">✅</div>
+          <div>
+            <div class="concept-title">概念 3：北極星 Metric 數字化</div>
+            <div class="concept-source">來源：Hyperspace 各域客觀指標（val_loss / Sharpe ratio）</div>
+          </div>
+        </div>
+        <p>Hyperspace 每個專業域都有一個客觀數字衡量成效，讓 agent 表現可量化比較</p>
+        <div class="concept-impl">
+          我們實作：agent-kpi.md 新增 Presence+Work 雙指標區段<br>
+          定義 3 個 daemon 的警告閾值，KPI 可量化追蹤<br>
+          Bonus：Kai 中控台 Presence+Work badge（Max task 進行中）
+        </div>
+      </div>
+
+      <!-- Concept 4 -->
+      <div class="concept-card">
+        <div class="concept-header">
+          <div class="concept-check">✅</div>
+          <div>
+            <div class="concept-title">概念 4：知識廣播</div>
+            <div class="concept-source">來源：Hyperspace agents 廣播實驗結果給所有 peer</div>
+          </div>
+        </div>
+        <p>Hyperspace agents 把實驗結果廣播給所有 peer，確保知識在網絡中流通共享</p>
+        <div class="concept-impl">
+          我們實作：night-shift-prep.py 建立夜班任務前，讀 lessons.md 最近 3 條教訓<br>
+          prepend「今日知識廣播」到每個任務 description<br>
+          Noel 讀任務時自動應用最新教訓
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Chrome DevTools MCP -->
+  <div class="section">
+    <div class="section-eyebrow">Section 4 · Chrome DevTools MCP</div>
+    <h2>Chrome DevTools MCP — 安裝完成</h2>
+    <div class="section-desc">接管 Rain 的真實 Chrome Session · 含 Google、GA4、GitHub 後台</div>
+
+    <div class="alert alert-green" style="margin-bottom:20px">
+      <strong>狀態：✅ 已安裝，✓ Connected</strong><br>
+      <code style="font-family:var(--mono);font-size:12px">chrome-devtools: npx chrome-devtools-mcp@latest --autoConnect - ✓ Connected</code>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-label">這是什麼？</div>
+      <p>不是開新無頭瀏覽器，是<strong>接管 Rain 正在用的 Chrome</strong>（你的 Google、GA4、GitHub 後台都在裡面）。50+ 工具：click、fill、navigate、screenshot、console log、network 分析、Core Web Vitals。</p>
+    </div>
+
+    <!-- How to use -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-label">使用方式（每次要用前）</div>
+      <div class="code-block" style="margin-top:8px">
+        <span class="cm"># 步驟 1：用偵錯模式重開 Chrome</span><br>
+        bash ~/.claude/scripts/chrome-debug.sh<br><br>
+        <span class="cm"># 步驟 2：重啟 Claude Code session</span><br>
+        <span class="cm"># 之後就可以說：「幫我看 GA4 昨天流量最高的文章」</span>
+      </div>
+    </div>
+
+    <!-- Step by step -->
+    <div class="section-eyebrow" style="margin-bottom:12px">Step-by-Step 啟動流程</div>
+    <ul class="step-list">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>執行啟動腳本</strong>
+          <span>bash ~/.claude/scripts/chrome-debug.sh — 以偵錯模式重啟 Chrome</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>重啟 Claude Code</strong>
+          <span>關閉並重開 Claude Code session，讓 MCP server 重新連接</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>直接描述需求</strong>
+          <span>「幫我查 GA4 昨天流量」/ 「幫 Webb 截圖 TheOrder 首頁」</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>付款/刪除操作 → Rain 確認</strong>
+          <span>AI 停在確認頁前，Rain 審查後才繼續（見下方安全護欄）</span>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Real use cases -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-label">實際使用場景</div>
+      <ul>
+        <li>幫 Atlas 查 Google Analytics 流量，不需要 OAuth token</li>
+        <li>Webb 做網站 QA，截圖 + 看 console 錯誤，確認 Core Web Vitals</li>
+        <li>讀 GitHub 後台，整理 starred repos 或 PR 狀態</li>
+        <li>查看 TheOrder 後台商品狀態（但付款/刪除操作需 Rain 確認）</li>
+        <li>協助 Atlas 做 GA4 報表分析（無需額外 token）</li>
+      </ul>
+    </div>
+
+    <!-- Safety guards -->
+    <div class="section-eyebrow" style="margin-bottom:12px">安全護欄（已加進 exclusion-rules.md C-1～C-5）</div>
+    <div class="exclusion-grid">
+      <div class="exclusion-item">
+        <div class="exc-code">C-1</div>
+        <div class="exc-rule">付款 / 結帳頁面</div>
+        <div class="exc-note">AI 停在確認頁前，Rain 確認才繼續</div>
+      </div>
+      <div class="exclusion-item">
+        <div class="exc-code">C-2</div>
+        <div class="exc-rule">刪除 / 批量操作</div>
+        <div class="exc-note">AI 準備清單，Rain 確認才執行</div>
+      </div>
+      <div class="exclusion-item">
+        <div class="exc-code">C-3</div>
+        <div class="exc-rule">含個資的表單</div>
+        <div class="exc-note">AI 填好停在送出前，Rain 審查才送出</div>
+      </div>
+      <div class="exclusion-item">
+        <div class="exc-code">C-4</div>
+        <div class="exc-rule">帳號設定變更</div>
+        <div class="exc-note">AI 導航到設定頁，Rain 手動操作</div>
+      </div>
+      <div class="exclusion-item">
+        <div class="exc-code">C-5</div>
+        <div class="exc-rule">廣告投放操作</div>
+        <div class="exc-note">AI 草擬設定，Rain 確認才發布</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Todo -->
+  <div class="section">
+    <div class="section-eyebrow">Section 5 · Next Actions</div>
+    <h2>待辦清單</h2>
+    <div class="section-desc">4 項後續行動 · 1 項進行中</div>
+
+    <div class="tbl-wrap">
+      <table class="todo-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>狀態</th>
+            <th>負責人</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kai 後端新增 /api/team/{agent}/kpi（Presence+Work badge）</td>
+            <td><span class="badge badge-warn">進行中</span></td>
+            <td>Max（task 72cf6f87）</td>
+          </tr>
+          <tr>
+            <td>Chrome MCP 首次實際使用測試（GA4 查詢）</td>
+            <td><span class="badge badge-grey">待 Rain 需要時</span></td>
+            <td>Atlas</td>
+          </tr>
+          <tr>
+            <td>Ollama 拉取 gemma3:4b 備用模型（可選）</td>
+            <td><span class="badge badge-grey">可選</span></td>
+            <td>Noel 夜班</td>
+          </tr>
+          <tr>
+            <td>Module N 結果推送到 Kai 中控台</td>
+            <td><span class="badge badge-blue">等 Max 後端完成</span></td>
+            <td>Noel 夜班</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Rain AI Team · Nova Docs · 2026-03-18 · Confidential<br>
+  技術評估：Klay · 風險審查：Ray · 夜班實作：Noel · 報告：Nova
+</div>
+
+</body>
+</html>

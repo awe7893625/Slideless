@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T-TAX 稅務顧問 AI 系統｜技術報告</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f6f5f1;
+      --card: #ffffff;
+      --orange: #e8773a;
+      --orange-light: #f4a06a;
+      --orange-pale: #fdf0e8;
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --border: #e5e3dc;
+      --dark: #1c1917;
+      --dark2: #292524;
+      --code-bg: #f0ede6;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, 'Noto Sans TC', 'PingFang TC', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* ── Header ── */
+    .hero {
+      background: var(--dark);
+      color: #fff;
+      padding: 72px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,119,58,.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--orange);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--orange); }
+    .hero p {
+      font-size: clamp(15px, 2vw, 18px);
+      color: #c9c4bc;
+      max-width: 580px;
+      margin: 0 auto 32px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      font-size: 13px;
+      color: #9c978e;
+    }
+    .hero-meta span strong { color: #e9e5de; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Section ── */
+    .section {
+      padding: 64px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-child { border-bottom: none; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--orange-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .card p { color: var(--muted); font-size: 14.5px; margin-bottom: 10px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Grid ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--orange);
+      letter-spacing: -.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); }
+
+    /* ── Pipeline ── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .pipeline-step {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+    .pipeline-step::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 48px;
+      bottom: -1px;
+      width: 2px;
+      background: var(--border);
+    }
+    .pipeline-step:last-child::before { display: none; }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--dark);
+      color: var(--orange);
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .step-body {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .step-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .step-tag {
+      display: inline-block;
+      background: var(--orange-pale);
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Code block ── */
+    .code-block {
+      background: var(--dark2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e8e3da;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .code-block .comment { color: #7c7367; }
+    .code-block .key { color: var(--orange-light); }
+    .code-block .val { color: #a8d8a8; }
+
+    /* ── Tag list ── */
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .tag {
+      background: var(--code-bg);
+      color: var(--text);
+      font-size: 12.5px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+    }
+    .tag.orange {
+      background: var(--orange-pale);
+      color: var(--orange);
+      border-color: #f4c49e;
+    }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: var(--dark);
+      color: #e8e3da;
+      border-radius: 16px;
+      padding: 32px 36px;
+      margin: 32px 0;
+    }
+    .highlight-box h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 16px;
+    }
+    .highlight-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .highlight-box li {
+      font-size: 14px;
+      color: #c9c4bc;
+      padding-left: 20px;
+      position: relative;
+    }
+    .highlight-box li::before {
+      content: '▸';
+      color: var(--orange);
+      position: absolute;
+      left: 0;
+    }
+
+    /* ── Section divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Output format ── */
+    .output-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .output-item:last-child { border-bottom: none; }
+    .output-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--orange);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .output-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
+    .output-text span { font-size: 13px; color: var(--muted); }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--dark);
+      color: #7c7367;
+      text-align: center;
+      padding: 36px 24px;
+      font-size: 13px;
+    }
+    .footer strong { color: #c9c4bc; }
+
+    /* ── Arch diagram ── */
+    .arch-diagram {
+      background: var(--dark2);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+    .arch-diagram pre {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #c9c4bc;
+      white-space: pre;
+    }
+    .arch-diagram .hl { color: var(--orange-light); font-weight: bold; }
+    .arch-diagram .dim { color: #6b6561; }
+
+    /* Table */
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 20px 0; }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    table { border-collapse: collapse; min-width: 600px; width: 100%; font-size: 14px; }
+    th {
+      background: var(--dark);
+      color: #e8e3da;
+      font-weight: 700;
+      padding: 12px 16px;
+      text-align: left;
+    }
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: var(--code-bg); }
+    td code {
+      background: var(--orange-pale);
+      color: var(--orange);
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'SF Mono', monospace;
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 52px 20px 44px; }
+      .hero-meta { flex-direction: column; gap: 8px; align-items: center; }
+      .section { padding: 48px 0; }
+      .card { padding: 20px; }
+      .highlight-box { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">Technical Report · 2026-03-22</div>
+  <h1>T-TAX 稅務顧問<br><span>AI 系統技術報告</span></h1>
+  <p>涵蓋 LLM 運作機制、5 層 Pipeline 架構、法規向量資料庫與 Agent 人格設定的完整技術說明</p>
+  <div class="hero-meta">
+    <span><strong>2,443</strong> 份法規文件</span>
+    <span><strong>5</strong> 層推理管線</span>
+    <span><strong>Claude</strong> 核心引擎</span>
+    <span><strong>繁體中文</strong> 稅法覆蓋</span>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="container">
+  <div class="section">
+    <div class="section-label">System Overview</div>
+    <div class="section-title">系統規模概覽</div>
+    <div class="section-sub">T-TAX 目前覆蓋台灣主要稅種，整合向量檢索、法律推理與精算計算三大核心能力</div>
+    <div class="grid-3">
+      <div class="stat-card">
+        <div class="stat-num">2,443</div>
+        <div class="stat-label">法規文件總數<br>（法律 + 細則 + 解釋令）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">推理管線層次<br>（Router → Formatter）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">6</div>
+        <div class="stat-label">強制輸出段落<br>（諮詢模式六段式）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">10</div>
+        <div class="stat-label">最相關法條<br>（Reranker 精選 top-10）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">稅率累進級距<br>（綜所稅：5%–40%）</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">2</div>
+        <div class="stat-label">Proxy 橋接端口<br>（claw-proxy + codex-proxy）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: LLM -->
+  <div class="section">
+    <div class="section-label">Section 1 — LLM 機制</div>
+    <div class="section-title">大型語言模型的運作原理</div>
+    <div class="section-sub">T-TAX 以 Claude（Anthropic）為核心推理引擎，透過雙 Proxy 橋接訂閱制服務</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><div class="icon">🧠</div>LLM 基礎原理</div>
+        <p>LLM（大型語言模型）是一種經過海量文字資料訓練的神經網路，能夠理解並生成人類語言。模型在訓練過程中學習了語言模式、推理邏輯與領域知識，推理時透過「注意力機制（Attention）」決定哪些上下文對答案最重要。</p>
+        <p>T-TAX 使用 <strong>Claude（Anthropic）</strong> 作為核心語言推理引擎，負責法律判斷、選擇題推理與諮詢回答的最終生成。</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="icon">🔌</div>雙 Proxy 橋接架構</div>
+        <p>T-TAX 不直接呼叫 Claude API，而是透過本地 Proxy 橋接：</p>
+        <p><strong>主要路線：</strong> claw-proxy（port 38780）— 橋接 Claude Code 訂閱制，無 token 計費限制</p>
+        <p><strong>備用路線：</strong> codex-proxy（port 38784）— 橋接 Codex CLI，主路線異常時自動切換</p>
+        <p>此架構讓 T-TAX 在訂閱制框架內運行，避免高頻查詢的 API 成本問題。</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><div class="icon">📋</div>LLM 接收的 Prompt 結構</div>
+      <p>T-TAX 的每次推理請求包含三層輸入：</p>
+      <div class="arch-diagram">
+        <pre><span class="hl">System Prompt</span>    → 角色設定（資深財稅顧問身份、語言規範、禁止條款）
+<span class="hl">Context Window</span>  → 向量資料庫檢索出的 top-10 最相關法條片段
+<span class="hl">User Query</span>       → 使用者的稅務問題（可能含補充事實）
+
+<span class="dim">────────────────────────────────────────────────────</span>
+LLM <span class="hl">不主動查詢</span>法條，而是閱讀「預先檢索好的法條片段」做推理
+法條由 TaxRAGService 從向量資料庫提取，再注入 prompt</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Pipeline -->
+  <div class="section">
+    <div class="section-label">Section 2 — Pipeline 架構</div>
+    <div class="section-title">系統收到問題後的 5 層解題流程</div>
+    <div class="section-sub">從問題輸入到答案輸出，每層有明確職責分工，兼顧效能與準確性</div>
+
+    <div class="arch-diagram">
+      <pre>
+  使用者問題輸入
+       │
+       ▼
+┌─────────────────┐
+│  <span class="hl">Layer 1</span>          │  TaxQueryRouter
+│  問題分類        │  關鍵字比對（快速免費）→ 稅種 / 計算 / 一般
+│                 │  MCQ 偵測（A)(B)(C)(D) → 強制推理路線
+└────────┬────────┘  低信心時才呼叫 LLM 分類
+         │
+         ▼
+┌─────────────────┐
+│  <span class="hl">Layer 2</span>          │  TaxFactExtractor
+│  事實提取        │  分析缺少的必要資訊（年度/身份別/金額等）
+│                 │  輸出 missing_facts_count → 影響信心等級
+└────────┬────────┘  呼叫一次 LLM
+         │
+         ▼
+┌─────────────────┐
+│  <span class="hl">Layer 3</span>          │  TaxRAGService
+│  向量檢索        │  Hybrid Search：向量相似度 + BM25 關鍵字
+│                 │  2,443 份文件 → Reranker 精選 top-10
+└────────┬────────┘  Rule Engine 強制加入特定稅種法條
+         │
+         ▼
+┌─────────────────┐
+│  <span class="hl">Layer 4</span>          │  Reasoner 推理引擎
+│  法律推理        │  TaxLegalReasoner（主路線，Claude）
+│                 │  TaxCalculationReasoner（計算引擎，純 Python）
+│                 │  TaxFilingReasoner（申報程序）
+└────────┬────────┘  KG 知識圖譜交叉驗證法條真實性
+         │
+         ▼
+┌─────────────────┐
+│  <span class="hl">Layer 5</span>          │  FinalFormatter
+│  輸出格式化      │  諮詢模式：六段式結構
+│                 │  考試模式：答案(X) + 法源 + 邏輯
+└─────────────────┘
+         │
+         ▼
+  最終答案輸出
+</pre>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-tag">TaxQueryRouter</div>
+          <div class="step-title">問題分類（兩階段判斷）</div>
+          <div class="step-sub">優先用關鍵字規則比對（快速免費）判斷問題類型：稅種路由、計算題、一般查詢。MCQ 選擇題（含 (A)(B)(C)(D) 格式）偵測到後強制走推理路線，不走計算引擎。只有低信心時才呼叫 LLM 做語意分類，降低 API 成本。</div>
+          <div class="tag-row">
+            <span class="tag orange">兩階段判斷</span>
+            <span class="tag">關鍵字比對優先</span>
+            <span class="tag">MCQ 偵測</span>
+            <span class="tag">低信心才呼叫 LLM</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-tag">TaxFactExtractor</div>
+          <div class="step-title">事實提取與缺口分析</div>
+          <div class="step-sub">呼叫一次 LLM 分析問題是否缺少必要資訊（年度、身份別、適用對象、金額等）。輸出 <code>missing_facts_count</code>，數字越高代表問題越不完整，會降低最終答案的信心等級，並在輸出中提示使用者補充資訊。</div>
+          <div class="tag-row">
+            <span class="tag orange">呼叫 1 次 LLM</span>
+            <span class="tag">missing_facts_count</span>
+            <span class="tag">信心等級影響</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-tag">TaxRAGService</div>
+          <div class="step-title">向量檢索 + 混合排序</div>
+          <div class="step-sub">
+            LightVectorStore 向量資料庫儲存 2,443 份法規文件（1,411 條法律 + 921 條施行細則 + 111 條解釋令/函釋）。
+            Hybrid Search 同時執行向量相似度（OpenAI Embedding）與 BM25 關鍵字搜尋，合併取 top-20。
+            Rule Engine 針對特定稅種強制加入相關法條（確保不漏）。
+            最後 Reranker 精選 top-10 最相關法條片段，注入 LLM prompt。
+          </div>
+          <div class="tag-row">
+            <span class="tag orange">Hybrid Search</span>
+            <span class="tag">2,443 份文件</span>
+            <span class="tag">向量 + BM25</span>
+            <span class="tag">Reranker top-10</span>
+            <span class="tag">Rule Engine</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-tag">Reasoner Layer</div>
+          <div class="step-title">法律推理 / 計算引擎 / 申報程序</div>
+          <div class="step-sub">
+            <strong>TaxLegalReasoner</strong>（主路線）：Claude 語言模型根據檢索到的法條進行法律推理，適用選擇題與法律判斷問題。
+            <br><strong>TaxCalculationReasoner</strong>：純 Python 計算引擎，處理計算題不呼叫 LLM，確保數值精準。
+            <br><strong>TaxFilingReasoner</strong>：處理申報程序、截止日期等程序性問題。
+            <br><strong>知識圖譜（KG）驗證</strong>：交叉確認 LLM 引用的法條是否真實存在於資料庫中，防止幻覺引用。
+            <br><strong>Exam Mode</strong>：放寬法條限制，允許 LLM 運用專業知識補充，適用考試情境。
+          </div>
+          <div class="tag-row">
+            <span class="tag orange">Claude 主力推理</span>
+            <span class="tag">純 Python 計算</span>
+            <span class="tag">KG 幻覺防護</span>
+            <span class="tag">Exam Mode</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-tag">FinalFormatter</div>
+          <div class="step-title">輸出格式化（兩種模式）</div>
+          <div class="step-sub">
+            <strong>諮詢模式</strong>：強制六段式輸出（結論 / 法源依據 / 判斷邏輯 / 風險提示 / 建議 / 免責聲明）
+            <br><strong>考試模式</strong>：第一行輸出「答案：(X)」，再附法源依據與判斷邏輯
+          </div>
+          <div class="tag-row">
+            <span class="tag orange">六段式輸出</span>
+            <span class="tag">考試模式</span>
+            <span class="tag">免責聲明必含</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: RAG -->
+  <div class="section">
+    <div class="section-label">Section 3 — 法規資料庫</div>
+    <div class="section-title">研究法規的具體流程與範疇</div>
+    <div class="section-sub">2,443 份法規文件透過爬蟲系統定期更新，涵蓋台灣主要稅種的法律體系</div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-title"><div class="icon">📚</div>法規索引範圍</div>
+          <div class="tbl-wrap">
+            <table>
+              <tr><th>文件類型</th><th>數量</th><th>主要來源</th></tr>
+              <tr><td>法律條文</td><td><code>1,411</code> 條</td><td>台灣法規資料庫（法務部）</td></tr>
+              <tr><td>施行細則</td><td><code>921</code> 條</td><td>各稅種施行細則</td></tr>
+              <tr><td>解釋令 / 函釋</td><td><code>111</code> 條</td><td>財政部函釋</td></tr>
+              <tr><td><strong>合計</strong></td><td><code>2,443</code> 份</td><td>定期爬蟲更新</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="icon">🗂️</div>涵蓋稅種</div>
+          <div class="tag-row">
+            <span class="tag orange">所得稅法（個人）</span>
+            <span class="tag orange">所得稅法（營利事業）</span>
+            <span class="tag orange">遺產及贈與稅法</span>
+            <span class="tag orange">加值型營業稅法</span>
+            <span class="tag orange">印花稅法</span>
+            <span class="tag orange">所得基本稅額條例</span>
+            <span class="tag">各類所得扣繳率標準</span>
+            <span class="tag">相關施行細則</span>
+            <span class="tag">解釋令與函釋</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="icon">🔍</div>法條檢索流程（5 步驟）</div>
+        <div class="output-item">
+          <div class="output-num">1</div>
+          <div class="output-text">
+            <strong>問題向量化</strong>
+            <span>使用 OpenAI Embedding 將使用者問題轉換為高維向量</span>
+          </div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">2</div>
+          <div class="output-text">
+            <strong>向量空間搜尋</strong>
+            <span>在向量資料庫（LightVectorStore）計算餘弦相似度，找最接近的法條片段</span>
+          </div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">3</div>
+          <div class="output-text">
+            <strong>BM25 關鍵字搜尋</strong>
+            <span>同步執行傳統關鍵字搜尋，補捉精確術語匹配（如法條號碼、稅種名稱）</span>
+          </div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">4</div>
+          <div class="output-text">
+            <strong>合併排序</strong>
+            <span>融合向量與 BM25 分數，取最相關 top-20 候選法條片段</span>
+          </div>
+        </div>
+        <div class="output-item">
+          <div class="output-num">5</div>
+          <div class="output-text">
+            <strong>Reranker 精選</strong>
+            <span>Cross-encoder Reranker 精選 top-10，作為 LLM prompt 的推理依據</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Calculation -->
+  <div class="section">
+    <div class="section-label">Section 4 — 計算引擎</div>
+    <div class="section-title">計算題的處理方式</div>
+    <div class="section-sub">純 Python 數值計算，不呼叫 LLM，確保稅額計算的精準性</div>
+
+    <div class="highlight-box">
+      <h3>計算題偵測邏輯</h3>
+      <ul>
+        <li>Router 偵測到純計算意圖關鍵字：「計算」「應納稅額」「試計算」等</li>
+        <li>且非選擇題格式（選擇題會強制走推理路線）</li>
+        <li>轉派 TaxCalculatorService（Python 計算引擎）</li>
+        <li>計算引擎直接輸出數值結果，不經 LLM 推理</li>
+      </ul>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>稅種</th>
+          <th>計算邏輯</th>
+          <th>稅率結構</th>
+        </tr>
+        <tr>
+          <td><strong>個人綜合所得稅</strong></td>
+          <td>10 類所得加總 → 減免扣除項目 → 適用累進稅率</td>
+          <td>5% / 12% / 20% / 30% / 40%（五級累進）</td>
+        </tr>
+        <tr>
+          <td><strong>營利事業所得稅</strong></td>
+          <td>課稅所得 × 稅率（12萬以下免稅）</td>
+          <td>20%（單一稅率）</td>
+        </tr>
+        <tr>
+          <td><strong>遺產稅</strong></td>
+          <td>遺產淨額（扣除免稅額與扣除額）× 累進稅率</td>
+          <td>10% / 15% / 20%（三級累進）</td>
+        </tr>
+        <tr>
+          <td><strong>贈與稅</strong></td>
+          <td>贈與淨額 × 稅率</td>
+          <td>10%（單一稅率）</td>
+        </tr>
+        <tr>
+          <td><strong>最低稅負（AMT）</strong></td>
+          <td>基本所得額超過 670 萬元的部分 × 稅率</td>
+          <td>20%（超額部分）</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 5: Agent -->
+  <div class="section">
+    <div class="section-label">Section 5 — Agent 設定</div>
+    <div class="section-title">TaxLegalReasoner 人格設定與規範</div>
+    <div class="section-sub">T-TAX Agent 的系統提示（System Prompt）設計，決定 AI 的行為邊界與輸出品質</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><div class="icon">👤</div>AI 身份設定</div>
+        <p><strong>角色：</strong>資深財稅顧問，熟稔台灣稅法實務</p>
+        <p><strong>語言：</strong>繁體中文，語氣專業但易懂</p>
+        <p><strong>一般模式限制：</strong>只能使用 RAG 提供的法條清單作答，不得引用清單以外的法條（防止幻覺）</p>
+        <p><strong>考試模式限制：</strong>優先使用提供的法條，若法條不足可運用專業知識補充（放寬限制以提升答題率）</p>
+        <p><strong>硬性禁止：</strong>提供「確定的法律建議」，輸出必須包含免責聲明</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="icon">⚖️</div>答案產出責任</div>
+        <div class="output-item" style="padding:12px 0">
+          <div class="output-num" style="background:#4a7c59;width:24px;height:24px;font-size:11px">法</div>
+          <div class="output-text">
+            <strong>推理題 / 選擇題</strong>
+            <span>Claude 語言模型（透過 claw-proxy）負責最終推理，輸出答案與法條引用</span>
+          </div>
+        </div>
+        <div class="output-item" style="padding:12px 0">
+          <div class="output-num" style="background:#5a6a9e;width:24px;height:24px;font-size:11px">算</div>
+          <div class="output-text">
+            <strong>計算題</strong>
+            <span>TaxCalculatorService Python 引擎直接計算，不呼叫 LLM，確保精準</span>
+          </div>
+        </div>
+        <div class="output-item" style="padding:12px 0">
+          <div class="output-num" style="background:#8a5a3a;width:24px;height:24px;font-size:11px">驗</div>
+          <div class="output-text">
+            <strong>知識圖譜驗證</strong>
+            <span>確認 LLM 引用的法條存在於資料庫中，防止虛構法條引用</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label" style="margin-bottom:8px">諮詢模式輸出規範</div>
+    <div class="section-title" style="font-size:22px;margin-bottom:24px">六段式強制輸出結構</div>
+
+    <div class="card">
+      <div class="output-item">
+        <div class="output-num">1</div>
+        <div class="output-text">
+          <strong>結論</strong>
+          <span>直接給出核心答案，避免使用者需要通讀全文才能得到答案</span>
+        </div>
+      </div>
+      <div class="output-item">
+        <div class="output-num">2</div>
+        <div class="output-text">
+          <strong>法源依據</strong>
+          <span>列出引用的法條（條號 + 條文內容），確保可追溯性與可驗證性</span>
+        </div>
+      </div>
+      <div class="output-item">
+        <div class="output-num">3</div>
+        <div class="output-text">
+          <strong>判斷邏輯</strong>
+          <span>一步步說明推理過程，讓使用者理解答案是如何從法條推導出來的</span>
+        </div>
+      </div>
+      <div class="output-item">
+        <div class="output-num">4</div>
+        <div class="output-text">
+          <strong>風險提示</strong>
+          <span>指出可能的例外情況、但書條款或需要進一步確認的不確定性</span>
+        </div>
+      </div>
+      <div class="output-item">
+        <div class="output-num">5</div>
+        <div class="output-text">
+          <strong>建議</strong>
+          <span>提供實務操作建議，連結法規知識與實際稅務申報行為</span>
+        </div>
+      </div>
+      <div class="output-item">
+        <div class="output-num">6</div>
+        <div class="output-text">
+          <strong>免責聲明</strong>
+          <span>強制提醒此為 AI 分析結果，正式稅務申報請諮詢合格稅務師，不構成法律建議</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title"><div class="icon">📝</div>考試模式輸出規範</div>
+      <div class="code-block">
+<span class="comment">// 考試模式強制格式</span>
+<span class="key">第一行：</span><span class="val">「答案：(X)」</span>  <span class="comment">← X 為選項字母，必須在第一行</span>
+<span class="key">第二段：</span><span class="val">法源依據</span>      <span class="comment">← 列出引用法條（條號 + 內容）</span>
+<span class="key">第三段：</span><span class="val">判斷邏輯</span>      <span class="comment">← 說明從法條推導答案的過程</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">考試模式特點：Exam Mode 放寬法條限制，允許 LLM 運用專業知識補充；答案格式化確保符合考試評分標準。</p>
+    </div>
+  </div>
+
+  <!-- Section 6: Architecture Summary -->
+  <div class="section">
+    <div class="section-label">Section 6 — Architecture Summary</div>
+    <div class="section-title">系統架構全景</div>
+    <div class="section-sub">T-TAX 的技術棧與各元件的職責分工</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>元件</th>
+          <th>職責</th>
+          <th>技術實現</th>
+          <th>LLM 呼叫</th>
+        </tr>
+        <tr>
+          <td><code>TaxQueryRouter</code></td>
+          <td>問題分類與路由</td>
+          <td>關鍵字規則 + 選擇性 LLM</td>
+          <td>0–1 次（低信心才呼叫）</td>
+        </tr>
+        <tr>
+          <td><code>TaxFactExtractor</code></td>
+          <td>缺失事實分析</td>
+          <td>LLM 提取</td>
+          <td>1 次</td>
+        </tr>
+        <tr>
+          <td><code>TaxRAGService</code></td>
+          <td>法條向量檢索</td>
+          <td>LightVectorStore + BM25 + Reranker</td>
+          <td>0 次（純向量計算）</td>
+        </tr>
+        <tr>
+          <td><code>TaxLegalReasoner</code></td>
+          <td>法律推理（主路線）</td>
+          <td>Claude via claw-proxy</td>
+          <td>1 次（最終推理）</td>
+        </tr>
+        <tr>
+          <td><code>TaxCalculatorService</code></td>
+          <td>稅額精算</td>
+          <td>純 Python 數值計算</td>
+          <td>0 次</td>
+        </tr>
+        <tr>
+          <td><code>TaxFilingReasoner</code></td>
+          <td>申報程序查詢</td>
+          <td>Claude via claw-proxy</td>
+          <td>1 次</td>
+        </tr>
+        <tr>
+          <td><code>KnowledgeGraph</code></td>
+          <td>法條真實性驗證</td>
+          <td>Graph DB 查詢</td>
+          <td>0 次</td>
+        </tr>
+        <tr>
+          <td><code>FinalFormatter</code></td>
+          <td>輸出格式化</td>
+          <td>模板規則</td>
+          <td>0 次</td>
+        </tr>
+        <tr>
+          <td><code>TaxCrawlerService</code></td>
+          <td>法規資料更新</td>
+          <td>爬蟲（法務部 + 財政部）</td>
+          <td>0 次</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="highlight-box" style="margin-top:32px">
+      <h3>設計理念：兩階段判斷 × 成本最優化</h3>
+      <ul>
+        <li>Router 與 Extractor 優先用規則比對（免費、快速），只有低信心時才呼叫 LLM</li>
+        <li>RAG 與 KG 驗證完全不呼叫 LLM，使用純向量計算與圖查詢</li>
+        <li>計算題使用 Python 引擎而非 LLM，確保數值精準且零 AI 誤差</li>
+        <li>主要 LLM 呼叫集中在最終推理（Layer 4），每次查詢通常只呼叫 1–2 次 Claude</li>
+        <li>雙 Proxy 架構確保服務連續性，claw-proxy 主路線異常時自動切換 codex-proxy</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p><strong>T-TAX 稅務顧問 AI 系統技術報告</strong></p>
+  <p style="margin-top:8px">報告日期：2026-03-22 ｜ 由 Rain AI Team — Nova 製作</p>
+  <p style="margin-top:4px">本報告為技術說明文件，不構成法律或稅務建議</p>
+</div>
+
+</body>
+</html>

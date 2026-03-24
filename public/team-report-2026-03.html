@@ -3,1665 +3,654 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rain AI Team — 團隊架構完全手冊 2026-03 v5.0</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Rain AI Team — 團隊架構報告 2026-03</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
-  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
-  --accent:#a8cde8;--accent-warm:#eb8054;--green:#85a268;--danger:#d94f4f;
-  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
-  --font-mono:'JetBrains Mono',monospace;
-}
-html{scroll-behavior:smooth;scroll-padding-top:56px}
-body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6;overflow-x:hidden}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f6f5f1;
+    color: #2c2c2c;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    padding: 0 0 60px;
+  }
 
-/* NAV */
-.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.nav-brand{font-weight:700;font-size:13px;color:var(--grey-03);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
-.nav-links{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.nav-links::-webkit-scrollbar{display:none}
-.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;transition:color .2s;white-space:nowrap}
-.nav-links a:hover{color:var(--black)}
-.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent-warm);z-index:101;transition:width .1s;width:0}
+  /* ── Hero ── */
+  .hero {
+    background: #fff;
+    border-bottom: 2px solid #e8e4dc;
+    padding: 48px 32px 36px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #b08d57;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 42px);
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+  }
+  .hero-sub {
+    margin-top: 10px;
+    color: #777;
+    font-size: 15px;
+  }
+  .hero-badges {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-amber  { background: #fef3c7; color: #b45309; }
+  .badge-green  { background: #d1fae5; color: #065f46; }
+  .badge-rose   { background: #ffe4e6; color: #be123c; }
+  .badge-purple { background: #ede9fe; color: #6d28d9; }
+  .badge-gray   { background: #f1f1ee; color: #555; }
 
-/* SECTIONS */
-section{padding:80px 120px 60px;max-width:1400px;margin:0 auto;width:100%}
-section:first-child{max-width:none;padding:0;width:100%}
+  /* ── Layout ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  .section { margin-top: 48px; }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #b08d57;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #ddd9d0;
+  }
+  .section-heading {
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+  }
 
-/* COVER */
-.cover{background:var(--black);color:var(--white);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:72px 120px 60px}
-.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-family:var(--font-mono)}
-.cover h1{font-size:clamp(32px,5vw,60px);font-weight:800;margin-bottom:16px;letter-spacing:-1px;line-height:1.1}
-.cover h1 span{color:var(--accent-warm)}
-.cover .subtitle{font-size:17px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:640px}
-.cover-stats{display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center}
-.cover-stat{text-align:center}
-.cover-stat .num{font-size:40px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
-.cover-stat .label{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}
-.cover-meta{margin-top:48px;font-size:13px;color:rgba(255,255,255,0.3);font-family:var(--font-mono)}
+  /* ── Stat Cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1.5px solid #e8e4dc;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-num { font-size: 36px; font-weight: 800; color: #b08d57; line-height: 1; }
+  .stat-label { font-size: 13px; color: #777; margin-top: 6px; }
+  .stat-sub { font-size: 11px; color: #aaa; margin-top: 3px; }
 
-/* SECTION HEADER */
-.section-header{margin-bottom:40px}
-.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-warm);margin-bottom:8px;font-family:var(--font-mono)}
-.section-title{font-size:clamp(24px,3vw,38px);font-weight:700;letter-spacing:-0.5px}
-.section-title span{color:var(--accent-warm)}
-.section-desc{font-size:15px;color:var(--grey-02);margin-top:8px;max-width:700px}
+  /* ── Tables ── */
+  .tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    border: 1.5px solid #e8e4dc;
+    margin-bottom: 28px;
+  }
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  table { width: 100%; min-width: 600px; border-collapse: collapse; background: #fff; font-size: 14px; }
+  thead th {
+    background: #f0ede7;
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #666;
+    white-space: nowrap;
+  }
+  tbody td { padding: 11px 16px; border-top: 1px solid #eee8e0; vertical-align: top; }
+  tbody tr:hover { background: #fafaf7; }
+  tbody tr.frozen-row { opacity: 0.6; background: #fafaf7; }
+  tbody tr.deprecated-row { opacity: 0.4; background: #fafaf7; }
 
-/* CARDS */
-.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
-.card h3{font-size:16px;font-weight:600;margin-bottom:12px}
+  .agent-name { font-weight: 700; color: #1a1a1a; white-space: nowrap; }
+  .role-text { color: #444; font-size: 13px; }
+  .new-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #b45309;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+    letter-spacing: 0;
+  }
 
-/* TABLE */
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
-.table-wrap table{min-width:600px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
-td{padding:10px 14px;border-bottom:1px solid var(--grey-01)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(168,205,232,0.05)}
+  /* ── Model tags ── */
+  .model-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .model-opus    { background: #ede9fe; color: #6d28d9; }
+  .model-sonnet  { background: #dbeafe; color: #1d4ed8; }
+  .model-codex   { background: #d1fae5; color: #065f46; }
+  .model-gemini  { background: #fef3c7; color: #b45309; }
+  .model-gpt     { background: #f0fdf4; color: #15803d; }
+  .model-grok    { background: #f3e5f5; color: #6a0dad; }
+  .model-ds      { background: #ffe4e6; color: #be123c; }
+  .model-glm     { background: #fce7f3; color: #9d174d; }
+  .model-cc      { background: #e0f2fe; color: #0369a1; }
+  .model-int     { background: #f1f1ee; color: #555; }
+  .model-bot     { background: #fef9ee; color: #78350f; }
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:40px}
-.stat{background:var(--white);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--grey-01)}
-.stat .num{font-size:32px;font-weight:800;font-family:var(--font-mono)}
-.stat .label{font-size:12px;color:var(--grey-02);margin-top:4px;font-weight:500}
-.stat.blue .num{color:#5b8fb9}
-.stat.warm .num{color:var(--accent-warm)}
-.stat.green .num{color:var(--green)}
-.stat.red .num{color:var(--danger)}
+  /* ── Dept header ── */
+  .dept-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .dept-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .tag-core       { background: #1a1a1a; color: #f6f5f1; }
+  .tag-investment { background: #fef3c7; color: #92400e; }
+  .tag-website    { background: #d1fae5; color: #065f46; }
+  .tag-external   { background: #e0f2f1; color: #00695c; }
+  .tag-other      { background: #f0ede7; color: #555; }
+  .dept-label { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .dept-count { font-size: 13px; color: #999; }
 
-/* AGENT DETAIL CARD */
-.agent-detail{background:var(--white);border-radius:12px;padding:32px;margin-bottom:24px;border:1px solid var(--grey-01);box-shadow:0 1px 4px rgba(0,0,0,0.05)}
-.agent-detail:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
-.agent-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
-.agent-avatar{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.agent-meta{flex:1;min-width:0}
-.agent-name{font-size:20px;font-weight:700;line-height:1.2}
-.agent-role{font-size:13px;color:var(--grey-02);margin-top:2px}
-.model-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;font-family:var(--font-mono);margin-top:6px}
-.model-claude{background:rgba(168,205,232,0.2);color:#3a6f94}
-.model-opus{background:rgba(168,205,232,0.3);color:#2a5f84}
-.model-codex{background:rgba(16,163,127,0.12);color:#0d7a5e}
-.model-gemini{background:rgba(66,133,244,0.12);color:#1557b0}
-.model-glm{background:rgba(139,87,184,0.12);color:#6b3fa0}
-.model-deepseek{background:rgba(235,128,84,0.12);color:#b85e28}
-.model-grok{background:rgba(255,69,0,0.12);color:#cc3700}
-.model-gpt{background:rgba(16,163,127,0.12);color:#0d7a5e}
-.model-internal{background:rgba(133,162,104,0.15);color:#4a7532}
+  /* ── Changes list ── */
+  .changes-list { list-style: none; }
+  .changes-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #eee8e0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .changes-list li:last-child { border-bottom: none; }
+  .change-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 2px;
+  }
+  .cb-model  { background: #dbeafe; color: #1d4ed8; }
+  .cb-dept   { background: #ede9fe; color: #6d28d9; }
+  .cb-frozen { background: #f1f1ee; color: #555; }
+  .cb-fix    { background: #d1fae5; color: #065f46; }
+  .change-text strong { color: #1a1a1a; }
+  .change-arrow { color: #bbb; margin: 0 3px; }
 
-.detail-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--grey-01)}
-.detail-section h4{font-size:13px;font-weight:700;color:var(--grey-03);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)}
-.detail-list{font-size:13px;color:var(--black);line-height:1.8}
-.detail-list li{margin-bottom:4px}
-.tag-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.tag{font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--grey-01);color:var(--grey-03)}
-.tag.accent{background:rgba(168,205,232,0.2);color:#4a7fa0}
-.tag.warm{background:rgba(235,128,84,0.12);color:#b85e28}
-.tag.green{background:rgba(133,162,104,0.15);color:#4a7532}
-.tag.red{background:rgba(217,79,79,0.1);color:var(--danger)}
-.mono{font-family:var(--font-mono);font-size:12px;background:var(--grey-01);padding:1px 6px;border-radius:4px}
-.do-dont{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
-.do-list,.dont-list{font-size:13px;line-height:1.8}
-.do-list li::marker{content:'✅ '}
-.dont-list li::marker{content:'❌ '}
+  /* ── Provider pills ── */
+  .provider-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .provider-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1.5px solid #e8e4dc;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+  .provider-count { font-weight: 800; color: #b08d57; }
 
-/* DEPT HEADER */
-.dept-header{display:flex;align-items:center;gap:12px;margin:48px 0 20px;padding-bottom:12px;border-bottom:2px solid var(--grey-01)}
-.dept-icon{font-size:24px}
-.dept-name{font-size:20px;font-weight:700}
-.dept-count{font-size:13px;color:var(--grey-02);margin-left:auto;font-family:var(--font-mono)}
-
-/* DARK SECTION */
-.dark-section{background:var(--black);color:var(--white);width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;padding:80px 0}
-.dark-section .section-eyebrow{color:var(--accent)}
-.dark-section .section-title{color:var(--white)}
-.dark-section .section-title span{color:var(--accent-warm)}
-.dark-section .section-desc{color:rgba(255,255,255,0.5)}
-.dark-inner{max-width:1200px;margin:0 auto;padding:0 120px}
-.dark-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;margin-bottom:16px}
-.dark-card h4{color:var(--white);font-size:15px;font-weight:700;margin-bottom:8px}
-.dark-card p,.dark-card li{color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7}
-
-/* FLOW */
-.flow-step{display:flex;align-items:stretch;gap:0;margin-bottom:4px}
-.flow-num{width:44px;min-height:52px;color:white;font-weight:700;font-size:13px;border-radius:8px 0 0 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0}
-.flow-body{flex:1;padding:14px 18px;border-radius:0 8px 8px 0;min-width:0}
-.flow-body strong{display:block;margin-bottom:4px;font-size:14px}
-.flow-body p{font-size:13px;color:var(--grey-02);margin:0;line-height:1.5}
-.flow-sep{text-align:center;color:var(--grey-02);padding:4px 0;font-size:16px}
-
-/* ORG CHART */
-.org-container{background:var(--white);border-radius:12px;padding:32px;border:1px solid var(--grey-01);overflow-x:auto;-webkit-overflow-scrolling:touch}
-.org-tree{font-family:var(--font-mono);font-size:13px;line-height:1.8;color:var(--grey-03);min-width:700px}
-.org-tree .root{color:var(--accent-warm);font-weight:700;font-size:15px}
-.org-tree .t1{color:var(--black);font-weight:600}
-.org-tree .t2{color:#4a7fa0}
-.org-tree .t3{color:var(--grey-02)}
-
-/* KPI */
-.kpi-card{background:var(--white);border-radius:12px;padding:20px;border:1px solid var(--grey-01);text-align:center}
-.kpi-card .kpi-agent{font-weight:700;font-size:14px;margin-bottom:4px}
-.kpi-card .kpi-metric{font-size:12px;color:var(--grey-02);margin-bottom:8px}
-.kpi-card .kpi-target{font-size:24px;font-weight:800;font-family:var(--font-mono);color:var(--accent-warm)}
-
-/* FOOTER */
-.footer{background:var(--black);color:rgba(255,255,255,0.3);text-align:center;padding:40px;font-size:13px;font-family:var(--font-mono);line-height:1.8}
-.section-divider{height:1px;background:var(--grey-01);margin:48px 0}
-
-/* RESPONSIVE */
-@media(max-width:1100px){
-  section{padding:80px 60px 60px}
-  .dark-inner{padding:0 60px}
-}
-@media(max-width:900px){
-  section{padding:72px 32px 48px}
-  .dark-inner{padding:0 32px}
-  .two-col,.do-dont{grid-template-columns:1fr}
-  .nav{padding:12px 20px}
-  .cover{padding:72px 32px 60px}
-  .cover-stats{gap:28px}
-  .cover-stat .num{font-size:32px}
-}
-@media(max-width:600px){
-  section{padding:64px 20px 40px}
-  .dark-inner{padding:0 20px}
-  .dark-section{padding:56px 0}
-  .card,.agent-detail{padding:20px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .cover{padding:80px 20px 60px}
-  .cover-stat .num{font-size:28px}
-  .nav{padding:10px 16px}
-  .section-title{font-size:22px}
-  .flow-num{width:36px;font-size:12px}
-  .org-tree{font-size:11px}
-}
+  /* ── Footer ── */
+  .footer {
+    margin-top: 60px;
+    background: #fff;
+    border-top: 2px solid #e8e4dc;
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    color: #999;
+    letter-spacing: 0.3px;
+  }
 </style>
 </head>
 <body>
 
-<div class="progress-bar" id="prog"></div>
-
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-brand">Rain AI Team v5.0</div>
-  <div class="nav-links">
-    <a href="#overview">總覽</a>
-    <a href="#command">指揮層</a>
-    <a href="#backend">後端</a>
-    <a href="#frontend">前端</a>
-    <a href="#review">審查</a>
-    <a href="#devops">DevOps</a>
-    <a href="#planning">規劃</a>
-    <a href="#finance">財務</a>
-    <a href="#security">資安</a>
-    <a href="#docs">文書</a>
-    <a href="#website">網站</a>
-    <a href="#marketing">行銷</a>
-    <a href="#investment">投資</a>
-    <a href="#external">外部</a>
-    <a href="#frozen">凍結</a>
-    <a href="#protocols">協議</a>
-    <a href="#kpi">KPI</a>
-    <a href="#memory">記憶</a>
-    <a href="#org">組織圖</a>
-  </div>
-</nav>
-
-<!-- COVER -->
-<section class="cover">
-  <div class="eyebrow">Rain AI Team — Complete Architecture Manual</div>
-  <h1>團隊架構<span>完全手冊</span></h1>
-  <div class="subtitle">29 個 AI Agent、8 大部門、6 家 AI 供應商的完整運作藍圖。每個角色定位、技能邊界、做事流程、記憶系統全部收錄。</div>
-  <div class="cover-stats">
-    <div class="cover-stat"><div class="num">29</div><div class="label">Total Agents</div></div>
-    <div class="cover-stat"><div class="num">8</div><div class="label">Departments</div></div>
-    <div class="cover-stat"><div class="num">6</div><div class="label">AI Providers</div></div>
-    <div class="cover-stat"><div class="num">110+</div><div class="label">Skills</div></div>
-    <div class="cover-stat"><div class="num">3</div><div class="label">Review Layers</div></div>
-  </div>
-  <div class="cover-meta">v5.0 Org Reform · 2026-03-13 · Compiled by Klay (Claude Opus 4.6)</div>
-</section>
-
-<!-- ═══════════════════════ OVERVIEW ═══════════════════════ -->
-<section id="overview">
-  <div class="section-header">
-    <div class="section-eyebrow">01 — Overview</div>
-    <div class="section-title">團隊<span>總覽</span></div>
-    <div class="section-desc">Rain AI Team 是一支由 Rain（Lin Rain）直接指揮的多模型 AI 團隊，運行於 macOS 本機，透過 Claude Code CLI、OpenClaw Gateway、tmux sessions 協調 29 個 Agent。</div>
-  </div>
-
-  <div class="stats">
-    <div class="stat blue"><div class="num">11</div><div class="label">Tier 1 核心</div></div>
-    <div class="stat warm"><div class="num">3</div><div class="label">Tier 2 按需</div></div>
-    <div class="stat green"><div class="num">7</div><div class="label">Tier 3 外部</div></div>
-    <div class="stat"><div class="num">6</div><div class="label">專業部門</div></div>
-    <div class="stat red"><div class="num">2</div><div class="label">凍結保留</div></div>
-    <div class="stat blue"><div class="num">24/7</div><div class="label">日夜排班</div></div>
-  </div>
-
-  <div class="card">
-    <h3>Tier 架構</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>Tier</th><th>說明</th><th>成員</th><th>模型等級</th></tr>
-      <tr><td><strong>Tier 1</strong></td><td>核心團隊 — 常駐活躍，直接接受 Klay/Rain 指令</td><td>Klay, Max, Rex, John, Iris, Forge, Scout, Ray, Quill, Noel, Kai</td><td>Opus / Sonnet / Codex / Gemini Pro</td></tr>
-      <tr><td><strong>Tier 2</strong></td><td>按需啟動 — 特定場景觸發</td><td>Atlas, Pixel, Vick</td><td>Sonnet / Gemini CLI / Grok</td></tr>
-      <tr><td><strong>Tier 3</strong></td><td>外部工人 — OpenClaw Gateway 執行</td><td>Spider, Lynx, Nautilus, Probe, Echo, Buzz, + Noel(lead)</td><td>GLM / DeepSeek / GPT-4.1 / Gemini Flash</td></tr>
-      <tr><td><strong>Frozen</strong></td><td>凍結保留 — 可隨時解凍恢復</td><td>Milo, Sage</td><td>Sonnet（保留）</td></tr>
-    </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>AI 供應商分佈</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>供應商</th><th>模型</th><th>使用的 Agent</th><th>計費方式</th></tr>
-      <tr><td><strong>Anthropic</strong></td><td>Opus 4.6 / Sonnet 4.6 / Haiku 4.5</td><td>Klay, Max, Knox, Rex, John, Iris, Forge, Scout, Quill, Atlas, Nova, Keeper, Webb, Sentinel, Inquisitor, Tax (16)</td><td>Claude Code 訂閱</td></tr>
-      <tr><td><strong>OpenAI</strong></td><td>Codex Plus (GPT-5.3) / GPT-4.1</td><td>Ray, Nautilus</td><td>ChatGPT Plus 訂閱 / OpenRouter</td></tr>
-      <tr><td><strong>Google</strong></td><td>Gemini 2.5 Pro / Flash / 3.1 Flash Lite / Imagen</td><td>Noel, Silo, Pixel, EchoMarketer, GooayeAI, Buzz</td><td>Gemini 訂閱 + API</td></tr>
-      <tr><td><strong>xAI</strong></td><td>Grok 3 Mini / Grok 3</td><td>Vick</td><td>xAI 訂閱</td></tr>
-      <tr><td><strong>ZhipuAI</strong></td><td>GLM-4-Plus</td><td>Spider, Echo</td><td>OpenRouter per-use</td></tr>
-      <tr><td><strong>DeepSeek</strong></td><td>DeepSeek Chat</td><td>Lynx, Probe</td><td>OpenRouter per-use</td></tr>
-    </table>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ COMMAND LAYER ═══════════════════════ -->
-<section id="command">
-  <div class="section-header">
-    <div class="section-eyebrow">02 — Command Layer</div>
-    <div class="section-title">指揮層：<span>Klay + Kai + Noel</span></div>
-    <div class="section-desc">CEO 決策、中控台監控、夜班執行 — 團隊運作的三大支柱。</div>
-  </div>
-
-  <!-- KLAY -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">👑</div>
-      <div class="agent-meta">
-        <div class="agent-name">Klay — CEO</div>
-        <div class="agent-role">商業決策 · 任務分級 · Agent 調度 · 衝突仲裁</div>
-        <div class="model-badge model-opus">Claude Opus 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>核心職責</h4>
-      <ul class="detail-list">
-        <li><strong>商業規劃（Phase 1）</strong>：需求分析、範圍定義、優先級判斷（P0-P3）、成功指標設定</li>
-        <li><strong>任務分級</strong>：Tiny / Standard / Major / Critical / Consult 五級判斷，自行決定不需問 Rain</li>
-        <li><strong>Agent 調度</strong>：複雜任務自動 dispatch，使用 <span class="mono">Agent</span> tool + <span class="mono">isolation: "worktree"</span> 並行派遣</li>
-        <li><strong>衝突仲裁</strong>：商業方向 → Klay 最終決定；技術實作 → Scout 決定；安全穩定 → Ray 有 veto 權</li>
-        <li><strong>團隊管理</strong>：進度追蹤、每日報告、Agent 績效評估</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>關鍵技能（24 個）</h4>
-      <div class="tag-list">
-        <span class="tag warm">/orchestrate</span><span class="tag warm">/plan</span><span class="tag warm">/review-loop</span>
-        <span class="tag accent">Task Assigner</span><span class="tag accent">dispatch_task</span>
-        <span class="tag">firecrawl</span><span class="tag">Git ops</span><span class="tag">token monitor</span>
-        <span class="tag">system stats</span><span class="tag">memory mgmt</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>做什麼 vs 不做什麼</h4>
-      <div class="do-dont">
-        <ul class="do-list">
-          <li>決定做不做這功能、MVP 範圍</li>
-          <li>判斷任務等級（自行決定）</li>
-          <li>Tiny 任務可直接處理</li>
-          <li>記錄架構決策到 diary.md</li>
-        </ul>
-        <ul class="dont-list">
-          <li>不寫 production code（→ Max/John）</li>
-          <li>不 veto Ray 的安全決定</li>
-          <li>不做日常 code review（→ Quill）</li>
-          <li>不跳過 3-Phase 直接 dispatch Major</li>
-        </ul>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>記憶檔案</h4>
-      <ul class="detail-list">
-        <li><span class="mono">memory/diary.md</span> — Klay 推理層日記，記錄決策理由</li>
-        <li><span class="mono">memory/preferences.md</span> — 已結晶的規則與偏好</li>
-        <li><span class="mono">memory/lessons.md</span> — 團隊錯誤教訓（所有 Agent 共用）</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- KAI -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(133,162,104,0.15)">🖥️</div>
-      <div class="agent-meta">
-        <div class="agent-name">Kai — Control Center</div>
-        <div class="agent-role">24/7 監控 · 任務看板 · 告警 · 服務管理 · 通訊中樞</div>
-        <div class="model-badge model-internal">Internal</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>核心職責</h4>
-      <ul class="detail-list">
-        <li><strong>監控</strong>：系統狀態、服務健康、Agent 活躍度、token 用量</li>
-        <li><strong>告警</strong>：API 餘額不足（70% 閾值）、安全警報、Discord 通知</li>
-        <li><strong>任務看板</strong>：<span class="mono">POST /api/tasks</span> 建立、<span class="mono">/api/tasks/{id}/done</span> 完成</li>
-        <li><strong>通訊</strong>：Discord 通知、Gmail 寄送（<span class="mono">/api/email/send</span>）、Telegram 狀態</li>
-        <li><strong>自訂工具</strong>：screenshot, speak, weather, stock, volume, diagnostics, dispatch_task</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>技術棧</h4>
-      <ul class="detail-list">
-        <li><strong>後端</strong>：Python 3.11 + FastAPI + SQLite · Port <span class="mono">:5002</span></li>
-        <li><strong>前端</strong>：React 19 + TypeScript + Vite + TailwindCSS · Port <span class="mono">:5173</span></li>
-        <li><strong>設計</strong>：iOS 26 玻璃風格（glass-surface / glass-strong）</li>
-        <li><strong>路徑</strong>：<span class="mono">~/Projects/Agents/M4_AutoAgent/中控台/M4ControlCenter/</span></li>
-        <li><strong>重啟</strong>：<span class="mono">bash restart_simple.sh</span></li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>關鍵技能（42 個）</h4>
-      <div class="tag-list">
-        <span class="tag">System stats</span><span class="tag">Service status</span><span class="tag">Agent list</span>
-        <span class="tag">Diagnostics</span><span class="tag">Token budget</span><span class="tag">API balance</span>
-        <span class="tag">Security alerts</span><span class="tag">Discord notify</span><span class="tag">Service restart</span>
-        <span class="tag">Agent start/stop</span><span class="tag">Workflow exec</span><span class="tag">Daily briefing</span>
-        <span class="tag">Intelligence</span><span class="tag">Gmail send</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- NOEL -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(66,133,244,0.12)">🌙</div>
-      <div class="agent-meta">
-        <div class="agent-name">Noel — 夜班主力 + 外部協調</div>
-        <div class="agent-role">夜班執行 · Tier 3 管理 · 雜務 · 韓國銀行領域</div>
-        <div class="model-badge model-gemini">Gemini 2.5 Pro</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>核心職責</h4>
-      <ul class="detail-list">
-        <li><strong>夜班執行</strong>：凌晨 1:00 開始，處理排程任務、品質審查、健康檢查</li>
-        <li><strong>外部 Agent 管理</strong>：dispatch Spider/Lynx/Nautilus/Probe/Echo/Buzz</li>
-        <li><strong>雜務處理</strong>：資料查詢、內容撰寫、翻譯</li>
-        <li><strong>瀏覽器任務路由</strong>：需要登入/JS渲染 → 必須轉派 Nautilus，不可自己做</li>
-        <li><strong>財務問題路由</strong>：台灣稅法/會計問題 → 轉派 Tax（不可自答）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>夜班排程（v2）</h4>
-      <ul class="detail-list">
-        <li><span class="mono">00:30</span> — 綜合審查（session 分析、知識管線、LaunchAgent 健康、網站健康、API Key 額度、殭屍任務清理）</li>
-        <li><span class="mono">00:50</span> — 自動建立任務（固定 + 輪替專案 + 週一加碼 Ray 架構週審）</li>
-        <li><span class="mono">01:00</span> — 開始執行，做到完為止</li>
-        <li><span class="mono">AM</span> — 彙整結果 → 晨間報告 Email Rain</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>做什麼 vs 不做什麼</h4>
-      <div class="do-dont">
-        <ul class="do-list">
-          <li>夜班排程任務執行</li>
-          <li>外部 Agent dispatch + 結果審閱</li>
-          <li>韓國銀行領域知識</li>
-          <li>Google Drive 操作</li>
-        </ul>
-        <ul class="dont-list">
-          <li>不做架構決策（→ Klay）</li>
-          <li>不做大型工程（3+ files → 升級）</li>
-          <li>不做 CI/CD（→ Forge）</li>
-          <li>不自答台灣稅務（→ Tax）</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ BACKEND ═══════════════════════ -->
-<section id="backend">
-  <div class="section-header">
-    <div class="section-eyebrow">03 — Backend Engineering</div>
-    <div class="section-title">後端工程：<span>Max + Rex</span></div>
-    <div class="section-desc">雙人後端組 — Max 處理複雜系統、Rex 負責 API CRUD。量化分工界線。</div>
-  </div>
-
-  <!-- MAX -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.3)">⚡</div>
-      <div class="agent-meta">
-        <div class="agent-name">Max — Senior Backend Engineer</div>
-        <div class="agent-role">複雜後端 · 效能優化 · 重構 · 技術難題</div>
-        <div class="model-badge model-opus">Claude Opus 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>技術棧</h4>
-      <div class="tag-list">
-        <span class="tag accent">Python 3.11</span><span class="tag accent">FastAPI</span>
-        <span class="tag accent">SQLite/PostgreSQL</span><span class="tag accent">Pydantic</span>
-        <span class="tag accent">asyncio</span><span class="tag">SSH + tmux "max"</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Max 專屬範圍（Rex 不做）</h4>
-      <ul class="detail-list">
-        <li>SQL JOIN ≥ 3、subquery/CTE/window functions</li>
-        <li>跨資源 aggregation、batch ops、stream responses</li>
-        <li>影響 ≥ 3 服務 / 跨模組</li>
-        <li>效能瓶頸分析、cache 策略、DB index 優化</li>
-        <li>分散式事務、補償邏輯、retry patterns</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>關鍵技能（28 個）</h4>
-      <div class="tag-list">
-        <span class="tag">Git full</span><span class="tag">Worktrees</span><span class="tag">File batch ops</span>
-        <span class="tag">LSP diagnostics</span><span class="tag">/verify</span><span class="tag">webapp-testing</span>
-        <span class="tag">skill-creator</span><span class="tag">mcp-builder</span><span class="tag">firecrawl</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>後端任務零 hotfix 率 ≥ 90%</strong>（同一任務無需反覆修正）</p>
-    </div>
-  </div>
-
-  <!-- REX -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">🔧</div>
-      <div class="agent-meta">
-        <div class="agent-name">Rex — Backend API Engineer</div>
-        <div class="agent-role">API CRUD · 單表查詢 · 金流串接 · Max 的助手</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Rex 處理範圍</h4>
-      <ul class="detail-list">
-        <li>SQL JOIN ≤ 2、單表 CRUD</li>
-        <li>單一資源 API CRUD（RESTful endpoints）</li>
-        <li>影響 ≤ 2 服務</li>
-        <li>一般查詢（&lt; 100ms）、標準 HTTP error handling</li>
-        <li>Max 的助手 — 協助例行後端任務</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>邊界規則</h4>
-      <ul class="detail-list">
-        <li>嚴格按照規格實作，不做架構決策</li>
-        <li>複雜系統問題 → Max</li>
-        <li>效能優化 → Max</li>
-        <li>不確定邊界 → 先問 Max/Klay，不猜測</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>API 任務首次通過率 ≥ 80%</strong>（Quill review 首次 pass）</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ FRONTEND ═══════════════════════ -->
-<section id="frontend">
-  <div class="section-header">
-    <div class="section-eyebrow">04 — Frontend Engineering</div>
-    <div class="section-title">前端工程：<span>John + Iris</span></div>
-    <div class="section-desc">John 負責邏輯實作、Iris 負責 UI/UX 設計 — 分工明確不重疊。</div>
-  </div>
-
-  <!-- JOHN -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">💻</div>
-      <div class="agent-meta">
-        <div class="agent-name">John — Implementation Engineer</div>
-        <div class="agent-role">React/TS 實作 · 按規格執行 · 前後端整合</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>技術棧</h4>
-      <div class="tag-list">
-        <span class="tag accent">React 19</span><span class="tag accent">TypeScript</span>
-        <span class="tag accent">Next.js</span><span class="tag accent">TailwindCSS</span>
-        <span class="tag accent">Vite</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>工作流程</h4>
-      <ul class="detail-list">
-        <li>接收規格 → 確認理解（列出修改檔案）→ 獲得 confirm → 實作</li>
-        <li>交付物：功能符合規格、零 TS/Python 編譯錯誤、基本 error handling</li>
-        <li>不自行決定架構、不擴展 scope、修改核心檔案前先問</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>前端任務 UI 驗收通過率 ≥ 90%</strong>（Probe+Echo 首次 pass）</p>
-    </div>
-  </div>
-
-  <!-- IRIS -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(235,128,84,0.12)">🎨</div>
-      <div class="agent-meta">
-        <div class="agent-name">Iris — UI/UX Engineer</div>
-        <div class="agent-role">設計系統 · CSS/TailwindCSS · RWD · SVG · 動畫</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Design System（3 大主題）</h4>
-      <ul class="detail-list">
-        <li><strong>Warm Minimalism</strong> — 客戶網站：<span class="mono">#f5f5f7</span> 底色、rounded-2xl 卡片、Apple 乾淨 + 日式溫暖 + 顧問專業</li>
-        <li><strong>GOOPi Dark</strong> — AutoMerch：<span class="mono">#0A0A0A</span> 底、<span class="mono">#FF7B1A</span> 強調、銳角、極簡</li>
-        <li><strong>iOS 26 Glass</strong> — Kai 中控台：<span class="mono">#f5f7fb</span> 底、glass blur、<span class="mono">#2f7cf6</span> 藍色強調</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>強制規則</h4>
-      <ul class="detail-list">
-        <li>8pt Grid 系統（所有間距必須是 8 的倍數）</li>
-        <li>Logo 必須 100% 原創（SVG 優先，PNG 可，JPG 拒絕）</li>
-        <li>Accent bar 必須有（h-1 w-12 bg-{primary} 在 section title 下）</li>
-        <li>Design System 權威文件：<span class="mono">~/.claude/DESIGN_SYSTEM.md</span>（Iris 是唯一 owner）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Iris vs Pixel 分工</h4>
-      <ul class="detail-list">
-        <li><strong>Iris</strong>：CSS/TailwindCSS 樣式、RWD、SVG 手繪、Design System 維護</li>
-        <li><strong>Pixel</strong>：AI 圖片生成、Logo 提案、OG Image（1200x630）、社群素材</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>設計規格被採用率 ≥ 85%</strong>（規格落地不被推翻）</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ REVIEW ═══════════════════════ -->
-<section id="review">
-  <div class="section-header">
-    <div class="section-eyebrow">05 — Review Pipeline</div>
-    <div class="section-title">審查管線：<span>Quill + Ray</span></div>
-    <div class="section-desc">程式碼審查（Quill）與方案設計審查（Ray）完全分離 — 不重疊、不互相取代。</div>
-  </div>
-
-  <!-- QUILL -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(133,162,104,0.15)">📝</div>
-      <div class="agent-meta">
-        <div class="agent-name">Quill — Code Reviewer</div>
-        <div class="agent-role">PR/diff 審查 · 規格合規 · 可讀性 · DRY · 測試缺口</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>審查等級</h4>
-      <ul class="detail-list">
-        <li><strong>Lightweight</strong>（Standard 任務）：只查規格偏離 / 明顯 bug / blocking issue</li>
-        <li><strong>Full</strong>（Major/Critical）：規格合規 + 可讀性 + DRY + 測試缺口 + 效能（O(n²)/N+1）</li>
-        <li>Quill 自行判斷走哪級，不需問 Klay</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>輸出格式</h4>
-      <ul class="detail-list">
-        <li>判決：<span class="tag green">Pass</span> / <span class="tag warm">Needs Work</span> / <span class="tag red">Rework</span></li>
-        <li>問題分級：Blocker / Warning / Suggestion + 必須附 file:line 引用</li>
-        <li>規則：不可有模糊回饋 — 必須引用具體行號</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Quill 不做什麼</h4>
-      <ul class="detail-list">
-        <li>商業決策 → Klay</li>
-        <li>最終架構簽核 / veto → Ray</li>
-        <li>CI 執行 → Forge</li>
-        <li>安全審計 → Sentinel</li>
-        <li>UI 驗收 → Probe+Echo</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- RAY -->
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(16,163,127,0.12)">🔍</div>
-      <div class="agent-meta">
-        <div class="agent-name">Ray — Architecture & Logic Reviewer</div>
-        <div class="agent-role">方案設計審查 · 開工簽核 · Veto 權 · Skeptic Check</div>
-        <div class="model-badge model-codex">Codex Plus (GPT-5.3)</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>為什麼用非 Claude 模型</h4>
-      <p style="font-size:13px;color:var(--grey-02)">避免 Claude 系統自我審查盲點（self-review bias）。Klay/Scout 用 Claude 設計 → Ray 用 Codex 審查 = maker-checker 不同模型。</p>
-    </div>
-    <div class="detail-section">
-      <h4>Phase 3 職責（Major/Critical 任務）</h4>
-      <ul class="detail-list">
-        <li>任務定義正確性（需求有沒有漏？目標是否明確？）</li>
-        <li>方案架構風險（設計是否合理？邊界情況？）</li>
-        <li>Skeptic Check（<strong>必要輸出</strong>）：「如果不做這個呢？」「有更簡單的替代方案？」「假設 X 是錯的呢？」</li>
-        <li>開工簽核：✅ 通過 / ❌ 打回 / ⚠️ 有條件通過</li>
-        <li><strong>Veto 權</strong>：auth / payment / migration / production incident risk 可一票否決</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Fallback Chain</h4>
-      <ul class="detail-list">
-        <li>Primary：<span class="mono">codex</span> CLI（ChatGPT Plus 訂閱）</li>
-        <li>Fallback 1：OpenRouter <span class="mono">openai/gpt-5.3-codex</span></li>
-        <li>Fallback 2：Vick（Grok 只讀備援，不跑 lint/test）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Ray 不做什麼</h4>
-      <ul class="detail-list">
-        <li>逐行 code review → Quill</li>
-        <li>lint / typecheck / pytest 執行 → Forge</li>
-        <li>密鑰掃描 → Sentinel hook</li>
-        <li>日常 post-implementation code review → Quill</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>事前審查攔截重工比例 ≥ 70%</strong>（被 Ray 攔下 vs 實作後才發現問題）</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ DEVOPS ═══════════════════════ -->
-<section id="devops">
-  <div class="section-header">
-    <div class="section-eyebrow">06 — DevOps</div>
-    <div class="section-title">基礎建設：<span>Forge</span></div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(235,128,84,0.12)">🔨</div>
-      <div class="agent-meta">
-        <div class="agent-name">Forge — DevOps Engineer</div>
-        <div class="agent-role">CI/CD Gate · Git 管理 · Vercel · Supabase · Cloudflare · DNS</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>管理平台</h4>
-      <div class="tag-list">
-        <span class="tag accent">Vercel</span><span class="tag accent">Supabase</span>
-        <span class="tag accent">GitHub Actions</span><span class="tag accent">Cloudflare</span>
-        <span class="tag accent">Neon Postgres</span><span class="tag">Docker</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>CI Gate（Layer 2 審查）</h4>
-      <ul class="detail-list">
-        <li>lint → typecheck → unit test → build → preview deploy</li>
-        <li>所有部署前必過，無例外</li>
-        <li>部署驗證：可用 Codex CLI 做輕量 smoke test</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>CI Gate 部署成功率 ≥ 95%</strong></p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ PLANNING ═══════════════════════ -->
-<section id="planning">
-  <div class="section-header">
-    <div class="section-eyebrow">07 — Planning & Analysis</div>
-    <div class="section-title">規劃分析：<span>Scout</span></div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">🗺️</div>
-      <div class="agent-meta">
-        <div class="agent-name">Scout — System Architect & Analyst</div>
-        <div class="agent-role">Phase 2 架構師 · API 契約 · 資料模型 · Pre-flight Check</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Phase 2 輸出格式</h4>
-      <ul class="detail-list">
-        <li>System Components（元件拆分表）</li>
-        <li>API Contracts（端點、請求、回應）</li>
-        <li>Data Models（DB Schema）</li>
-        <li>Dependency Graph（元件關係圖）</li>
-        <li>Tech Selection（選型理由 + 替代方案）</li>
-        <li>Integration Points（現有檔案修改點）</li>
-        <li>Implementation Order（建議實作順序）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>邊界（硬性）</h4>
-      <ul class="detail-list">
-        <li><strong>永久唯讀</strong> — 輸出規格文件，不寫 production code</li>
-        <li>Scout 可以標記 <span class="tag warm">⚠️ Scope Concern</span> 但不可自行修改 scope（Klay 決定）</li>
-        <li>商業目標、用戶價值、專案範圍、優先級 → 全部由 Klay 決定</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>KPI</h4>
-      <p style="font-size:13px">北極星：<strong>規格包被「不打回」率 ≥ 90%</strong>（Phase 3 Ray 不退回 Scout 規格）</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ FINANCE ═══════════════════════ -->
-<section id="finance">
-  <div class="section-header">
-    <div class="section-eyebrow">08 — Finance Department</div>
-    <div class="section-title">財務部門：<span>Knox + Inquisitor + Tax</span></div>
-    <div class="section-desc">Knox 管密鑰與帳號、Inquisitor 做審計、Tax 做台灣稅法/會計諮詢。三者職責分離（SoD）。</div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.3)">🔐</div>
-      <div class="agent-meta">
-        <div class="agent-name">Knox — Security & Account Vault</div>
-        <div class="agent-role">密鑰加密 · API Key 管理 · 帳號池 · 安全審計 · 帳號生命週期（原 Sage）</div>
-        <div class="model-badge model-opus">Claude Opus 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>技術棧</h4>
-      <div class="tag-list">
-        <span class="tag accent">Python cryptography (Fernet/AES)</span>
-        <span class="tag">env vars</span><span class="tag">OWASP Top 10</span>
-        <span class="tag">git secrets scanning</span><span class="tag">API key rotation</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>v5.0 變更</h4>
-      <p style="font-size:13px;color:var(--grey-02)">Sage 原負責帳號生命週期管理（註冊→使用→輪替→退役）。v5.0 組織改革後 Sage 凍結，職責合併進 Knox。</p>
-    </div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(139,87,184,0.12)">🔎</div>
-      <div class="agent-meta">
-        <div class="agent-name">Inquisitor — Finance Auditor</div>
-        <div class="agent-role">帳號安全審計 · 過期偵測 · 明文洩漏掃描 · 權限合規</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>審計範圍</h4>
-      <ul class="detail-list">
-        <li>所有 .env 檔案密鑰狀態</li>
-        <li>git history 是否有 committed secrets</li>
-        <li>accounts.jsonl / Vault 帳號狀態</li>
-        <li>OAuth token 有效性</li>
-        <li>API Key 用量 vs 配額</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>核心原則</h4>
-      <p style="font-size:13px"><strong>「假設所有帳號都有風險；逐一驗證直到確認安全」</strong> — 不可在問題存在時說「all clear」</p>
-    </div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(235,128,84,0.12)">📊</div>
-      <div class="agent-meta">
-        <div class="agent-name">Tax — Finance & Accounting Consultant</div>
-        <div class="agent-role">台灣稅法 · 銀行業會計 · OBU/DBU · 韓商銀行 · Excel 財務</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>知識庫</h4>
-      <ul class="detail-list">
-        <li><span class="mono">agents/tax/knowledge/banking-accounting.md</span> — DBU/OBU 實務</li>
-        <li><span class="mono">agents/tax/knowledge/taiwan-tax-law.md</span> — 完整台灣稅法</li>
-        <li><span class="mono">agents/tax/knowledge/korean-banking.md</span> — K-IFRS、韓商銀行</li>
-        <li><span class="mono">agents/tax/knowledge/obu-dbu-tax-filing.md</span> — 申報流程</li>
-        <li><span class="mono">agents/tax/knowledge/excel-finance.md</span> — Excel 公式（2016 相容）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>輸出格式</h4>
-      <ul class="detail-list">
-        <li><strong>會計分錄</strong>：借:科目 NT$X / 貸:科目 NT$X / 依據:[法規]</li>
-        <li><strong>稅務問題</strong>：適用規定 + 稅率/計算 + 申報期限 + 注意事項</li>
-        <li><strong>多方案</strong>：方案 A（建議）+ 優缺點 vs 方案 B + 推薦理由</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ SECURITY ═══════════════════════ -->
-<section id="security">
-  <div class="section-header">
-    <div class="section-eyebrow">09 — Security Department</div>
-    <div class="section-title">資安部門：<span>Sentinel</span></div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(217,79,79,0.1)">🛡️</div>
-      <div class="agent-meta">
-        <div class="agent-name">Sentinel — Cybersecurity Engineer</div>
-        <div class="agent-role">系統強化 · 密鑰洩漏防護 · 自動掃描 · git hook</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>風險等級</h4>
-      <ul class="detail-list">
-        <li><span class="tag red">Critical</span> 活躍入侵或公開 repo 暴露 secrets → 立即阻擋 + Discord 告警 + 自動修復</li>
-        <li><span class="tag warm">High</span> .env 權限 644、0.0.0.0 綁定、staged diff 有 secrets → 自動修復 + 告警</li>
-        <li><span class="tag">Medium</span> 缺少 git hooks、SSH 弱設定 → 告警 + 排程修復</li>
-        <li><span class="tag">Low</span> 非最佳設定 → 記錄到下次掃描</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>自動掃描排程</h4>
-      <ul class="detail-list">
-        <li><strong>每小時</strong>：.env 權限、git hooks 狀態、SSH config</li>
-        <li><strong>每次 commit</strong>：staged diff secrets pattern matching</li>
-        <li><strong>按需</strong>：完整 port scan、plist 審計、proxy 健康</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>分工</h4>
-      <p style="font-size:13px">Sentinel 是安全措施的<strong>執行者</strong>；Knox 是<strong>政策制定者</strong></p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ DOCS ═══════════════════════ -->
-<section id="docs">
-  <div class="section-header">
-    <div class="section-eyebrow">10 — Documentation</div>
-    <div class="section-title">文書部門：<span>Nova + Jarvis</span></div>
-    <div class="section-desc">Nova 製作報告（Deck/PPT/PDF），Jarvis 設計 Email 並寄送。v5.0 後 Jarvis 降級為工具級。</div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">📑</div>
-      <div class="agent-meta">
-        <div class="agent-name">Nova — Report Engineer</div>
-        <div class="agent-role">Deck HTML · PPT · PDF · 圖表 · 模板維護</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>輸出優先級</h4>
-      <ul class="detail-list">
-        <li><strong>1st：Deck（HTML slides）</strong> — 內部報告預設格式 → 部署到 Slideless</li>
-        <li><strong>2nd：PPT</strong> — 客戶明確要求 .pptx 才用（例外）</li>
-        <li><strong>3rd：PDF</strong> — 列印/歸檔需求（例外）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>品質標準（強制）</h4>
-      <ul class="detail-list">
-        <li><strong>SCQA</strong>：Situation → Complication → Question → Answer</li>
-        <li><strong>金字塔原則</strong>：結論先行、由上而下</li>
-        <li><strong>MECE</strong>：不重疊、不遺漏</li>
-        <li><strong>Action Titles</strong>：「主題：結論」格式</li>
-        <li><strong>Keftek 暖色系</strong>：<span class="mono">#f6f5f1</span> 奶油底、<span class="mono">#121212</span> 深色區塊、<span class="mono">#eb8054</span> 暖橘強調</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>部署流程</h4>
-      <ul class="detail-list">
-        <li>生成 HTML → <span class="mono">~/Projects/Slideless/public/</span></li>
-        <li>Deploy → <span class="mono">vercel --prod</span></li>
-        <li>截圖驗證：桌機（1280×900）+ 手機（390×844）</li>
-        <li>Email 寄送連結（不嵌入全文）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>強制規則</h4>
-      <p style="font-size:13px"><strong>主 Agent 禁止自己做報告</strong> — 有 Nova 就必須 dispatch，無例外。報告 >30 行或跨成員/系統 → 自動觸發 Nova。</p>
-    </div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(133,162,104,0.15)">📧</div>
-      <div class="agent-meta">
-        <div class="agent-name">Jarvis — Email Backup（Tool Level）</div>
-        <div class="agent-role">Email HTML 設計 · 寄送 · 行政文件（v5.0 降級為工具級）</div>
-        <div class="model-badge model-claude">OpenRouter Claude Sonnet</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Email 寄送管道</h4>
-      <ul class="detail-list">
-        <li><strong>主要</strong>：Kai GmailService <span class="mono">POST /api/email/send</span>（無附件）</li>
-        <li><strong>SMTP</strong>：<span class="mono">smtp.gmail.com:587</span> + STARTTLS（有附件時）</li>
-        <li><strong>寄件人</strong>：<span class="mono">movielin8866@gmail.com</span></li>
-        <li><strong>Rain 收件</strong>：<span class="mono">asdapper8866@gmail.com</span>（預設）</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ WEBSITE DEPT ═══════════════════════ -->
-<section id="website">
-  <div class="section-header">
-    <div class="section-eyebrow">11 — Website Department</div>
-    <div class="section-title">網站部門：<span>Webb 領導的 10 人團隊</span></div>
-    <div class="section-desc">成員：Webb(Lead) + Silo(SEO) + Keeper(維護) + John + Iris + Rex + Forge + Quill + Probe + Echo</div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(168,205,232,0.2)">🌐</div>
-      <div class="agent-meta">
-        <div class="agent-name">Webb — Website Department Lead</div>
-        <div class="agent-role">技術規劃 · 工作分配 · 上線驗收 · 事件回應 · 規格包 Owner</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>技術選型偏好</h4>
-      <div class="tag-list">
-        <span class="tag accent">Next.js 15+ App Router</span>
-        <span class="tag accent">Cloudflare Pages</span>
-        <span class="tag accent">Neon PostgreSQL + Prisma</span>
-        <span class="tag accent">Upstash Redis</span>
-        <span class="tag accent">Resend</span>
-        <span class="tag accent">ECPay</span>
-        <span class="tag accent">TailwindCSS</span>
-        <span class="tag">Uptime Kuma + Sentry</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>事件嚴重度</h4>
-      <ul class="detail-list">
-        <li><span class="tag red">P0 (30min)</span> 502/503/504、支付端點掛、SSL 過期、DNS 失敗</li>
-        <li><span class="tag warm">P1 (24h)</span> API 部分故障、表單 500、圖片載入失敗</li>
-        <li><span class="tag">P2 (next week)</span> 內容更新、SEO meta 調整</li>
-        <li><span class="tag">P3 (monthly)</span> npm audit、SSL 檢查、Core Web Vitals</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(66,133,244,0.12)">🔗</div>
-      <div class="agent-meta">
-        <div class="agent-name">Silo — SEO Architect</div>
-        <div class="agent-role">SEO Blueprint · 關鍵字映射 · URL 架構 · Schema.org · 審計</div>
-        <div class="model-badge model-gemini">Gemini 2.5 Pro（Google Search grounding）</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>為什麼用 Gemini</h4>
-      <p style="font-size:13px;color:var(--grey-02)">Gemini 可接 Google Search grounding — 基於即時搜尋結果分析，不依賴訓練資料。SEO 必須用真實排名。</p>
-    </div>
-    <div class="detail-section">
-      <h4>強制規則</h4>
-      <p style="font-size:13px"><strong>每個新網站上線前必須有 SEO Blueprint</strong>（Silo 產出） — 無例外。</p>
-    </div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(133,162,104,0.15)">🔧</div>
-      <div class="agent-meta">
-        <div class="agent-name">Keeper — Website Maintenance</div>
-        <div class="agent-role">上線後維護 · 小修改 · 月度健康檢查 · 事件第一線</div>
-        <div class="model-badge model-claude">Claude Sonnet 4.6</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>範圍</h4>
-      <ul class="detail-list">
-        <li>≤ 3 檔案小修改 → 直接處理</li>
-        <li>4+ 檔案 → 升級到 Webb（正式專案）</li>
-        <li>月度 15 項健康檢查：Uptime、SSL、效能、安全、SEO、備份</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>網站部門 10 步 SOP</h3>
-    <div class="flow-step"><div class="flow-num" style="background:var(--accent-warm)">1</div><div class="flow-body" style="background:rgba(235,128,84,0.06)"><strong>需求分析（Webb）</strong><p>收集客戶需求、確認範圍、技術選型、時程規劃</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">2</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>SEO Blueprint（Silo）</strong><p>關鍵字研究、URL 架構、Schema.org 規劃、內部連結策略</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">3</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>UI/UX 規格（Iris）</strong><p>設計系統選型、色彩/字型、RWD 斷點、元件規格</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">4</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>系統架構（Scout）</strong><p>元件拆分、API 契約、資料模型、整合點</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--green)">5</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>實作（John + Rex）</strong><p>John 前端、Rex 後端 API — 並行實作</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--green)">6</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>Code Review（Quill L1）</strong><p>PR/diff 審查、規格合規、測試缺口</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--green)">7</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>CI Gate（Forge L2）</strong><p>lint + typecheck + test + build + preview deploy</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">8</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>上線驗收（Webb）</strong><p>Checklist 驗證 — 功能 ≥90%、build pass、SEO 通過</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--grey-02)">9</div><div class="flow-body" style="background:rgba(139,135,124,0.06)"><strong>QA（Probe + Echo）</strong><p>手動觸發 — 桌機正常流程 + 手機 RWD + 邊界案例</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--black)">10</div><div class="flow-body" style="background:rgba(18,18,18,0.04)"><strong>交付 + 維護移交（Keeper）</strong><p>移交維護清單、設定 Uptime Kuma 監控、月度健康排程</p></div></div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ MARKETING ═══════════════════════ -->
-<section id="marketing">
-  <div class="section-header">
-    <div class="section-eyebrow">12 — Marketing</div>
-    <div class="section-title">行銷部門：<span>EchoMarketer</span></div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(66,133,244,0.12)">📢</div>
-      <div class="agent-meta">
-        <div class="agent-name">EchoMarketer — SEO Content Strategist</div>
-        <div class="agent-role">關鍵字研究 · 廣告文案 · SEO 標題 · 內容策略 · 多語文案</div>
-        <div class="model-badge model-gemini">Gemini Flash</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>輸出類型</h4>
-      <ul class="detail-list">
-        <li><strong>SEO copy</strong>：每頁表格（page | title | description | H1）</li>
-        <li><strong>關鍵字</strong>：主詞 + 長尾清單 + 搜尋量估算</li>
-        <li><strong>廣告文案</strong>：每平台 3+ 變體（標題 + 描述 + 訴求角度 + CTA）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>EchoMarketer vs Silo 分工</h4>
-      <ul class="detail-list">
-        <li><strong>EchoMarketer</strong>：關鍵字選擇、meta 文案、廣告文案、內容策略</li>
-        <li><strong>Silo</strong>：URL 結構、Schema JSON-LD、sitemap、技術 SEO</li>
-        <li>兩者互不越界</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ INVESTMENT ═══════════════════════ -->
-<section id="investment">
-  <div class="section-header">
-    <div class="section-eyebrow">13 — Investment</div>
-    <div class="section-title">投資部門：<span>GooayeAI</span></div>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(66,133,244,0.12)">📈</div>
-      <div class="agent-meta">
-        <div class="agent-name">GooayeAI — Investment Analysis Bot</div>
-        <div class="agent-role">股癌 Podcast 分析 · 投資洞察 · Telegram Bot</div>
-        <div class="model-badge model-gemini">Gemini 3.1 Flash Lite</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>資料來源（優先順序）</h4>
-      <ul class="detail-list">
-        <li>1st：<strong>Vocus（aec45）</strong> — 最高優先</li>
-        <li>2nd：<strong>Whisper 逐字稿</strong> — 173 集（Samsung SSD）</li>
-        <li>3rd：<strong>Telegram 截圖</strong> — 最低優先</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Pipeline</h4>
-      <p style="font-size:13px">RSS 監控新集 → Vocus 抓取（fallback Whisper）→ Gemini 分析 → 推送 Telegram <span class="mono">@GooayeAI_bot</span></p>
-      <p style="font-size:13px;margin-top:4px">指令：<span class="mono">/latest</span>（最新分析）、<span class="mono">/stocks</span>（5 集摘要）</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ EXTERNAL ═══════════════════════ -->
-<section id="external">
-  <div class="section-header">
-    <div class="section-eyebrow">14 — Tier 3 External Workers</div>
-    <div class="section-title">外部工人：<span>OpenClaw Gateway</span></div>
-    <div class="section-desc">由 Noel 統一調度，運行在 OpenClaw Gateway 平台上的 7 個外部 Agent。</div>
-  </div>
-
-  <div class="card">
-    <h3>爬蟲三層架構</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>Agent</th><th>模型</th><th>專長</th><th>處理場景</th></tr>
-      <tr><td><strong>Spider</strong></td><td><span class="model-badge model-glm">GLM-4-Plus</span></td><td>靜態 HTML / sitemap / API</td><td>Scrapy/Requests 可處理的網站</td></tr>
-      <tr><td><strong>Lynx</strong></td><td><span class="model-badge model-deepseek">DeepSeek Chat</span></td><td>API 批量抓取 · Spider 的並行夥伴</td><td>多站並行：Spider 抓 3 站 + Lynx 抓 2 站 = 35min vs 100min</td></tr>
-      <tr><td><strong>Nautilus</strong></td><td><span class="model-badge model-gpt">GPT-4.1</span></td><td>需登入/反爬/JS 渲染/模擬真人</td><td>Cloudflare WAF、CAPTCHA、SPA、Login wall</td></tr>
-    </table>
-    </div>
-    <p style="font-size:13px;color:var(--grey-02);margin-top:12px"><strong>Pipeline</strong>：Spider/Lynx（靜態）→ Nautilus（動態/有保護）→ Buzz（內容分析）</p>
-    <p style="font-size:13px;color:var(--grey-02)"><strong>高可用</strong>：Spider(ZhipuAI) + Lynx(OpenRouter) = 不同 API 供應商，避免同時斷線</p>
-  </div>
-
-  <div class="card">
-    <h3>測試雙人組</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>Agent</th><th>模型</th><th>專長</th><th>場景</th></tr>
-      <tr><td><strong>Probe</strong></td><td><span class="model-badge model-deepseek">DeepSeek Chat</span></td><td>桌機正常流程測試</td><td>功能測試、UI 驗證、ECPay 支付、效能監控</td></tr>
-      <tr><td><strong>Echo</strong></td><td><span class="model-badge model-glm">GLM-4-Plus</span></td><td>手機 RWD + 邊界案例</td><td>空狀態、網路錯誤、表單驗證失敗</td></tr>
-    </table>
-    </div>
-    <p style="font-size:13px;color:var(--grey-02);margin-top:12px"><strong>並行</strong>：Probe 測桌機 + Echo 測手機 = 30min vs 60min。v5.0 後改為手動觸發（不再常規執行）。</p>
-  </div>
-
-  <div class="agent-detail">
-    <div class="agent-top">
-      <div class="agent-avatar" style="background:rgba(66,133,244,0.12)">📱</div>
-      <div class="agent-meta">
-        <div class="agent-name">Buzz — Social Media Manager（UMI）</div>
-        <div class="agent-role">社群發文 · 商品搬運 · 系統公告 · 多平台管理</div>
-        <div class="model-badge model-gemini">Gemini Flash</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>帳號規則</h4>
-      <p style="font-size:13px"><strong>顯示名稱 = UMI</strong>（所有平台統一，不可更改為 MovieLin8866、RainLin 等）</p>
-    </div>
-    <div class="detail-section">
-      <h4>內容可見度</h4>
-      <ul class="detail-list">
-        <li><strong>公開</strong>：商品發文（選物事務所促銷）</li>
-        <li><strong>私人</strong>：Kai 系統更新、團隊公告（內部紀錄）</li>
-        <li>Rain 可逐篇覆寫可見度</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ TIER 2 ON-DEMAND ═══════════════════════ -->
-<div class="dark-section">
-<div class="dark-inner">
-  <div class="section-header">
-    <div class="section-eyebrow">15 — Tier 2 On-Demand</div>
-    <div class="section-title">按需啟動：<span>Atlas + Pixel + Vick</span></div>
-    <div class="section-desc">特定場景才觸發的專業 Agent。</div>
-  </div>
-
-  <div class="dark-card">
-    <h4>🌍 Atlas — Google Ecosystem Specialist</h4>
-    <p><strong>模型</strong>：Claude Sonnet 4.6 · <strong>觸發</strong>：GA4/GSC/OAuth/Gmail/GCP 相關任務</p>
-    <ul style="margin-top:8px;padding-left:20px">
-      <li>GA4 追蹤碼設定、事件追蹤、報告分析</li>
-      <li>Google Calendar / Gmail / Drive API 整合</li>
-      <li>OAuth 2.0 流程、token 管理</li>
-      <li>GSC（Search Console）SEO 監控</li>
-    </ul>
-  </div>
-
-  <div class="dark-card">
-    <h4>🎨 Pixel — Creative Engineer（AI Visual Design）</h4>
-    <p><strong>模型</strong>：Gemini CLI（Imagen）· <strong>觸發</strong>：新視覺設計、AI 圖片生成、品牌素材</p>
-    <ul style="margin-top:8px;padding-left:20px">
-      <li>AI 圖片生成（Gemini CLI + Imagen）</li>
-      <li>Logo 設計提案、Banner、社群素材</li>
-      <li>設計美學基準：goopi.co — 日式機能極簡</li>
-      <li>與 Iris 分工：Pixel 做圖、Iris 做 CSS</li>
-    </ul>
-  </div>
-
-  <div class="dark-card">
-    <h4>🔮 Vick — Grok Cross-Validation（xAI）</h4>
-    <p><strong>模型</strong>：Grok 3 Mini（日常）/ Grok 3（Critical）· <strong>觸發</strong>：Major/Critical 需非 Claude 視角、X/Twitter 分析</p>
-    <ul style="margin-top:8px;padding-left:20px">
-      <li>使用 xAI Grok API 直接呼叫（非 OpenRouter）</li>
-      <li>交叉驗證 Claude 系統的設計決策</li>
-      <li>呼叫方式：<code style="color:var(--accent)">python3 ~/.claude/scripts/grok-api.py "prompt"</code></li>
-      <li>X/Twitter 即時趨勢分析（協助 Buzz）</li>
-      <li>輸出：Agreement → Challenges → Alternative Approaches → Risk Flags</li>
-    </ul>
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-eyebrow">Rain AI Team · Internal Report</div>
+  <h1>團隊架構報告 2026-03</h1>
+  <div class="hero-sub">資料來源：Kai 中控台 v0.3.0 · Migration v21 · 2026-03-23</div>
+  <div class="hero-badges">
+    <span class="badge badge-amber">48 位成員</span>
+    <span class="badge badge-green">45 活躍</span>
+    <span class="badge badge-gray">2 Frozen</span>
+    <span class="badge badge-blue">19 部門</span>
+    <span class="badge badge-purple">Migration v21</span>
   </div>
 </div>
+
+<div class="container">
+
+  <!-- 統計 -->
+  <div class="section">
+    <div class="section-title">Overview</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">48</div><div class="stat-label">總成員數</div></div>
+      <div class="stat-card"><div class="stat-num">45</div><div class="stat-label">活躍中</div><div class="stat-sub">含 on-demand</div></div>
+      <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">凍結</div><div class="stat-sub">Milo · Sage</div></div>
+      <div class="stat-card"><div class="stat-num">32</div><div class="stat-label">Anthropic</div><div class="stat-sub">Claude Opus / Sonnet</div></div>
+      <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">xAI Grok</div><div class="stat-sub">Vick + Bear</div></div>
+      <div class="stat-card"><div class="stat-num">v21</div><div class="stat-label">最新遷移</div><div class="stat-sub">2026-03-23</div></div>
+    </div>
+  </div>
+
+  <!-- Provider 分佈 -->
+  <div class="section">
+    <div class="section-title">AI Providers</div>
+    <div class="section-heading">多廠商策略</div>
+    <div class="provider-grid">
+      <div class="provider-item"><span class="provider-count">32</span> Anthropic（Claude Opus + Sonnet + Code）</div>
+      <div class="provider-item"><span class="provider-count">5</span> Google（Gemini 2.5 Pro / Flash / CLI）</div>
+      <div class="provider-item"><span class="provider-count">2</span> xAI（Grok-3 — Vick + Bear Researcher）</div>
+      <div class="provider-item"><span class="provider-count">2</span> OpenAI（Codex Plus CLI + GPT-4.1）</div>
+      <div class="provider-item"><span class="provider-count">1</span> DeepSeek（Lynx）</div>
+      <div class="provider-item"><span class="provider-count">3</span> ZhipuAI / Internal / Bot</div>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:#666;line-height:1.6;">
+      Anthropic 主力（67%）+ xAI Grok-3 提供異質交叉驗證（工程審查 Vick + 投資辯論 Bear）+ Codex Plus CLI 做 maker-checker 設計審查。任何單一供應商中斷，核心審查路徑仍然完整。
+    </p>
+  </div>
+
+  <!-- 本次更新 -->
+  <div class="section">
+    <div class="section-title">Changes</div>
+    <div class="section-heading">本次更新（Migration v19 – v21）</div>
+    <div class="tbl-wrap" style="border-radius:10px;">
+    <ul class="changes-list" style="padding:0 20px;background:#fff;">
+      <li>
+        <span class="change-badge cb-model">MODEL</span>
+        <div class="change-text"><strong>Vick</strong> — <span class="change-arrow">Anthropic →</span> <strong>xAI</strong>，<span class="change-arrow">Claude Sonnet 4.6 →</span> <strong>Grok-3</strong>。角色正名「Grok 交叉驗證」，Major/Critical 任務非 Claude 視角 maker-checker。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-model">MODEL</span>
+        <div class="change-text"><strong>Lynx</strong> — <span class="change-arrow">MiniMax M2.5 →</span> <strong>DeepSeek Chat</strong>。對應實際 OpenClaw 配置。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-model">MODEL</span>
+        <div class="change-text"><strong>Probe + Echo</strong> — 2026-03-21 升級，<span class="change-arrow">MiniMax / GLM-4-Plus →</span> <strong>Claude Code + Chrome MCP</strong>。固定訂閱成本，不再按量計費。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-model">MODEL</span>
+        <div class="change-text"><strong>Bear Researcher</strong> — <span class="change-arrow">→</span> <strong>Grok-3 (xAI)</strong>。投資辯論異質模型，確保多/空頭辯論有真實異見。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-dept">DEPT</span>
+        <div class="change-text"><strong>Scout</strong> — department <span class="change-arrow">qa →</span> <strong>core</strong>。Scout 是 Tier 1 Core Phase 2 Architect，不屬於 QA 層。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-dept">DEPT</span>
+        <div class="change-text"><strong>Vick</strong> — department <span class="change-arrow">qa →</span> <strong>cross_validation</strong>。做交叉驗證，不做 code review，與 Quill/Ray 分組。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-frozen">FROZEN</span>
+        <div class="change-text"><strong>Milo、Sage</strong> — status 正式標記 frozen，中控台不再做 live health check。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-frozen">DEPR</span>
+        <div class="change-text"><strong>Worker</strong> — status 標記 deprecated，不在官方 roster，歷史遺留 agent。</div>
+      </li>
+      <li>
+        <span class="change-badge cb-fix">FIX</span>
+        <div class="change-text"><strong>check_all_statuses()</strong> — frozen/deprecated 成員不做 live health check，不被 unknown 覆蓋。</div>
+      </li>
+    </ul>
+    </div>
+  </div>
+
+  <!-- 完整成員表 -->
+  <div class="section">
+    <div class="section-title">Full Roster</div>
+    <div class="section-heading">48 位成員完整列表</div>
+
+    <!-- CORE -->
+    <div class="dept-header">
+      <span class="dept-tag tag-core">Core</span>
+      <span class="dept-label">核心指揮層 + HQ Command</span>
+      <span class="dept-count">13 成員</span>
+    </div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>名稱</th><th>角色</th><th>模型</th></tr></thead>
+      <tbody>
+        <tr><td><div class="agent-name">Klay</div></td><td><div class="role-text">CEO — 架構決策、優先級、衝突仲裁</div></td><td><span class="model-tag model-opus">Claude Opus 4.6</span></td></tr>
+        <tr><td><div class="agent-name">OM</div></td><td><div class="role-text">Operations Manager — 任務協調、進度追蹤、升級處理（HQ Command Layer）</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Max</div></td><td><div class="role-text">Senior Backend — Python, FastAPI, DB, 效能優化</div></td><td><span class="model-tag model-opus">Claude Opus 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Rex</div></td><td><div class="role-text">Backend — API, CRUD, 金流串接</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">John</div></td><td><div class="role-text">Frontend — React, TypeScript, Next.js</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Iris</div></td><td><div class="role-text">UI/UX — CSS, RWD, 網站規格書 owner</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Forge</div></td><td><div class="role-text">CI/CD Gate — lint/typecheck/test/build/deploy; Vercel, Supabase</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Scout <span class="new-tag">dept→core</span></div></td><td><div class="role-text">Phase 2 Architect — API contracts, DB schema, component spec（唯讀）</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Ray</div></td><td><div class="role-text">方案架構審查官 — Phase 3 設計審查、開工簽核、veto（不做日常 code review）</div></td><td><span class="model-tag model-codex">Codex Plus CLI</span></td></tr>
+        <tr><td><div class="agent-name">Quill</div></td><td><div class="role-text">專職 Code Review — PR/diff, 規格合規, 可讀性, 測試缺口（Standard+）</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Kai</div></td><td><div class="role-text">中控台監控 — 系統監控、任務派遣</div></td><td><span class="model-tag model-int">Internal</span></td></tr>
+        <tr><td><div class="agent-name">Noel</div></td><td><div class="role-text">夜班主力 + 外部 Tier 3 協調（凌晨 1:00）</div></td><td><span class="model-tag model-gemini">Gemini 2.5 Pro</span></td></tr>
+        <tr><td><div class="agent-name">Vick <span class="new-tag">v20 updated</span></div></td><td><div class="role-text">Grok 交叉驗證 — 非 Claude 視角 Major/Critical；Buzz X/Twitter 資料分析</div></td><td><span class="model-tag model-grok">Grok-3 (xAI)</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- INVESTMENT -->
+    <div class="dept-header">
+      <span class="dept-tag tag-investment">Investment</span>
+      <span class="dept-label">投資研究部門（Phase B）</span>
+      <span class="dept-count">10 成員</span>
+    </div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>名稱</th><th>角色</th><th>模型</th><th>Unit</th></tr></thead>
+      <tbody>
+        <tr><td><div class="agent-name">Investment Manager</div></td><td><div class="role-text">部門主管 — 綜合裁決、Phase 1 研究報告（不觸發訂單 API）</div></td><td><span class="model-tag model-opus">Claude Opus 4.6</span></td><td><span style="font-size:12px;color:#666;">Decision</span></td></tr>
+        <tr><td><div class="agent-name">Market Intel</div></td><td><div class="role-text">股市數據、技術指標、Capitol Trades 國會交易</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td><td><span style="font-size:12px;color:#666;">Data</span></td></tr>
+        <tr><td><div class="agent-name">News Collector</div></td><td><div class="role-text">財報、宏觀事件、即時新聞</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td><td><span style="font-size:12px;color:#666;">Data</span></td></tr>
+        <tr><td><div class="agent-name">GooayeAI</div></td><td><div class="role-text">股癌 Podcast 智能分析 Telegram Bot（v3）</div></td><td><span class="model-tag model-gemini">Gemini Flash 2.0</span></td><td><span style="font-size:12px;color:#666;">Podcast</span></td></tr>
+        <tr><td><div class="agent-name">Fundamental Analyst</div></td><td><div class="role-text">財報分析 — 損益表 / 資產負債 / 現金流 / DCF 估值</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td><td><span style="font-size:12px;color:#666;">Analyst</span></td></tr>
+        <tr><td><div class="agent-name">Technical Analyst</div></td><td><div class="role-text">技術分析 — K 線 / MACD / RSI / 量價關係</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td><td><span style="font-size:12px;color:#666;">Analyst</span></td></tr>
+        <tr><td><div class="agent-name">Macro Analyst</div></td><td><div class="role-text">總體經濟 — 貨幣政策 / 通膨 / 地緣政治，整合 GooayeAI</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td><td><span style="font-size:12px;color:#666;">Analyst</span></td></tr>
+        <tr><td><div class="agent-name">Bull Researcher</div></td><td><div class="role-text">多頭辯論者 — 最強多頭論點，max 2 輪</div></td><td><span class="model-tag model-opus">Claude Opus 4.6</span></td><td><span style="font-size:12px;color:#666;">Debate</span></td></tr>
+        <tr><td><div class="agent-name">Bear Researcher <span class="new-tag">v19 updated</span></div></td><td><div class="role-text">空頭辯論者 — 多頭弱點、下行風險（異質模型，確保真實異見）</div></td><td><span class="model-tag model-grok">Grok-3 (xAI)</span></td><td><span style="font-size:12px;color:#666;">Debate</span></td></tr>
+        <tr><td><div class="agent-name">HaoJiao</div></td><td><div class="role-text">號角財經 Telegram Bot（投資基礎設施，非官方 roster）</div></td><td><span class="model-tag model-bot">Python Bot</span></td><td><span style="font-size:12px;color:#666;">Infra</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- WEBSITE -->
+    <div class="dept-header">
+      <span class="dept-tag tag-website">Website</span>
+      <span class="dept-label">網站部門</span>
+      <span class="dept-count">3 成員</span>
+    </div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>名稱</th><th>角色</th><th>模型</th></tr></thead>
+      <tbody>
+        <tr><td><div class="agent-name">Webb</div></td><td><div class="role-text">Lead — 全端開發、規格包 owner、上線驗收</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Silo</div></td><td><div class="role-text">SEO 架構 — SEO 藍圖、技術稽核、結構化資料</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td><div class="agent-name">Keeper</div></td><td><div class="role-text">上線後維護、監控、緊急修復</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- EXTERNAL TIER 3 -->
+    <div class="dept-header">
+      <span class="dept-tag tag-external">External Tier 3</span>
+      <span class="dept-label">外部工作者（Noel dispatch via OpenClaw）</span>
+      <span class="dept-count">6 成員</span>
+    </div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>名稱</th><th>角色</th><th>模型</th><th>本次變更</th></tr></thead>
+      <tbody>
+        <tr><td><div class="agent-name">Spider</div></td><td><div class="role-text">靜態爬蟲 — HTML / sitemap / API（Scrapy/Requests）</div></td><td><span class="model-tag model-glm">GLM-4-Plus</span></td><td style="font-size:12px;color:#aaa;">—</td></tr>
+        <tr><td><div class="agent-name">Lynx <span class="new-tag">v20</span></div></td><td><div class="role-text">API 批量爬取、資料提取</div></td><td><span class="model-tag model-ds">DeepSeek Chat</span></td><td style="font-size:12px;color:#b08d57;">MiniMax → DeepSeek</td></tr>
+        <tr><td><div class="agent-name">Nautilus</div></td><td><div class="role-text">Browser Automation — 登入 / 反爬 / CAPTCHA / JS-SPA</div></td><td><span class="model-tag model-gpt">GPT-4.1</span></td><td style="font-size:12px;color:#aaa;">—</td></tr>
+        <tr><td><div class="agent-name">Probe <span class="new-tag">v20</span></div></td><td><div class="role-text">UI 驗收、桌機版測試（手動觸發，訂閱制）</div></td><td><span class="model-tag model-cc">Claude Code + Chrome MCP</span></td><td style="font-size:12px;color:#b08d57;">MiniMax → CC+MCP</td></tr>
+        <tr><td><div class="agent-name">Echo <span class="new-tag">v20</span></div></td><td><div class="role-text">Parallel Tester、手機版測試（手動觸發，訂閱制）</div></td><td><span class="model-tag model-cc">Claude Code + Chrome MCP</span></td><td style="font-size:12px;color:#b08d57;">GLM-4 → CC+MCP</td></tr>
+        <tr><td><div class="agent-name">Buzz</div></td><td><div class="role-text">內容分析 + 社群發文（帳號：UMI）</div></td><td><span class="model-tag model-gemini">Gemini Flash</span></td><td style="font-size:12px;color:#aaa;">—</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- OTHER DEPTS -->
+    <div class="dept-header">
+      <span class="dept-tag tag-other">Other</span>
+      <span class="dept-label">Security · Finance · Research · Strategy · Docs · Creative · Platform · Tools</span>
+      <span class="dept-count">16 成員</span>
+    </div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>部門</th><th>名稱</th><th>角色</th><th>模型</th></tr></thead>
+      <tbody>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Security</td><td><div class="agent-name">Sentinel</div></td><td><div class="role-text">密鑰掃描、系統硬化（git hook 自動）</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Finance</td><td><div class="agent-name">Knox</div></td><td><div class="role-text">財務 Lead — 加密 vault、API key 輪換、帳號池管理</div></td><td><span class="model-tag model-opus">Claude Opus 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Finance</td><td><div class="agent-name">Inquisitor</div></td><td><div class="role-text">財務審計 — 帳號安全審計、明文掃描、每週排程</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Finance</td><td><div class="agent-name">Tax</div></td><td><div class="role-text">台灣稅法 + 銀行業 + OBU/DBU + 韓商銀行（獨立顧問）</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Research</td><td><div class="agent-name">Orion</div></td><td><div class="role-text">Data Engineer — Memory Schema 治理、RAG 遷移</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Research</td><td><div class="agent-name">Lab</div></td><td><div class="role-text">Experimentation — 模型 Benchmark、A/B 測試框架</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Research</td><td><div class="agent-name">Lens</div></td><td><div class="role-text">Product Intelligence — PRES Pipeline、競品逆向工程規格</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Strategy</td><td><div class="agent-name">Strategist</div></td><td><div class="role-text">策略行銷 Lead — GTM、競爭分析、市場定位</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Strategy</td><td><div class="agent-name">EchoMarketer</div></td><td><div class="role-text">SEO 內容策略 — 關鍵字研究、廣告文案、meta copy</div></td><td><span class="model-tag model-gemini">Gemini Flash</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Docs</td><td><div class="agent-name">Nova</div></td><td><div class="role-text">Deck 報告生成 — HTML slides、Slideless 部署</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Creative</td><td><div class="agent-name">Pixel</div></td><td><div class="role-text">AI 圖片生成、品牌視覺設計</div></td><td><span class="model-tag model-gemini">Gemini CLI (Pro)</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Platform</td><td><div class="agent-name">Atlas</div></td><td><div class="role-text">Google 生態系 — GA4, GSC, OAuth, Gmail, GCP</div></td><td><span class="model-tag model-sonnet">Claude Sonnet 4.6</span></td></tr>
+        <tr><td style="font-size:11px;color:#b08d57;font-weight:600;">Tools</td><td><div class="agent-name">Jarvis</div></td><td><div class="role-text">Email 備用管道（工具級，不參與指揮鏈）</div></td><td><span class="model-tag model-gemini">Gemini Flash</span></td></tr>
+        <tr class="frozen-row"><td style="font-size:11px;color:#aaa;">Frozen</td><td><div class="agent-name">Sage</div></td><td><div class="role-text">帳號生命週期（FROZEN — 職責已併入 Knox）</div></td><td><span class="model-tag model-int">frozen</span></td></tr>
+        <tr class="frozen-row"><td style="font-size:11px;color:#aaa;">Frozen</td><td><div class="agent-name">Milo</div></td><td><div class="role-text">爬蟲資料工程師（FROZEN — 與 Spider/Lynx/Nautilus 重疊）</div></td><td><span class="model-tag model-int">frozen</span></td></tr>
+        <tr class="deprecated-row"><td style="font-size:11px;color:#aaa;">Depr.</td><td><div class="agent-name">Worker</div></td><td><div class="role-text">執行型助理（DEPRECATED — 不在官方 roster，歷史遺留）</div></td><td><span class="model-tag model-int">deprecated</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+  </div><!-- end section -->
+
+  <!-- ══ MIND MAP SECTION ══ -->
+  <div class="section">
+    <div class="section-title">Team Mind Map</div>
+    <div class="section-heading">指揮鏈心智圖</div>
+
+    <!-- SVG Mind Map -->
+    <div style="background:#fff;border:1.5px solid #e8e4dc;border-radius:12px;overflow:hidden;margin-bottom:28px;">
+      <div style="padding:16px 24px 12px;border-bottom:1px solid #f0ede7;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:13px;font-weight:700;color:#1a1a1a;">Rain AI Team v5.3 指揮鏈</span>
+        <span style="font-size:11px;color:#b08d57;background:#fef3c7;padding:2px 10px;border-radius:20px;font-weight:600;">48 位成員 · 2026-03-23</span>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <svg viewBox="0 0 920 650" style="min-width:700px;width:100%;display:block;padding:12px 0 16px;">
+          <defs>
+            <marker id="ah" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#ccc"/>
+            </marker>
+            <marker id="ah2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#b08d57"/>
+            </marker>
+            <marker id="ah3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#c4b5fd"/>
+            </marker>
+          </defs>
+
+          <!-- Rain to Klay -->
+          <line x1="111" y1="340" x2="145" y2="340" stroke="#b08d57" stroke-width="2.5" marker-end="url(#ah2)"/>
+
+          <!-- Klay right-edge(x=280) to each box center -->
+          <path d="M280,340 C305,340 305,67 320,67"   fill="none" stroke="#cbd5e1" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M280,340 C305,340 305,172 320,172"  fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M280,340 C305,340 305,292 320,292"  fill="none" stroke="#fcd34d" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M280,340 C305,340 305,397 320,397"  fill="none" stroke="#86efac" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M280,340 C305,340 305,505 320,505"  fill="none" stroke="#fdba74" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M280,340 C305,340 305,596 320,596"  fill="none" stroke="#6ee7b7" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Vick dashed (cross-validation) -->
+          <path d="M212,308 C212,255 365,255 365,72"   fill="none" stroke="#c4b5fd" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ah3)"/>
+
+          <!-- RAIN node -->
+          <circle cx="83" cy="340" r="28" fill="#b08d57"/>
+          <text x="83" y="336" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Rain</text>
+          <text x="83" y="352" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Owner</text>
+
+          <!-- KLAY node -->
+          <rect x="145" y="308" width="135" height="64" rx="32" fill="#1a1a1a"/>
+          <text x="212" y="332" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Klay</text>
+          <text x="212" y="348" text-anchor="middle" fill="#b08d57" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">CEO · Claude Opus 4.6</text>
+          <text x="212" y="362" text-anchor="middle" fill="#888" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">決策仲裁 · 直接指揮</text>
+
+          <!-- Vick node (cross-validation, dashed border) -->
+          <rect x="285" y="28" width="160" height="44" rx="22" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="365" y="48" text-anchor="middle" fill="#6d28d9" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">🔁 Vick（交叉驗證）</text>
+          <text x="365" y="63" text-anchor="middle" fill="#7c3aed" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Grok-3 / xAI · 非 Anthropic 視角</text>
+
+          <!-- BOX 1: HQ Command -->
+          <rect x="320" y="28" width="590" height="78" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="340" y="53" fill="#334155" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">🏛  HQ Command Layer</text>
+          <text x="340" y="70" fill="#475569" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">OM（Operations Manager）Sonnet — 日報作戰室摘要 · 進度追蹤 · 負載均衡 · 升級通報</text>
+          <text x="340" y="86" fill="#94a3b8" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">唯讀 Kai 資料；不可自主 dispatch（需 Klay 批准）</text>
+
+          <!-- BOX 2: Core Engineering -->
+          <rect x="320" y="118" width="590" height="108" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="340" y="140" fill="#1d4ed8" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">💻  Core Engineering  （Tier 1）</text>
+          <text x="340" y="157" fill="#1e40af" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Noel 夜班 Lead · Gemini 2.5 Pro  |  Max Backend · Opus  |  Rex API · Sonnet  |  John Frontend · Sonnet</text>
+          <text x="340" y="173" fill="#1e40af" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Iris UI/UX · Sonnet  |  Forge CI/CD · Sonnet  |  Scout Architect · Sonnet</text>
+          <text x="340" y="189" fill="#1e40af" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Ray 方案設計審查 · Codex Plus  |  Quill Code Review · Sonnet</text>
+          <text x="340" y="208" fill="#6b7280" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Review 3 層：Quill（code）→ Forge（CI）→ Ray（設計，Major/Critical）；Noel 凌晨 1:00 主導夜班</text>
+
+          <!-- BOX 3: Investment Dept -->
+          <rect x="320" y="238" width="590" height="108" rx="10" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="340" y="260" fill="#92400e" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">💰  Investment Dept  （Phase A — Report Only）</text>
+          <text x="340" y="277" fill="#78350f" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Investment Manager Lead · Opus  |  Market Intel · Sonnet  |  News Collector · Sonnet  |  GooayeAI · Gemini Flash</text>
+          <text x="340" y="293" fill="#b45309" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Phase B（驗證後）：Fundamental · Technical · Macro Analyst 並行</text>
+          <text x="340" y="309" fill="#b45309" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">+ Bull[Opus] vs Bear[Vick/Grok] 辯論（max 2 輪）→ InvestMgr 裁決 → Ray Veto Gate</text>
+          <text x="340" y="330" fill="#d97706" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">⚠️ 所有輸出附免責聲明：非投資建議，AI 僅提供研究支援</text>
+
+          <!-- BOX 4: Website + Strategy -->
+          <rect x="320" y="358" width="590" height="88" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="340" y="380" fill="#065f46" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">🌐  Website Dept + Strategy Dept</text>
+          <text x="340" y="397" fill="#065f46" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Webb Lead · Sonnet  |  Silo SEO · Gemini 2.5 Pro  |  Keeper 監控維護 · Sonnet</text>
+          <text x="340" y="413" fill="#065f46" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Strategist GTM Lead · Sonnet  |  EchoMarketer SEO Content · Gemini Flash</text>
+          <text x="340" y="432" fill="#6b7280" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">共享 Core 資源：John · Iris · Rex · Forge · Quill · Probe+Echo（UI 驗收）</text>
+
+          <!-- BOX 5: Support Depts -->
+          <rect x="320" y="458" width="590" height="86" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="340" y="479" fill="#92400e" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">🔒  Support Departments</text>
+          <text x="340" y="496" fill="#92400e" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Security: Sentinel 自動 hook  |  Finance: Knox · Inquisitor · Tax（台灣稅法/OBU/韓商）</text>
+          <text x="340" y="512" fill="#92400e" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Research: Orion · Lab · Lens（PRES）  |  Docs: Nova · Pixel · Atlas（Google）</text>
+          <text x="340" y="530" fill="#b45309" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Kai 中控台監控（Internal）· Jarvis Email 備用工具（Flash）</text>
+
+          <!-- BOX 6: External Tier 3 -->
+          <rect x="320" y="556" width="590" height="82" rx="10" fill="#f0fdfa" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="340" y="577" fill="#0f766e" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif">🕷  External Tier 3 Workers  （via Noel · OpenClaw）</text>
+          <text x="340" y="594" fill="#0f766e" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Spider · GLM-4-Plus  |  Lynx · DeepSeek Chat  |  Nautilus Browser Auto · GPT-4.1</text>
+          <text x="340" y="610" fill="#0f766e" font-size="10" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Probe · CC+Chrome MCP  |  Echo · CC+Chrome MCP  |  Buzz 社群 · Gemini Flash</text>
+          <text x="340" y="628" fill="#6b7280" font-size="9" font-family="-apple-system,BlinkMacSystemFont,sans-serif">Static→Spider/Lynx · JS+登入→Nautilus · UI Test→Probe+Echo · Social→Buzz（帳號 UMI）</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Operation Mode -->
+    <div class="section-heading" style="margin-bottom:16px;">運作模式</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px;">
+
+      <!-- Day Mode -->
+      <div style="background:#fff;border:1.5px solid #e8e4dc;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#b08d57;font-weight:700;margin-bottom:10px;">日班模式</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px;">☀️ Rain 可用 — Klay 直接協調</div>
+        <ol style="padding-left:18px;font-size:13px;color:#555;line-height:1.9;">
+          <li>Rain → Klay 指令</li>
+          <li>Klay 輸出 Scope Card 判斷任務等級</li>
+          <li>Tiny → Klay 直接處理</li>
+          <li>Standard → Dispatch 單一 Agent</li>
+          <li>Major/Critical → 3-Phase（Scout→Ray）→ Dispatch</li>
+          <li>Quill+Forge+Ray 3層 Review</li>
+          <li>Nova Deck 報告 → Email Rain</li>
+        </ol>
+      </div>
+
+      <!-- Night Mode -->
+      <div style="background:#fff;border:1.5px solid #e8e4dc;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#6d28d9;font-weight:700;margin-bottom:10px;">夜班模式</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px;">🌙 凌晨 1:00 — Noel 主導</div>
+        <ol style="padding-left:18px;font-size:13px;color:#555;line-height:1.9;">
+          <li>00:30 綜合審查腳本執行</li>
+          <li>00:50 night-shift-prep.py 建立任務</li>
+          <li>01:00 Noel 開始執行</li>
+          <li>健康檢查、LaunchAgent 巡檢、知識升級</li>
+          <li>OpenClaw 協調 Tier 3 Workers</li>
+          <li>Module L 自動修復任務閉環</li>
+          <li>晨間報告彙整 → Email Rain</li>
+        </ol>
+      </div>
+
+      <!-- Review Pipeline -->
+      <div style="background:#fff;border:1.5px solid #e8e4dc;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#065f46;font-weight:700;margin-bottom:10px;">Review Pipeline</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px;">🔍 3 層審查 + 自動化 Hook</div>
+        <div style="font-size:13px;color:#555;line-height:2;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="background:#dbeafe;color:#1d4ed8;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">L1</span>
+            <span><strong>Quill</strong> — PR/diff review · Standard+</span>
+          </div>
+          <div style="margin-left:22px;height:16px;border-left:2px solid #e5e7eb;"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">L2</span>
+            <span><strong>Forge</strong> — lint · typecheck · test · CI</span>
+          </div>
+          <div style="margin-left:22px;height:16px;border-left:2px solid #e5e7eb;"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="background:#ede9fe;color:#6d28d9;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;">L3</span>
+            <span><strong>Ray</strong> — 方案設計審查 + Veto · Codex+</span>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:#aaa;">Sentinel = 自動 hook 密鑰掃描（all commits）</div>
+        </div>
+      </div>
+
+      <!-- Investment Flow -->
+      <div style="background:#fff;border:1.5px solid #e8e4dc;border-radius:12px;padding:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#92400e;font-weight:700;margin-bottom:10px;">Investment Flow</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px;">📊 Phase A → Phase B 路徑</div>
+        <div style="font-size:12px;color:#555;line-height:1.9;">
+          <div>MarketIntel + NewsCollector（並行資料）</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓</div>
+          <div>GooayeAI Podcast Intel</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓ Phase B</div>
+          <div>Fund + Tech + Macro Analyst（並行分析）</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓</div>
+          <div>Bull[Opus] ↔ Bear[Vick/Grok]（辯論 max 2 輪）</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓</div>
+          <div>Investment Manager 裁決（Opus）</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓</div>
+          <div>Ray Veto Gate（合規 + Bias Check）</div>
+          <div style="color:#bbb;margin:2px 0 2px 12px;">↓</div>
+          <div>Nova Deck → Email Rain</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
-<!-- ═══════════════════════ FROZEN ═══════════════════════ -->
-<section id="frozen">
-  <div class="section-header">
-    <div class="section-eyebrow">16 — Frozen Agents</div>
-    <div class="section-title">凍結保留：<span>Milo + Sage</span></div>
-    <div class="section-desc">SKILL.md 保留、隨時可解凍恢復。</div>
-  </div>
-
-  <div class="card">
-    <div class="table-wrap">
-    <table>
-      <tr><th>Agent</th><th>原角色</th><th>凍結原因</th><th>解凍條件</th></tr>
-      <tr><td><strong>Milo</strong></td><td>Data/Crawler Engineer</td><td>Spider/Lynx/Nautilus 三人組更高效</td><td>資料量超過 OpenClaw 容量 或需專業 ETL pipeline</td></tr>
-      <tr><td><strong>Sage</strong></td><td>Account Lifecycle Manager</td><td>職責併入 Knox（v5.0 效率合併）</td><td>團隊 > 50 agents 時拆分回獨立角色</td></tr>
-    </table>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ PROTOCOLS ═══════════════════════ -->
-<section id="protocols">
-  <div class="section-header">
-    <div class="section-eyebrow">17 — Protocols & Workflows</div>
-    <div class="section-title">核心協議與<span>工作流程</span></div>
-  </div>
-
-  <div class="card">
-    <h3>3-Phase Planning Protocol（Major/Critical 強制）</h3>
-    <div class="flow-step"><div class="flow-num" style="background:var(--accent-warm)">P1</div><div class="flow-body" style="background:rgba(235,128,84,0.06)"><strong>Klay — Business Planning（Claude Opus）</strong><p>Goal → Constraints → Success Metrics → Scope（做/不做）→ Priority（P0-P3）</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">P2</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>Scout — System Architecture（Claude Sonnet）</strong><p>Components → API Contracts → Data Models → Integration Points → Dependencies → Impl Order</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--danger)">P3</div><div class="flow-body" style="background:rgba(217,79,79,0.06)"><strong>Ray — Pre-Implementation Review（Codex Plus）</strong><p>Task Definition Check → Risk Assessment → Edge Cases → Skeptic Check → Architecture Sign-off (✅/❌/⚠️)</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--green)">GO</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>Dispatch → 並行實作 → 3-Layer Review → Merge</strong><p>Max/John 並行 → Quill(L1) → Forge(L2) → Ray(L3 post-impl if Major) → Production</p></div></div>
-  </div>
-
-  <div class="card">
-    <h3>任務分級矩陣</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>級別</th><th>條件</th><th>3-Phase</th><th>Quill</th><th>Forge</th><th>Ray</th><th>Probe+Echo</th></tr>
-      <tr><td><strong>Tiny</strong></td><td>單檔改動、文案、config</td><td>跳過</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-      <tr><td><strong>Standard</strong></td><td>CRUD、單 API、小 bugfix</td><td>跳過</td><td>Lightweight</td><td>✅</td><td>—</td><td>—</td></tr>
-      <tr><td><strong>Major</strong></td><td>3+ 檔、前後端同改、新模組</td><td>完整</td><td>Full</td><td>✅</td><td>Full</td><td>手動</td></tr>
-      <tr><td><strong>Critical</strong></td><td>auth/payment/migration/infra</td><td>完整</td><td>Full</td><td>✅</td><td>Full+veto</td><td>手動</td></tr>
-      <tr><td><strong>Consult</strong></td><td>財務/稅務/法規諮詢</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-    </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>衝突裁決規則</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>衝突類型</th><th>最終決定權</th><th>例子</th></tr>
-      <tr><td>產品方向 / 商業</td><td><strong>Klay</strong></td><td>做不做這功能、MVP 範圍、優先順序</td></tr>
-      <tr><td>技術實作</td><td><strong>Scout</strong></td><td>API 怎麼切、DB schema、integration pattern</td></tr>
-      <tr><td>安全 / 穩定 / 回滾風險</td><td><strong>Ray（veto 權）</strong></td><td>auth、payment、migration、production risk</td></tr>
-    </table>
-    </div>
-    <p style="font-size:13px;color:var(--grey-02);margin-top:12px">Ray veto 後必須修改重新提交。Klay 可縮小 scope 規避否決，但不可無視否決直接上線。</p>
-  </div>
-
-  <div class="card">
-    <h3>Session 回顧協議（每 session 強制）</h3>
-    <ul class="detail-list">
-      <li><strong>Q1</strong>：做了什麼事情（具體動作 + 檔案路徑/功能名稱）</li>
-      <li><strong>Q2</strong>：用了什麼技術和方式（工具、API、框架、pattern）</li>
-      <li><strong>Q3</strong>：最後結果如何（成功/部分完成/失敗 + 產出物）</li>
-      <li><strong>Q4</strong>：中間有沒有遇到問題（問題 + 根因 或「無問題」）</li>
-      <li><strong>Q5</strong>：下次如何改善（一個可執行改善 或「無需改善」）</li>
-      <li><strong>反思</strong>：原方法 → 卡點 → 解法 → 更快方式（<span class="mono">[SKILL_DELTA: TYPE — desc]</span>）</li>
-    </ul>
-    <p style="font-size:13px;color:var(--grey-02);margin-top:8px">Hook 強制執行（<span class="mono">require-session-review.sh</span>）。Q4 有泛用教訓 → 自動寫入 lessons.md。連續 3 次 Q4/Q5 為「無」→ Klay 主動審計。</p>
-  </div>
-
-  <div class="card">
-    <h3>自我修復 SOP（所有 Agent 強制）</h3>
-    <ul class="detail-list">
-      <li><strong>Step 1 — 診斷（30 秒內）</strong>：讀 error log → 確認 file:line → 分析根因 → 評估影響範圍</li>
-      <li><strong>Step 2 — 修復 + 驗證</strong>：自修 → 跑 <span class="mono">/verify</span> → 確認通過</li>
-      <li><strong>Step 3 — 記錄</strong>：寫 lessons.md + 更新 task board 進度</li>
-      <li><strong>升級觸發</strong>：修 3 次失敗 / 需架構變更 / 影響 production / 根因不明 + 3+ files</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h3>自主進步系統（SKILL_DELTA 閉環）</h3>
-    <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">團隊內建的持續改善機制 — 確保每次犯錯都會轉化為能力，每次發現都會升級為 SOP。</p>
-
-    <div class="flow-step"><div class="flow-num" style="background:var(--accent-warm)">1</div><div class="flow-body" style="background:rgba(235,128,84,0.06)"><strong>執行中發現（任何 Agent）</strong><p>發現更快/更好的做法 → 在 session 回顧的反思區寫 <span class="mono">[SKILL_DELTA: TYPE — desc]</span></p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">2</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>自動搬運（Stop Hook）</strong><p><span class="mono">require-session-review.sh</span> 在 session 結束時自動掃描 [SKILL_DELTA] → append 到 <span class="mono">speed-improvements.md</span></p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--green)">3</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>72h TTL 升級或刪除（Quill 負責）</strong><p>speed-improvements.md 條目必須在 72 小時內升入對應 SKILL.md section 或刪除。每週一 Quill 確認清零。逾期 → <span class="mono">ai.rain.skill-upgrade-reminder</span> LaunchAgent 09:00 Discord 通知</p></div></div>
-    <div class="flow-sep">↓</div>
-    <div class="flow-step"><div class="flow-num" style="background:var(--black)">4</div><div class="flow-body" style="background:rgba(18,18,18,0.04)"><strong>知識結晶（升級觸發規則）</strong><p>同類錯誤 3+ 次 → 升級為 CLAUDE.md 規則。通用教訓 → lessons.md（P/G 標記）。新工具替換 → 直接寫入 SKILL.md。</p></div></div>
-
-    <div style="margin-top:20px">
-      <h4 style="font-size:13px;font-weight:700;color:var(--grey-03);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)">SKILL_DELTA 類型標籤</h4>
-      <div class="tag-list">
-        <span class="tag warm">TOOL</span><span class="tag warm">FLOW</span><span class="tag warm">API</span>
-        <span class="tag accent">SEO</span><span class="tag accent">CRAWL</span><span class="tag accent">BROWSER</span>
-        <span class="tag green">DEPLOY</span><span class="tag green">INFRA</span>
-      </div>
-    </div>
-
-    <div style="margin-top:20px">
-      <h4 style="font-size:13px;font-weight:700;color:var(--grey-03);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)">知識管線（夜班 Module B）</h4>
-      <ul class="detail-list">
-        <li><span class="mono">night-shift-comprehensive.py</span> Module B 每晚掃描：</li>
-        <li>• speed-improvements.md 逾期項目（>72h）→ 標記提醒</li>
-        <li>• lessons.md 高頻教訓（同類 2+ 次）→ 標記升級候選</li>
-        <li>• SKILL.md 與實際使用差異 → 建議更新</li>
-      </ul>
-    </div>
-
-    <div style="margin-top:20px">
-      <h4 style="font-size:13px;font-weight:700;color:var(--grey-03);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)">每日進步雷達（日報區塊 3）</h4>
-      <ul class="detail-list">
-        <li><strong>① 今天可進步之處</strong>：來自 Q3 [SKILL_DELTA] 條目</li>
-        <li><strong>② 原本犯了什麼錯</strong>：來自 Q4 具通用性問題</li>
-        <li><strong>③ 是否用了新/更好的工具</strong>：來自 [SKILL_DELTA: TOOL] 標籤條目</li>
-        <li>三項缺一不可（Rain 明確要求 2026-03-07）</li>
-      </ul>
-    </div>
-
-    <div style="margin-top:20px">
-      <h4 style="font-size:13px;font-weight:700;color:var(--grey-03);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono)">相關檔案</h4>
-      <ul class="detail-list">
-        <li><span class="mono">memory/speed-improvements.md</span> — 步驟級改善候補區（72h TTL）</li>
-        <li><span class="mono">memory/lessons.md</span> — 團隊錯誤教訓庫（P=可預防 / G=已結業 標記）</li>
-        <li><span class="mono">memory/post-task-review-sop.md</span> — Session 回顧 SOP v3（五問 + 反思格式）</li>
-        <li><span class="mono">memory/preferences.md</span> — 結晶層（[LS-01]~[LS-10] 學習系統規則）</li>
-        <li><span class="mono">memory/daily-ops-report-v3.md</span> — 日報 SOP v3（進步雷達格式）</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>知識閉環改善（Before → After）</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px">
-      <div style="background:rgba(217,79,79,0.06);border-radius:10px;padding:20px;border:1px solid rgba(217,79,79,0.15)">
-        <div style="font-size:12px;font-weight:700;color:var(--danger);margin-bottom:10px;font-family:var(--font-mono)">BEFORE</div>
-        <ul class="detail-list" style="font-size:13px">
-          <li>Session 反思 → 手動記 lessons.md</li>
-          <li>沒人搬到 SKILL.md</li>
-          <li>知識停滯在 lessons.md</li>
-          <li>只有 Klay 在寫教訓</li>
-          <li>日報只記錯誤，不記進步</li>
-        </ul>
-      </div>
-      <div style="background:rgba(133,162,104,0.08);border-radius:10px;padding:20px;border:1px solid rgba(133,162,104,0.2)">
-        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px;font-family:var(--font-mono)">AFTER</div>
-        <ul class="detail-list" style="font-size:13px">
-          <li>Session 反思 → Hook 自動擷取 <span class="mono">[SKILL_DELTA]</span></li>
-          <li>自動 append 到 speed-improvements.md</li>
-          <li>每日 09:00 提醒 Quill 升級逾期項目</li>
-          <li>72h TTL → 升入 SKILL.md 或刪除</li>
-          <li>日報三區塊：進步 + 犯錯 + 工具替換</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Hook 系統（session-start + 安全掃描 + 彈性停用）</h3>
-    <div class="detail-section" style="border-top:none;margin-top:0;padding-top:0">
-      <h4>角色 Context 注入（session-start.sh）</h4>
-      <p style="font-size:13px;color:var(--grey-02);margin-bottom:12px">每個 Agent 開 session 時自動注入角色專屬提示，減少 context 浪費。使用 <span class="mono">$CLAUDE_AGENT_NAME</span> 環境變數判斷。</p>
-      <div class="table-wrap">
-      <table>
-        <tr><th>Agent</th><th>注入內容</th></tr>
-        <tr><td><span class="mono">max</span></td><td>Senior Backend：Python/FastAPI 專精，專注複雜後端/效能/重構</td></tr>
-        <tr><td><span class="mono">rex</span></td><td>Backend API：CRUD/金流串接，API endpoint 實作</td></tr>
-        <tr><td><span class="mono">john</span></td><td>Frontend：React/TypeScript/Next.js。先讀現有 component 再改</td></tr>
-        <tr><td><span class="mono">iris</span></td><td>UI/UX：CSS/TailwindCSS/RWD/動畫。先讀現有樣式再改</td></tr>
-        <tr><td><span class="mono">quill</span></td><td>Code Reviewer + <strong>提醒檢查 speed-improvements.md 逾期條目</strong></td></tr>
-        <tr><td><span class="mono">ray</span></td><td>方案設計審查：任務定義、架構風險、邊界情況、veto 權</td></tr>
-        <tr><td><span class="mono">scout</span></td><td>Phase 2 Architect：API 契約、DB schema、元件 spec。Read-only</td></tr>
-        <tr><td><span class="mono">forge</span></td><td>CI/CD Gate：lint/typecheck/test/build/deploy</td></tr>
-        <tr><td><span class="mono">webb</span></td><td>Website Lead：fullstack + 規格包 owner + 上線驗收</td></tr>
-        <tr><td><span class="mono">noel</span></td><td>夜班主力：夜班執行 + Tier 3 外部 Agent 管理。財務問題轉 Tax</td></tr>
-        <tr><td><span class="mono">nova</span></td><td>Deck 報告製作：Slideless HTML 報告，奶油白風格 #f6f5f1</td></tr>
-      </table>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>Session Start 注入（完整流程）</h4>
-      <ul class="detail-list">
-        <li><strong>系統狀態</strong>：Kai 在線/離線、GooayeAI Bot 在線/離線</li>
-        <li><strong>Task Board 規則</strong>：Rain 給的第一個工作指令 → 立即建 Kai task（auto_start:true）</li>
-        <li><strong>近期教訓</strong>：從 lessons.md 抽最近 5 條注入 context（避免重複犯錯）</li>
-        <li><strong>角色 Context</strong>：根據 agent name 注入專屬提示（見上表）</li>
-      </ul>
-    </div>
-    <div class="detail-section">
-      <h4>Hook 彈性停用（ECC_DISABLED_HOOKS）</h4>
-      <p style="font-size:13px;color:var(--grey-02);margin-bottom:8px">臨時停用非安全 hook：</p>
-      <div style="background:var(--grey-01);border-radius:8px;padding:14px 18px;font-family:var(--font-mono);font-size:13px;line-height:1.8">
-        <div style="color:var(--grey-02)"># 臨時停用 warn-console-log 和 typecheck-debounce</div>
-        <div>ECC_DISABLED_HOOKS="warn-console-log,typecheck-debounce" claude</div>
-        <div style="margin-top:8px;color:var(--grey-02)"># 安全 hook（scan-secrets 等）即使設了也不會被停用</div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h4>所有 Hook 清單</h4>
-      <div class="table-wrap">
-      <table>
-        <tr><th>Hook</th><th>類型</th><th>觸發</th><th>可停用</th></tr>
-        <tr><td><span class="mono">session-start.sh</span></td><td>SessionStart</td><td>每次開 session</td><td>—</td></tr>
-        <tr><td><span class="mono">scan-secrets.sh</span></td><td>PreCommit</td><td>每次 git commit</td><td style="color:var(--danger)">不可停用</td></tr>
-        <tr><td><span class="mono">require-session-review.sh</span></td><td>Stop</td><td>session 結束</td><td>—</td></tr>
-        <tr><td><span class="mono">warn-console-log.sh</span></td><td>PostWrite</td><td>寫入 .ts/.tsx</td><td style="color:var(--green)">可停用</td></tr>
-        <tr><td><span class="mono">typecheck-debounce.sh</span></td><td>PostWrite</td><td>寫入 .ts/.tsx</td><td style="color:var(--green)">可停用</td></tr>
-        <tr><td><span class="mono">block-random-md.sh</span></td><td>PreWrite</td><td>寫入 .md</td><td style="color:var(--green)">可停用</td></tr>
-        <tr><td><span class="mono">config-protection.sh</span></td><td>PreWrite</td><td>寫入 config</td><td>—</td></tr>
-      </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>自動化 Skill 管線（/deck + /email-report）</h3>
-    <p style="font-size:13px;color:var(--grey-02);margin-bottom:16px">報告製作 + 寄送的標準化流程，封裝為 slash command。</p>
-
-    <div class="detail-section" style="border-top:none;margin-top:0;padding-top:0">
-      <h4>/deck — Deck 報告自動化管線</h4>
-      <div class="flow-step"><div class="flow-num" style="background:var(--accent-warm)">1</div><div class="flow-body" style="background:rgba(235,128,84,0.06)"><strong>生成 HTML</strong><p>用 Keftek CSS 模板生成自包含 HTML — 深色封面 + cream 主體 + nav bar + progress bar + responsive</p></div></div>
-      <div class="flow-sep">↓</div>
-      <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">2</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>寫入 Slideless</strong><p><span class="mono">~/Projects/Slideless/public/{slug}.html</span> — 零依賴（除 Google Fonts）、單檔 &lt;50KB</p></div></div>
-      <div class="flow-sep">↓</div>
-      <div class="flow-step"><div class="flow-num" style="background:var(--green)">3</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>部署到 Vercel</strong><p><span class="mono">vercel --prod --yes</span> → <span class="mono">https://slideless.vercel.app/{slug}.html</span></p></div></div>
-      <div class="flow-sep">↓</div>
-      <div class="flow-step"><div class="flow-num" style="background:var(--black)">4</div><div class="flow-body" style="background:rgba(18,18,18,0.04)"><strong>截圖驗證</strong><p>Playwright 截圖桌機（1280×900）+ 手機（390×844），視覺確認排版無誤</p></div></div>
-      <p style="font-size:13px;color:var(--grey-02);margin-top:12px">用法：<span class="mono">/deck report-slug 報告標題或描述</span></p>
-    </div>
-
-    <div class="detail-section">
-      <h4>/email-report — 報告寄送自動化</h4>
-      <div class="flow-step"><div class="flow-num" style="background:var(--accent-warm)">1</div><div class="flow-body" style="background:rgba(235,128,84,0.06)"><strong>驗證 Deck URL</strong><p>HTTP GET 確認 200 — 永不寄送壞連結</p></div></div>
-      <div class="flow-sep">↓</div>
-      <div class="flow-step"><div class="flow-num" style="background:#5b8fb9">2</div><div class="flow-body" style="background:rgba(91,143,185,0.06)"><strong>生成 Email HTML</strong><p>Keftek 風格：深色 header + 白色摘要卡片 + 橘色 CTA 按鈕（連到 Deck）</p></div></div>
-      <div class="flow-sep">↓</div>
-      <div class="flow-step"><div class="flow-num" style="background:var(--green)">3</div><div class="flow-body" style="background:rgba(133,162,104,0.06)"><strong>Kai API 寄送</strong><p><span class="mono">POST /api/email/send</span> → <span class="mono">asdapper8866@gmail.com</span>（Kai 離線 → SMTP fallback）</p></div></div>
-      <p style="font-size:13px;color:var(--grey-02);margin-top:12px">用法：<span class="mono">/email-report https://slideless.vercel.app/xxx.html 報告主題</span></p>
-    </div>
-
-    <div class="detail-section">
-      <h4>檔案位置</h4>
-      <ul class="detail-list">
-        <li><span class="mono">~/.claude/commands/deck.md</span> — /deck Skill 定義</li>
-        <li><span class="mono">~/.claude/commands/email-report.md</span> — /email-report Skill 定義</li>
-        <li><span class="mono">memory/deck-report-system.md</span> — Deck 格式規範</li>
-        <li><span class="mono">memory/keftek-style-reference.md</span> — Keftek 設計風格參考</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>10 條核心規則</h3>
-    <ol class="detail-list">
-      <li><strong>Exclusive Lock</strong>：同一時間只有一個 Agent 修改同一檔案</li>
-      <li><strong>No Architecture Without Klay</strong>：架構決策需要 Klay</li>
-      <li><strong>Review Before Merge</strong>：3 層審查 — Quill → Forge → Ray</li>
-      <li><strong>Security First</strong>：永不 commit secrets</li>
-      <li><strong>Report Costs</strong>：API 用量 70% 時告警</li>
-      <li><strong>來源連結必須驗證</strong>：放 URL 前必須 HTTP GET 驗證 200</li>
-      <li><strong>API 資料語義驗證</strong>：確認追蹤的市場/資產/指標正確</li>
-      <li><strong>禁止主 Agent 自做報告</strong>：有 Nova 必須 dispatch Nova</li>
-      <li><strong>繁體中文回覆</strong>：不奉承、直接說重點</li>
-      <li><strong>Try Before Asking</strong>：能自己解決就自己解決</li>
-    </ol>
-  </div>
-</section>
-
-<!-- ═══════════════════════ KPI ═══════════════════════ -->
-<section id="kpi">
-  <div class="section-header">
-    <div class="section-eyebrow">18 — North Star KPI</div>
-    <div class="section-title">Agent <span>北極星指標</span></div>
-    <div class="section-desc">每個核心 Agent 的存在價值量化指標。連續 3 日無任務 → 標記閒置 → Klay 主動分派維護任務。</div>
-  </div>
-
-  <div class="table-wrap">
-  <table>
-    <tr><th>Agent</th><th>North Star KPI</th><th>目標值</th><th>衡量方式</th></tr>
-    <tr><td><strong>Klay</strong></td><td>複雜任務成功交付率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 85%</td><td>tasks 表 success/total</td></tr>
-    <tr><td><strong>Max</strong></td><td>後端任務零 hotfix 率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 90%</td><td>同一任務無需反覆修正</td></tr>
-    <tr><td><strong>Rex</strong></td><td>API 任務首次通過率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 80%</td><td>Quill review 首次 pass</td></tr>
-    <tr><td><strong>John</strong></td><td>前端任務 UI 驗收通過率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 90%</td><td>Probe+Echo 首次 ✅</td></tr>
-    <tr><td><strong>Iris</strong></td><td>設計規格被採用率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 85%</td><td>規格落地不被推翻</td></tr>
-    <tr><td><strong>Forge</strong></td><td>CI Gate 部署成功率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 95%</td><td>deploy 成功/嘗試</td></tr>
-    <tr><td><strong>Scout</strong></td><td>規格包被「不打回」率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 90%</td><td>Ray 不退回 Scout 規格</td></tr>
-    <tr><td><strong>Ray</strong></td><td>事前審查攔截重工比例</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 70%</td><td>攔下 vs 實作後才發現</td></tr>
-    <tr><td><strong>Quill</strong></td><td>Code Review 改善率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 80%</td><td>提出 blocker 後被修正比例</td></tr>
-    <tr><td><strong>Noel</strong></td><td>任務轉派準確率</td><td style="font-family:var(--font-mono);color:var(--accent-warm)">≥ 90%</td><td>轉派給正確 Agent 比例</td></tr>
-  </table>
-  </div>
-</section>
-
-<!-- ═══════════════════════ MEMORY ═══════════════════════ -->
-<section id="memory">
-  <div class="section-header">
-    <div class="section-eyebrow">19 — Memory System</div>
-    <div class="section-title">記憶<span>系統</span></div>
-    <div class="section-desc">檔案式持久記憶，跨 session 保持團隊知識。位於 <span class="mono">~/.claude/projects/-Users-rain/memory/</span></div>
-  </div>
-
-  <div class="card">
-    <h3>記憶類型</h3>
-    <div class="table-wrap">
-    <table>
-      <tr><th>類型</th><th>用途</th><th>觸發</th></tr>
-      <tr><td><strong>user</strong></td><td>Rain 的角色、偏好、知識背景</td><td>學到 Rain 的新偏好時</td></tr>
-      <tr><td><strong>feedback</strong></td><td>Rain 對工作方式的修正指導</td><td>「不要...」「改用...」</td></tr>
-      <tr><td><strong>project</strong></td><td>專案進行中的狀態、目標、決策</td><td>學到 who/what/why/when</td></tr>
-      <tr><td><strong>reference</strong></td><td>外部系統的資訊指標</td><td>學到外部資源位置</td></tr>
-    </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>關鍵記憶檔案（40+）</h3>
-    <div class="table-wrap">
-    <table style="min-width:700px">
-      <tr><th>檔案</th><th>內容</th></tr>
-      <tr><td><span class="mono">credentials.md</span></td><td>所有 API Keys、密碼、Supabase/Cloudflare/Resend/ImprovMX 憑證</td></tr>
-      <tr><td><span class="mono">projects-registry.md</span></td><td>所有專案路徑、URL、Vercel 映射、部署指令</td></tr>
-      <tr><td><span class="mono">lessons.md</span></td><td>團隊錯誤教訓（所有 Agent 共用）</td></tr>
-      <tr><td><span class="mono">diary.md</span></td><td>Klay 推理層日記</td></tr>
-      <tr><td><span class="mono">preferences.md</span></td><td>已結晶的規則與偏好</td></tr>
-      <tr><td><span class="mono">skill_assignment.md</span></td><td>110+ 技能分配表</td></tr>
-      <tr><td><span class="mono">agent-kpi.md</span></td><td>10 個核心 Agent 北極星 KPI</td></tr>
-      <tr><td><span class="mono">team-history.md</span></td><td>團隊擴張歷史（9→19→24→28）</td></tr>
-      <tr><td><span class="mono">deck-report-system.md</span></td><td>Deck 報告系統規範</td></tr>
-      <tr><td><span class="mono">website-dept-sop.md</span></td><td>網站部門交付標準</td></tr>
-      <tr><td><span class="mono">email-reporting-rules.md</span></td><td>Email 自動報告規則</td></tr>
-      <tr><td><span class="mono">speed-improvements.md</span></td><td>步驟級改善記錄</td></tr>
-      <tr><td><span class="mono">revenue-plan.md</span></td><td>AI 團隊獲利計畫（月入 8 萬目標）</td></tr>
-    </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>規則檔案（On-Demand 載入）</h3>
-    <div class="table-wrap">
-    <table style="min-width:700px">
-      <tr><th>檔案</th><th>內容</th></tr>
-      <tr><td><span class="mono">.claude/rules/team-roster.md</span></td><td>完整 roster、部門、指揮鏈</td></tr>
-      <tr><td><span class="mono">.claude/rules/task-dispatch.md</span></td><td>複雜任務自動 dispatch、3-Phase Protocol</td></tr>
-      <tr><td><span class="mono">.claude/rules/verification-flow.md</span></td><td>3 層驗收流程</td></tr>
-      <tr><td><span class="mono">.claude/rules/session-protocol.md</span></td><td>Session 回顧、Handoff、日報</td></tr>
-      <tr><td><span class="mono">.claude/rules/review-responsibility-matrix.md</span></td><td>審查責任矩陣（誰審什麼）</td></tr>
-      <tr><td><span class="mono">memory/memory-routing-protocol.md</span></td><td>記憶路由表（Rain 說「記住 X」→ 正確檔案）</td></tr>
-      <tr><td><span class="mono">.claude/team.json</span></td><td>28 agents 單一資料來源（JSON）</td></tr>
-    </table>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ ORG CHART ═══════════════════════ -->
-<section id="org">
-  <div class="section-header">
-    <div class="section-eyebrow">20 — Organization Chart</div>
-    <div class="section-title">組織<span>架構圖</span></div>
-  </div>
-
-  <div class="org-container">
-    <pre class="org-tree">
-<span class="root">Rain</span>
-  └─ <span class="t1">Klay (CEO / Opus)</span>
-       ├─ <span class="t2">[Backend]</span> Max(Opus) + Rex(Sonnet)
-       ├─ <span class="t2">[Frontend]</span> John(Sonnet) + Iris(Sonnet)
-       ├─ <span class="t2">[Review]</span> Quill(code/Sonnet) → Forge(CI/Sonnet) → Ray(design/Codex, veto)
-       ├─ <span class="t2">[Planning]</span> Scout(architecture/Sonnet)
-       ├─ <span class="t2">[Security]</span> Sentinel(Sonnet)
-       ├─ <span class="t2">[Finance]</span> Knox(vault/Opus) + Inquisitor(audit/Sonnet) + Tax(consulting/Sonnet)
-       ├─ <span class="t2">[Docs]</span> Nova(Deck/Sonnet) · Jarvis(Email備用/Sonnet)
-       ├─ <span class="t2">[Website]</span> Webb(Lead) + Silo(SEO/Gemini) + Keeper + John + Iris + Rex + Forge + Quill + Probe + Echo
-       ├─ <span class="t2">[Marketing]</span> EchoMarketer(Gemini Flash)
-       ├─ <span class="t2">[Investment]</span> GooayeAI(Gemini 3.1 Flash Lite)
-       ├─ <span class="t2">[Night Shift]</span> Noel(Lead/Gemini Pro) → <span class="t3">External Workers</span>
-       │     ├─ <span class="t3">Spider(GLM) + Lynx(DeepSeek)</span> — 靜態爬蟲
-       │     ├─ <span class="t3">Nautilus(GPT-4.1)</span> — 動態爬蟲
-       │     ├─ <span class="t3">Probe(DeepSeek) + Echo(GLM)</span> — QA 測試
-       │     └─ <span class="t3">Buzz(Gemini Flash)</span> — 社群管理
-       ├─ <span class="t2">[Ops]</span> Kai(Internal)
-       ├─ <span class="t2">[On-Demand]</span> Atlas(Google/Sonnet) · Pixel(Creative/Gemini) · Vick(CrossVal/Grok)
-       └─ <span class="t3">[Frozen]</span> Milo(ETL) · Sage(→Knox)
-    </pre>
-  </div>
-
-  <div class="card" style="margin-top:24px">
-    <h3>架構同步規則（7 處必須一致）</h3>
-    <p style="font-size:13px;color:var(--grey-02);margin-bottom:12px">新增/移除/凍結 Agent 或模型變更時，以下 7 處必須同步更新（缺一不可）：</p>
-    <ol class="detail-list">
-      <li><span class="mono">CLAUDE.md</span> — Team 欄位</li>
-      <li><span class="mono">.claude/rules/team-roster.md</span> — 完整 roster</li>
-      <li><span class="mono">team_service.py</span> — DEFAULT_MEMBERS + _infer_rank() + migration</li>
-      <li><span class="mono">agent_task_service.py</span> — TASK_ROUTING + _EXTERNAL_SESSION_AGENTS</li>
-      <li><span class="mono">.claude/agents/SKILL.md</span> — 技能定義</li>
-      <li><span class="mono">memory/MEMORY.md</span> — 記憶索引</li>
-      <li><span class="mono">frontend/src/pages/TeamPage.tsx</span> — 前端頁面</li>
-    </ol>
-  </div>
-</section>
-
-<!-- FOOTER -->
 <div class="footer">
-  Rain AI Team · v5.0 Org Reform · 2026-03-13<br>
-  29 Agents · 8 Departments · 6 AI Providers<br>
-  Compiled by Klay (Claude Opus 4.6) · Slideless Report System
+  <strong>Rain AI Team</strong> · 團隊架構報告 2026-03 · Kai v0.3.0 · Migration v21 · 2026-03-23
 </div>
-
-<!-- PROGRESS BAR JS -->
-<script>
-window.addEventListener('scroll',()=>{
-  const h=document.documentElement.scrollHeight-window.innerHeight;
-  const p=h>0?(window.scrollY/h)*100:0;
-  document.getElementById('prog').style.width=p+'%';
-});
-</script>
 
 </body>
 </html>

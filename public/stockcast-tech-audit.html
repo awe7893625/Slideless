@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stockcast 技術架構深度報告 — 資料來源 × 爬蟲技術 × 轉錄流程 × 資源清單</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --cream-dark:#e8e5dc;
+  --white:#ffffff;
+  --black:#121212;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --accent:#e85d2f;
+  --accent-hover:#c94a20;
+  --accent-warm:#e87a00;
+  --accent-light:#fdf0eb;
+  --green:#5c9e3a;
+  --green-bg:#eaf5e2;
+  --green-text:#3a7a1c;
+  --yellow:#c9a73a;
+  --yellow-bg:#fef9e0;
+  --yellow-text:#8a6e00;
+  --danger:#d94f4f;
+  --danger-bg:#fdeaea;
+  --warn:#c97a00;
+  --warn-bg:#fff3e0;
+  --blue:#4a7eb5;
+  --blue-bg:#eef4fb;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* ─── Cover ─── */
+.cover{
+  background:linear-gradient(145deg,#1a1208 0%,#2a1a08 50%,#1a1208 100%);
+  color:var(--white);
+  padding:80px 32px 60px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.cover::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 30%, rgba(232,93,47,0.18) 0%, transparent 65%);
+  pointer-events:none;
+}
+.cover .eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:16px;font-family:var(--mono);
+  display:inline-block;border:1px solid rgba(232,93,47,0.35);
+  padding:4px 14px;border-radius:4px;
+}
+.cover h1{
+  font-size:clamp(22px,4.5vw,40px);font-weight:800;letter-spacing:-0.02em;
+  line-height:1.15;margin-bottom:10px;
+}
+.cover h1 span{color:var(--accent)}
+.cover .subtitle{
+  font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:28px;
+  max-width:560px;margin-left:auto;margin-right:auto;letter-spacing:0.02em;
+}
+.cover-meta-row{
+  display:flex;justify-content:center;flex-wrap:wrap;gap:24px;
+  font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1px;
+}
+.cover-meta-row span{display:flex;align-items:center;gap:6px}
+
+/* ─── TOC ─── */
+.toc-wrapper{background:var(--white);border-bottom:1px solid var(--grey-01)}
+.toc{max-width:780px;margin:0 auto;padding:24px 28px}
+.toc-label{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--grey-02);font-family:var(--mono);margin-bottom:14px}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.toc-item{
+  display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px;
+  text-decoration:none;color:var(--grey-03);font-size:13px;font-weight:500;
+  border:1px solid var(--grey-01);background:var(--cream);
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.toc-item:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.toc-item .toc-num{
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);
+  min-width:18px;
+}
+
+/* ─── Main layout ─── */
+.main{max-width:780px;margin:0 auto;padding:52px 28px 80px}
+@media(max-width:600px){
+  .main{padding:32px 18px 60px}
+  .cover{padding:60px 20px 48px}
+}
+
+/* ─── Section ─── */
+.section{margin-bottom:60px;scroll-margin-top:24px}
+.section-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:8px;font-family:var(--mono);
+}
+.section h2{font-size:20px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px;color:var(--black)}
+.section .section-desc{font-size:13px;color:var(--grey-02);margin-bottom:22px;font-family:var(--mono)}
+.section p{font-size:15px;color:#3a3632;margin-bottom:12px;line-height:1.7}
+.section ul{margin:0 0 14px 20px;color:#3a3632;font-size:15px}
+.section li{margin-bottom:6px;line-height:1.6}
+.divider{height:1px;background:var(--grey-01);margin:0 0 52px}
+
+/* ─── Table wrapper ─── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px;border-radius:10px;border:1px solid var(--grey-01)}
+.tbl-wrap::-webkit-scrollbar{height:5px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#d5d1c8;border-radius:3px}
+table{width:100%;border-collapse:collapse;min-width:620px;font-size:14px}
+thead{background:var(--cream-alt)}
+th{padding:11px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-02);font-family:var(--mono);border-bottom:1px solid var(--grey-01);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--grey-01);color:#3a3632;vertical-align:top;line-height:1.55}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(232,93,47,0.03)}
+
+/* ─── Architecture diagram ─── */
+.arch-diagram{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:28px 24px;margin-bottom:24px}
+.arch-node{
+  background:var(--cream-alt);border:1.5px solid var(--grey-01);border-radius:8px;
+  padding:12px 18px;margin-bottom:4px;font-size:14px;font-weight:600;color:var(--black);
+  display:flex;align-items:center;gap:10px;
+}
+.arch-node.trigger{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.arch-node.main-node{background:var(--cream-dark);border-color:#c4bfb3;font-size:15px;font-weight:700}
+.arch-node .node-icon{font-size:16px;line-height:1}
+.arch-connector{
+  display:flex;justify-content:center;align-items:center;
+  height:24px;color:var(--grey-02);font-size:16px;font-family:var(--mono);
+}
+.arch-branches{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:8px}
+.arch-branch{
+  background:var(--cream-alt);border:1px dashed var(--grey-01);border-radius:8px;
+  padding:12px 14px;font-size:12.5px;color:var(--grey-03);line-height:1.5;
+}
+.arch-branch strong{display:block;color:var(--black);font-size:13px;margin-bottom:4px}
+
+/* ─── Step flow ─── */
+.step-flow{display:flex;flex-direction:column;gap:0;margin-bottom:20px}
+.step-item{display:flex;gap:0;align-items:stretch}
+.step-left{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0}
+.step-dot{
+  width:32px;height:32px;border-radius:50%;background:var(--accent);
+  color:var(--white);font-weight:800;font-size:13px;font-family:var(--mono);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(232,93,47,0.3);
+}
+.step-line{flex:1;width:2px;background:var(--grey-01);margin:4px auto}
+.step-item:last-child .step-line{display:none}
+.step-content{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:16px 18px;margin:0 0 10px 12px;flex:1;
+}
+.step-content h4{font-size:14px;font-weight:700;color:var(--black);margin-bottom:6px}
+.step-content p{font-size:13.5px;color:var(--grey-03);margin-bottom:0;line-height:1.55}
+.step-content code{
+  font-family:var(--mono);font-size:12px;background:var(--cream-alt);
+  padding:2px 6px;border-radius:4px;color:var(--accent);word-break:break-all;
+}
+
+/* ─── Timeline / schedule ─── */
+.schedule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.schedule-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:16px 18px;
+}
+.schedule-card .time{
+  font-family:var(--mono);font-size:20px;font-weight:800;color:var(--accent);
+  letter-spacing:-0.5px;margin-bottom:4px;
+}
+.schedule-card .label{font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px}
+.schedule-card .meta{font-size:12px;color:var(--grey-02);line-height:1.45}
+.schedule-card .badge{
+  display:inline-block;margin-top:8px;font-size:11px;font-weight:700;
+  letter-spacing:0.5px;padding:3px 8px;border-radius:4px;font-family:var(--mono);
+}
+.badge-auto{background:var(--green-bg);color:var(--green-text)}
+.badge-manual{background:var(--yellow-bg);color:var(--yellow-text)}
+
+/* ─── Tag / pill ─── */
+.tag{
+  display:inline-block;font-size:11px;font-weight:700;font-family:var(--mono);
+  padding:3px 9px;border-radius:5px;letter-spacing:0.3px;
+}
+.tag-green{background:var(--green-bg);color:var(--green-text)}
+.tag-warn{background:var(--warn-bg);color:var(--warn)}
+.tag-red{background:var(--danger-bg);color:var(--danger)}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+.tag-grey{background:var(--cream-alt);color:var(--grey-02);border:1px solid var(--grey-01)}
+
+/* ─── Resource grid ─── */
+.resource-section{margin-bottom:28px}
+.resource-section-title{
+  font-size:13px;font-weight:700;color:var(--grey-03);text-transform:uppercase;
+  letter-spacing:1.5px;font-family:var(--mono);margin-bottom:12px;
+  padding-bottom:6px;border-bottom:2px solid var(--grey-01);
+}
+.resource-section-title.free{border-color:var(--green)}
+.resource-section-title.paid{border-color:var(--accent)}
+.resource-section-title.hw{border-color:var(--blue)}
+.resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:8px}
+.resource-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:9px;
+  padding:14px 16px;
+}
+.resource-card .rc-name{font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px}
+.resource-card .rc-desc{font-size:12.5px;color:var(--grey-02);line-height:1.5}
+.resource-card.free-card{border-left:3px solid var(--green)}
+.resource-card.paid-card{border-left:3px solid var(--accent)}
+.resource-card.hw-card{border-left:3px solid var(--blue)}
+
+/* ─── Info box ─── */
+.info-box{
+  background:var(--blue-bg);border:1px solid rgba(74,126,181,0.25);border-radius:9px;
+  padding:16px 18px;margin-bottom:20px;font-size:14px;color:#2d5a8a;
+  line-height:1.6;
+}
+.warn-box{
+  background:var(--warn-bg);border:1px solid rgba(201,122,0,0.25);border-radius:9px;
+  padding:16px 18px;margin-bottom:20px;font-size:14px;color:#7a4800;
+  line-height:1.6;
+}
+.info-box strong, .warn-box strong{font-weight:700}
+
+/* ─── Inline code ─── */
+code{
+  font-family:var(--mono);font-size:12.5px;background:var(--cream-alt);
+  padding:2px 6px;border-radius:4px;color:#b54a1a;word-break:break-all;
+}
+
+/* ─── Summary stats ─── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{
+  background:var(--white);border:1px solid var(--grey-01);border-radius:10px;
+  padding:18px 14px;text-align:center;
+}
+.stat-card .num{font-size:30px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;margin-bottom:4px}
+.stat-card .num.orange{color:var(--accent)}
+.stat-card .num.green{color:var(--green-text)}
+.stat-card .num.blue{color:var(--blue)}
+.stat-card .num.grey{color:var(--grey-02)}
+.stat-card .slabel{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);line-height:1.4}
+
+/* ─── Note/footer ─── */
+.report-footer{
+  margin-top:64px;padding-top:24px;border-top:1px solid var(--grey-01);
+  text-align:center;font-size:12px;color:var(--grey-02);font-family:var(--mono);
+  letter-spacing:0.5px;line-height:1.8;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ COVER ═══════ -->
+<div class="cover">
+  <div class="eyebrow">Technical Architecture Report</div>
+  <h1>Stockcast<br><span>技術架構深度報告</span></h1>
+  <p class="subtitle">資料來源 × 爬蟲技術 × 轉錄流程 × 資源清單</p>
+  <div class="cover-meta-row">
+    <span>📅 2026-03-21</span>
+    <span>🤖 Nova × Klay</span>
+    <span>📍 M4 AI Team</span>
+    <span>📡 市場晨報系統</span>
+  </div>
+</div>
+
+<!-- ═══════ TOC ═══════ -->
+<div class="toc-wrapper">
+  <nav class="toc" aria-label="目錄">
+    <div class="toc-label">目錄 / Table of Contents</div>
+    <div class="toc-grid">
+      <a href="#s1" class="toc-item"><span class="toc-num">01</span>系統架構概覽</a>
+      <a href="#s2" class="toc-item"><span class="toc-num">02</span>爬蟲技術細節</a>
+      <a href="#s3" class="toc-item"><span class="toc-num">03</span>自動更新內容清單</a>
+      <a href="#s4" class="toc-item"><span class="toc-num">04</span>更新時間表</a>
+      <a href="#s5" class="toc-item"><span class="toc-num">05</span>Whisper 轉錄應用</a>
+      <a href="#s6" class="toc-item"><span class="toc-num">06</span>IEObserve 完整流程</a>
+      <a href="#s7" class="toc-item"><span class="toc-num">07</span>校稿機制說明</a>
+      <a href="#s8" class="toc-item"><span class="toc-num">08</span>資源清單</a>
+    </div>
+  </nav>
+</div>
+
+<!-- ═══════ MAIN ═══════ -->
+<main class="main">
+
+  <!-- Summary stats -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="num orange">11</div><div class="slabel">yfinance<br>Symbols</div></div>
+    <div class="stat-card"><div class="num green">5</div><div class="slabel">爬蟲<br>來源</div></div>
+    <div class="stat-card"><div class="num orange">4</div><div class="slabel">Podcast<br>來源</div></div>
+    <div class="stat-card"><div class="num blue">2×</div><div class="slabel">每日主報告<br>更新</div></div>
+    <div class="stat-card"><div class="num green">3</div><div class="slabel">付費 API<br>服務</div></div>
+    <div class="stat-card"><div class="num grey">~40m</div><div class="slabel">Whisper<br>轉錄/集</div></div>
+  </div>
+
+  <!-- ─── S1 ─── -->
+  <section id="s1" class="section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2>系統架構概覽</h2>
+    <p class="section-desc">整體資料流從 LaunchAgent 觸發到 Vercel 部署的完整路徑</p>
+
+    <div class="arch-diagram">
+      <div class="arch-node trigger">
+        <span class="node-icon">⏰</span>
+        <div>
+          <div>LaunchAgent — <code>ai.rain.market-report</code></div>
+          <div style="font-size:12px;font-weight:400;color:var(--grey-02);margin-top:3px">每日 08:00 &amp; 20:00 TST 自動觸發</div>
+        </div>
+      </div>
+      <div class="arch-connector">↓</div>
+
+      <div class="arch-node">
+        <span class="node-icon">📜</span>
+        <div>
+          <div><code>update_stockcast.py</code> — wrapper 腳本</div>
+          <div style="font-size:12px;font-weight:400;color:var(--grey-02);margin-top:3px">環境設定 + 錯誤攔截 + log 寫入</div>
+        </div>
+      </div>
+      <div class="arch-connector">↓</div>
+
+      <div class="arch-node main-node">
+        <span class="node-icon">⚙️</span>
+        <div>
+          <div><code>generate_stockcast.py</code> — 主生成器</div>
+          <div style="font-size:12px;font-weight:400;color:var(--grey-02);margin-top:3px">抓取所有來源 → 合併 → 渲染 HTML → 部署</div>
+        </div>
+      </div>
+      <div class="arch-connector">↓ 四條並行資料流</div>
+
+      <div class="arch-branches">
+        <div class="arch-branch">
+          <strong>📊 即時市場資料</strong>
+          yfinance × 11 symbols<br>CNN F&amp;G API<br>TWSE 三大法人<br>Capitol Trades (Pelosi)
+        </div>
+        <div class="arch-branch">
+          <strong>🎙️ Podcast 快取</strong>
+          股癌 Gooaye<br>皓角 Haojiao<br>IEObserve<br>MacroMicro
+        </div>
+        <div class="arch-branch">
+          <strong>📱 Telegram 爬蟲</strong>
+          t.me/s/ieobserve<br>公開頻道 HTML 解析<br>90 分鐘快取機制<br>TelegramPostParser
+        </div>
+        <div class="arch-branch">
+          <strong>🚀 HTML 生成 + 部署</strong>
+          Jinja2 模板渲染<br>Vercel CLI 靜態部署<br>slideless.vercel.app<br>自動 CDN 分發
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>架構設計原則：</strong>即時抓取（市場數據）與快取讀取（Podcast 分析）分離，確保主報告在任一外部服務失敗時仍能正常生成。所有 HTTP 請求均設置 timeout 防止掛起。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S2 ─── -->
+  <section id="s2" class="section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2>自動化爬蟲技術細節</h2>
+    <p class="section-desc">每個資料來源的爬取方式、技術實作與 timeout 設定</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>資料來源</th>
+            <th>爬蟲方式</th>
+            <th>技術細節</th>
+            <th>Timeout</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>CNN Fear &amp; Greed</strong><br><span style="font-size:12px;color:var(--grey-02)">美股情緒指數</span></td>
+            <td><span class="tag tag-green">HTTP GET JSON</span></td>
+            <td><code>urllib.request</code> + JSON parse<br>公開 API，無需 API Key</td>
+            <td><code>15s</code></td>
+          </tr>
+          <tr>
+            <td><strong>Yahoo Finance</strong><br><span style="font-size:12px;color:var(--grey-02)">11 個 Symbol（SPY/VIX/TWII 等）</span></td>
+            <td><span class="tag tag-blue">Python Library</span></td>
+            <td><code>yfinance</code> 開源 library<br>5 天 history fetch，自動解析</td>
+            <td>Library 內建</td>
+          </tr>
+          <tr>
+            <td><strong>TWSE 三大法人</strong><br><span style="font-size:12px;color:var(--grey-02)">外資/投信/自營商淨買賣</span></td>
+            <td><span class="tag tag-green">REST API</span></td>
+            <td>台灣證交所公開 JSON API<br><code>twse.com.tw/rwd/zh/fund/BFI82U</code></td>
+            <td><code>15s</code></td>
+          </tr>
+          <tr>
+            <td><strong>Capitol Trades</strong><br><span style="font-size:12px;color:var(--grey-02)">Pelosi 最近 15 筆國會交易</span></td>
+            <td><span class="tag tag-warn">HTML 爬蟲 + JSON</span></td>
+            <td>自製 parser 提取頁面內嵌入 JSON<br>解析 BUY/SELL/NET + 7 欄位</td>
+            <td><code>15s</code></td>
+          </tr>
+          <tr>
+            <td><strong>IEObserve Telegram</strong><br><span style="font-size:12px;color:var(--grey-02)">t.me/s/ieobserve 頻道</span></td>
+            <td><span class="tag tag-warn">HTML 爬蟲</span></td>
+            <td>自製 <code>TelegramPostParser</code><br>extends HTMLParser，90 分鐘快取</td>
+            <td><code>20s</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn-box">
+      <strong>注意：</strong>Capitol Trades 與 Telegram 爬蟲依賴頁面 HTML 結構，若目標網站改版可能導致解析失敗。建議定期驗證輸出欄位完整性。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S3 ─── -->
+  <section id="s3" class="section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2>自動更新內容清單</h2>
+    <p class="section-desc">分為「即時快照」與「快取讀取」兩大類</p>
+
+    <div style="margin-bottom:28px">
+      <div class="resource-section-title free" style="margin-bottom:14px">即時快照（每次執行都重新抓取）</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>指標 / 資料</th>
+              <th>來源</th>
+              <th>說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Fear &amp; Greed 指數</strong></td>
+              <td>CNN F&amp;G API</td>
+              <td>主指數 + 7 個子指標（動能/強度/期權/VIX/利率/Put/Call/Junk）</td>
+            </tr>
+            <tr>
+              <td><strong>VIX 恐慌指數</strong></td>
+              <td>yfinance <code>^VIX</code></td>
+              <td>最新收盤值</td>
+            </tr>
+            <tr>
+              <td><strong>S&amp;P 500 / Nasdaq / 道瓊</strong></td>
+              <td>yfinance <code>^GSPC ^IXIC ^DJI</code></td>
+              <td>最新收盤 + 日漲跌幅</td>
+            </tr>
+            <tr>
+              <td><strong>台股加權指數 TWII</strong></td>
+              <td>yfinance <code>^TWII</code></td>
+              <td>最新收盤 + 日漲跌幅</td>
+            </tr>
+            <tr>
+              <td><strong>USD/TWD 匯率</strong></td>
+              <td>yfinance <code>TWD=X</code></td>
+              <td>最新報價</td>
+            </tr>
+            <tr>
+              <td><strong>DXY 美元指數</strong></td>
+              <td>yfinance <code>DX-Y.NYB</code></td>
+              <td>最新收盤</td>
+            </tr>
+            <tr>
+              <td><strong>WTI 原油 / 黃金</strong></td>
+              <td>yfinance <code>CL=F GC=F</code></td>
+              <td>最新收盤</td>
+            </tr>
+            <tr>
+              <td><strong>SPY RSI(14) + 200日均線偏差</strong></td>
+              <td>yfinance <code>SPY</code> 計算</td>
+              <td>5 天 history → 計算 RSI + MA200 % 偏離</td>
+            </tr>
+            <tr>
+              <td><strong>TWSE 三大法人淨買賣</strong></td>
+              <td>TWSE REST API</td>
+              <td>外資 / 投信 / 自營商 三欄</td>
+            </tr>
+            <tr>
+              <td><strong>Pelosi 最近 15 筆交易</strong></td>
+              <td>Capitol Trades 爬蟲</td>
+              <td>DATE / TICKER / SECTOR / SIDE / VALUE / OWNER / FILED 七欄 + 統計</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="resource-section-title paid" style="margin-bottom:14px">快取讀取（由外部 Pipeline 定期更新）</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Podcast / 來源</th>
+              <th>快取檔案</th>
+              <th>更新週期</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>股癌 (Gooaye)</strong><br><span style="font-size:12px;color:var(--grey-02)">最新集分析報告</span></td>
+              <td>Local markdown file</td>
+              <td>每集節目發布後由 GooayeAI agent 更新</td>
+            </tr>
+            <tr>
+              <td><strong>皓角 (Haojiao)</strong><br><span style="font-size:12px;color:var(--grey-02)">Podcast 摘要</span></td>
+              <td><code>~/.claude/cache/haojiao-*.json</code></td>
+              <td>每日 05:30 TST（<code>ai.rain.haojiao-podcast</code>）</td>
+            </tr>
+            <tr>
+              <td><strong>IEObserve Telegram</strong><br><span style="font-size:12px;color:var(--grey-02)">頻道貼文摘要</span></td>
+              <td>記憶體快取</td>
+              <td>90 分鐘快取，過期才重新爬取</td>
+            </tr>
+            <tr>
+              <td><strong>IEObserve Podcast</strong><br><span style="font-size:12px;color:var(--grey-02)">IEO 看什麼分析</span></td>
+              <td><code>~/.claude/cache/ieobserve-podcast-latest.json</code></td>
+              <td>每日 06:00 TST（<code>ai.rain.ieobserve-podcast</code>）</td>
+            </tr>
+            <tr>
+              <td><strong>MacroMicro After Meeting</strong><br><span style="font-size:12px;color:var(--grey-02)">聯準會會議分析</span></td>
+              <td><code>~/.claude/cache/macromicro-*.json</code></td>
+              <td>手動觸發（FOMC 會議後）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S4 ─── -->
+  <section id="s4" class="section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2>更新時間表</h2>
+    <p class="section-desc">所有排程任務一覽，含 LaunchAgent 對應</p>
+
+    <div class="schedule-grid">
+      <div class="schedule-card">
+        <div class="time">08:00</div>
+        <div class="label">主報告（早盤版）</div>
+        <div class="meta">全部市場數據 + Podcast 快取<br>LaunchAgent: <code>ai.rain.market-report</code></div>
+        <div class="badge badge-auto">每日自動</div>
+      </div>
+      <div class="schedule-card">
+        <div class="time">20:00</div>
+        <div class="label">主報告（收盤版）</div>
+        <div class="meta">同上，反映當日收盤數據<br>LaunchAgent: <code>ai.rain.market-report</code></div>
+        <div class="badge badge-auto">每日自動</div>
+      </div>
+      <div class="schedule-card">
+        <div class="time">05:30</div>
+        <div class="label">皓角 Podcast</div>
+        <div class="meta">下載 + Gemini 2.0 Flash 轉錄分析<br>LaunchAgent: <code>ai.rain.haojiao-podcast</code></div>
+        <div class="badge badge-auto">每日自動</div>
+      </div>
+      <div class="schedule-card">
+        <div class="time">06:00</div>
+        <div class="label">IEObserve Podcast</div>
+        <div class="meta">下載 + Whisper 轉錄 + Gemini 分析<br>LaunchAgent: <code>ai.rain.ieobserve-podcast</code></div>
+        <div class="badge badge-auto">每日自動</div>
+      </div>
+      <div class="schedule-card">
+        <div class="time">On Event</div>
+        <div class="label">MacroMicro</div>
+        <div class="meta">FOMC 會議後手動觸發<br>無 LaunchAgent 排程</div>
+        <div class="badge badge-manual">手動觸發</div>
+      </div>
+      <div class="schedule-card">
+        <div class="time">Per EP</div>
+        <div class="label">股癌 Gooaye</div>
+        <div class="meta">每集節目發布後 GooayeAI agent 更新<br>RSS 偵測觸發</div>
+        <div class="badge badge-auto">Agent 自動</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>「即時更新」說明：</strong>yfinance 抓取的是市場最新收盤價，但整體報告是每天兩次快照，並非持續串流更新。非交易時段執行時，數據反映最近一個收盤日的資料。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S5 ─── -->
+  <section id="s5" class="section">
+    <div class="section-eyebrow">Section 05</div>
+    <h2>Whisper 轉錄應用範圍</h2>
+    <p class="section-desc">各 Podcast 使用 Whisper 的情況與替代方案</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Podcast</th>
+            <th>Whisper 使用</th>
+            <th>替代方案</th>
+            <th>備註</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>IEObserve</strong><br><span style="font-size:12px;color:var(--grey-02)">IEO 看什麼 / 異溫層</span></td>
+            <td><span class="tag tag-green">✅ 主要轉錄器</span></td>
+            <td>無</td>
+            <td>Whisper <code>large-v3</code><br>language=zh，CPU 模式<br>fp16=False</td>
+          </tr>
+          <tr>
+            <td><strong>MacroMicro</strong><br><span style="font-size:12px;color:var(--grey-02)">After Meeting</span></td>
+            <td><span class="tag tag-warn">⚠️ Fallback（預設停用）</span></td>
+            <td>OpenAI <code>gpt-4o-mini-transcribe</code>（優先）</td>
+            <td>環境變數<br><code>MM_ALLOW_WHISPER_FALLBACK=0</code></td>
+          </tr>
+          <tr>
+            <td><strong>皓角 (Haojiao)</strong><br><span style="font-size:12px;color:var(--grey-02)">每日 Podcast</span></td>
+            <td><span class="tag tag-red">❌ 不使用</span></td>
+            <td>Gemini 2.0 Flash 直接轉錄</td>
+            <td>速度更快，品質足夠</td>
+          </tr>
+          <tr>
+            <td><strong>股癌 (Gooaye)</strong><br><span style="font-size:12px;color:var(--grey-02)">Podcast EP530+</span></td>
+            <td><span class="tag tag-red">❌ 不使用</span></td>
+            <td>已有人工逐字稿 + GooayeAI pipeline</td>
+            <td>Whisper 歷史逐字稿<br>另存於外部磁碟（173 集）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn-box">
+      <strong>效能提醒：</strong>Whisper <code>large-v3</code> 在本機 CPU 模式運行，預估轉錄時間為 30–45 分鐘/集。無 GPU 加速。若 IEObserve 集數較長，可能導致 <code>ai.rain.ieobserve-podcast</code> LaunchAgent 執行時間超過預期。
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S6 ─── -->
+  <section id="s6" class="section">
+    <div class="section-eyebrow">Section 06</div>
+    <h2>IEObserve 轉錄完整流程</h2>
+    <p class="section-desc">從 RSS 抓取到快取存檔的 7 步驟自動化管線</p>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>RSS 抓取</h4>
+          <p>
+            訂閱兩個 SoundOn RSS Feed：<br>
+            <code>IEO看什麼</code>：<code>feeds.soundon.fm/podcasts/c92cb66a-14fc-412f-84aa-08125add5ca9.xml</code><br>
+            <code>異溫層</code>：另一個 feed URL<br>
+            解析最新集數，取得音訊下載連結與集數元資料。
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>音訊下載</h4>
+          <p>
+            從 RSS 取得的 URL 下載 <code>.mp3</code> / <code>.m4a</code> 音訊檔案，<br>
+            暫存至 <code>/tmp/ieobserve/</code> 目錄，完成後自動清除暫存。
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>Whisper 本機轉錄</h4>
+          <p>
+            使用開源 Whisper <code>large-v3</code>（最高品質模型）進行本機轉錄：<br>
+            <code>language=zh</code>（繁體中文）、<code>fp16=False</code>（CPU 模式，不需 GPU）<br>
+            預估轉錄時間：<strong>30–45 分鐘/集</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>去重複後處理</h4>
+          <p>
+            呼叫 <code>_dedupe_whisper_repeats()</code> 函數，<br>
+            移除 Whisper 常見的重複詞彙 Hallucination，<br>
+            例：「你要你要你要這樣做」→「你要這樣做」。
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">5</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>Gemini 2.0 Flash 分析</h4>
+          <p>
+            將完整逐字稿送入 <strong>Gemini 2.0 Flash</strong> 進行語意分析：<br>
+            輸出：3–5 個重點摘要 + 分類標籤<br>
+            分類標籤：<code>AI</code> / <code>半導體</code> / <code>科技</code> / <code>總經</code>
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">6</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>快取存檔</h4>
+          <p>
+            分析結果寫入 JSON 快取：<br>
+            <code>~/.claude/cache/ieobserve-podcast-latest.json</code><br>
+            下次主報告執行時直接讀取，無需重新轉錄。
+          </p>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left">
+          <div class="step-dot">7</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>讀入主報告</h4>
+          <p>
+            <code>generate_stockcast.py</code> 於 08:00 / 20:00 執行時，<br>
+            讀取上述 JSON 快取，注入 Podcast 分析區塊 HTML，<br>
+            與即時市場數據合併後部署至 Vercel。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S7 ─── -->
+  <section id="s7" class="section">
+    <div class="section-eyebrow">Section 07</div>
+    <h2>校稿機制說明</h2>
+    <p class="section-desc">目前的自動校正設計與已知限制</p>
+
+    <div class="warn-box" style="margin-bottom:24px">
+      <strong>重要：</strong>系統目前無人工校稿步驟。從 Whisper 轉錄到 Gemini 分析到報告上線，全流程全自動執行，不包含人工審查環節。
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div class="resource-section-title free" style="margin-bottom:14px">自動校正機制（唯一）</div>
+      <div class="resource-grid">
+        <div class="resource-card free-card">
+          <div class="rc-name">_dedupe_whisper_repeats()</div>
+          <div class="rc-desc">刪除 Whisper 重複詞彙 Hallucination<br>例：「這個這個這個方向」→「這個方向」<br>基於正則表達式比對，無 LLM 成本</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">MacroMicro Hallucination Filter</div>
+          <div class="rc-desc">移除 LLM 常見注入詞<br>例：「请不吝点赞」「如果您喜欢」<br>基於關鍵字黑名單過濾</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="resource-section-title paid" style="margin-bottom:14px">已知限制</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>限制項目</th>
+              <th>影響</th>
+              <th>建議改善</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gemini 分析不經人工審查</td>
+              <td>可能包含錯誤解讀或誤解語境</td>
+              <td>建立 confidence score 低於閾值時標注</td>
+            </tr>
+            <tr>
+              <td>Whisper 重大轉錄錯誤無法被捕捉</td>
+              <td>人名/股票代號可能被誤轉</td>
+              <td>加入財經術語詞彙表（vocabulary bias）</td>
+            </tr>
+            <tr>
+              <td>Capitol Trades HTML 結構依賴性</td>
+              <td>網站改版 → 解析失敗 → 空資料</td>
+              <td>加入欄位完整性驗證 + Discord 告警</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─── S8 ─── -->
+  <section id="s8" class="section">
+    <div class="section-eyebrow">Section 08</div>
+    <h2>資源清單</h2>
+    <p class="section-desc">完整的免費 vs 付費資源盤點，含硬體需求</p>
+
+    <!-- Free -->
+    <div class="resource-section">
+      <div class="resource-section-title free">完全免費資源</div>
+      <div class="resource-grid">
+        <div class="resource-card free-card">
+          <div class="rc-name">CNN F&amp;G API</div>
+          <div class="rc-desc">公開無需 API Key<br>直接 HTTP GET JSON</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">yfinance</div>
+          <div class="rc-desc">Python 開源 library<br>pip install，無 API 費用</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">TWSE 三大法人 API</div>
+          <div class="rc-desc">台灣證交所公開政府資料<br>無需帳號，直接呼叫</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">Capitol Trades 爬蟲</div>
+          <div class="rc-desc">HTML 爬蟲，公開資料<br>無需帳號</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">Telegram t.me 爬蟲</div>
+          <div class="rc-desc">公開頻道 HTML 解析<br>無需 Telegram API Key</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">OpenAI Whisper</div>
+          <div class="rc-desc">開源本機運行<br>無 API 費用，需本機 RAM</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">Vercel 靜態部署</div>
+          <div class="rc-desc">免費方案（靜態 HTML）<br>CDN 全球分發</div>
+        </div>
+        <div class="resource-card free-card">
+          <div class="rc-name">SoundOn RSS Feed</div>
+          <div class="rc-desc">Podcast RSS 公開可讀<br>無需認證</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paid -->
+    <div class="resource-section">
+      <div class="resource-section-title paid">有費用資源（API 計費）</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>服務</th>
+              <th>用途</th>
+              <th>費用模式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Google Gemini 2.0 Flash API</strong></td>
+              <td>皓角轉錄分析、IEObserve 摘要、MacroMicro 分析、Telegram 摘要</td>
+              <td>Google AI Studio（有免費額度）<br>超過後 pay-per-token</td>
+            </tr>
+            <tr>
+              <td><strong>OpenAI gpt-4o-mini-transcribe</strong></td>
+              <td>MacroMicro After Meeting 音訊轉錄（主要方式）</td>
+              <td>pay-per-use（按音訊分鐘）</td>
+            </tr>
+            <tr>
+              <td><strong>OpenRouter</strong></td>
+              <td>Gemini routing / fallback 路由層</td>
+              <td>API 計費（按使用量，含路由成本）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Hardware -->
+    <div class="resource-section">
+      <div class="resource-section-title hw">硬體資源需求</div>
+      <div class="resource-grid">
+        <div class="resource-card hw-card">
+          <div class="rc-name">本機 CPU</div>
+          <div class="rc-desc">Whisper large-v3 轉錄<br>30–45 分鐘/集，無 GPU 加速<br>高 CPU 佔用期間其他任務排隊</div>
+        </div>
+        <div class="resource-card hw-card">
+          <div class="rc-name">本機儲存 /tmp/</div>
+          <div class="rc-desc">暫存下載音訊檔案<br>轉錄完成後自動刪除<br>需保留約 500MB 空間</div>
+        </div>
+        <div class="resource-card hw-card">
+          <div class="rc-name">快取儲存 ~/.claude/cache/</div>
+          <div class="rc-desc">JSON 分析快取長期保留<br>每個 Podcast 約 10–50KB<br>可定期清理舊集數快取</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="report-footer">
+    <div>Stockcast 技術架構深度報告 — 2026-03-21</div>
+    <div style="margin-top:4px">Nova (Deck Specialist) × Klay (CEO) × M4 AI Team</div>
+    <div style="margin-top:4px;color:#b8b3aa">本報告由 AI 自動生成，內容反映系統設計截至報告日期之狀態</div>
+  </div>
+
+</main>
+</body>
+</html>

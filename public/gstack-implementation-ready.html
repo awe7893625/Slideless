@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gstack 整合 Rain 系统 — P0 实施准备完成</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f6f5f1;
+            overflow: hidden;
+        }
+
+        .deck-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slides-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #f6f5f1;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #f6f5f1 0%, #faf9f7 100%);
+            color: #3d3d3d;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .slide-content {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Cover Slide */
+        .cover-slide {
+            background: linear-gradient(135deg, #eb8054 0%, #d96642 100%);
+            color: #f6f5f1;
+            text-align: center;
+        }
+
+        .cover-slide h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .cover-slide .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .cover-slide .date {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 60px;
+        }
+
+        /* Section Headers */
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #eb8054;
+            margin-bottom: 40px;
+            letter-spacing: -0.3px;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #3d3d3d;
+            margin-bottom: 30px;
+        }
+
+        /* List Styles */
+        ul, ol {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #3d3d3d;
+        }
+
+        .list-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            width: 32px;
+            height: 32px;
+            background: #eb8054;
+            color: #f6f5f1;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .list-marker.check {
+            background: #4a9d6f;
+        }
+
+        .list-marker.warning {
+            background: #d4a574;
+        }
+
+        .list-text {
+            flex: 1;
+            padding-top: 4px;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1rem;
+        }
+
+        .comparison-table th {
+            background: #eb8054;
+            color: #f6f5f1;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e8e6e0;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #faf9f7;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin: 10px 0;
+        }
+
+        .status-approved {
+            background: #d4f5e7;
+            color: #2d5f47;
+        }
+
+        .status-conditional {
+            background: #fde5d0;
+            color: #8b5a2b;
+        }
+
+        /* Risk Box */
+        .risk-box {
+            background: #fff3f0;
+            border-left: 4px solid #eb8054;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            color: #eb8054;
+            margin-bottom: 8px;
+        }
+
+        .risk-text {
+            color: #3d3d3d;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .metric-card {
+            background: #faf9f7;
+            border: 1px solid #e8e6e0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            color: #888;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #eb8054;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .timeline-marker {
+            min-width: 100px;
+            padding: 8px 12px;
+            background: #eb8054;
+            color: #f6f5f1;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-top: 8px;
+            color: #3d3d3d;
+            line-height: 1.6;
+        }
+
+        /* Table with scroll */
+        .tbl-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .tbl-wrap::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .tbl-wrap::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .tbl-wrap::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .content-table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            font-size: 1rem;
+        }
+
+        .content-table th {
+            background: #f0ebe5;
+            color: #3d3d3d;
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #eb8054;
+        }
+
+        .content-table td {
+            padding: 14px;
+            border-bottom: 1px solid #e8e6e0;
+            color: #3d3d3d;
+        }
+
+        .content-table tr:nth-child(even) {
+            background: #faf9f7;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: #ffffff;
+            border-top: 1px solid #e8e6e0;
+        }
+
+        .nav-button {
+            background: #eb8054;
+            color: #f6f5f1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #d96642;
+        }
+
+        .nav-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            color: #3d3d3d;
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .cover-slide h1 {
+                font-size: 2rem;
+            }
+
+            .list-item {
+                font-size: 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tbl-wrap {
+                overflow-x: auto;
+            }
+
+            .content-table {
+                min-width: 100%;
+                font-size: 0.9rem;
+            }
+
+            .content-table th, .content-table td {
+                padding: 10px;
+            }
+        }
+
+        /* Two-column layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Emphasis */
+        .emphasis {
+            color: #eb8054;
+            font-weight: 600;
+        }
+
+        .success {
+            color: #4a9d6f;
+            font-weight: 600;
+        }
+
+        .warning {
+            color: #d4a574;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="deck-container">
+        <div class="slides-wrapper">
+            <!-- Slide 1: Cover -->
+            <div class="slide active cover-slide">
+                <div class="slide-content">
+                    <h1>gstack 整合 Rain 系统</h1>
+                    <p class="subtitle">P0 实施准备完成</p>
+                    <div style="margin: 60px 0; font-size: 1.2rem; opacity: 0.9;">
+                        <div style="margin: 15px 0;">Ray Phase 3 <span class="success">APPROVED</span> sign-off</div>
+                        <div style="margin: 15px 0;">7 个必修项 <span class="success">100% 補齋</span></div>
+                    </div>
+                    <p class="date">2026-03-24</p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Current Status -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>现况对比</h1>
+                    <div class="tbl-wrap">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>维度</th>
+                                    <th>之前状态</th>
+                                    <th>现在状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Ray Phase 3</strong></td>
+                                    <td><span class="status-badge status-conditional">CONDITIONAL sign-off</span></td>
+                                    <td><span class="status-badge status-approved">✅ APPROVED</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>修改项完成度</strong></td>
+                                    <td>7/7 待补 (0%)</td>
+                                    <td>7/7 已补 (100%)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>实施授权</strong></td>
+                                    <td>条件未解除，禁止开工</td>
+                                    <td>全部条件解除，可开工</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Codex 验证</strong></td>
+                                    <td>二次审查待进行</td>
+                                    <td>二次审查通过 ✅</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 30px; padding: 20px; background: #d4f5e7; border-radius: 4px; color: #2d5f47;">
+                        <strong>解除条件：</strong>7 个修改项 100% 补齋 + Codex 二次验证通过
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: 7 Required Items -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>7 个必修项总结</h1>
+                    <div class="content-list">
+                        <div class="list-item">
+                            <div class="list-marker check">1</div>
+                            <div class="list-text"><strong>/browse vs Probe+Echo 关系定义</strong> — Complement（补充，非替代）</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">2</div>
+                            <div class="list-text"><strong>P0 范围锁定</strong> — 3 个 skill + daemon，其他 24+ skills 延后 P1</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">3</div>
+                            <div class="list-text"><strong>Persistent Browser 隔离规则</strong> — session/cookie/secret 严格隔离</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">4</div>
+                            <div class="list-text"><strong>成本模型</strong> — $0.02-0.03/checkout，$50/月 hard cap</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">5</div>
+                            <div class="list-text"><strong>Failover 3-层降级设计</strong> — L1 retry / L2 sample / L3 manual</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">6</div>
+                            <div class="list-text"><strong>TheOrder E2E 验收标准</strong> — 95% 成功率门槛</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">7</div>
+                            <div class="list-text"><strong>版本冻结政策</strong> — v1.0 pinned，6 月后评估升级</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: P0 Implementation Scope -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>P0 实施范围</h1>
+                    <div class="two-column">
+                        <div class="column">
+                            <h2 style="font-size: 1.4rem; margin-top: 0;">3 个核心 Skill</h2>
+                            <div class="content-list">
+                                <div class="list-item">
+                                    <div class="list-marker">1</div>
+                                    <div class="list-text">/browse daemon<br><span style="font-size: 0.9rem; color: #888;">Playwright persistent</span></div>
+                                </div>
+                                <div class="list-item">
+                                    <div class="list-marker">2</div>
+                                    <div class="list-text">/plan-eng-review<br><span style="font-size: 0.9rem; color: #888;">Codex 4-step review</span></div>
+                                </div>
+                                <div class="list-item">
+                                    <div class="list-marker">3</div>
+                                    <div class="list-text">/cso<br><span style="font-size: 0.9rem; color: #888;">Codex threat modeling</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <h2 style="font-size: 1.4rem; margin-top: 0;">排除项</h2>
+                            <div style="background: #fff3f0; border-left: 4px solid #eb8054; padding: 20px; border-radius: 4px;">
+                                <p style="font-weight: 600; color: #eb8054; margin-bottom: 12px;">gstack 其他 24+ skills</p>
+                                <p style="color: #3d3d3d; line-height: 1.6;">暂不涉及，延后至 P1 阶段（6 月后评估）。P0 专注最小可行核心。</p>
+                            </div>
+                            <div style="margin-top: 20px; padding: 16px; background: #faf9f7; border-radius: 4px;">
+                                <p style="color: #888; font-size: 0.95rem;"><strong>4 个独立实施任务</strong></p>
+                                <p style="color: #3d3d3d; margin-top: 8px;">已 dispatch，并行执行</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: P0 Sub-tasks -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>4 个 P0 Sub-task 分配</h1>
+                    <div class="content-list">
+                        <div class="list-item">
+                            <div class="list-marker">1</div>
+                            <div class="list-text">
+                                <strong>/browse daemon 实现</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">Owner: Max + Forge | Playwright persistent connection | 估 2-3 天</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker">2</div>
+                            <div class="list-text">
+                                <strong>/plan-eng-review skill</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">Owner: Scout | Codex 4-step review engine | 估 1-2 天</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker">3</div>
+                            <div class="list-text">
+                                <strong>/cso skill</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">Owner: Scout | Codex threat modeling engine | 估 1-2 天</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker">4</div>
+                            <div class="list-text">
+                                <strong>TheOrder E2E spec</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">Owner: John + Iris | checkout 端到端自动化规格 | 估 2-3 天</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: Cost Control -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>成本控制与预算</h1>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">单位成本 (per checkout)</div>
+                            <div class="metric-value">$0.02-0.03</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">月度 Hard Cap</div>
+                            <div class="metric-value">$50</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">预估实际 (monthly)</div>
+                            <div class="metric-value">$15-20</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">安全系数</div>
+                            <div class="metric-value">2.5-3.3x</div>
+                        </div>
+                    </div>
+                    <div style="background: #fde5d0; border-left: 4px solid #d4a574; padding: 20px; border-radius: 4px; margin-top: 20px;">
+                        <div style="font-weight: 600; color: #8b5a2b; margin-bottom: 8px;">硬止规则</div>
+                        <p style="color: #3d3d3d; line-height: 1.6;">达到 $50 月度上限 → 全部功能降级至采样模式或手动执行。Kai dashboard 实时追踪成本。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7: Risks & Mitigation -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>关键风险与缓解</h1>
+                    <div class="content-list" style="gap: 25px;">
+                        <div>
+                            <div class="risk-box">
+                                <div class="risk-title">🔴 High Risk 1：Probe+Echo 回退流程</div>
+                                <div class="risk-text">
+                                    <strong>风险：</strong> /browse 失败时多次重试耗尽配额<br>
+                                    <strong>缓解：</strong> clear fallback logic + health check 每 5 分钟一次
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="risk-box">
+                                <div class="risk-title">🔴 High Risk 2：Payment 数据泄露</div>
+                                <div class="risk-text">
+                                    <strong>风险：</strong> 日志/snapshot 可能包含敏感支付数据<br>
+                                    <strong>缓解：</strong> regex-based secret scrubbing + Sentinel 自动扫描
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="risk-box">
+                                <div class="risk-title">🔴 High Risk 3：Codex quota 耗尽</div>
+                                <div class="risk-text">
+                                    <strong>风险：</strong> 月底 Codex calls 突然增加导致超支<br>
+                                    <strong>缓解：</strong> hard stop at $50/月 + Kai dashboard alert at 70%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8: Success Metrics -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>成功指标</h1>
+                    <div class="content-list">
+                        <div class="list-item">
+                            <div class="list-marker check">✓</div>
+                            <div class="list-text">
+                                <strong>/browse 成功率</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">≥95%（单次） / ≥98%（3 次重试）</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">✓</div>
+                            <div class="list-text">
+                                <strong>响应延迟</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">p50 &lt;300ms, p95 &lt;1s</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">✓</div>
+                            <div class="list-text">
+                                <strong>TheOrder E2E 端到端</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">全自动化，无人工干预</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">✓</div>
+                            <div class="list-text">
+                                <strong>成本追踪可见性</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">Kai dashboard 实时显示每次 call 成本</span>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="list-marker check">✓</div>
+                            <div class="list-text">
+                                <strong>安全验证</strong><br>
+                                <span style="font-size: 0.9rem; color: #888;">零 payment secrets 泄露（自动化 regex 验证）</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 9: Timeline -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>Timeline & Milestones</h1>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker">Day 1-2</div>
+                            <div class="timeline-content">
+                                <strong>Task 1 POC 验证</strong> — 简单 checkout 流程完整跑通
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">Day 2-3</div>
+                            <div class="timeline-content">
+                                <strong>Task 2+3 skills 上线</strong> — /plan-eng-review 和 /cso 部署生产
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">Day 3-5</div>
+                            <div class="timeline-content">
+                                <strong>Task 4 E2E 集成</strong> — TheOrder checkout 与所有 skills 完整集成
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">Day 5-7</div>
+                            <div class="timeline-content">
+                                <strong>完整验收 + 最终 Deck</strong> — 全量测试、性能优化、最终报告
+                            </div>
+                        </div>
+                        <div style="margin-top: 30px; padding: 16px; background: #d4f5e7; border-radius: 4px; text-align: center;">
+                            <p style="font-weight: 600; color: #2d5f47; font-size: 1.1rem;">预计完成日期：<span class="emphasis">2026-03-31</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 10: Next Steps -->
+            <div class="slide">
+                <div class="slide-content">
+                    <h1>Next Steps</h1>
+                    <div class="content-list">
+                        <div style="display: flex; gap: 20px; align-items: flex-start; padding: 20px; background: #d4f5e7; border-radius: 4px; margin-bottom: 20px;">
+                            <div style="font-size: 1.8rem;">✅</div>
+                            <div>
+                                <div style="font-weight: 600; color: #2d5f47;">已完成</div>
+                                <p style="color: #3d3d3d; margin-top: 4px;">Ray 审查通过 + 7 个修改项 100% 补齋</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start; padding: 20px; background: #fde5d0; border-radius: 4px; margin-bottom: 20px;">
+                            <div style="font-size: 1.8rem;">🟡</div>
+                            <div>
+                                <div style="font-weight: 600; color: #8b5a2b;">现在开始</div>
+                                <p style="color: #3d3d3d; margin-top: 4px;">4 个 sub-task 并行实施（Max/Scout/John+Iris）</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 20px; align-items: flex-start; padding: 20px; background: #fff3f0; border-radius: 4px;">
+                            <div style="font-size: 1.8rem;">🔴</div>
+                            <div>
+                                <div style="font-weight: 600; color: #eb8054;">关键依赖</div>
+                                <p style="color: #3d3d3d; margin-top: 4px;">Task 1 (/browse daemon) 成熟度 &gt;80% 才能启动 Task 4 (E2E)。防止上游阻塞。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="controls">
+            <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← 上一页</button>
+            <span class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">10</span>
+            </span>
+            <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">下一页 →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            if (n >= totalSlides) {
+                currentSlide = totalSlides - 1;
+            } else if (n < 0) {
+                currentSlide = 0;
+            } else {
+                currentSlide = n;
+            }
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(n) {
+            showSlide(currentSlide + n);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        document.getElementById('totalSlides').textContent = totalSlides;
+        showSlide(0);
+    </script>
+</body>
+</html>

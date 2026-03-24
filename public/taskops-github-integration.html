@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskOps x GitHub 深度整合完成報告 — 2026-03-22</title>
+  <style>
+    :root {
+      --cream: #f6f5f1;
+      --warm-white: #faf9f6;
+      --ink: #121212;
+      --ink-light: #4a4640;
+      --ink-muted: #7a7570;
+      --accent: #eb8054;
+      --accent-dark: #c85f2e;
+      --accent-light: #fde8db;
+      --border: #e0ddd6;
+      --success: #2e7d32;
+      --success-bg: #edf6ef;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --danger: #c0392b;
+      --danger-bg: #fdecea;
+      --code-bg: #f0ede7;
+      --card-shadow: 0 2px 20px rgba(18,18,18,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px 10vw;
+      background: #121212;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(235,128,84,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cover::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: 5vw;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(235,128,84,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cover-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    .cover-title {
+      font-size: clamp(32px, 5vw, 58px);
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.15;
+      max-width: 760px;
+      margin-bottom: 12px;
+    }
+
+    .cover-title span {
+      color: var(--accent);
+    }
+
+    .cover-subtitle {
+      font-size: clamp(16px, 2vw, 20px);
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 48px;
+      max-width: 600px;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .cover-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cover-meta-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .cover-meta-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(235,128,84,0.15);
+      border: 1px solid rgba(235,128,84,0.35);
+      border-radius: 6px;
+      padding: 8px 16px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 40px;
+    }
+
+    /* ── Navigation / TOC ── */
+    .toc {
+      background: var(--warm-white);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 10vw;
+    }
+
+    .toc-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 20px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--cream);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .toc-item:hover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .toc-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 20px;
+    }
+
+    /* ── Section ── */
+    .section {
+      padding: 72px 10vw;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:nth-child(even) {
+      background: var(--warm-white);
+    }
+
+    .section-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 28px;
+    }
+
+    .section-lead {
+      font-size: 17px;
+      color: var(--ink-light);
+      max-width: 720px;
+      margin-bottom: 36px;
+      line-height: 1.8;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 28px;
+    }
+
+    .card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .section:nth-child(even) .card {
+      background: #ffffff;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--accent-light);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .card-body {
+      font-size: 14px;
+      color: var(--ink-light);
+      line-height: 1.65;
+    }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .stat {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 13px;
+      color: #2d2d2d;
+      overflow-x: auto;
+      margin: 16px 0;
+      white-space: pre;
+      line-height: 1.65;
+    }
+
+    /* ── Tables ── */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead th {
+      background: #121212;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    tbody tr:nth-child(odd) td {
+      background: var(--cream);
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #ffffff;
+    }
+
+    tbody tr:hover td {
+      background: var(--accent-light);
+    }
+
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    td code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Fira Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-dark);
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-done { background: var(--success-bg); color: var(--success); }
+    .badge-running { background: #e8f4fd; color: #1565c0; }
+    .badge-major { background: #fff8e1; color: #e65100; }
+    .badge-critical { background: var(--danger-bg); color: var(--danger); }
+    .badge-tiny { background: var(--success-bg); color: var(--success); }
+    .badge-standard { background: #e8f4fd; color: #1565c0; }
+    .badge-new { background: var(--accent-light); color: var(--accent-dark); }
+    .badge-phase { background: #121212; color: #ffffff; }
+
+    /* ── State Machine Diagram ── */
+    .state-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      padding: 28px;
+      background: #121212;
+      border-radius: 14px;
+      margin: 24px 0;
+    }
+
+    .state-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .state-pill {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .state-arrow {
+      color: rgba(255,255,255,0.4);
+      font-size: 18px;
+      align-self: center;
+      padding: 0 4px;
+    }
+
+    .s-pending { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    .s-planned { background: rgba(100,181,246,0.25); color: #90caf9; }
+    .s-approved { background: rgba(129,199,132,0.25); color: #a5d6a7; }
+    .s-running { background: rgba(235,128,84,0.3); color: #eb8054; }
+    .s-blocked { background: rgba(255,152,0,0.25); color: #ffb74d; }
+    .s-waiting { background: rgba(186,104,200,0.25); color: #ce93d8; }
+    .s-review { background: rgba(255,213,79,0.25); color: #ffd54f; }
+    .s-done { background: rgba(102,187,106,0.25); color: #a5d6a7; }
+    .s-failed { background: rgba(239,83,80,0.25); color: #ef9a9a; }
+    .s-cancelled { background: rgba(120,120,120,0.25); color: #aaa; }
+
+    .state-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+    }
+
+    /* ── Architecture ASCII ── */
+    .arch-box {
+      background: #121212;
+      border-radius: 14px;
+      padding: 32px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+
+    .arch-box pre {
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+      white-space: pre;
+    }
+
+    .arch-box .arch-accent { color: var(--accent); }
+    .arch-box .arch-dim { color: rgba(255,255,255,0.35); }
+
+    /* ── Timeline ── */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+      margin-top: 24px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 0 0 28px 20px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -22px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--cream);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .timeline-date {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .timeline-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .timeline-body {
+      font-size: 14px;
+      color: var(--ink-light);
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      list-style: none;
+      margin-top: 16px;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--ink-light);
+    }
+
+    .checklist li:last-child { border-bottom: none; }
+
+    .check-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── API list ── */
+    .api-list {
+      margin-top: 16px;
+    }
+
+    .api-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .section:nth-child(even) .api-item {
+      background: #ffffff;
+    }
+
+    .api-method {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #121212;
+      color: var(--accent);
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 1px;
+    }
+
+    .api-path {
+      font-family: monospace;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .api-desc {
+      color: var(--ink-muted);
+      font-size: 13px;
+      margin-left: auto;
+    }
+
+    /* ── Labels grid ── */
+    .labels-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .gh-label {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Roadmap ── */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 28px;
+    }
+
+    .roadmap-phase {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section:nth-child(even) .roadmap-phase {
+      background: #ffffff;
+    }
+
+    .roadmap-phase::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .roadmap-phase.phase-future::before {
+      background: var(--border);
+    }
+
+    .roadmap-phase-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .roadmap-phase.phase-future .roadmap-phase-label {
+      color: var(--ink-muted);
+    }
+
+    .roadmap-phase-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .roadmap-item {
+      font-size: 13px;
+      color: var(--ink-light);
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .roadmap-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+
+    .roadmap-phase.phase-future .roadmap-dot {
+      background: var(--border);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #121212;
+      color: rgba(255,255,255,0.4);
+      padding: 40px 10vw;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: gap;
+      gap: 16px;
+    }
+
+    .footer strong { color: rgba(255,255,255,0.75); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .cover { padding: 60px 6vw; }
+      .section { padding: 52px 6vw; }
+      .toc { padding: 32px 6vw; }
+      .cover-meta { gap: 20px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .card-grid { grid-template-columns: 1fr; }
+      .api-desc { display: none; }
+      .footer { padding: 32px 6vw; flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== COVER ========== -->
+<section class="cover" id="cover">
+  <div class="cover-eyebrow">Rain AI Team — 2026-03-22</div>
+  <h1 class="cover-title">
+    TaskOps x <span>GitHub</span><br>深度整合完成報告
+  </h1>
+  <p class="cover-subtitle">
+    Phase 1 + Phase 2 全面實作完成 — 每個任務自動同步 GitHub Issue，<br>完整 9-State 生命週期追蹤，AI 團隊任務管理全面升級
+  </p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">完成日期</span>
+      <span class="cover-meta-value">2026-03-22</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">系統版本</span>
+      <span class="cover-meta-value">Phase 2 Final</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">GitHub Repo</span>
+      <span class="cover-meta-value">awe7893625/M4ControlCenter</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">報告製作</span>
+      <span class="cover-meta-value">Nova — Deck System</span>
+    </div>
+  </div>
+  <div class="cover-badge">
+    ✅ Phase 1 完成 &nbsp;|&nbsp; ✅ Phase 2 完成 &nbsp;|&nbsp; 🚀 已部署上線
+  </div>
+</section>
+
+<!-- ========== TOC ========== -->
+<nav class="toc">
+  <div class="toc-title">報告目錄</div>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-item"><span class="toc-num">01</span>執行摘要</a>
+    <a href="#s2" class="toc-item"><span class="toc-num">02</span>Phase 1 — 基礎架構</a>
+    <a href="#s3" class="toc-item"><span class="toc-num">03</span>Phase 2 — GitHub 雙向同步</a>
+    <a href="#s4" class="toc-item"><span class="toc-num">04</span>Phase 2 — 9-State Machine</a>
+    <a href="#s5" class="toc-item"><span class="toc-num">05</span>Frontend TaskOpsBoard</a>
+    <a href="#s6" class="toc-item"><span class="toc-num">06</span>技術架構圖</a>
+    <a href="#s7" class="toc-item"><span class="toc-num">07</span>GitHub Labels 設計</a>
+    <a href="#s8" class="toc-item"><span class="toc-num">08</span>里程碑時間線</a>
+    <a href="#s9" class="toc-item"><span class="toc-num">09</span>Phase 3-4 路線圖</a>
+    <a href="#s10" class="toc-item"><span class="toc-num">10</span>擴張性設計考量</a>
+  </div>
+</nav>
+
+<!-- ========== SECTION 1: 執行摘要 ========== -->
+<section class="section" id="s1">
+  <div class="section-eyebrow">Section 01</div>
+  <h2 class="section-title">執行摘要</h2>
+  <p class="section-lead">
+    Rain AI Team 的 TaskOps x GitHub 整合系統已全面完成 Phase 1 與 Phase 2 的實作。
+    這套系統以「GitHub 森林系 agent workflow」設計哲學為核心，實現每個 Standard+ 任務自動同步 GitHub Issue、完整生命週期追蹤、以及 9 個狀態的精確流轉。
+  </p>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-num">9</div>
+      <div class="stat-label">State Machine 狀態</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">28</div>
+      <div class="stat-label">GitHub Labels</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">12</div>
+      <div class="stat-label">新增 API Endpoints</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">35</div>
+      <div class="stat-label">Skill Registry 項目</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Phantom Skills</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">非阻塞設計覆蓋</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">任務發起背景</div>
+      <div class="card-body">Rain 要求參考「GitHub 森林系 agent workflow」設計哲學，建立一套可審計、事件驅動的 AI 團隊任務管理系統，讓每個任務都有完整的生命週期記錄。</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">核心設計原則</div>
+      <div class="card-body">事件驅動（狀態轉換即事件）、可審計（GitHub Issue 留下完整歷程）、平行執行能力（worktree isolation）、可回滾（每次轉換有歷史記錄）。</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">自動同步機制</div>
+      <div class="card-body">Standard+ 主動任務 → 建立時自動創 GitHub Issue → 每次狀態轉換自動更新 Label + 加評論 → 進度回報 20/50/80/100% → Terminal 狀態自動 close Issue。</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">非阻塞設計</div>
+      <div class="card-body">所有 GitHub API 呼叫均以 try/except 包裝，GitHub 連線失敗不影響 Kai 主流程運作。Tiny 任務和夜班批量任務不觸發同步，避免 GitHub noise。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 2: Phase 1 ========== -->
+<section class="section" id="s2">
+  <div class="section-eyebrow">Section 02</div>
+  <h2 class="section-title">Phase 1 — 基礎架構（已完成）</h2>
+  <p class="section-lead">
+    Phase 1 奠定了整個 TaskOps 系統的地基：6-State Machine、Skill Registry 清理（phantom count = 0）、以及 TaskOps Governance Doc。
+  </p>
+
+  <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)">TaskOps State Machine（Phase 1 — 6 States）</h3>
+
+  <div class="state-diagram">
+    <div class="state-node">
+      <div class="state-pill s-pending">PENDING</div>
+      <div class="state-label">初始</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state-node">
+      <div class="state-pill s-planned">PLANNED</div>
+      <div class="state-label">已規劃</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state-node">
+      <div class="state-pill s-approved">APPROVED</div>
+      <div class="state-label">已核准</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state-node">
+      <div class="state-pill s-running">RUNNING</div>
+      <div class="state-label">執行中</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state-node">
+      <div class="state-pill s-review">REVIEW</div>
+      <div class="state-label">審查中</div>
+    </div>
+    <div class="state-arrow">→</div>
+    <div class="state-node">
+      <div class="state-pill s-done">DONE</div>
+      <div class="state-label">完成</div>
+    </div>
+  </div>
+
+  <div class="card-grid" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">自動分級規則</div>
+      <div class="card-body">
+        <strong>Tiny / Standard</strong> → 自動 APPROVED，不需人工審批，直接進入 RUNNING<br><br>
+        <strong>Major / Critical</strong> → 停在 PLANNED，等待 AUTHORIZED_APPROVERS 審批後才能 APPROVED
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Phase 1 API Endpoints（7個）</div>
+      <div class="card-body">
+        <code>/plan</code> · <code>/approve</code> · <code>/reject</code><br>
+        <code>/submit_pr</code> · <code>/reopen</code><br>
+        <code>/history</code> · <code>/pending-approval</code>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗂️</div>
+      <div class="card-title">Skill Registry 清理</div>
+      <div class="card-body">
+        全部 35 個 skill 均有對應 directory，Phantom count = 0。<br>
+        位置：<code>~/.claude/skills/registry/skill-registry.json</code><br>
+        Sprawl threshold = 150（自動偵測未來 phantom）
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📜</div>
+      <div class="card-title">TaskOps Governance Doc</div>
+      <div class="card-body">
+        位置：<code>~/.claude/rules/taskops-governance.md</code><br>
+        涵蓋：state machine 定義、routing 規則、plan schema、approval timeout 策略
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)">Phase 1 完整 API 端點清單</h3>
+
+  <div class="api-list">
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/plan</span><span class="api-desc">PENDING → PLANNED，自動分級判斷</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/approve</span><span class="api-desc">PLANNED → APPROVED（Major+ 需授權人）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/reject</span><span class="api-desc">PLANNED → FAILED（附拒絕原因）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/submit_pr</span><span class="api-desc">RUNNING → REVIEW_REQUIRED</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/reopen</span><span class="api-desc">DONE/FAILED → PENDING（重新開啟）</span></div>
+    <div class="api-item"><span class="api-method">GET</span><span class="api-path">/{id}/history</span><span class="api-desc">取得任務完整狀態轉換歷史</span></div>
+    <div class="api-item"><span class="api-method">GET</span><span class="api-path">/pending-approval</span><span class="api-desc">列出所有等待審批的 Major/Critical 任務</span></div>
+  </div>
+</section>
+
+<!-- ========== SECTION 3: GitHub 同步 ========== -->
+<section class="section" id="s3">
+  <div class="section-eyebrow">Section 03</div>
+  <h2 class="section-title">Phase 2 — GitHub 雙向同步（今天完成）</h2>
+  <p class="section-lead">
+    Phase 2 的核心成就：每個 Standard+ 主動任務自動在 GitHub 建立 Issue，所有狀態轉換即時反映在 GitHub Labels 和評論中，形成完整的可審計歷程。
+  </p>
+
+  <div class="card-grid" style="margin-bottom:32px">
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">GitHub Repository</div>
+      <div class="card-body">
+        <strong>Repo：</strong>awe7893625/M4ControlCenter（私有）<br><br>
+        GitHub Personal Access Token 配置在環境變數 <code>GITHUB_TOKEN</code>，透過 <code>github_service.py</code> 統一管理所有 API 呼叫。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">28 個 GitHub Labels</div>
+      <div class="card-body">
+        State Labels（9）+ Category Labels（6）+ Severity Labels（4）+ Base Label（1）= 28 個，涵蓋完整任務分類體系，一次性 setup 後無需手動維護。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title">自動同步觸發點</div>
+      <div class="card-body">
+        <strong>建立時：</strong>自動創 GitHub Issue<br>
+        <strong>狀態轉換：</strong>自動更新 Label + 加評論<br>
+        <strong>進度回報：</strong>20/50/80/100% → milestone comment<br>
+        <strong>Terminal 狀態：</strong>自動 close Issue
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚫</div>
+      <div class="card-title">同步過濾規則</div>
+      <div class="card-body">
+        <strong>不同步：</strong>Tiny 任務（避免 noise）<br>
+        <strong>不同步：</strong>夜班 standard 任務（避免批量佔用）<br>
+        <strong>不同步：</strong>source = "night_shift" 的任務<br>
+        <strong>全同步：</strong>Standard+ 主動任務
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)">DB 新增欄位</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>欄位名稱</th>
+          <th>類型</th>
+          <th>說明</th>
+          <th>nullable</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>github_issue_number</code></td>
+          <td>INTEGER</td>
+          <td>對應 GitHub Issue 編號</td>
+          <td>✓ 是</td>
+        </tr>
+        <tr>
+          <td><code>github_issue_url</code></td>
+          <td>VARCHAR</td>
+          <td>GitHub Issue 完整 URL</td>
+          <td>✓ 是</td>
+        </tr>
+        <tr>
+          <td><code>blocked_by_task_ids</code></td>
+          <td>VARCHAR (JSON)</td>
+          <td>前置依賴任務 ID 列表（JSON array 字串）</td>
+          <td>✓ 是</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:28px 0 16px;color:var(--ink)">GitHub Issue 自動內容範例</h3>
+  <div class="code-block">## Task: 建立 TheOrder 結帳流程優化
+
+**Assigned to:** max
+**Priority:** 8
+**Severity:** major
+**Source:** claude_code
+
+### Description
+優化 TheOrder 購物車結帳流程，減少跳出率，整合 ECPay 信用卡分期...
+
+---
+*Created by Kai TaskOps System — 2026-03-22T10:32:15*
+*Task ID: task-a3f9b201*</div>
+</section>
+
+<!-- ========== SECTION 4: 9-State ========== -->
+<section class="section" id="s4">
+  <div class="section-eyebrow">Section 04</div>
+  <h2 class="section-title">Phase 2 — 9-State Machine（今天完成）</h2>
+  <p class="section-lead">
+    Phase 2 在原有 6-State 基礎上新增 <span style="color:var(--accent);font-weight:700">BLOCKED</span> 和 <span style="color:var(--accent);font-weight:700">WAITING_DEPENDENCY</span> 兩個關鍵狀態，
+    完整覆蓋現實 AI 團隊任務執行中的所有可能情況。
+  </p>
+
+  <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)">完整 9-State 流轉圖</h3>
+  <div class="state-diagram" style="flex-direction:column;align-items:flex-start;gap:16px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="state-pill s-pending">PENDING</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-planned">PLANNED</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-approved">APPROVED</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-running">RUNNING</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-review">REVIEW_REQUIRED</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-done">DONE</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="color:rgba(255,255,255,0.35);font-size:13px">新增路徑：</span>
+      <div class="state-pill s-running">RUNNING</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-blocked">BLOCKED</div>
+      <span class="state-arrow" style="color:rgba(235,128,84,0.6)">⟷</span>
+      <div class="state-pill s-running">RUNNING</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="state-pill s-running">RUNNING</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-waiting">WAITING_DEP</div>
+      <span class="state-arrow">→</span>
+      <div class="state-pill s-approved">APPROVED</div>
+      <span class="state-arrow" style="color:rgba(255,255,255,0.35)">(deps resolved)</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="state-pill s-failed">FAILED</div>
+      <div style="margin:0 8px;color:rgba(255,255,255,0.35)">|</div>
+      <div class="state-pill s-cancelled">CANCELLED</div>
+      <span style="color:rgba(255,255,255,0.35);font-size:13px;margin-left:8px">Terminal states</span>
+    </div>
+  </div>
+
+  <div class="card-grid" style="margin-top:28px">
+    <div class="card">
+      <div class="card-icon">🚧</div>
+      <div class="card-title">BLOCKED 狀態</div>
+      <div class="card-body">
+        任務被外部因素阻擋（非依賴關係），例如：等待 Rain 確認、等待第三方 API key、等待客戶回覆。<br><br>
+        <strong>trigger：</strong><code>block</code> (RUNNING → BLOCKED)<br>
+        <strong>trigger：</strong><code>unblock</code> (BLOCKED → RUNNING)
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏳</div>
+      <div class="card-title">WAITING_DEPENDENCY 狀態</div>
+      <div class="card-body">
+        等待其他任務完成的依賴關係。前置任務完成後自動觸發 <code>dependency_resolved</code>，回到 APPROVED 重新執行。<br><br>
+        <strong>trigger：</strong><code>dependency_pending</code><br>
+        <strong>trigger：</strong><code>dependency_resolved</code>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:32px 0 16px;color:var(--ink)">Phase 2 新增 API Endpoints（5+1）</h3>
+  <div class="api-list">
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/start</span><span class="api-desc">APPROVED → RUNNING（Phase 2 新增）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/block</span><span class="api-desc">RUNNING → BLOCKED（附阻擋原因）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/unblock</span><span class="api-desc">BLOCKED → RUNNING（解除阻擋）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/{id}/set_dependencies</span><span class="api-desc">設定前置任務依賴 ID 列表</span></div>
+    <div class="api-item"><span class="api-method">GET</span><span class="api-path">/board</span><span class="api-desc">看板 API — 9 欄 Kanban JSON（TaskOpsBoard 使用）</span></div>
+    <div class="api-item"><span class="api-method">POST</span><span class="api-path">/gh/poll</span><span class="api-desc">輪詢 GitHub Issues → 建立 Kai tasks（Noel Module G 使用）</span></div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:32px 0 16px;color:var(--ink)">完整狀態轉換矩陣</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Trigger</th>
+          <th>From State</th>
+          <th>To State</th>
+          <th>說明</th>
+          <th>GitHub 動作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>plan</code></td><td>PENDING</td><td>PLANNED</td><td>分析任務複雜度</td><td>建立 Issue + <code>taskops:planned</code></td></tr>
+        <tr><td><code>approve</code></td><td>PLANNED</td><td>APPROVED</td><td>Major+ 需授權人</td><td>更新 Label + 評論</td></tr>
+        <tr><td><code>reject</code></td><td>PLANNED</td><td>FAILED</td><td>附拒絕原因</td><td>close Issue + 評論</td></tr>
+        <tr><td><code>start</code></td><td>APPROVED</td><td>RUNNING</td><td>開始執行</td><td>Label: <code>taskops:running</code></td></tr>
+        <tr><td><code>block</code></td><td>RUNNING</td><td>BLOCKED</td><td>外部因素阻擋</td><td>Label: <code>taskops:blocked</code></td></tr>
+        <tr><td><code>unblock</code></td><td>BLOCKED</td><td>RUNNING</td><td>解除阻擋</td><td>Label 回 <code>taskops:running</code></td></tr>
+        <tr><td><code>dependency_pending</code></td><td>RUNNING</td><td>WAITING_DEPENDENCY</td><td>等待前置任務</td><td>Label: <code>taskops:waiting</code></td></tr>
+        <tr><td><code>dependency_resolved</code></td><td>WAITING_DEPENDENCY</td><td>APPROVED</td><td>前置任務完成</td><td>Label 回 <code>taskops:approved</code></td></tr>
+        <tr><td><code>submit_pr</code></td><td>RUNNING</td><td>REVIEW_REQUIRED</td><td>提交審查</td><td>Label: <code>taskops:review</code></td></tr>
+        <tr><td><code>done</code></td><td>REVIEW_REQUIRED</td><td>DONE</td><td>審查通過</td><td>close Issue + <code>taskops:done</code></td></tr>
+        <tr><td><code>cancel</code></td><td>任何非 Terminal</td><td>CANCELLED</td><td>取消任務</td><td>close Issue + <code>taskops:cancelled</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== SECTION 5: Frontend ========== -->
+<section class="section" id="s5">
+  <div class="section-eyebrow">Section 05</div>
+  <h2 class="section-title">Frontend TaskOpsBoard（今天完成）</h2>
+  <p class="section-lead">
+    全新的 <code>TaskOpsBoard.tsx</code> 提供 9 欄 Kanban 看板視圖，整合 GitHub Issue 連結、Stats 統計列、以及 30 秒自動 refresh，讓 Rain 可以在中控台即時掌握所有 AI 任務狀態。
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🖥️</div>
+      <div class="card-title">9 欄 Kanban 看板</div>
+      <div class="card-body">
+        水平捲動的 Kanban 看板，每欄對應一個 State：PENDING / PLANNED / APPROVED / RUNNING / BLOCKED / WAITING / REVIEW / DONE / FAILED<br><br>
+        <strong>路由：</strong><code>/taskops</code>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <div class="card-title">Stats Bar</div>
+      <div class="card-body">
+        看板頂部顯示即時統計：<br>
+        Total / Running / Blocked / In Review / Done Today<br><br>
+        統計數字每 30 秒自動更新，無需手動刷新頁面。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎫</div>
+      <div class="card-title">Task Card 設計</div>
+      <div class="card-body">
+        每張卡片顯示：<br>
+        • 任務標題<br>
+        • Agent badge（顯示 assigned_to）<br>
+        • Severity badge（tiny/standard/major/critical）<br>
+        • GitHub Issue 連結（ExternalLink icon，點擊開新分頁）
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">導航整合</div>
+      <div class="card-body">
+        RootLayout 側欄已新增 <strong>GitBranch icon + "TaskOps"</strong> 連結，進入 <code>/taskops</code> 路由。<br><br>
+        Build 產出：<code>TaskOpsBoard-Nu53Wprr.js</code><br>
+        7.01 kB（gzip 2.77 kB）
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 6: 架構圖 ========== -->
+<section class="section" id="s6">
+  <div class="section-eyebrow">Section 06</div>
+  <h2 class="section-title">技術架構圖</h2>
+  <p class="section-lead">
+    完整的系統數據流：從 Rain 指令或 Telegram 觸發，經過 Kai Task Board 分類路由，自動同步到 GitHub，形成可審計的閉環。
+  </p>
+
+  <div class="arch-box">
+    <pre>
+  Rain 指令 / Claude Code / Telegram Bot
+              │
+              ▼
+   ┌─────────────────────────────────────┐
+   │    Kai Task Board (Port 5002)       │
+   │    FastAPI + SQLite (WAL mode)      │
+   └────────────────┬────────────────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │  TaskOps Router      │
+         │  (auto-classify)     │
+         └──┬──────┬─────────┬──┘
+            │      │         │
+        tiny│  std │ major/  │
+            │      │ critical│
+         skip    sync    sync + approval
+                    │         │
+                    └─────────┘
+                         │
+                         ▼
+              ┌──────────────────────────┐
+              │  GitHub Issue 建立       │
+              │  awe7893625/M4ControlCenter│
+              │  (Private Repo)          │
+              └──────────┬───────────────┘
+                         │
+              ┌──────────┼──────────────────┐
+              │          │                  │
+          Labels      Comments          Status
+          Update      (progress)        Close
+              │          │                  │
+              └──────────┴──────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────────┐
+              │  State Transitions       │
+              │  9-State Machine         │
+              │  PENDING → ... → DONE    │
+              └──────────────────────────┘
+                         │
+              ┌──────────┼────────────────┐
+              │          │                │
+         GitHub       Discord          Kai Board
+         Issue        Notify          (Frontend)
+         Closed        Rain           TaskOpsBoard
+</pre>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:32px 0 16px;color:var(--ink)">非阻塞設計保證</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <div class="card-title">try/except 包裝策略</div>
+      <div class="card-body">
+        所有 GitHub API 呼叫均以 <code>try/except</code> 包裝。GitHub 連線超時、Rate Limit、Token 失效等任何錯誤，均只記錄 log，不影響 Kai Task Board 主流程。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <div class="card-title">WAL Mode SQLite</div>
+      <div class="card-body">
+        SQLite 使用 WAL（Write-Ahead Logging）模式，支援多 writer 並發。確保 TaskOpsBoard 前端讀取與後端狀態更新不互相阻塞。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <div class="card-title">Noel Module G</div>
+      <div class="card-body">
+        夜班新增 Module G：定期輪詢 <code>/gh/poll</code>，偵測 GitHub 上直接開立的 Issue 並自動建立對應 Kai task，實現雙向同步。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 7: Labels ========== -->
+<section class="section" id="s7">
+  <div class="section-eyebrow">Section 07</div>
+  <h2 class="section-title">GitHub Labels 設計（28 個）</h2>
+  <p class="section-lead">
+    完整的 GitHub Label 體系，按 prefix 分組設計，支援未來無限擴充新 agent 類型和工作流程，不需修改任何後端程式碼。
+  </p>
+
+  <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--ink)">State Labels（9）— 對應 9-State Machine</h3>
+  <div class="labels-grid">
+    <span class="gh-label" style="background:#e3f2fd;color:#1565c0">taskops:pending</span>
+    <span class="gh-label" style="background:#f3e5f5;color:#6a1b9a">taskops:planned</span>
+    <span class="gh-label" style="background:#e8f5e9;color:#2e7d32">taskops:approved</span>
+    <span class="gh-label" style="background:#fff3e0;color:#e65100">taskops:running</span>
+    <span class="gh-label" style="background:#fce4ec;color:#c62828">taskops:blocked</span>
+    <span class="gh-label" style="background:#f3e5f5;color:#7b1fa2">taskops:waiting</span>
+    <span class="gh-label" style="background:#fff8e1;color:#f57f17">taskops:review</span>
+    <span class="gh-label" style="background:#e8f5e9;color:#1b5e20">taskops:done</span>
+    <span class="gh-label" style="background:#fbe9e7;color:#bf360c">taskops:failed</span>
+    <span class="gh-label" style="background:#f5f5f5;color:#616161">taskops:cancelled</span>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:var(--ink)">Category Labels（6）— 任務類型分類</h3>
+  <div class="labels-grid">
+    <span class="gh-label" style="background:#e8f4fd;color:#1976d2">taskops:quick</span>
+    <span class="gh-label" style="background:#e8f5e9;color:#388e3c">taskops:standard</span>
+    <span class="gh-label" style="background:#fff3e0;color:#f57c00">taskops:deep_research</span>
+    <span class="gh-label" style="background:#fce4ec;color:#d81b60">taskops:infra</span>
+    <span class="gh-label" style="background:#f3e5f5;color:#8e24aa">taskops:review</span>
+    <span class="gh-label" style="background:#e3f2fd;color:#0277bd">taskops:release</span>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:var(--ink)">Severity Labels（4）— 對應任務分級</h3>
+  <div class="labels-grid">
+    <span class="gh-label" style="background:#e8f5e9;color:#2e7d32">severity:tiny</span>
+    <span class="gh-label" style="background:#e3f2fd;color:#1565c0">severity:standard</span>
+    <span class="gh-label" style="background:#fff8e1;color:#f57f17">severity:major</span>
+    <span class="gh-label" style="background:#fbe9e7;color:#c62828">severity:critical</span>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:var(--ink)">Base Label（1）</h3>
+  <div class="labels-grid">
+    <span class="gh-label" style="background:#121212;color:#eb8054">taskops</span>
+    <span style="font-size:14px;color:var(--ink-muted);align-self:center;margin-left:8px">所有同步任務都有這個 label，方便 filter</span>
+  </div>
+
+  <div class="card-grid" style="margin-top:32px">
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <div class="card-title">Label 設計原則</div>
+      <div class="card-body">
+        按 prefix 分組：<code>taskops:*</code> / <code>severity:*</code> / <code>taskops</code>（base）<br><br>
+        新增 agent 或工作流程，直接新增對應 label 即可，後端 TASK_ROUTING 和 State Machine 無需修改。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">自動 Label 管理</div>
+      <div class="card-body">
+        首次同步時若 label 不存在會自動建立。Label 顏色按語義設定（綠=完成、紅=危險、橘=進行中），與 GitHub 原生 UI 視覺一致。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 8: Timeline ========== -->
+<section class="section" id="s8">
+  <div class="section-eyebrow">Section 08</div>
+  <h2 class="section-title">里程碑時間線</h2>
+  <p class="section-lead">
+    所有 Phase 1 和 Phase 2 的實作均在 2026-03-22 同一天完成，展現了 Rain AI Team 的高效並行執行能力。
+  </p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-date">2026-03-22 上午</div>
+      <div class="timeline-title">Phase 1 完成 — 6-State Machine + 基礎架構</div>
+      <div class="timeline-body">
+        TaskOps State Machine 建立（6 States）、7 個 API Endpoints、自動分級規則（Tiny/Standard 自動 APPROVED / Major/Critical 需人工審批）、Skill Registry 清理（35 skills，phantom = 0）、TaskOps Governance Doc 發布。
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2026-03-22 中午</div>
+      <div class="timeline-title">Frontend Phase 1 — ApprovalGate.tsx + Status Badges</div>
+      <div class="timeline-body">
+        前端新增 ApprovalGate 元件（Major/Critical 任務顯示等待審批提示）、Status Badges 更新為 9 個狀態對應色彩設計。
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2026-03-22 下午</div>
+      <div class="timeline-title">GitHub Phase 1 — 基礎 Issue 同步 + 28 Labels</div>
+      <div class="timeline-body">
+        github_service.py 建立、28 個 GitHub Labels 初始化、Standard+ 任務自動建立 GitHub Issue、狀態轉換自動更新 Label + 評論、DB migration 新增 3 個欄位。
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2026-03-22 傍晚</div>
+      <div class="timeline-title">GitHub Phase 2 — 9-State + BLOCKED/WAITING + Noel Module G</div>
+      <div class="timeline-body">
+        新增 BLOCKED 和 WAITING_DEPENDENCY 兩個狀態、6 個新狀態轉換、5 個新 API Endpoints（/start, /block, /unblock, /set_dependencies, /board）、Noel Module G（/gh/poll）、進度回報 20/50/80/100% 自動 GitHub milestone comment。
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2026-03-22 晚上</div>
+      <div class="timeline-title">Frontend Phase 2 — TaskOpsBoard.tsx 9欄 Kanban</div>
+      <div class="timeline-body">
+        TaskOpsBoard.tsx 完成（9 欄 Kanban 看板、Stats Bar、GitHub Issue 連結、30 秒自動 refresh）、RootLayout 側欄新增導航、Build 成功（7.01 kB / gzip 2.77 kB）。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 9: Roadmap ========== -->
+<section class="section" id="s9">
+  <div class="section-eyebrow">Section 09</div>
+  <h2 class="section-title">路線圖 — Phase 3 & 4</h2>
+  <p class="section-lead">
+    Phase 1 + Phase 2 已建立堅實基礎。Phase 3 將引入 Conductor Daemon 實現全自動任務調度，Phase 4 將建立 AI Agent 效能評分體系。
+  </p>
+
+  <div class="roadmap-grid">
+    <div class="roadmap-phase">
+      <div class="roadmap-phase-label">Phase 1 — 已完成</div>
+      <div class="roadmap-phase-title">基礎架構</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>6-State Machine</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>7 個 API Endpoints</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>自動分級（Tiny→APPROVED）</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Skill Registry 清理</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Governance Doc</div>
+    </div>
+    <div class="roadmap-phase">
+      <div class="roadmap-phase-label">Phase 2 — 今天完成</div>
+      <div class="roadmap-phase-title">GitHub 整合</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>9-State Machine</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>28 個 GitHub Labels</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>雙向 Issue 同步</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>BLOCKED/WAITING 狀態</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>TaskOpsBoard Kanban</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Noel Module G</div>
+    </div>
+    <div class="roadmap-phase phase-future">
+      <div class="roadmap-phase-label">Phase 3 — Q2 2026</div>
+      <div class="roadmap-phase-title">Conductor Daemon</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>asyncio 輪詢 + side-effect 派遣</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Telegram intake adapter</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>intake_source routing dashboard</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Noel Module N（nightly skill validation）</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>ConductorWorkspace reconciliation</div>
+    </div>
+    <div class="roadmap-phase phase-future">
+      <div class="roadmap-phase-label">Phase 4 — Q3-Q4 2026</div>
+      <div class="roadmap-phase-title">AI Agent 效能評分</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Agent performance scoring</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>TaskOps analytics dashboard</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Multi-model auto-reviewer</div>
+      <div class="roadmap-item"><div class="roadmap-dot"></div>Auto skill recommendation</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:36px 0 16px;color:var(--ink)">Phase 3 — Conductor Daemon 設計概念</h3>
+  <div class="code-block">
+# Conductor Daemon（Phase 3 Preview）
+# asyncio-based 任務調度器，實現全自動任務生命週期管理
+
+class ConductorDaemon:
+    async def poll_loop(self):
+        """每 60 秒輪詢一次"""
+        while True:
+            await self.check_pending_tasks()        # 自動 plan + approve Tiny/Standard
+            await self.check_dependency_resolution() # 前置任務完成 → 解鎖等待任務
+            await self.check_github_issues()        # Noel Module G 同步
+            await self.dispatch_side_effects()      # 觸發 Discord 通知 + Email
+            await asyncio.sleep(60)
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:32px 0 16px;color:var(--ink)">Phase 4 — Multi-model Auto-Reviewer</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🤝</div>
+      <div class="card-title">三模型審查管線</div>
+      <div class="card-body">
+        Quill（Claude Sonnet）→ Codex co-review（Codex Plus）→ Vick（Grok，if divergence）<br><br>
+        三方意見一致 → 自動 DONE<br>
+        意見分歧 → 通知 Rain 仲裁
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Agent KPI 自動追蹤</div>
+      <div class="card-body">
+        dispatch_rate（任務分派率）、success_rate（成功率）、avg_completion_time（平均完成時間）、leverage_ratio（AI 槓桿倍數）
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">Auto Skill Recommendation</div>
+      <div class="card-body">
+        分析任務歷史模式，自動推薦最適合的 skill 觸發時機。例如：「這類 API 任務 80% 需要 /api-test-suite-builder」→ 自動提示。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 10: 擴張性 ========== -->
+<section class="section" id="s10">
+  <div class="section-eyebrow">Section 10</div>
+  <h2 class="section-title">對未來 AI 團隊擴張的設計考量</h2>
+  <p class="section-lead">
+    Rain 明確要求：「不要只以我們現在的陣容來說，我們之後的陣容可以一直增強。」
+    TaskOps 的每個設計決策都以「未來可以無限擴充」為前提。
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔢</div>
+      <div class="card-title">State Machine 可擴展</div>
+      <div class="card-body">
+        目前 9 個狀態。Phase 4 計畫支援 11+ 個狀態（預留 ESCALATED、DELEGATED、PAUSED）。狀態轉換以字典定義，新增一個狀態只需加一個 key-value，不需修改 transition 邏輯。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">GitHub Labels 按 Prefix 分組</div>
+      <div class="card-body">
+        新增 agent 類型直接新增對應 label（如 <code>agent:nova</code> / <code>agent:scout</code>），GitHub API 會自動建立。不需修改任何後端程式碼，標籤系統天然支援無限擴充。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <div class="card-title">AUTHORIZED_APPROVERS 可擴充</div>
+      <div class="card-body">
+        目前審批人：<code>{"klay", "rain"}</code>。未來加入新的高級 Agent，直接 add 到 set 即可。APPROVED 邏輯不需改動，自動支援新審批人。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <div class="card-title">TASK_ROUTING 關鍵字擴充</div>
+      <div class="card-body">
+        目前 6 個 category（quick/standard/deep_research/infra/review/release）。新增 category 只需在 keyword map 加一行，routing 邏輯自動識別，dispatch 流程不受影響。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">dispatched_to 支援並行</div>
+      <div class="card-body">
+        <code>dispatched_to</code> 欄位支援逗號分隔多個 agent（如 <code>"max,john"</code>），未來雙人並行甚至三人並行任務天然支援，Kanban 看板一張 card 可顯示多個 agent badge。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏗️</div>
+      <div class="card-title">WAL Mode 支援多 Writer</div>
+      <div class="card-body">
+        SQLite WAL 模式支援多個 agent 同時寫入任務進度，不互相阻塞。未來即使 20+ agent 同時回報進度，資料庫也不會成為瓶頸。（估計可支援 ~50 concurrent writers）
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">Skill Registry Sprawl 偵測</div>
+      <div class="card-body">
+        Sprawl threshold = 150，超過自動發 Discord 警告。Noel Module N（Phase 3）夜班每晚自動驗證 registry 完整性，確保 skill 數量增長不失控。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <div class="card-title">GitHub 作為統一審計軌跡</div>
+      <div class="card-body">
+        無論未來加入多少 agent，GitHub Issue 永遠是最終的審計軌跡。每個 state 轉換、每次進度回報都有 timestamp + agent 簽名，Rain 可隨時翻查任何任務的完整歷程。
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;margin:36px 0 16px;color:var(--ink)">未來團隊擴張路線圖（設計容量）</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>擴張面向</th>
+          <th>現況（Phase 2）</th>
+          <th>Phase 3 目標</th>
+          <th>Phase 4+ 容量</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AI Agents 數量</td>
+          <td>28 agents（含 frozen）</td>
+          <td>30-35 agents</td>
+          <td>50+ agents（架構無限制）</td>
+        </tr>
+        <tr>
+          <td>State Machine 狀態</td>
+          <td>9 states</td>
+          <td>9 states（穩定）</td>
+          <td>11-15 states（按需擴充）</td>
+        </tr>
+        <tr>
+          <td>GitHub Labels</td>
+          <td>28 labels</td>
+          <td>35-40 labels</td>
+          <td>無上限（prefix 隔離）</td>
+        </tr>
+        <tr>
+          <td>並行任務能力</td>
+          <td>理論無限（WAL mode）</td>
+          <td>監控 P95 latency</td>
+          <td>Conductor Daemon 調度</td>
+        </tr>
+        <tr>
+          <td>Skill Registry</td>
+          <td>35 skills（sprawl threshold 150）</td>
+          <td>50-60 skills</td>
+          <td>自動推薦 + Noel Module N 維護</td>
+        </tr>
+        <tr>
+          <td>審查管線</td>
+          <td>Quill + Codex co-review</td>
+          <td>+ Vick（divergence case）</td>
+          <td>Multi-model 自動裁決</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+  <div>
+    <strong>TaskOps x GitHub 整合完成報告</strong><br>
+    製作：Nova (Deck System) &nbsp;|&nbsp; 2026-03-22 &nbsp;|&nbsp; Rain AI Team
+  </div>
+  <div>
+    Kai Task Board: <strong>http://127.0.0.1:5002</strong><br>
+    GitHub: <strong>awe7893625/M4ControlCenter</strong>
+  </div>
+</footer>
+
+</body>
+</html>

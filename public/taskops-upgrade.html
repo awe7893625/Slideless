@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub 森林系 TaskOps 系統升級報告 — 2026-03-22</title>
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #f6f5f1;
+      --gold: #e8b86d;
+      --gold-light: #f3d9a4;
+      --gold-dark: #c9962a;
+      --blue: #2a5cad;
+      --blue-light: #dce8f7;
+      --text: #1a1a2e;
+      --text-sec: #5a6b85;
+      --card: #ffffff;
+      --border: #e8e0d5;
+      --red: #c0392b;
+      --red-light: #fdf0ef;
+      --green: #27ae60;
+      --green-light: #edfbf2;
+      --orange: #e67e22;
+      --orange-light: #fef3e7;
+      --shadow: 0 2px 12px rgba(26,26,46,0.07);
+      --shadow-lg: 0 6px 28px rgba(26,26,46,0.12);
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Helvetica Neue', 'Arial', 'PingFang TC', 'Noto Sans TC', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ─── Scrollbar ─── */
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    /* ─── Top Nav ─── */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(246,245,241,0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 52px;
+      overflow-x: auto;
+    }
+    .top-nav::-webkit-scrollbar { height: 3px; }
+    .nav-brand {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-dark);
+      white-space: nowrap;
+      margin-right: 16px;
+      letter-spacing: -0.3px;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-sec);
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .nav-link:hover {
+      color: var(--gold-dark);
+      background: var(--gold-light);
+    }
+    .nav-sep { color: var(--border); font-size: 16px; padding: 0 2px; }
+
+    /* ─── Layout ─── */
+    .page { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* ─── Hero Header ─── */
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 40px 36px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--blue) 100%);
+    }
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-sec);
+      background: var(--cream);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-sec);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid;
+    }
+    .badge-green { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .badge-orange { background: var(--orange-light); color: var(--orange); border-color: var(--orange); }
+    .badge-blue { background: var(--blue-light); color: var(--blue); border-color: var(--blue); }
+    .badge-gold { background: #fff8ed; color: var(--gold-dark); border-color: var(--gold); }
+
+    .hero-team {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+    .hero-team span { color: var(--text); font-weight: 600; }
+
+    /* ─── Section ─── */
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-num {
+      width: 28px;
+      height: 28px;
+      background: var(--gold);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-num.blue { background: var(--blue); }
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-sec);
+      margin-bottom: 24px;
+      padding-left: 38px;
+    }
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--gold-dark);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-sec);
+      margin-top: 6px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    /* ─── Outcome Box ─── */
+    .outcome-box {
+      background: linear-gradient(135deg, #fff8ed 0%, #f0f5ff 100%);
+      border: 1px solid var(--gold-light);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .outcome-box p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .outcome-box strong { color: var(--gold-dark); }
+
+    /* ─── Ray Verdict ─── */
+    .verdict-box {
+      background: var(--orange-light);
+      border: 2px solid var(--orange);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .verdict-icon { font-size: 24px; flex-shrink: 0; line-height: 1.4; }
+    .verdict-title { font-size: 15px; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
+    .verdict-text { font-size: 14px; color: var(--text); }
+
+    /* ─── Problem Cards ─── */
+    .problem-list { display: flex; flex-direction: column; gap: 12px; }
+    .problem-item {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .problem-num {
+      width: 24px;
+      height: 24px;
+      background: var(--red);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .problem-text { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+    .insight-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+    .insight-item {
+      background: var(--blue-light);
+      border: 1px solid #b8d0f0;
+      border-left: 3px solid var(--blue);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .insight-icon { font-size: 18px; flex-shrink: 0; }
+    .insight-text { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+    /* ─── Architecture Diagram ─── */
+    .arch-diagram {
+      background: #1e1e2e;
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .arch-diagram pre {
+      font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #cdd6f4;
+      white-space: pre;
+      margin: 0;
+    }
+    .arch-diagram pre .hl-gold { color: #f9e2af; }
+    .arch-diagram pre .hl-blue { color: #89b4fa; }
+    .arch-diagram pre .hl-green { color: #a6e3a1; }
+
+    /* ─── Code Block ─── */
+    pre.code-block {
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #333;
+      overflow-x: auto;
+      margin: 12px 0;
+      white-space: pre;
+    }
+
+    /* ─── Tables ─── */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-sm);
+      margin: 12px 0;
+    }
+    table {
+      min-width: 700px;
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13.5px;
+    }
+    thead tr { background: var(--cream); }
+    thead th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sec);
+      border-bottom: 2px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:hover { background: #fafaf8; }
+    tbody td { padding: 10px 16px; color: var(--text); line-height: 1.5; }
+    tbody tr:last-child { border-bottom: none; }
+    .td-mono { font-family: 'Menlo', 'Consolas', monospace; font-size: 12px; color: var(--blue); }
+    .td-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .td-yes { background: var(--green-light); color: var(--green); }
+    .td-no { background: #f5f5f5; color: #aaa; }
+    .td-check { color: var(--green); font-weight: 700; }
+
+    /* ─── Risk Cards ─── */
+    .risk-grid { display: flex; flex-direction: column; gap: 16px; }
+    .risk-card {
+      border: 1.5px solid;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .risk-card.red { border-color: #e57373; }
+    .risk-card.green { border-color: #81c995; }
+    .risk-header {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .risk-card.red .risk-header { background: #fff5f5; color: var(--red); }
+    .risk-card.green .risk-header { background: #f0fff5; color: var(--green); }
+    .risk-body {
+      padding: 14px 20px;
+      background: var(--card);
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .risk-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+    .risk-card.red .risk-tag { background: #ffd7d7; color: var(--red); }
+    .risk-card.green .risk-tag { background: var(--green-light); color: var(--green); }
+
+    .combined-risk {
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .risk-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .risk-col {
+      padding: 16px 20px;
+    }
+    .risk-col.problem { background: #fff5f5; border-right: 1px solid var(--border); }
+    .risk-col.solution { background: #f0fff5; }
+    .risk-col-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .risk-col.problem .risk-col-label { color: var(--red); }
+    .risk-col.solution .risk-col-label { color: var(--green); }
+    .risk-col p { font-size: 13.5px; line-height: 1.6; color: var(--text); }
+    .risk-heading {
+      padding: 10px 20px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .risk-label-H {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      background: #ffd7d7;
+      color: var(--red);
+    }
+
+    @media (max-width: 580px) {
+      .risk-row { grid-template-columns: 1fr; }
+      .risk-col.problem { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+
+    /* ─── File List ─── */
+    .file-grid { display: flex; flex-direction: column; gap: 10px; }
+    .file-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .file-icon { font-size: 20px; flex-shrink: 0; }
+    .file-name { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--blue); }
+    .file-desc { font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+    .file-lines {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-dark);
+      background: #fff8ed;
+      border: 1px solid var(--gold-light);
+      border-radius: 20px;
+      padding: 2px 10px;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    /* ─── Endpoints ─── */
+    .endpoint-list { display: flex; flex-direction: column; gap: 8px; }
+    .endpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+    }
+    .method-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 6px;
+      min-width: 46px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .method-post { background: #fef3e7; color: #c07800; border: 1px solid #f0c070; }
+    .method-get { background: #edf5ff; color: #1a6bbf; border: 1px solid #b0d0f5; }
+    .endpoint-path { font-family: monospace; font-size: 13px; color: var(--blue); font-weight: 500; }
+    .endpoint-desc { font-size: 13px; color: var(--text-sec); margin-left: auto; }
+
+    /* ─── Timeline ─── */
+    .timeline { position: relative; padding: 8px 0; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 22px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--gold) 0%, var(--blue) 100%);
+    }
+    .tl-item {
+      position: relative;
+      padding: 0 0 24px 58px;
+    }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-dot {
+      position: absolute;
+      left: 11px;
+      top: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--cream);
+    }
+    .tl-dot.gold { background: var(--gold-dark); }
+    .tl-dot.blue { background: var(--blue); }
+    .tl-dot.gray { background: #bbb; }
+    .tl-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .tl-phase { font-size: 16px; font-weight: 800; color: var(--text); }
+    .tl-period { font-size: 12px; color: var(--text-sec); background: var(--cream); border: 1px solid var(--border); padding: 2px 10px; border-radius: 20px; }
+    .tl-status-done { font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); border: 1px solid var(--green); padding: 2px 9px; border-radius: 20px; }
+    .tl-status-plan { font-size: 11px; font-weight: 700; background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue); padding: 2px 9px; border-radius: 20px; }
+    .tl-body { font-size: 14px; color: var(--text-sec); line-height: 1.7; }
+    .tl-body ul { padding-left: 18px; margin-top: 6px; }
+    .tl-body li { margin-bottom: 3px; color: var(--text); }
+
+    /* ─── Checklist ─── */
+    .checklist { display: flex; flex-direction: column; gap: 8px; }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--text);
+    }
+    .check-box {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .check-item.urgent { border-color: var(--gold-light); background: #fff8ed; }
+    .check-item.urgent .check-box { border-color: var(--gold); }
+    .check-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 14px 0 6px;
+    }
+
+    /* ─── Skeptic Box ─── */
+    .skeptic-box {
+      background: #fafbfe;
+      border: 1px dashed var(--blue);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin: 16px 0;
+    }
+    .skeptic-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 8px; letter-spacing: 0.3px; }
+    .skeptic-text { font-size: 14px; color: var(--text); line-height: 1.7; }
+    .skeptic-text em { font-style: italic; color: var(--text-sec); }
+
+    /* ─── DB Fields ─── */
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 640px) { .field-grid { grid-template-columns: repeat(2, 1fr); } }
+    .field-chip {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 500;
+    }
+
+    /* ─── Misc utilities ─── */
+    h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 20px 0 10px; }
+    h4 { font-size: 14px; font-weight: 700; color: var(--text-sec); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+    p { margin-bottom: 12px; font-size: 14.5px; line-height: 1.7; color: var(--text); }
+    ul, ol { padding-left: 20px; }
+    li { margin-bottom: 5px; font-size: 14px; line-height: 1.6; color: var(--text); }
+    strong { font-weight: 700; }
+    .text-gold { color: var(--gold-dark); }
+    .text-blue { color: var(--blue); }
+    .text-green { color: var(--green); }
+    .text-red { color: var(--red); }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .mb-8 { margin-bottom: 8px; }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      padding: 32px 0 16px;
+      font-size: 12px;
+      color: var(--text-sec);
+    }
+    .footer strong { color: var(--gold-dark); }
+  </style>
+</head>
+<body>
+
+<!-- ─── Top Navigation ─── -->
+<nav class="top-nav">
+  <span class="nav-brand">TaskOps 升級報告</span>
+  <a href="#exec" class="nav-link">摘要</a>
+  <span class="nav-sep">·</span>
+  <a href="#problem" class="nav-link">問題診斷</a>
+  <span class="nav-sep">·</span>
+  <a href="#arch" class="nav-link">架構設計</a>
+  <span class="nav-sep">·</span>
+  <a href="#impl" class="nav-link">實作清單</a>
+  <span class="nav-sep">·</span>
+  <a href="#ray" class="nav-link">Ray 審查</a>
+  <span class="nav-sep">·</span>
+  <a href="#skills" class="nav-link">Skill Registry</a>
+  <span class="nav-sep">·</span>
+  <a href="#roadmap" class="nav-link">路線圖</a>
+  <span class="nav-sep">·</span>
+  <a href="#actions" class="nav-link">下一步</a>
+  <a href="#fixes" class="nav-link">收尾修復</a>
+</nav>
+
+<div class="page">
+
+  <!-- ─── Hero ─── -->
+  <div class="hero">
+    <div class="hero-meta">
+      <span class="meta-tag">TaskOps</span>
+      <span class="meta-tag">系統升級</span>
+      <span class="meta-tag">2026-03-22</span>
+    </div>
+    <h1 class="hero-title">GitHub 森林系 TaskOps<br>系統升級報告</h1>
+    <p class="hero-subtitle">
+      將 AI Team 從 3 狀態任務系統升級為事件驅動、可審計、計畫優先的 TaskOps 系統。<br>
+      吸收 GitHub 森林系設計理念，打造符合 Rain Team 組織結構的任務治理框架。
+    </p>
+    <div class="hero-badges">
+      <span class="badge badge-green">✅ Phase 1 完成</span>
+      <span class="badge badge-blue">Phase 2–4 路線圖規劃中</span>
+      <span class="badge badge-green">Phase 1 收尾 ✅ 完成</span>
+      <span class="badge badge-orange">⚠️ Ray 裁決：有條件通過</span>
+      <span class="badge badge-gold">961 行新增程式碼</span>
+    </div>
+    <div class="hero-team mt-16">
+      核心成員：<span>Rain × Klay × Scout × Ray × Max</span>
+    </div>
+  </div>
+
+  <!-- ─── Section 0: Executive Summary ─── -->
+  <div id="exec" class="section">
+    <div class="section-title">
+      <span class="section-num">0</span>
+      執行摘要 Executive Summary
+    </div>
+    <p class="section-desc">Phase 1 核心數字一覽 — 架構基礎已就緒，0 既有功能破壞</p>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">9</div>
+        <div class="stat-label">Phase 1<br>實作文件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">35</div>
+        <div class="stat-label">Skill<br>正式登錄</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">6</div>
+        <div class="stat-label">狀態機<br>狀態</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">新 API<br>端點</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">961</div>
+        <div class="stat-label">新增<br>程式碼行數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--green)">0</div>
+        <div class="stat-label">既有功能<br>破壞</div>
+      </div>
+    </div>
+
+    <div class="outcome-box">
+      <p>
+        <strong>核心成果：</strong>將 AI Team 從簡單的 3 狀態任務系統（pending → executing → done）升級為
+        <strong>事件驅動、可審計、計畫優先</strong>的 TaskOps 系統。Phase 1 建立完整的架構基礎，
+        包含 6 狀態機、自動分類路由器、7 個新 API 端點、35 個 Skill 正式登錄，
+        以及完整的治理規範文件。所有新欄位皆為 nullable，與現有系統完全向後相容。
+      </p>
+    </div>
+
+    <div class="verdict-box">
+      <div class="verdict-icon">⚠️</div>
+      <div>
+        <div class="verdict-title">Ray 裁決：有條件通過</div>
+        <div class="verdict-text">
+          MOD-1~5 全採納後執行 Phase 1。三個高嚴重度風險（SQLite 並發、審批死鎖、入口假設）
+          已全部提出對應解決方案並採納。架構方向正確，Phase 1 scope 合理。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Section 1: Problem Diagnosis ─── -->
+  <div id="problem" class="section">
+    <div class="section-title">
+      <span class="section-num">1</span>
+      問題診斷 — 為什麼需要升級
+    </div>
+    <p class="section-desc">當前系統的結構性缺陷 + GitHub 森林系設計的核心洞見</p>
+
+    <h3>當前系統的 5 個結構性缺陷</h3>
+    <div class="problem-list">
+      <div class="problem-item">
+        <div class="problem-num">1</div>
+        <div class="problem-text">
+          <strong>狀態機過於簡單：</strong>只有 3 個狀態（pending → executing → done），無計畫門控，
+          任何任務都可以直接跳到執行，缺乏關鍵節點的決策管控。
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">2</div>
+        <div class="problem-text">
+          <strong>沒有正式審批流程：</strong>夜班任務直接執行，Major/Critical 任務缺乏人工確認機制，
+          高風險操作可能在 Rain 不知情的情況下執行。
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">3</div>
+        <div class="problem-text">
+          <strong>技能管理混亂：</strong>110+ Skill 散落在各 SKILL.md 文件，無機器可讀的 registry，
+          也無法追蹤 Skill 的狀態（廢棄/活躍）、成本級別和負責 Agent。
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">4</div>
+        <div class="problem-text">
+          <strong>任務路由依賴文字：</strong>分類依賴 CLAUDE.md 文字規則表，沒有自動分類引擎，
+          無法以程式化方式追蹤 dispatch_rate 和確保路由一致性。
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-num">5</div>
+        <div class="problem-text">
+          <strong>執行隔離不完整：</strong>沒有狀態轉換審計日誌，無法追溯任務的完整生命周期，
+          也無法偵測並發衝突或異常狀態轉換。
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>GitHub 森林系設計的核心洞見（吸收而非複製）</h3>
+    <div class="insight-list">
+      <div class="insight-item">
+        <div class="insight-icon">🧠</div>
+        <div class="insight-text">
+          <strong>CLAUDE.md as project brain：</strong>我們已有完整的 CLAUDE.md 體系，
+          Phase 1 的目標是加強治理而非重建，在既有框架上疊加狀態機和審計能力。
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-icon">🌿</div>
+        <div class="insight-text">
+          <strong>每任務獨立 worktree：</strong>Worktrunk 已在使用，Phase 1 補正式生命周期管理，
+          記錄 worktree_branch 欄位，Phase 2 再引入 Conductor daemon 完成閉環。
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-icon">📋</div>
+        <div class="insight-text">
+          <strong>計畫先行，再執行：</strong>PLANNED → APPROVED 的計畫門控是最高優先事項。
+          Major/Critical 任務必須提交結構化計畫（JSON）並通過審批才能進入執行。
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-icon">🔀</div>
+        <div class="insight-text">
+          <strong>PR 作為交付物：</strong>任務完成後提交 PR，進入 REVIEW_REQUIRED 狀態，
+          觸發 Quill → Forge → Ray 三層審查。Phase 3 正式接入 GitHub webhook。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Section 2: Architecture ─── -->
+  <div id="arch" class="section">
+    <div class="section-title">
+      <span class="section-num blue">2</span>
+      架構設計
+    </div>
+    <p class="section-desc">Phase 1 狀態機、分類路由、審批規則完整架構</p>
+
+    <h3>Phase 1 架構圖</h3>
+    <div class="arch-diagram">
+      <pre>
+<span class="hl-gold">Entry Layer                     State Machine                    Review Pipeline</span>
+┌────────────────┐              ┌─────────────────────────────┐  ┌─────────────────┐
+│ Kai Web UI     │──┐           │ <span class="hl-green">PENDING</span>                      │  │ L1: Quill(code) │
+│ Claude Code    │──┼──[create]→│   ↓ auto_classify            │  │ L2: Forge(CI)   │
+│ Telegram       │──┤           │ <span class="hl-blue">PLANNED</span> (if Major/Critical)   │  │ L3: Ray(design) │
+│ Night Shift    │──┘           │   ↓ Rain/Klay approves        │  └─────────────────┘
+└────────────────┘              │ <span class="hl-gold">APPROVED</span>                      │
+                                │   ↓ executor starts           │
+taskops_router.py               │ <span class="hl-blue">RUNNING</span>                       │
+classify_task() auto-runs       │   ↓ submits PR/artifact       │
+when task created               │ <span class="hl-gold">REVIEW_REQUIRED</span>               │
+→ sets task_category            │   ↓ all layers pass           │
+→ sets plan_required            │ <span class="hl-green">DONE</span> / FAILED / CANCELLED     │
+→ sets approval_required        └─────────────────────────────┘
+→ sets taskops_status
+      </pre>
+    </div>
+
+    <h3>6 任務類型路由</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:760px">
+        <thead>
+          <tr>
+            <th>類型</th>
+            <th>關鍵字</th>
+            <th>計畫需要</th>
+            <th>規劃者</th>
+            <th>執行者</th>
+            <th>審查者</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="td-badge td-yes">quick</span></td>
+            <td class="td-mono">tiny / config / 文案</td>
+            <td><span class="td-badge td-no">否</span></td>
+            <td>—</td>
+            <td>rex / john</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#f0f5ff;color:var(--blue)">standard</span></td>
+            <td class="td-mono">feature / crud / api / bug</td>
+            <td><span class="td-badge td-no">否</span></td>
+            <td>klay</td>
+            <td>max / rex / john / iris</td>
+            <td>quill / forge</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#fef3e7;color:#c07800">deep_research</span></td>
+            <td class="td-mono">research / architecture / 分析</td>
+            <td><span class="td-badge td-yes">是</span></td>
+            <td>klay</td>
+            <td>scout / orion</td>
+            <td>ray</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#f5eeff;color:#7c3aed">infra</span></td>
+            <td class="td-mono">deploy / migration / dns</td>
+            <td><span class="td-badge td-yes">是</span></td>
+            <td>klay</td>
+            <td>forge / max</td>
+            <td>quill / ray</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#edfbf2;color:var(--green)">review</span></td>
+            <td class="td-mono">review / pr / 審查</td>
+            <td><span class="td-badge td-no">否</span></td>
+            <td>—</td>
+            <td>quill</td>
+            <td>ray</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#fff5f5;color:var(--red)">release</span></td>
+            <td class="td-mono">release / hotfix / 發布</td>
+            <td><span class="td-badge td-yes">是</span></td>
+            <td>klay</td>
+            <td>forge</td>
+            <td>quill / ray</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>自動審批規則</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:700px">
+        <thead>
+          <tr>
+            <th>嚴重度</th>
+            <th>計畫</th>
+            <th>審批</th>
+            <th>審批者</th>
+            <th>逾時機制</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="td-badge td-no">Tiny</span></td>
+            <td>否</td>
+            <td>否（自動跳到 APPROVED）</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#f0f5ff;color:var(--blue)">Standard</span></td>
+            <td>否</td>
+            <td>否（Klay 自動核准）</td>
+            <td>Klay</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#fef3e7;color:#c07800">Major</span></td>
+            <td><span class="td-check">✓</span></td>
+            <td><span class="td-check">✓</span></td>
+            <td>Rain → Klay 備用</td>
+            <td><strong>8 小時</strong>，超時 Klay 可代為核准</td>
+          </tr>
+          <tr>
+            <td><span class="td-badge" style="background:#fff5f5;color:var(--red)">Critical</span></td>
+            <td><span class="td-check">✓</span></td>
+            <td><span class="td-check">✓</span></td>
+            <td><strong>Rain 唯一</strong></td>
+            <td><strong>24 小時</strong>，無備用，到期通知後等待</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Section 3: Implementation ─── -->
+  <div id="impl" class="section">
+    <div class="section-title">
+      <span class="section-num">3</span>
+      實作清單（Phase 1 完成）
+    </div>
+    <p class="section-desc">後端新增 961 行程式碼，12 個新 DB 欄位，全向後相容</p>
+
+    <h3>後端新增文件（961 行）</h3>
+    <div class="file-grid">
+      <div class="file-card">
+        <div class="file-icon">⚙️</div>
+        <div>
+          <div class="file-name">taskops_state_machine.py</div>
+          <div class="file-desc">6 狀態機 + 12 狀態轉換 + 完整審計日誌記錄</div>
+        </div>
+        <div class="file-lines">187 行</div>
+      </div>
+      <div class="file-card">
+        <div class="file-icon">🗺️</div>
+        <div>
+          <div class="file-name">taskops_router.py</div>
+          <div class="file-desc">6 類別關鍵字分類引擎 + 自動角色指派邏輯</div>
+        </div>
+        <div class="file-lines">281 行</div>
+      </div>
+      <div class="file-card">
+        <div class="file-icon">🔌</div>
+        <div>
+          <div class="file-name">taskops.py（API）</div>
+          <div class="file-desc">7 個新 REST 端點（計畫、審批、PR 提交、歷史查詢）</div>
+        </div>
+        <div class="file-lines">257 行</div>
+      </div>
+      <div class="file-card">
+        <div class="file-icon">🗄️</div>
+        <div>
+          <div class="file-name">migrate_taskops_phase1.py</div>
+          <div class="file-desc">獨立 DB 遷移腳本，12 個 nullable 欄位 + WAL mode 啟用</div>
+        </div>
+        <div class="file-lines">~60 行</div>
+      </div>
+      <div class="file-card">
+        <div class="file-icon">✏️</div>
+        <div>
+          <div class="file-name">修改現有文件</div>
+          <div class="file-desc">WAL mode 設定 + 12 個新欄位定義 + auto_classify hook 注入</div>
+        </div>
+        <div class="file-lines">176 行</div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>7 個新 API 端點</h3>
+    <div class="endpoint-list">
+      <div class="endpoint-item">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/api/taskops/{id}/plan</span>
+        <span class="endpoint-desc">提交計畫 JSON，觸發 PENDING → PLANNED</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/api/taskops/{id}/approve</span>
+        <span class="endpoint-desc">批准任務，觸發 PLANNED → APPROVED</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/api/taskops/{id}/reject</span>
+        <span class="endpoint-desc">要求修改，任務退回 PLANNED 重提</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/api/taskops/{id}/submit_pr</span>
+        <span class="endpoint-desc">提交 PR，觸發 RUNNING → REVIEW_REQUIRED</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-post">POST</span>
+        <span class="endpoint-path">/api/taskops/{id}/reopen</span>
+        <span class="endpoint-desc">重開失敗任務，回到 PENDING 重試</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/taskops/{id}/history</span>
+        <span class="endpoint-desc">取得狀態轉換完整審計日誌</span>
+      </div>
+      <div class="endpoint-item">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/taskops/pending-approval</span>
+        <span class="endpoint-desc">取得所有待審批任務列表</span>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>治理文件（新增）</h3>
+    <div class="file-grid">
+      <div class="file-card">
+        <div class="file-icon">📜</div>
+        <div>
+          <div class="file-name">taskops-governance.md</div>
+          <div class="file-desc">~/.claude/rules/ — 完整治理規範，含 Klay 決策日誌格式</div>
+        </div>
+      </div>
+      <div class="file-card">
+        <div class="file-icon">📦</div>
+        <div>
+          <div class="file-name">skill-registry.json</div>
+          <div class="file-desc">~/.claude/skills/registry/ — 35 個 Skill 正式登錄，含成本/風險/負責人</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>DB Schema 新增欄位（12 個，全 nullable，向後相容）</h3>
+    <div class="field-grid">
+      <div class="field-chip">task_category</div>
+      <div class="field-chip">plan</div>
+      <div class="field-chip">plan_required</div>
+      <div class="field-chip">approval_required</div>
+      <div class="field-chip">approved_by</div>
+      <div class="field-chip">approved_at</div>
+      <div class="field-chip">approval_timeout_hours</div>
+      <div class="field-chip">intake_source</div>
+      <div class="field-chip">pr_url</div>
+      <div class="field-chip">pr_number</div>
+      <div class="field-chip">worktree_branch</div>
+      <div class="field-chip">taskops_status</div>
+    </div>
+  </div>
+
+  <!-- ─── Section 4: Ray Review ─── -->
+  <div id="ray" class="section">
+    <div class="section-title">
+      <span class="section-num blue">4</span>
+      Ray 的審查摘要
+    </div>
+    <p class="section-desc">3 個高嚴重度風險識別 + 採納解決方案 + Skeptic 挑戰</p>
+
+    <div class="verdict-box" style="margin-bottom:24px">
+      <div class="verdict-icon">⚠️</div>
+      <div>
+        <div class="verdict-title">最終裁決：有條件通過（修改後執行）</div>
+        <div class="verdict-text">
+          MOD-1~5 全數採納。三個高嚴重度風險已提出解決方案並在 Phase 1 實作中落地。
+          架構方向正確，Phase 1 scope 控制在最小可行範圍，無過度工程。
+        </div>
+      </div>
+    </div>
+
+    <h3>3 個高嚴重度風險（H 級）— 問題 vs 解決方案</h3>
+
+    <div class="combined-risk">
+      <div class="risk-heading">
+        <span class="risk-label-H">H-1</span>
+        SQLite 並發 Write-Lock 風險
+      </div>
+      <div class="risk-row">
+        <div class="risk-col problem">
+          <div class="risk-col-label">問題</div>
+          <p>並行任務狀態轉換會觸發 SQLite write-lock，導致任務卡住或資料不一致，
+            夜班高並發場景尤為危險。</p>
+        </div>
+        <div class="risk-col solution">
+          <div class="risk-col-label">✅ 採納解決方案</div>
+          <p>已啟用 <strong>WAL（Write-Ahead Logging）mode</strong> + NORMAL synchronous 模式，
+            大幅提升並發讀寫能力，消除大部分 write-lock 場景。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="combined-risk">
+      <div class="risk-heading">
+        <span class="risk-label-H">H-2</span>
+        WAITING_APPROVAL 死鎖 — 夜班佇列堵塞
+      </div>
+      <div class="risk-row">
+        <div class="risk-col problem">
+          <div class="risk-col-label">問題</div>
+          <p>夜班期間 Rain 無法回應審批請求，若 Major 任務卡在審批狀態，
+            後續任務佇列全數堵塞，夜班工作無法推進。</p>
+        </div>
+        <div class="risk-col solution">
+          <div class="risk-col-label">✅ 採納解決方案</div>
+          <p>加入 <strong>8h/24h 逾時機制</strong>：Major 任務 8 小時後 Klay 可代為核准；
+            Critical 任務 24 小時後通知 Rain 但不強制核准，確保佇列不死鎖。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="combined-risk">
+      <div class="risk-heading">
+        <span class="risk-label-H">H-3</span>
+        GitHub 優先入口假設錯誤
+      </div>
+      <div class="risk-row">
+        <div class="risk-col problem">
+          <div class="risk-col-label">問題</div>
+          <p>原設計將 GitHub 列為主要入口，但 Rain Team 所有任務都來自
+            Kai Web UI / Claude Code / Telegram，而非 GitHub Issues。</p>
+        </div>
+        <div class="risk-col solution">
+          <div class="risk-col-label">✅ 採納解決方案</div>
+          <p><strong>Kai / Claude Code 為主入口</strong>，GitHub 降為 Phase 3 次要入口，
+            僅作為 PR 交付物的引用來源，不作為任務建立觸發器。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="skeptic-box">
+      <div class="skeptic-title">🔍 Ray 的 Skeptic Check — 魔鬼代言人挑戰</div>
+      <div class="skeptic-text">
+        <em>「3 個小 fix 就能達到 80% 的價值：加 PLANNED 狀態 + 加審批欄位 + 加 Skill JSON。
+        你確定需要建立整套 TaskOps 框架嗎？」</em>
+        <br><br>
+        <strong>Klay 的回應：</strong>採納觀點，但選擇建立完整架構基礎。
+        3 個小 fix 確實能解決眼前問題，但 6 個月後當我們需要 Conductor daemon、
+        PR Bridge 和多模型審查時，還是要回來重構，屆時的技術債代價更高。
+        Phase 1 已將 scope 控制在最小可行範圍（不含 daemon、不含 GitHub webhook），
+        是正確的分期策略，不是過度工程。
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Section 5: Skill Registry ─── -->
+  <div id="skills" class="section">
+    <div class="section-title">
+      <span class="section-num">5</span>
+      Skill Registry 建立
+    </div>
+    <p class="section-desc">35 個 Skill 正式登錄，建立機器可讀的技能治理體系</p>
+
+    <p>
+      <code>~/.claude/skills/registry/skill-registry.json</code> 現已包含 <strong>35 個正式登錄的 Skill</strong>，
+      每個 Skill 包含以下結構化欄位，可以程式化方式查詢、統計和治理。
+    </p>
+
+    <h3>Skill 欄位規格</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:700px">
+        <thead>
+          <tr>
+            <th>欄位</th>
+            <th>型別</th>
+            <th>說明</th>
+            <th>範例值</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-mono">risk_level</td>
+            <td>enum</td>
+            <td>操作風險等級</td>
+            <td>low / medium / high</td>
+          </tr>
+          <tr>
+            <td class="td-mono">cost_level</td>
+            <td>enum</td>
+            <td>API 呼叫成本</td>
+            <td>free / low / medium / high</td>
+          </tr>
+          <tr>
+            <td class="td-mono">owner_agent</td>
+            <td>string</td>
+            <td>負責維護的 Agent</td>
+            <td>quill / max / forge</td>
+          </tr>
+          <tr>
+            <td class="td-mono">phase</td>
+            <td>enum</td>
+            <td>適用階段</td>
+            <td>planning / execution / review / reporting</td>
+          </tr>
+          <tr>
+            <td class="td-mono">deprecated</td>
+            <td>boolean</td>
+            <td>是否已廢棄</td>
+            <td>true / false</td>
+          </tr>
+          <tr>
+            <td class="td-mono">replacement</td>
+            <td>string?</td>
+            <td>廢棄後的替代 Skill</td>
+            <td>"new-skill-name" 或 null</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h3>5 個 Phantom Skills（有引用但無目錄）</h3>
+    <p>以下 Skill 在 CLAUDE.md 或 task-dispatch.md 中被引用，但尚未建立對應的 SKILL.md 文件：</p>
+    <div class="tbl-wrap">
+      <table style="min-width:700px">
+        <thead>
+          <tr>
+            <th>Skill 名稱</th>
+            <th>引用來源</th>
+            <th>負責建立</th>
+            <th>預計 Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-mono">api-test-suite-builder</td>
+            <td>task-dispatch.md Skill Trigger</td>
+            <td>Max</td>
+            <td>Phase 2</td>
+          </tr>
+          <tr>
+            <td class="td-mono">compass</td>
+            <td>CLAUDE.md Skill Trigger</td>
+            <td>Quill</td>
+            <td>Phase 2</td>
+          </tr>
+          <tr>
+            <td class="td-mono">tech-debt-tracker</td>
+            <td>CLAUDE.md Skill Trigger</td>
+            <td>Quill</td>
+            <td>Phase 2</td>
+          </tr>
+          <tr>
+            <td class="td-mono">deck</td>
+            <td>多處引用</td>
+            <td>Max</td>
+            <td>Phase 2</td>
+          </tr>
+          <tr>
+            <td class="td-mono">review-loop</td>
+            <td>CLAUDE.md 核心流程</td>
+            <td>Quill</td>
+            <td>Phase 2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--green);font-size:13px">✅ <strong>已完成</strong>：deck + review-loop stub SKILL.md 建立，phantom 數量歸零（0/35）。其餘 3 個（api-test-suite-builder, compass, tech-debt-tracker）原本已有目錄。</p>
+
+    <div class="section-divider"></div>
+
+    <h3>高成本 Skill 標記（cost_level: high）</h3>
+    <div class="file-card" style="background:#fff8ed;border-color:var(--gold-light)">
+      <div class="file-icon">💰</div>
+      <div>
+        <div class="file-name">deep-research</div>
+        <div class="file-desc">每次呼叫約 $2–5（Gemini API），應謹慎觸發，避免夜班自動批量執行</div>
+      </div>
+      <div class="file-lines" style="background:var(--orange-light);border-color:#f0c070;color:#c07800">高成本</div>
+    </div>
+  </div>
+
+  <!-- ─── Section 6: Roadmap ─── -->
+  <div id="roadmap" class="section">
+    <div class="section-title">
+      <span class="section-num blue">6</span>
+      Phase 2–4 路線圖
+    </div>
+    <p class="section-desc">從執行基礎設施到多模型自動審查的完整升級路線</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot gold">1</div>
+        <div class="tl-header">
+          <span class="tl-phase">Phase 1 — 架構基礎</span>
+          <span class="tl-period">2026-03 完成</span>
+          <span class="tl-status-done">✅ 已完成</span>
+        </div>
+        <div class="tl-body">
+          <ul>
+            <li>6 狀態機（taskops_state_machine.py）</li>
+            <li>6 類型自動分類路由（taskops_router.py）</li>
+            <li>7 個新 API 端點（taskops.py）</li>
+            <li>12 個新 DB 欄位（nullable，向後相容）</li>
+            <li>35 個 Skill 正式登錄（skill-registry.json）</li>
+            <li>治理規範文件（taskops-governance.md）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot blue">2</div>
+        <div class="tl-header">
+          <span class="tl-phase">Phase 2 — 執行基礎設施</span>
+          <span class="tl-period">Q2 2026</span>
+          <span class="tl-status-plan">規劃中</span>
+        </div>
+        <div class="tl-body">
+          <ul>
+            <li><strong>Conductor daemon</strong>：asyncio 輪詢 + 副作用派發，APPROVED → 自動啟動執行</li>
+            <li><strong>並發文件鎖</strong>：taskops_file_locks table，防止 Agent 衝突修改</li>
+            <li><strong>PR Bridge</strong>：taskops_pr_bridge.py，gh CLI 包裝，自動建立/關閉 PR</li>
+            <li><strong>前端升級</strong>：TaskOpsBoard.tsx（狀態機視覺化）+ ApprovalGate.tsx</li>
+            <li><strong>Phantom Skills 補齊</strong>：5 個 stub SKILL.md（Max + Quill）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot blue">3</div>
+        <div class="tl-header">
+          <span class="tl-phase">Phase 3 — 外部入口整合</span>
+          <span class="tl-period">Q3 2026</span>
+          <span class="tl-status-plan">規劃中</span>
+        </div>
+        <div class="tl-body">
+          <ul>
+            <li><strong>GitHub webhook</strong>：需 Cloudflare Tunnel（Rain 需確認 U-3 DNS/infra 操作授權）</li>
+            <li><strong>Telegram 入口 adapter</strong>：Noel → Telegram 建任務直接注入 TaskOps</li>
+            <li><strong>Noel Module G</strong>：夜班輪詢 <code>gh issue list --label taskops</code></li>
+            <li><strong>Noel Module N</strong>：夜班 Skill Registry 完整性驗證（phantom skills 偵測）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot gray">4</div>
+        <div class="tl-header">
+          <span class="tl-phase">Phase 4 — 多模型自動審查</span>
+          <span class="tl-period">Q4 2026</span>
+          <span class="tl-status-plan">規劃中</span>
+        </div>
+        <div class="tl-body">
+          <ul>
+            <li><strong>自動 reviewer 指派</strong>：Quill → Codex 共審 → Vick 若有分歧</li>
+            <li><strong>Agent 效能評分</strong>：基於完成率、品質評分、耗時的 Agent KPI 追蹤</li>
+            <li><strong>Skill 自動推薦</strong>：基於歷史模式，任務建立時自動推薦相關 Skill</li>
+            <li><strong>TaskOps 分析儀表板</strong>：Deck 報告 + Kai 前端整合，視覺化治理數據</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Section 7: Action Items ─── -->
+  <div id="actions" class="section">
+    <div class="section-title">
+      <span class="section-num">7</span>
+      下一步行動項目
+    </div>
+    <p class="section-desc">立即執行、Phase 2 準備、持續維護三個時間軸</p>
+
+    <div class="check-section-title">立即（本週）— 已全部完成 ✅</div>
+    <div class="checklist">
+      <div class="check-item" style="opacity:0.75">
+        <div class="check-box" style="background:var(--green);border-color:var(--green)">✓</div>
+        <div>
+          <strong>Kai 前端 TaskBoard 顯示 taskops_status 欄位</strong>
+          — <span style="color:var(--green)">John 完成（commit 75b459a）</span>。AgentTask interface 擴充 4 個 TaskOps 欄位，狀態機視覺化 badge 已上線。
+        </div>
+      </div>
+      <div class="check-item" style="opacity:0.75">
+        <div class="check-box" style="background:var(--green);border-color:var(--green)">✓</div>
+        <div>
+          <strong>新增 ApprovalGate UI 元件</strong>
+          — <span style="color:var(--green)">John 完成（commit 75b459a）</span>。PLANNED 任務顯示批准/退回按鈕，空佇列時自動隱藏。
+        </div>
+      </div>
+      <div class="check-item" style="opacity:0.75">
+        <div class="check-box" style="background:var(--green);border-color:var(--green)">✓</div>
+        <div>
+          <strong>清理 phantom skills：建立 stub SKILL.md</strong>
+          — <span style="color:var(--green)">完成（commit 191789b）</span>。deck + review-loop 建立 SKILL.md；api-test-suite-builder、compass、tech-debt-tracker 原本已有，phantom 數量歸零。
+        </div>
+      </div>
+    </div>
+
+    <div class="check-section-title">Phase 2 準備（下個月）</div>
+    <div class="checklist">
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>設計 conductor daemon 規格</strong>
+          — Max 主導 + Ray Phase 3 審查，asyncio 事件循環 + 副作用派發
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>確認 GitHub webhook 入口方案</strong>
+          — Klay 提案 → Rain 確認（涉及 U-3 DNS/infra 操作，Rain 需授權）
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>建立並發文件鎖機制</strong>
+          — Max 負責，taskops_file_locks table + lock 取得/釋放 API
+        </div>
+      </div>
+    </div>
+
+    <div class="check-section-title">持續進行</div>
+    <div class="checklist">
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>每次建任務時確認 task_category 分類正確</strong>
+          — Klay 負責，若分類不符預期及時調整路由器關鍵字
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>新 Skill 建立時必須加入 registry</strong>
+          — 所有 Agent 遵守，skill-registry.json 是唯一權威來源
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box"></div>
+        <div>
+          <strong>夜班 Critical 任務需 Rain 事先授權</strong>
+          — Noel 遵守，Critical 任務不在 Rain 明確指示下不得自動核准
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fixes" class="section">
+    <div class="section-title">
+      <span class="section-num">8</span>
+      收尾修復紀錄
+      <span class="badge badge-green" style="margin-left:12px">2026-03-22 最終修復</span>
+    </div>
+    <p class="section-desc">Phase 1 完成後發現的三個殘留問題，已於同日修復</p>
+
+    <!-- Fix 1 -->
+    <div style="background:#fff;border-radius:10px;border:1px solid #e8e0d5;padding:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="background:#d4edda;color:#155724;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">FIX-1</span>
+        <strong style="font-size:15px">_to_dict 補齊 TaskOps 欄位</strong>
+      </div>
+      <p style="color:#5a6b85;font-size:13px;margin-bottom:10px">任務 API 回應缺少 taskops_status 等 8 個新欄位，導致前端 ApprovalGate 和 taskops_status badge 無法取得資料。</p>
+      <div style="background:#f9f8f4;border-radius:6px;padding:12px;font-size:12px;font-family:monospace;color:#444">
+        + "taskops_status": getattr(task, "taskops_status", None),<br>
+        + "task_category": getattr(task, "task_category", None),<br>
+        + "plan_required": getattr(task, "plan_required", None),<br>
+        + "approval_required": getattr(task, "approval_required", None),<br>
+        + "approved_by": getattr(task, "approved_by", None),<br>
+        + "pr_url": getattr(task, "pr_url", None),<br>
+        + "intake_source": getattr(task, "intake_source", None),<br>
+        + "manual_estimate_minutes": getattr(task, "manual_estimate_minutes", None),
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#27ae60">✅ commit 73d8ad4 — agent_task_service.py</div>
+    </div>
+
+    <!-- Fix 2 -->
+    <div style="background:#fff;border-radius:10px;border:1px solid #e8e0d5;padding:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="background:#d4edda;color:#155724;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">FIX-2</span>
+        <strong style="font-size:15px">Governance Doc Phantom 數量修正</strong>
+      </div>
+      <p style="color:#5a6b85;font-size:13px">taskops-governance.md Section 7 仍顯示「5 phantoms」，實際已補建 deck + review-loop SKILL.md，phantom 歸零。</p>
+      <div style="margin-top:10px;font-size:12px;color:#27ae60">✅ commit 43eba8c — taskops-governance.md（5 → 0）</div>
+    </div>
+
+    <!-- Fix 3 -->
+    <div style="background:#fff;border-radius:10px;border:1px solid #e8e0d5;padding:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="background:#d4edda;color:#155724;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">FIX-3</span>
+        <strong style="font-size:15px">任務看板清理</strong>
+      </div>
+      <p style="color:#5a6b85;font-size:13px;margin-bottom:10px">8 個超時失敗任務（[TEST] span write × 3、夜班晨間報告、鑰匙、decision.html、Module R、清理看板）佔據看板，全數 cancel。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">[TEST] span write × 3</span>
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">夜班晨間報告 2026-03-21</span>
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">鑰匙</span>
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">decision.html</span>
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">Module R</span>
+        <span style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:4px">清理看板</span>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#27ae60">✅ Failed: 0 / Executing: 0 — 看板乾淨</div>
+    </div>
+  </div>
+
+  <!-- ─── Footer ─── -->
+  <div class="footer">
+    <p>
+      報告日期：<strong>2026-03-22</strong> ·
+      製作：<strong>Nova（Deck Aesthetics）</strong> ·
+      系統：<strong>Rain AI Team — TaskOps v1.0</strong>
+    </p>
+    <p style="margin-top:4px">Phase 1 完成 · 0 既有功能破壞 · 961 行新增程式碼 · 向後相容</p>
+  </div>
+
+</div><!-- .page -->
+</body>
+</html>

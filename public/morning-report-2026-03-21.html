@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>夜班晨間報告 — 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f6f5f1;
+      color: #2d2d2d;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      padding: 32px 16px 64px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .report-header {
+      border-left: 5px solid #e8753a;
+      padding: 24px 28px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .report-header .date-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #e8753a;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .report-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+
+    .report-header .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* Section */
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0ede7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .icon {
+      font-size: 20px;
+    }
+
+    /* Sub heading */
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e8753a;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 10px;
+    }
+
+    h3:first-child { margin-top: 0; }
+
+    /* Commit list */
+    .commit-block {
+      background: #faf9f6;
+      border: 1px solid #ede9e0;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+
+    .commit-block:last-child { margin-bottom: 0; }
+
+    .commit-block .commit-title {
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .commit-block ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .commit-block ul li {
+      padding: 3px 0;
+      color: #555;
+      font-size: 14px;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .commit-block ul li::before {
+      content: "·";
+      position: absolute;
+      left: 4px;
+      color: #e8753a;
+      font-weight: bold;
+    }
+
+    /* Table wrapper */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 12px 0;
+    }
+
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    table {
+      min-width: 600px;
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: #f0ede7;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0ede7;
+      color: #333;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #faf9f6; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-ok { background: #e6f4ea; color: #2d7d46; }
+    .badge-warn { background: #fff3e0; color: #b45309; }
+    .badge-error { background: #fde8e8; color: #b91c1c; }
+
+    /* Alert box */
+    .alert {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .alert-warn {
+      background: #fff8ed;
+      border: 1px solid #f4c87c;
+      color: #7c4f0f;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+    }
+
+    .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Stat row */
+    .stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 12px 0;
+    }
+
+    .stat-card {
+      background: #faf9f6;
+      border: 1px solid #ede9e0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      flex: 1 1 160px;
+      min-width: 140px;
+    }
+
+    .stat-card .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .stat-card .stat-value.ok { color: #2d7d46; }
+    .stat-card .stat-value.warn { color: #b45309; }
+    .stat-card .stat-value.error { color: #b91c1c; }
+
+    /* Todo list */
+    .todo-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .todo-list li {
+      padding: 10px 14px;
+      border-radius: 7px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .todo-list li:last-child { margin-bottom: 0; }
+    .todo-list li.critical { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .todo-list li.warn { background: #fff8ed; border: 1px solid #f4c87c; color: #7c4f0f; }
+    .todo-list li.info { background: #f0f4ff; border: 1px solid #bfcffd; color: #2d4db5; }
+
+    .todo-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* Skill delta */
+    .skill-delta {
+      background: #f0f4ff;
+      border: 1px solid #bfcffd;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+
+    .skill-delta .delta-type {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2d4db5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .skill-delta .delta-desc {
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+
+    /* Stale list */
+    .stale-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0ede7;
+      font-size: 14px;
+    }
+
+    .stale-item:last-child { border-bottom: none; }
+
+    .stale-age {
+      display: inline-block;
+      background: #fff3e0;
+      color: #b45309;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: auto;
+    }
+
+    /* Footer */
+    .report-footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #bbb;
+      font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .report-header h1 { font-size: 20px; }
+      .section { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="report-header">
+    <div class="date-badge">Morning Report</div>
+    <h1>🌅 夜班晨間報告</h1>
+    <div class="subtitle">2026-03-21 · 由 Noel 夜班執行 · Nova 製作報告</div>
+  </div>
+
+  <!-- Section 1: 夜班工作摘要 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📋</span>一、夜班工作摘要</div>
+
+    <p style="font-size:14px;color:#555;margin-bottom:16px;">今晚夜班完成 <strong style="color:#e8753a;">4 項 commits</strong>，涵蓋知識管線清理與基礎設施修復。</p>
+
+    <h3>知識管線大清理（3 commits）</h3>
+
+    <div class="commit-block">
+      <div class="commit-title">speed-improvements.md 清理</div>
+      <ul>
+        <li>清除 60+ 條已升級／重複／過時條目</li>
+        <li>升級 5 條高頻規則到 preferences.md</li>
+      </ul>
+    </div>
+
+    <div class="commit-block">
+      <div class="commit-title">speed-improvements.md 二次清理</div>
+      <ul>
+        <li>再清 40+ 條已升級／重複／niche 條目</li>
+        <li>知識管線瘦身，減少 Agent 讀取噪音</li>
+      </ul>
+    </div>
+
+    <div class="commit-block">
+      <div class="commit-title">稅務 grep memory 規則結晶化</div>
+      <ul>
+        <li>DP-06 稅務相關 grep memory 規則升級到 preferences.md</li>
+        <li>確保 Tax Agent 每次都能快速定位正確法源</li>
+      </ul>
+    </div>
+
+    <h3>基礎設施修復（1 commit）</h3>
+
+    <div class="commit-block">
+      <div class="commit-title">Module C LaunchAgent 安全修復</div>
+      <ul>
+        <li>修復 com.rain.* 系列 LaunchAgent 安全問題</li>
+        <li>修復 ieobserve 安全問題</li>
+        <li>threads-blankspace 加入 keepAlive 保活機制</li>
+        <li>涉及 3 個檔案，+364 行</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Section 2: 系統健康狀態 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🏥</span>二、系統健康狀態</div>
+
+    <h3>網站健康（HTTP 狀態）</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>網站</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TheOrder (theorder.tw)</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+          <tr>
+            <td>SOMETHING SELECT (somethings.cool)</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+          <tr>
+            <td>Blankspaces (blankspaces.uk)</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+          <tr>
+            <td>BankExamQuiz (bank.somethings.cool)</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+          <tr>
+            <td>Slideless</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+          <tr>
+            <td>SaaSAlternatives (pure-vista)</td>
+            <td><span class="badge badge-ok">✅ 200 OK</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>市場晨報內容驗證</h3>
+    <div class="alert alert-warn">
+      <span class="alert-icon">⚠️</span>
+      <div>
+        <strong>market-briefing.html</strong> 大小 49,790 bytes，略低於閾值 50,000 bytes（差 210 bytes）。內容可能略舊，建議確認最新資料是否正確寫入。
+      </div>
+    </div>
+
+    <h3>LaunchAgent 健康概覽</h3>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">正常運行</div>
+        <div class="stat-value ok">18</div>
+        <div class="stat-sub">共 23 個</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">過時 (Stale)</div>
+        <div class="stat-value warn">5</div>
+        <div class="stat-sub">長時間未更新</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">故障</div>
+        <div class="stat-value ok">0</div>
+        <div class="stat-sub">無故障</div>
+      </div>
+    </div>
+
+    <h3>過時 LaunchAgent 清單</h3>
+    <div class="stale-item">
+      <span>ai.rain.openclaw-watchdog</span>
+      <span class="stale-age">372h 未更新</span>
+    </div>
+    <div class="stale-item">
+      <span>ai.rain.skill-upgrade-reminder</span>
+      <span class="stale-age">159h 未更新</span>
+    </div>
+    <div class="stale-item">
+      <span>ai.rain.langfuse</span>
+      <span class="stale-age">147h 未更新</span>
+    </div>
+    <div class="stale-item">
+      <span>ai.rain.colima</span>
+      <span class="stale-age">147h 未更新</span>
+    </div>
+    <div class="stale-item">
+      <span>ai.openclaw.weekly-update</span>
+      <span class="stale-age">140h 未更新</span>
+    </div>
+  </div>
+
+  <!-- Section 3: 流量與 SEO -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📊</span>三、流量與 SEO 監控</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>網站</th>
+            <th>GA4 Sessions（近期）</th>
+            <th>GSC 點擊（WoW）</th>
+            <th>平均排名</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>序位 TheOrder</td>
+            <td>57（11d）</td>
+            <td>2（-33.3%）</td>
+            <td>6.9</td>
+          </tr>
+          <tr>
+            <td>SOMETHING SELECT</td>
+            <td>62（10d）</td>
+            <td>0（持平）</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>澄境 Pure Vista</td>
+            <td>1（1d）</td>
+            <td>0</td>
+            <td>0.5</td>
+          </tr>
+          <tr>
+            <td>Blank Space 留白</td>
+            <td>184（13d）</td>
+            <td><span style="color:#b91c1c;font-weight:700;">0（-100% ⚠️）</span></td>
+            <td>12.7</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-error" style="margin-top:16px;">
+      <span class="alert-icon">🔴</span>
+      <div>
+        <strong>SEO 警報：Blank Space 留白</strong><br>
+        GSC 點擊 WoW 從 2 跌至 0（-100%），需立即關注。建議 dispatch Silo 檢查索引狀態與關鍵字排名。
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: API 狀態 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔌</span>四、API 狀態</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>服務</th>
+            <th>狀態</th>
+            <th>備註</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Firecrawl</td>
+            <td><span class="badge badge-error">❌ 額度耗盡</span></td>
+            <td>已知問題 2026-03-12，需 Knox 補充</td>
+          </tr>
+          <tr>
+            <td>SerpApi</td>
+            <td><span class="badge badge-ok">✅ 正常</span></td>
+            <td>100 / 月免費額度，監控中</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 5: Session 回顧分析 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🧠</span>五、Session 回顧分析</div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">今日 Sessions</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">含回顧</div>
+        <div class="stat-value ok">6</div>
+        <div class="stat-sub">含歷史累計</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">含反思</div>
+        <div class="stat-value ok">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Skill Deltas</div>
+        <div class="stat-value" style="color:#e8753a;">2</div>
+        <div class="stat-sub">發現</div>
+      </div>
+    </div>
+
+    <h3>Skill Deltas 發現</h3>
+
+    <div class="skill-delta">
+      <div class="delta-type">PATTERN</div>
+      <div class="delta-desc">John 完成 render 函數後可並行 dispatch Iris（CSS 類別名稱在 Phase 2 就確定），無需等待整個元件完成。</div>
+    </div>
+
+    <div class="skill-delta">
+      <div class="delta-type">TOOL</div>
+      <div class="delta-desc">截圖任務直接用 Python Playwright，不嘗試 Node.js 路徑 — 避免環境依賴問題，更快更穩定。</div>
+    </div>
+  </div>
+
+  <!-- Section 6: Dispatch Rate -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📤</span>六、Dispatch Rate</div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Standard+ 任務</div>
+        <div class="stat-value">0</div>
+        <div class="stat-sub">今日</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Dispatch Rate</div>
+        <div class="stat-value" style="color:#aaa;">N/A</div>
+        <div class="stat-sub">無 Standard+ 任務</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#aaa;margin-top:8px;">今日夜班任務均為知識管線清理與設施修復（Tiny/Standard），未觸發 Major dispatch 流程。</p>
+  </div>
+
+  <!-- Section 7: 待處理事項 -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📌</span>七、待處理事項</div>
+
+    <ul class="todo-list">
+      <li class="critical">
+        <span class="todo-icon">🔴</span>
+        <div>
+          <strong>Firecrawl 額度補充</strong><br>
+          已耗盡（自 2026-03-12），請 Knox 評估並補充額度，影響夜班爬蟲任務。
+        </div>
+      </li>
+      <li class="warn">
+        <span class="todo-icon">⚠️</span>
+        <div>
+          <strong>市場晨報內容確認</strong><br>
+          文件大小 49,790 bytes，差 210 bytes 未過閾值，建議確認內容新鮮度（尤其 11 段資料來源是否完整）。
+        </div>
+      </li>
+      <li class="warn">
+        <span class="todo-icon">⚠️</span>
+        <div>
+          <strong>Blank Space 留白 SEO 點擊歸零</strong><br>
+          GSC WoW -100%（2→0），建議 dispatch Silo 執行 GSC 索引診斷 + 關鍵字排名檢查。
+        </div>
+      </li>
+      <li class="info">
+        <span class="todo-icon">📋</span>
+        <div>
+          <strong>5 個 Stale LaunchAgent 評估</strong><br>
+          openclaw-watchdog（372h）、skill-upgrade-reminder（159h）、langfuse（147h）、colima（147h）、weekly-update（140h）— 建議確認是否仍需要，或 .disable 休眠。
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="report-footer">
+    <p>夜班晨間報告 · 2026-03-21 · 由 Noel 夜班執行 · Nova 製作</p>
+    <p style="margin-top:4px;">Rain AI Team — M4 Control Center</p>
+  </div>
+
+</div>
+</body>
+</html>

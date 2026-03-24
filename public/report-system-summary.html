@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 動態報告系統 ReportSystem — 建置總結</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f6f5f1;
+      --cream-dark: #edecea;
+      --cream-border: #e2e0da;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5a55;
+      --text-muted: #8a8a85;
+      --accent: #c17f3e;
+      --accent-light: #e8a45a;
+      --accent-bg: #fdf4e8;
+      --green: #3a7d44;
+      --green-bg: #ecf5ee;
+      --blue: #2d5fa6;
+      --blue-bg: #eaf0fb;
+      --purple: #6b4fa0;
+      --purple-bg: #f2eefb;
+      --red: #c0392b;
+      --red-bg: #fdecea;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--cream);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 64px 0;
+    }
+
+    section + section {
+      border-top: 1px solid var(--cream-border);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 80px 0 64px;
+      background: var(--cream);
+    }
+
+    .hero-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-bg);
+      border: 1px solid #f0d4b0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      margin-bottom: 28px;
+    }
+
+    .hero-meta::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hero-tag {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--cream-dark);
+      border: 1px solid var(--cream-border);
+      border-radius: 6px;
+      padding: 5px 12px;
+    }
+
+    /* ── Section Header ── */
+    .section-overline {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .section-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 560px;
+    }
+
+    /* ── Stat Cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--cream-border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: 16px 16px 0 0;
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-unit {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .stat-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── Tech Stack ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .tech-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: #ffffff;
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .tech-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--accent-bg);
+      border: 1px solid #f0d4b0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .tech-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .tech-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── Layer Sections ── */
+    .layer-block {
+      margin-bottom: 32px;
+    }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .layer-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .layer-badge.motion { background: var(--purple-bg); color: var(--purple); border: 1px solid #d5c8f0; }
+    .layer-badge.chart { background: var(--blue-bg); color: var(--blue); border: 1px solid #c0d4f5; }
+    .layer-badge.ui { background: var(--green-bg); color: var(--green); border: 1px solid #b8ddc0; }
+    .layer-badge.lib { background: var(--accent-bg); color: var(--accent); border: 1px solid #f0d4b0; }
+    .layer-badge.config { background: #f0f0f0; color: #555; border: 1px solid #ddd; }
+
+    .layer-count {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .component-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+      border: 1px solid var(--cream-border);
+    }
+
+    .component-table-wrap::-webkit-scrollbar { height: 5px; }
+    .component-table-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    .component-table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      background: #ffffff;
+      font-size: 14px;
+    }
+
+    .component-table th {
+      background: var(--cream-dark);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--cream-border);
+    }
+
+    .component-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--cream-border);
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+
+    .component-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .component-table tr:hover td {
+      background: var(--cream);
+    }
+
+    .comp-name {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .comp-desc {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .prop-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--cream-dark);
+      border: 1px solid var(--cream-border);
+      color: var(--text-muted);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin: 1px 2px;
+    }
+
+    /* ── Acceptance ── */
+    .check-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #ffffff;
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .check-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-top: 1px;
+    }
+
+    .check-icon.pass { background: var(--green-bg); color: var(--green); }
+    .check-icon.fix { background: var(--accent-bg); color: var(--accent); }
+
+    .check-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .check-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ── Usage Guide ── */
+    .step-list {
+      margin-top: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: #ffffff;
+      border: 1px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-content { flex: 1; }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .step-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+      font-size: 13px;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 10px;
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+
+    .code-comment { color: #6a9955; }
+    .code-keyword { color: #569cd6; }
+    .code-string { color: #ce9178; }
+    .code-component { color: #4ec9b0; }
+
+    /* ── Background Context ── */
+    .bg-card {
+      background: #ffffff;
+      border: 1px solid var(--cream-border);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 24px 24px;
+      margin-top: 36px;
+    }
+
+    .bg-card p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    .bg-card strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--cream-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .footer-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--cream-border);
+      margin: 40px 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      section { padding: 48px 0; }
+      .hero { padding: 56px 0 48px; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .check-list { grid-template-columns: 1fr; }
+      .tech-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-meta">Klay × Nova 交付報告 · 2026-03-19</div>
+    <h1>AI 動態報告系統<br /><span>ReportSystem</span><br />建置總結</h1>
+    <p class="hero-sub">
+      Rain 提供規範文件，Klay 主導工程化實作，交付一套可直接使用的 React 報告 Starter Kit，包含動畫元件、圖表系統、Token 規範，零配置可運行。
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">React 18 + TypeScript</span>
+      <span class="hero-tag">Framer Motion</span>
+      <span class="hero-tag">Recharts</span>
+      <span class="hero-tag">Tailwind CSS v4</span>
+      <span class="hero-tag">Vite 6</span>
+      <span class="hero-tag">~/Projects/ReportSystem</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">交付規模</p>
+    <h2 class="section-title">本次建置數字</h2>
+    <p class="section-sub">從零建置完整的工程化報告系統，涵蓋五層架構，全部驗收通過。</p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-number">24<span class="stat-unit"> 個</span></div>
+        <div class="stat-label">交付檔案</div>
+        <div class="stat-desc">Config × 6 / lib × 5 / motion × 5 / chart × 4 / ui × 2 / page × 1 + 1 mock</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">5<span class="stat-unit"> 層</span></div>
+        <div class="stat-label">架構分層</div>
+        <div class="stat-desc">Config → lib → motion 元件 → chart 元件 → ui 元件，職責明確不重疊</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3<span class="stat-unit"> 端</span></div>
+        <div class="stat-label">驗收通過</div>
+        <div class="stat-desc">TypeScript 零錯誤 + Production build 成功 + 桌機 / 手機 UI 全部正常</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BACKGROUND ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">背景</p>
+    <h2 class="section-title">任務起源</h2>
+    <p class="section-sub">Rain 對報告系統的需求與 Klay 的工程化回應。</p>
+
+    <div class="bg-card">
+      <p>
+        Rain 提供了一份 <strong>「AI 動態報告網站系統規範 v1.0」</strong>，描述了一套以 React + Framer Motion 為基礎的互動式報告系統構想。然而規範文件停留在設計層，缺乏可實際運行的工程實作。
+      </p>
+      <br />
+      <p>
+        Klay 接收任務後，將規範升級為 <strong>完整可執行的 Starter Kit</strong>，部署於 <code style="background:var(--cream-dark);padding:2px 6px;border-radius:4px;font-size:13px">~/Projects/ReportSystem/</code>。目標是讓 Rain 未來製作任何報告頁面時，只需複製模板、替換資料，不再需要從頭建立動畫系統或圖表框架。
+      </p>
+      <br />
+      <p>
+        核心設計原則：<strong>Token 統一</strong>（動畫常數集中在 motion-tokens.ts，禁止 hardcode）、<strong>元件可復用</strong>（motion / chart / ui 三層獨立）、<strong>零配置可運行</strong>（npm install + npm run dev 即可預覽）。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── TECH STACK ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">技術棧</p>
+    <h2 class="section-title">核心依賴</h2>
+    <p class="section-sub">精選業界標準工具，確保可維護性與效能。</p>
+
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="tech-icon">⚛️</div>
+        <div>
+          <div class="tech-name">React 18</div>
+          <div class="tech-desc">Concurrent Mode，現代元件基礎</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🔷</div>
+        <div>
+          <div class="tech-name">TypeScript 5</div>
+          <div class="tech-desc">嚴格型別，零 any 目標</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🎞️</div>
+        <div>
+          <div class="tech-name">Framer Motion 11</div>
+          <div class="tech-desc">生產級動畫，variants 系統</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">📊</div>
+        <div>
+          <div class="tech-name">Recharts 2</div>
+          <div class="tech-desc">React SVG 圖表，動畫整合</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🎨</div>
+        <div>
+          <div class="tech-name">Tailwind CSS v4</div>
+          <div class="tech-desc">原子化 CSS，快速版型</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🐻</div>
+        <div>
+          <div class="tech-name">Zustand 5</div>
+          <div class="tech-desc">輕量全域狀態管理</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">✏️</div>
+        <div>
+          <div class="tech-name">lucide-react</div>
+          <div class="tech-desc">一致性 SVG icon 系統</div>
+        </div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">⚡</div>
+        <div>
+          <div class="tech-name">Vite 6</div>
+          <div class="tech-desc">HMR 極速開發，2.5s 建置</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMPONENT CATALOG ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">元件清單</p>
+    <h2 class="section-title">分層元件目錄</h2>
+    <p class="section-sub">24 個交付檔案按層分類，職責邊界清晰。</p>
+
+    <!-- Config 層 -->
+    <div class="layer-block">
+      <div class="layer-header">
+        <span class="layer-badge config">Config 層</span>
+        <span class="layer-count">6 個檔案</span>
+      </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th style="width:220px">檔案名稱</th>
+              <th>說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="comp-name">package.json</span></td>
+              <td><span class="comp-desc">React 18 + Framer Motion + Recharts + Tailwind + Zustand + lucide-react 完整依賴配置</span></td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">vite.config.ts</span></td>
+              <td><span class="comp-desc">Vite 6 建置設定，path alias（@/）+ React plugin + Tailwind CSS v4 整合</span></td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">tsconfig.json</span></td>
+              <td><span class="comp-desc">TypeScript 嚴格模式設定，baseUrl + paths alias 對應 vite alias</span></td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">tsconfig.node.json</span></td>
+              <td><span class="comp-desc">Vite config 專用 TypeScript 設定（Node 環境）</span></td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">tailwind.config.ts</span></td>
+              <td><span class="comp-desc">Tailwind v4 設定，content glob + 自訂顏色 token</span></td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">postcss.config.js</span></td>
+              <td><span class="comp-desc">PostCSS 設定，@tailwindcss/postcss + autoprefixer</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- lib 層 -->
+    <div class="layer-block">
+      <div class="layer-header">
+        <span class="layer-badge lib">lib 層</span>
+        <span class="layer-count">5 個檔案</span>
+      </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th style="width:220px">模組名稱</th>
+              <th>說明與匯出項目</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="comp-name">motion-tokens.ts</span></td>
+              <td>
+                <span class="comp-desc">動畫常數系統（5 維度）</span><br />
+                <span class="prop-tag">duration</span>
+                <span class="prop-tag">distance</span>
+                <span class="prop-tag">stagger</span>
+                <span class="prop-tag">scale</span>
+                <span class="prop-tag">easing</span>
+                <br /><span class="comp-desc" style="font-size:12px;margin-top:4px;display:block">全專案統一動畫常數，禁止在元件內 hardcode duration/ease</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">motion-presets.ts</span></td>
+              <td>
+                <span class="comp-desc">10 種可復用 Framer Motion variants</span><br />
+                <span class="prop-tag">fadeUp</span>
+                <span class="prop-tag">fadeIn</span>
+                <span class="prop-tag">fadeLeft</span>
+                <span class="prop-tag">fadeRight</span>
+                <span class="prop-tag">scaleUp</span>
+                <span class="prop-tag">staggerContainer</span>
+                <span class="prop-tag">staggerChild</span>
+                <span class="prop-tag">hoverLift</span>
+                <span class="prop-tag">hoverScale</span>
+                <span class="prop-tag">hoverGlow</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">chart-theme.ts</span></td>
+              <td>
+                <span class="comp-desc">圖表統一主題系統</span><br />
+                <span class="prop-tag">palette</span>
+                <span class="prop-tag">tooltip 樣式</span>
+                <span class="prop-tag">axis 設定</span>
+                <span class="prop-tag">grid 設定</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">format.ts</span></td>
+              <td>
+                <span class="comp-desc">數字格式化工具集</span><br />
+                <span class="prop-tag">formatNumber</span>
+                <span class="prop-tag">formatCurrency</span>
+                <span class="prop-tag">formatPercent</span>
+                <span class="prop-tag">formatCompact</span>
+                <span class="prop-tag">formatWan（萬）</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">cn.ts</span></td>
+              <td><span class="comp-desc">clsx + tailwind-merge 組合工具，解決 className 衝突問題</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Motion 元件層 -->
+    <div class="layer-block">
+      <div class="layer-header">
+        <span class="layer-badge motion">Motion 元件層</span>
+        <span class="layer-count">5 個元件</span>
+      </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th style="width:220px">元件名稱</th>
+              <th>功能說明</th>
+              <th style="width:180px">主要 Props</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="comp-name">FadeInSection</span></td>
+              <td><span class="comp-desc">捲動觸發進場容器，進入 viewport 才播放動畫</span></td>
+              <td>
+                <span class="prop-tag">direction</span>
+                <span class="prop-tag">delay</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">StaggerGroup<br />StaggerItem</span></td>
+              <td><span class="comp-desc">子元素依序進場，父層控制總節奏，子層無感接入</span></td>
+              <td>
+                <span class="prop-tag">speed</span>
+                <span class="prop-tag">fast/base/slow</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">HoverCard</span></td>
+              <td><span class="comp-desc">帶微互動的卡片容器，四種視覺反饋變體</span></td>
+              <td>
+                <span class="prop-tag">variant</span>
+                <span class="prop-tag">lift/glow/scale/border</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">CountUpNumber</span></td>
+              <td><span class="comp-desc">數字滾動計數動畫，easeOutCubic 緩動，進入 viewport 觸發</span></td>
+              <td>
+                <span class="prop-tag">from/to</span>
+                <span class="prop-tag">prefix/suffix</span>
+                <span class="prop-tag">decimals</span>
+                <span class="prop-tag">formatter</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">RevealText</span></td>
+              <td><span class="comp-desc">文字逐步揭露動畫，支援三種分割模式</span></td>
+              <td>
+                <span class="prop-tag">mode</span>
+                <span class="prop-tag">words/chars/line</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart 元件層 -->
+    <div class="layer-block">
+      <div class="layer-header">
+        <span class="layer-badge chart">Chart 元件層</span>
+        <span class="layer-count">4 個（含 index.ts）</span>
+      </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th style="width:220px">元件名稱</th>
+              <th>功能說明</th>
+              <th style="width:180px">主要 Props</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="comp-name">ChartShell</span></td>
+              <td><span class="comp-desc">所有圖表標準外框，統一 title / subtitle / loading skeleton / empty state / source 標注</span></td>
+              <td>
+                <span class="prop-tag">title</span>
+                <span class="prop-tag">subtitle</span>
+                <span class="prop-tag">loading</span>
+                <span class="prop-tag">source</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">KPIBlock</span></td>
+              <td><span class="comp-desc">KPI 指標卡，整合 CountUpNumber + TrendingUp/Down 趨勢圖示 + 同比標注</span></td>
+              <td>
+                <span class="prop-tag">value</span>
+                <span class="prop-tag">trend</span>
+                <span class="prop-tag">label</span>
+                <span class="prop-tag">formatter</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">AnimatedBarChart</span></td>
+              <td><span class="comp-desc">動畫長條圖，柱體逐一進場，支援多色配置與資料來源標注</span></td>
+              <td>
+                <span class="prop-tag">data</span>
+                <span class="prop-tag">multiColor</span>
+                <span class="prop-tag">formatter</span>
+                <span class="prop-tag">source</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">AnimatedLineChart</span></td>
+              <td><span class="comp-desc">動畫折線圖，路徑描繪動畫，支援多條線、虛線樣式與圖例</span></td>
+              <td>
+                <span class="prop-tag">series</span>
+                <span class="prop-tag">dashed</span>
+                <span class="prop-tag">legend</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- UI 元件層 -->
+    <div class="layer-block">
+      <div class="layer-header">
+        <span class="layer-badge ui">UI 元件層</span>
+        <span class="layer-count">2 個元件</span>
+      </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th style="width:220px">元件名稱</th>
+              <th>功能說明</th>
+              <th style="width:200px">主要 Props / 變體</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="comp-name">SectionTitle</span></td>
+              <td><span class="comp-desc">統一 section 標題元件，確保全報告標題層級視覺一致</span></td>
+              <td>
+                <span class="prop-tag">overline</span>
+                <span class="prop-tag">title</span>
+                <span class="prop-tag">subtitle</span>
+                <span class="prop-tag">align</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="comp-name">Tag</span></td>
+              <td><span class="comp-desc">語義化標籤元件，六色系統對應不同狀態語義</span></td>
+              <td>
+                <span class="prop-tag">blue</span>
+                <span class="prop-tag">green</span>
+                <span class="prop-tag">amber</span>
+                <span class="prop-tag">red</span>
+                <span class="prop-tag">gray</span>
+                <span class="prop-tag">purple</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── ACCEPTANCE ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">驗收結果</p>
+    <h2 class="section-title">三端驗收，全部通過</h2>
+    <p class="section-sub">TypeScript 編譯、Production 建置、桌機與手機 UI 逐項確認。</p>
+
+    <div class="check-list">
+      <div class="check-item">
+        <div class="check-icon pass">✓</div>
+        <div>
+          <div class="check-title">TypeScript 編譯：零錯誤</div>
+          <div class="check-detail">嚴格模式下 tsc --noEmit 無任何型別錯誤，型別安全達標</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon pass">✓</div>
+        <div>
+          <div class="check-title">Production Build 成功</div>
+          <div class="check-detail">npm run build 2.51s 完成，無警告，bundle 正常輸出</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon pass">✓</div>
+        <div>
+          <div class="check-title">桌機視覺正常</div>
+          <div class="check-detail">Hero / KPI / 圖表 / 洞察 / 建議 / Footer 五段全部正確渲染</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon pass">✓</div>
+        <div>
+          <div class="check-title">手機 390px 正常</div>
+          <div class="check-detail">KPI 單欄堆疊、圖表 402×300px 正常渲染、文字不截斷</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon pass">✓</div>
+        <div>
+          <div class="check-title">Console Errors：零</div>
+          <div class="check-detail">瀏覽器 devtools 無任何錯誤或警告訊息</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon fix">⚙</div>
+        <div>
+          <div class="check-title">修復：手機圖表空白</div>
+          <div class="check-detail">Recharts ResponsiveContainer height="100%" 在 mobile 無效 → 改傳入 px 值（402×300）修復</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── USAGE GUIDE ── -->
+<section>
+  <div class="container">
+    <p class="section-overline">使用指南</p>
+    <h2 class="section-title">Rain 以後這樣用</h2>
+    <p class="section-sub">六個步驟，從啟動到交付完整報告頁面。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-title">啟動開發環境</div>
+          <div class="step-detail">進入專案目錄，安裝依賴並啟動 HMR 開發伺服器。</div>
+          <div class="code-block">
+            <span class="code-comment"># 進入專案</span><br />
+            cd ~/Projects/ReportSystem<br />
+            <span class="code-comment"># 安裝（首次）</span><br />
+            npm install<br />
+            <span class="code-comment"># 啟動開發（localhost:5173）</span><br />
+            npm run dev
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <div class="step-title">複製報告模板</div>
+          <div class="step-detail">把 ReportPage.tsx 複製一份改名，作為新報告的起點。不要直接修改原模板。</div>
+          <div class="code-block">
+            cp src/pages/ReportPage.tsx src/pages/<span class="code-string">MyNewReport</span>.tsx
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <div class="step-title">替換資料</div>
+          <div class="step-detail">編輯 src/data/mock.ts，換上真實資料。格式已有 TypeScript 型別保護，填錯會有即時提示。</div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <div class="step-title">加動畫 — 用現成元件</div>
+          <div class="step-detail">所有動畫元件都在 src/components/motion/，直接包裹任何內容即可生效。</div>
+          <div class="code-block">
+            <span class="code-comment">// 捲動進場</span><br />
+            &lt;<span class="code-component">FadeInSection</span> direction=<span class="code-string">"up"</span> delay={0.2}&gt;<br />
+            &nbsp;&nbsp;...內容...<br />
+            &lt;/<span class="code-component">FadeInSection</span>&gt;<br />
+            <br />
+            <span class="code-comment">// 子元素依序進場</span><br />
+            &lt;<span class="code-component">StaggerGroup</span>&gt;<br />
+            &nbsp;&nbsp;&lt;<span class="code-component">StaggerItem</span>&gt;卡片一&lt;/<span class="code-component">StaggerItem</span>&gt;<br />
+            &nbsp;&nbsp;&lt;<span class="code-component">StaggerItem</span>&gt;卡片二&lt;/<span class="code-component">StaggerItem</span>&gt;<br />
+            &lt;/<span class="code-component">StaggerGroup</span>&gt;
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <div class="step-title">加圖表 — 一律包在 ChartShell 內</div>
+          <div class="step-detail">ChartShell 提供統一的 title / loading / empty 三種狀態。圖表永遠透過 ChartShell 呈現。</div>
+          <div class="code-block">
+            &lt;<span class="code-component">ChartShell</span> title=<span class="code-string">"月收入趨勢"</span> source=<span class="code-string">"Kai 中控台"</span>&gt;<br />
+            &nbsp;&nbsp;&lt;<span class="code-component">AnimatedLineChart</span> data={revenueData} /&gt;<br />
+            &lt;/<span class="code-component">ChartShell</span>&gt;
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <div class="step-title">動畫數值從 Token 取，禁止 hardcode</div>
+          <div class="step-detail">所有 duration、easing 值從 motion-tokens.ts 匯入。這樣修改全站動畫節奏只需改一個地方。</div>
+          <div class="code-block">
+            <span class="code-keyword">import</span> { DURATION, EASING } <span class="code-keyword">from</span> <span class="code-string">'@/lib/motion-tokens'</span><br />
+            <br />
+            <span class="code-comment">// ✅ 正確</span><br />
+            transition={{ duration: DURATION.base, ease: EASING.easeOut }}<br />
+            <br />
+            <span class="code-comment">// ❌ 禁止 hardcode</span><br />
+            transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<div class="container">
+  <div class="footer">
+    <div class="footer-brand">ReportSystem — 建置總結報告</div>
+    <div class="footer-meta">Nova 製作 · Klay 主導 · 2026-03-19 · Rain AI Team</div>
+  </div>
+</div>
+
+</body>
+</html>

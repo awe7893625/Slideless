@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockSignal MVP — 部署完成報告｜2026-03-23</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: #f6f5f1;
+      color: #2c2c2c;
+      line-height: 1.7;
+    }
+
+    /* ─── Hero / Cover ─── */
+    .hero {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 80px 40px 64px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      background: #eb8054;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 span { color: #eb8054; }
+    .hero-sub {
+      font-size: 16px;
+      color: #aaa;
+      margin-bottom: 36px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px 22px;
+      text-align: center;
+    }
+    .hero-meta-item .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .hero-meta-item .value { font-size: 15px; font-weight: 600; color: #fff; margin-top: 2px; }
+
+    /* ─── Status Banner ─── */
+    .status-banner {
+      background: #eb8054;
+      color: #fff;
+      text-align: center;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .status-banner span { font-size: 18px; margin-right: 8px; }
+
+    /* ─── Main Layout ─── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    /* ─── Section Title ─── */
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #eb8054;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .num {
+      background: #eb8054;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ─── Cards ─── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      border-left: 4px solid #eb8054;
+    }
+    .card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+    .card p, .card li {
+      font-size: 14.5px;
+      color: #444;
+      line-height: 1.75;
+    }
+    .card ul {
+      padding-left: 20px;
+      margin-top: 6px;
+    }
+    .card ul li { margin-bottom: 5px; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+    .card-grid .card { margin-bottom: 0; }
+
+    .card-accent {
+      background: #fff8f5;
+      border-left-color: #eb8054;
+    }
+    .card-neutral {
+      border-left-color: #ccc;
+    }
+
+    /* ─── Code / Path ─── */
+    code {
+      background: #f0ede8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 13px;
+      font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+      color: #c0392b;
+    }
+    .code-block {
+      background: #1a1a1a;
+      color: #f0ede8;
+      border-radius: 10px;
+      padding: 18px 22px;
+      font-size: 13px;
+      font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+      line-height: 1.8;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .code-block .comment { color: #888; }
+    .code-block .cmd { color: #eb8054; }
+
+    /* ─── Decision Alert ─── */
+    .decision-box {
+      background: #fff9f0;
+      border: 2px solid #f0c070;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 12px 0;
+    }
+    .decision-box .decision-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #c07a30;
+      margin-bottom: 8px;
+    }
+    .decision-box p {
+      font-size: 14.5px;
+      color: #5a3a10;
+      line-height: 1.7;
+    }
+
+    /* ─── Status Table ─── */
+    .section { margin-bottom: 48px; }
+
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    table {
+      min-width: 600px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 14px;
+    }
+    table thead th {
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 14px 18px;
+      text-align: left;
+    }
+    table thead th:first-child { border-radius: 12px 0 0 0; }
+    table thead th:last-child { border-radius: 0 12px 0 0; }
+    table tbody tr { border-bottom: 1px solid #f0ede8; }
+    table tbody tr:last-child { border-bottom: none; }
+    table tbody tr:hover { background: #faf9f7; }
+    table tbody td { padding: 13px 18px; vertical-align: middle; color: #333; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-ok { background: #e6f7ec; color: #1a7a3a; }
+    .badge-warn { background: #fff3e0; color: #b85c00; }
+    .badge-info { background: #e8f1fd; color: #1a5ab8; }
+
+    /* ─── Next Steps ─── */
+    .steps-list {
+      counter-reset: steps;
+      list-style: none;
+      padding: 0;
+    }
+    .steps-list li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid #ede9e3;
+    }
+    .steps-list li:last-child { border-bottom: none; }
+    .steps-list li::before {
+      content: counter(steps);
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .steps-list li .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .steps-list li .step-desc {
+      font-size: 13.5px;
+      color: #666;
+      line-height: 1.65;
+    }
+
+    /* ─── Background section ─── */
+    .section-bg {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 30px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .section-bg p {
+      font-size: 15px;
+      color: #444;
+      line-height: 1.8;
+    }
+
+    /* ─── Key Metric Chips ─── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .chip {
+      background: #f0ede8;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 13px;
+      color: #333;
+      font-weight: 500;
+    }
+    .chip strong { color: #eb8054; }
+
+    /* ─── Footer ─── */
+    footer {
+      background: #1a1a1a;
+      color: #888;
+      text-align: center;
+      padding: 36px 24px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    footer .footer-brand {
+      color: #eb8054;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    footer a { color: #aaa; text-decoration: none; }
+    footer a:hover { color: #eb8054; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Hero ─── -->
+  <section class="hero">
+    <div class="hero-eyebrow">部署完成報告</div>
+    <h1>StockSignal <span>MVP</span></h1>
+    <p class="hero-sub">盤中選股 + 權證推薦系統 · MockBroker 模式公開上線</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="label">報告日期</div>
+        <div class="value">2026-03-23</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">系統狀態</div>
+        <div class="value" style="color:#7dcea0;">全線正常</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">觀察股票數</div>
+        <div class="value">21 支</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">Broker 模式</div>
+        <div class="value">MockBroker</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Status Banner ─── -->
+  <div class="status-banner">
+    <span>✅</span> MVP 部署完成 — 前端 Vercel 正常 · 後端 Cloudflare Tunnel 正常 · LaunchAgent 開機自啟已設定
+  </div>
+
+  <!-- ─── Main Content ─── -->
+  <div class="container">
+
+    <!-- Background -->
+    <div class="section">
+      <div class="section-title">任務背景</div>
+      <div class="section-bg">
+        <p>
+          為客戶建立<strong>盤中選股 + 權證推薦系統（StockSignal）MVP</strong>，並完成公開部署。
+          系統採 MockBroker 模式（21 支觀察股），前端透過 Vercel 對外服務，後端透過 Cloudflare Quick Tunnel 暴露 API，
+          搭配 LaunchAgent 開機自動啟動機制，確保系統可持續穩定運行。
+        </p>
+        <div class="chips">
+          <span class="chip">FastAPI 後端</span>
+          <span class="chip">Next.js 14 前端</span>
+          <span class="chip">Cloudflare Tunnel</span>
+          <span class="chip">Vercel 部署</span>
+          <span class="chip">LaunchAgent 自啟</span>
+          <span class="chip"><strong>21</strong> 支觀察股</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: System Architecture -->
+    <div class="section">
+      <div class="section-title"><span class="num">1</span>系統架構</div>
+      <div class="card-grid">
+        <div class="card card-accent">
+          <h3>後端</h3>
+          <ul>
+            <li>框架：<code>FastAPI</code></li>
+            <li>位址：<code>127.0.0.1:8001</code></li>
+            <li>模式：MockBroker</li>
+            <li>觀察股：21 支</li>
+          </ul>
+        </div>
+        <div class="card card-accent">
+          <h3>公開暴露</h3>
+          <ul>
+            <li>服務：<code>cloudflared</code></li>
+            <li>類型：Quick Tunnel</li>
+            <li>域名：<code>*.trycloudflare.com</code></li>
+            <li>自動更新：啟動腳本處理</li>
+          </ul>
+        </div>
+        <div class="card card-accent">
+          <h3>前端</h3>
+          <ul>
+            <li>框架：<code>Next.js 14</code></li>
+            <li>平台：Vercel</li>
+            <li>重新部署：自動觸發</li>
+          </ul>
+        </div>
+        <div class="card card-accent">
+          <h3>持久化</h3>
+          <ul>
+            <li>LaunchAgent 開機自啟</li>
+            <li>KeepAlive 崩潰重啟</li>
+            <li>PATH 已配置（homebrew）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Domain Decision -->
+    <div class="section">
+      <div class="section-title"><span class="num">2</span>決策：跳過自訂域名（本次）</div>
+      <div class="card card-neutral">
+        <h3>背景</h3>
+        <p>原計畫透過 <code>api.stockcast.tw</code> 提供後端服務，需將 Dynadot 的 NS 修改至 Cloudflare。</p>
+      </div>
+      <div class="decision-box">
+        <div class="decision-label">遭遇阻礙</div>
+        <p>
+          Dynadot 登入頁啟用了 <strong>Cloudflare Turnstile 機器人驗證</strong>，Playwright 自動化及 Chrome DevTools
+          均無法通過，顯示「Verification failed」。自動化登入路徑在此受阻。
+        </p>
+      </div>
+      <div class="decision-box" style="background:#f0fff4; border-color:#7dcea0;">
+        <div class="decision-label" style="color:#1a7a3a;">Rain 決策</div>
+        <p style="color:#1a4a2a;">
+          <strong>跳過自訂域名</strong>，改用 Cloudflare Quick Tunnel，加速上線時程。
+          後續 Dynadot NS 修改由 Rain 親自在瀏覽器操作（繞過機器人驗證），再啟用 <code>api.stockcast.tw</code>。
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 3: Quick Tunnel Automation -->
+    <div class="section">
+      <div class="section-title"><span class="num">3</span>Quick Tunnel 自動化機制</div>
+      <div class="card">
+        <h3>啟動腳本位置</h3>
+        <p><code>/Users/rain/Projects/StockSignal/start-tunnel.sh</code></p>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <h3>腳本執行流程</h3>
+          <ul>
+            <li>啟動 <code>cloudflared</code> 快速 tunnel</li>
+            <li>等待並抓取新的 tunnel URL</li>
+            <li>自動更新 <code>.env.local</code></li>
+            <li>自動更新 Vercel 環境變數</li>
+            <li>自動觸發 Vercel production redeploy</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>為何需要此機制</h3>
+          <ul>
+            <li>Quick Tunnel URL 每次啟動都會變更</li>
+            <li>前端需要正確的後端 URL 才能運作</li>
+            <li>腳本全自動化處理更新流程</li>
+            <li>無需人工干預即可完成重啟</li>
+          </ul>
+        </div>
+      </div>
+      <div class="code-block">
+<span class="comment"># start-tunnel.sh 核心流程</span>
+<span class="cmd">cloudflared tunnel --url http://localhost:8001</span> <span class="comment">&amp; # 啟動 tunnel</span>
+<span class="comment"># 等待 URL 輸出，正則抓取 *.trycloudflare.com</span>
+<span class="cmd">TUNNEL_URL=$(grep -o 'https://[^.]*\.trycloudflare\.com')</span>
+<span class="comment"># 更新 .env.local</span>
+<span class="cmd">echo "NEXT_PUBLIC_API_URL=$TUNNEL_URL" &gt; .env.local</span>
+<span class="comment"># 更新 Vercel 並重新部署</span>
+<span class="cmd">vercel env add NEXT_PUBLIC_API_URL &amp;&amp; vercel --prod --yes</span>
+      </div>
+    </div>
+
+    <!-- Section 4: LaunchAgent -->
+    <div class="section">
+      <div class="section-title"><span class="num">4</span>LaunchAgent 設定</div>
+      <div class="card">
+        <h3>Plist 位置</h3>
+        <p><code>~/Library/LaunchAgents/ai.rain.stocksignal-tunnel.plist</code></p>
+      </div>
+      <div class="card-grid">
+        <div class="card card-accent">
+          <h3>設定重點</h3>
+          <ul>
+            <li><code>RunAtLoad: true</code>（開機立即啟動）</li>
+            <li><code>KeepAlive: true</code>（崩潰自動重啟）</li>
+            <li>PATH 已加入 <code>/opt/homebrew/bin</code></li>
+            <li>已解決 <code>node</code> 找不到的問題</li>
+          </ul>
+        </div>
+        <div class="card card-accent">
+          <h3>啟動狀態</h3>
+          <ul>
+            <li>已執行 <code>launchctl load</code></li>
+            <li>狀態：<code>✅ 已 reload</code></li>
+            <li>程序 ID：正常運行</li>
+            <li>下次開機：自動啟動</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Briefing Fix -->
+    <div class="section">
+      <div class="section-title"><span class="num">5</span>晨報腳本問題修復</div>
+      <div class="card card-neutral">
+        <h3>問題描述</h3>
+        <p>
+          <code>~/Projects/scripts/update-market-briefing.py</code> 存在 night shift 遺留的未提交修改，
+          導致 <code>SLIDELESS_ALLOW_DEPLOY</code> 環境變數判斷異常，預設為 <code>False</code>，
+          造成市場晨報無法部署到 Slideless。
+        </p>
+      </div>
+      <div class="decision-box" style="background:#f0fff4; border-color:#7dcea0;">
+        <div class="decision-label" style="color:#1a7a3a;">修復措施</div>
+        <p style="color:#1a4a2a;">
+          執行 <code>git checkout -- update-market-briefing.py</code> 還原腳本至正確版本。
+          <code>stockcast.tw</code> 確認正常運作，最後更新時間：<strong>當日 10:16 AM</strong>。
+        </p>
+      </div>
+    </div>
+
+    <!-- Status Table -->
+    <div class="section">
+      <div class="section-title">目前線上狀態</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>狀態</th>
+              <th>說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>前端 URL</strong></td>
+              <td><span class="badge badge-ok">✅ 正常</span></td>
+              <td><code>https://frontend-blond-omega-57.vercel.app</code></td>
+            </tr>
+            <tr>
+              <td><strong>後端 Tunnel</strong></td>
+              <td><span class="badge badge-ok">✅ 正常</span></td>
+              <td><code>https://analyze-commissions-narrow-warnings.trycloudflare.com</code></td>
+            </tr>
+            <tr>
+              <td><strong>Backend Health</strong></td>
+              <td><span class="badge badge-ok">✅ MockBroker</span></td>
+              <td>21 支觀察股，健康檢查 OK</td>
+            </tr>
+            <tr>
+              <td><strong>LaunchAgent</strong></td>
+              <td><span class="badge badge-ok">✅ 已 reload</span></td>
+              <td><code>ai.rain.stocksignal-tunnel</code>，開機自啟已啟用</td>
+            </tr>
+            <tr>
+              <td><strong>晨報腳本</strong></td>
+              <td><span class="badge badge-ok">✅ 已還原</span></td>
+              <td><code>update-market-briefing.py</code> git checkout 還原完成</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="section">
+      <div class="section-title">待完成（下階段）</div>
+      <div class="section-bg" style="padding: 20px 30px;">
+        <ul class="steps-list">
+          <li>
+            <div>
+              <div class="step-title">取得富邦 TradeAPI 憑證 → 啟用真實 Broker</div>
+              <div class="step-desc">
+                向富邦申請 <code>.pfx</code> 交易憑證，完成後替換 MockBroker 設定，
+                啟用真實下單與 API 連線功能。
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <div class="step-title">Rain 手動修改 Dynadot NS → 啟用 api.stockcast.tw</div>
+              <div class="step-desc">
+                Rain 親自登入 Dynadot 控制台（繞過機器人驗證），將 NS 改為 Cloudflare NS，
+                後續即可啟用自訂域名 <code>api.stockcast.tw</code> 取代 Quick Tunnel。
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <div class="step-title">客戶驗收與正式移交</div>
+              <div class="step-desc">
+                完成功能示範，確認選股邏輯與權證推薦輸出符合客戶需求，
+                辦理正式移交文件與上線說明。
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- ─── Footer ─── -->
+  <footer>
+    <div class="footer-brand">StockSignal MVP 部署完成報告</div>
+    <p>報告日期：2026-03-23 &nbsp;·&nbsp; 系統：MockBroker 模式 · 21 支觀察股</p>
+    <p style="margin-top: 10px; font-size: 12px; color: #666;">
+      ⚠️ 免責聲明：本系統現階段為研究開發用途，採 MockBroker 模式，不執行真實交易。
+      系統輸出內容僅供技術驗證，非投資建議。實際交易決策請自行評估風險。
+    </p>
+    <p style="margin-top: 14px;">
+      <a href="https://slideless.vercel.app">Slideless Report System</a>
+      &nbsp;·&nbsp; Generated by Nova · Rain AI Team
+    </p>
+  </footer>
+
+</body>
+</html>

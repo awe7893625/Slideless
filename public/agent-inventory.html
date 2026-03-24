@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team — Agent Inventory v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #121212;
+  --white: #ffffff;
+  --cream: #f6f5f1;
+  --grey-01: #f0eee6;
+  --grey-02: #8b877c;
+  --grey-03: #6c6a62;
+  --accent: #a8cde8;
+  --accent-warm: #eb8054;
+  --green: #85a268;
+  --danger: #d94f4f;
+  --yellow: #d4a843;
+  --font-main: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-main);
+  background: var(--cream);
+  color: var(--black);
+  line-height: 1.6;
+}
+
+/* Progress bar */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--accent-warm);
+  width: 0%;
+  z-index: 1000;
+  transition: width 0.1s ease;
+}
+
+/* Nav */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(246,245,241,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--grey-01);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  z-index: 900;
+  gap: 32px;
+}
+.nav-brand {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  overflow-x: auto;
+}
+.nav-links a {
+  font-size: 13px;
+  color: var(--grey-02);
+  text-decoration: none;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.nav-links a:hover { color: var(--black); }
+.nav-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-02);
+  white-space: nowrap;
+}
+
+/* Hero */
+.hero {
+  padding: 120px 40px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.hero-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent-warm);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.hero-sub {
+  font-size: 16px;
+  color: var(--grey-03);
+  max-width: 560px;
+  line-height: 1.7;
+}
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-num {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-warm);
+  font-family: var(--font-mono);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--grey-02);
+  letter-spacing: 0.05em;
+}
+
+/* Sections */
+section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 64px 40px;
+  border-top: 1px solid var(--grey-01);
+}
+.section-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--grey-02);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.section-desc {
+  font-size: 14px;
+  color: var(--grey-03);
+  margin-bottom: 36px;
+  max-width: 560px;
+}
+
+/* Tables */
+.tbl-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid var(--grey-01);
+  margin-bottom: 28px;
+}
+.tbl-wrap::-webkit-scrollbar { height: 5px; }
+.tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead tr {
+  background: var(--grey-01);
+}
+thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey-02);
+  white-space: nowrap;
+}
+tbody tr {
+  border-top: 1px solid var(--grey-01);
+  transition: background 0.15s;
+}
+tbody tr:hover { background: rgba(240,238,230,0.5); }
+tbody td {
+  padding: 12px 16px;
+  color: var(--black);
+  vertical-align: top;
+}
+tbody td:first-child {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+}
+.badge-fixed { background: #e8f4e8; color: #2d6a2d; }
+.badge-percall { background: #fef3e2; color: #a06000; }
+.badge-active { background: #e8f4e8; color: #2d6a2d; }
+.badge-frozen { background: var(--grey-01); color: var(--grey-02); }
+.badge-tool { background: #e8eef8; color: #2d4a8a; }
+
+/* Risk badges */
+.risk-high {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: #fde8e8;
+  color: #b02020;
+  letter-spacing: 0.05em;
+}
+.risk-medium {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: #fef3e2;
+  color: #a06000;
+  letter-spacing: 0.05em;
+}
+.risk-low {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: var(--grey-01);
+  color: var(--grey-02);
+  letter-spacing: 0.05em;
+}
+
+/* Agent layer cards */
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 36px;
+}
+.layer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.layer-dot-core { background: var(--accent-warm); }
+.layer-dot-dept { background: var(--accent); }
+.layer-dot-ext { background: var(--green); }
+.layer-dot-frozen { background: var(--grey-02); }
+
+.layer-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.layer-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--grey-02);
+}
+
+/* Agent grid */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.agent-card {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 8px;
+  padding: 16px;
+  transition: box-shadow 0.15s;
+}
+.agent-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.agent-card-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agent-card-role {
+  font-size: 12px;
+  color: var(--grey-03);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.agent-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.meta-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--grey-01);
+  color: var(--grey-02);
+}
+.meta-pill-orange {
+  background: #fef3e2;
+  color: #a06000;
+}
+
+/* Flow diagram */
+.flow-box {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 12px;
+  padding: 32px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 2.2;
+  color: var(--grey-03);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.flow-highlight { color: var(--accent-warm); font-weight: 600; }
+.flow-dim { color: var(--grey-02); }
+
+/* Cost bar */
+.cost-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--grey-01);
+}
+.cost-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  width: 120px;
+  flex-shrink: 0;
+}
+.cost-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--grey-01);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cost-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent-warm);
+}
+.cost-bar-high { background: var(--danger); }
+.cost-bar-med { background: var(--yellow); }
+.cost-bar-low { background: var(--green); }
+.cost-label {
+  font-size: 11px;
+  color: var(--grey-02);
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.cost-model {
+  font-size: 11px;
+  color: var(--grey-02);
+  font-family: var(--font-mono);
+  width: 140px;
+  flex-shrink: 0;
+}
+
+/* Audit spec */
+.spec-block {
+  background: var(--white);
+  border: 1px solid var(--grey-01);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.spec-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.spec-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--grey-01);
+  color: var(--grey-02);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.spec-body {
+  font-size: 13px;
+  color: var(--grey-03);
+  line-height: 1.7;
+}
+.spec-code {
+  background: var(--grey-01);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--black);
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+/* Observability table note */
+.obs-note {
+  font-size: 12px;
+  color: var(--grey-02);
+  margin-top: 12px;
+  font-style: italic;
+}
+
+/* Footer */
+footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 40px;
+  border-top: 1px solid var(--grey-01);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: gap;
+  gap: 16px;
+}
+.footer-brand {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--grey-02);
+}
+.footer-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-02);
+}
+
+@media (max-width: 640px) {
+  nav { padding: 0 20px; }
+  .hero { padding: 100px 20px 60px; }
+  section { padding: 48px 20px; }
+  footer { padding: 32px 20px; flex-direction: column; }
+  .hero-stats { gap: 24px; }
+  .agent-grid { grid-template-columns: 1fr; }
+  .nav-meta { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a class="nav-brand" href="#">AI-INVENTORY</a>
+  <ul class="nav-links">
+    <li><a href="#architecture">架構概覽</a></li>
+    <li><a href="#agents">Agent 清單</a></li>
+    <li><a href="#risks">風險清單</a></li>
+    <li><a href="#costs">成本分析</a></li>
+    <li><a href="#audit">Auto Audit</a></li>
+  </ul>
+  <span class="nav-meta">v1.0 — 2026-03-21</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-tag">Rain AI Team / Agent Inventory</div>
+  <h1>28 Agents.<br>一張完整地圖。</h1>
+  <p class="hero-sub">從 Klay CEO 到 Tier 3 外部爬蟲，完整記錄每個 Agent 的角色、成本模式、觀測缺口與風險。此文件為 Auto Audit Agent 建置的前置基線規格。</p>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">28</span>
+      <span class="stat-label">Total Agents</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">20</span>
+      <span class="stat-label">Fixed Pool</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">14</span>
+      <span class="stat-label">Per-Call (需追蹤)</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">10</span>
+      <span class="stat-label">風險項目</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">3</span>
+      <span class="stat-label">HIGH 風險</span>
+    </div>
+  </div>
+</div>
+
+<!-- Section 1: Architecture -->
+<section id="architecture">
+  <div class="section-tag">01 / 系統架構</div>
+  <div class="section-title">Fixed Pool vs Per-Call</div>
+  <p class="section-desc">系統共分四個成本層。Claude Code 訂閱池為固定成本；OpenClaw Tier 3 及獨立 Bot 依呼叫次數計費，需重點追蹤。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>系統層</th>
+          <th>涵蓋 Agent</th>
+          <th>成本模式</th>
+          <th>數量</th>
+          <th>追蹤優先</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Claude Code 訂閱池</td>
+          <td>Klay / Max / Rex / John / Iris / Forge / Scout / Quill / Nova / Knox / Inquisitor / Tax / Keeper / Webb / Sentinel / Orion / Lab / Lens / Strategist / Atlas</td>
+          <td><span class="badge badge-fixed">Fixed Cost</span></td>
+          <td>20</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>OpenClaw Tier 3</td>
+          <td>Spider / Lynx / Nautilus / Probe / Echo / Buzz</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+          <td>6</td>
+          <td>高（Nautilus 最貴）</td>
+        </tr>
+        <tr>
+          <td>獨立 Bot</td>
+          <td>GooayeAI / Jarvis / Noel / EchoMarketer / Silo / Pixel / Vick</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+          <td>7</td>
+          <td>中（Noel / Silo / Vick）</td>
+        </tr>
+        <tr>
+          <td>Ray（設計審查）</td>
+          <td>Ray（Codex Plus）</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+          <td>1</td>
+          <td>高（每次 review 費用高）</td>
+        </tr>
+        <tr>
+          <td>Kai 中控台</td>
+          <td>Kai（FastAPI + Frontend）</td>
+          <td><span class="badge badge-fixed">Fixed (Local)</span></td>
+          <td>1</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="obs-note">* Ray 雖使用 Claude Code session，但底層呼叫 Codex Plus / OpenRouter，屬 per-call 計費例外。</p>
+
+  <!-- Task Flow -->
+  <div style="margin-top: 36px;">
+    <div class="section-tag" style="margin-bottom: 12px;">任務流架構</div>
+    <div class="flow-box">
+<span class="flow-highlight">User Input</span> （Telegram / Claude Code / Kai UI）
+    ↓
+<span class="flow-highlight">Klay</span>（CEO）— Scope Card + 等級判斷
+    ↓
+<span class="flow-dim">Tiny</span>    → 直接處理
+<span class="flow-dim">Standard</span> → Dispatch 單一 agent
+<span class="flow-dim">Major</span>   → 3-Phase（Scout → Ray → Dispatch）
+<span class="flow-dim">Critical</span> → 3-Phase + Ray veto → Dispatch
+    ↓
+<span class="flow-highlight">Implementation</span>（Max / Rex / John / Iris 並行）
+    ↓
+Layer 1：<span class="flow-highlight">Quill</span>（code review）
+Layer 2：<span class="flow-highlight">Forge</span>（CI gate）
+Layer 3：<span class="flow-highlight">Ray</span>（design review — Major/Critical only）
+    ↓
+完成 → Kai task mark done → Email / Deck 報告</div>
+  </div>
+</section>
+
+<!-- Section 2: Agent List -->
+<section id="agents">
+  <div class="section-tag">02 / Agent 清單</div>
+  <div class="section-title">完整 Agent 名冊（分層）</div>
+  <p class="section-desc">依 Core / On-Demand / Department / External Tier 3 分層列出，包含模型、Provider 及成本模式。</p>
+
+  <!-- Core -->
+  <div class="layer-header">
+    <div class="layer-dot layer-dot-core"></div>
+    <span class="layer-title">Core Team（Claude Code 訂閱池）</span>
+    <span class="layer-count">10 agents</span>
+  </div>
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="agent-card-name">Klay <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">CEO — 商業目標、優先級決策、任務等級判斷、Scope Card、衝突仲裁</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-opus-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Max <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">Senior Backend — Python/FastAPI 複雜架構、效能優化、重構</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-opus-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Rex <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">Backend — API CRUD、金流串接（ECPay/Stripe）、簡單 SQL</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">John <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">Frontend — React / TypeScript / Next.js 實作</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Iris <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">UI/UX — CSS/Tailwind/RWD、元件設計、品牌系統</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Forge <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">CI/CD Gate — lint/typecheck/test/build/deploy；Layer 2 Review</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Scout <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">Phase 2 Architect — API 契約、DB schema、元件設計（read-only）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+        <span class="meta-pill">READ-ONLY</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Ray <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">設計審查 + veto — Phase 3 架構風險、開工簽核（Major/Critical）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">codex-plus-cli</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">veto power</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Quill <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">程式碼審查 — PR/diff review、規格合規、測試缺口（Layer 1）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Anthropic</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Kai <span class="badge badge-active">active</span></div>
+      <div class="agent-card-role">中控台 — 任務看板、進度追蹤、dispatch 協調、健康監控</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">FastAPI</span>
+        <span class="meta-pill">:5002 / :5173</span>
+        <span class="meta-pill">Local</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- On-Demand -->
+  <div class="layer-header">
+    <div class="layer-dot layer-dot-dept"></div>
+    <span class="layer-title">On-Demand Tier 2</span>
+    <span class="layer-count">3 agents</span>
+  </div>
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="agent-card-name">Atlas</div>
+      <div class="agent-card-role">Google 生態系 — GA4/GSC/Gmail/Google Workspace/OAuth</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">claude-sonnet-4-6</span>
+        <span class="meta-pill">Fixed</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Pixel</div>
+      <div class="agent-card-role">Creative — AI 圖片生成、品牌素材、視覺設計</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">gemini-cli</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Vick</div>
+      <div class="agent-card-role">交叉驗證 — Grok 非 Claude 視角；Twitter/X 資料分析</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">grok-3-mini</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">xAI 訂閱</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Departments -->
+  <div class="layer-header">
+    <div class="layer-dot layer-dot-dept"></div>
+    <span class="layer-title">Department Agents</span>
+    <span class="layer-count">11 agents</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>部門</th>
+          <th>角色</th>
+          <th>模型</th>
+          <th>成本</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sentinel</td>
+          <td>Security</td>
+          <td>密鑰掃描、安全審計（git hook + LaunchAgent 自動）</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Knox</td>
+          <td>Finance</td>
+          <td>Credentials vault + API key 管理 + 帳號生命週期</td>
+          <td>claude-opus-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Inquisitor</td>
+          <td>Finance</td>
+          <td>財務審計、SoD 驗證（週排程）</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Tax</td>
+          <td>Finance</td>
+          <td>台灣稅法 + 銀行業 + OBU/DBU + 韓商銀行財務諮詢</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Nova</td>
+          <td>Documentation</td>
+          <td>Deck 報告（HTML slides）生成 → Slideless 部署</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Strategist</td>
+          <td>Strategy</td>
+          <td>市場研究、競品分析、GTM、Strategy Brief</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>EchoMarketer</td>
+          <td>Strategy</td>
+          <td>關鍵字研究、廣告文案、SEO 內容策略</td>
+          <td>gemini-flash</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+        </tr>
+        <tr>
+          <td>Webb</td>
+          <td>Website</td>
+          <td>全端協調、規格包 owner、上線驗收</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Silo</td>
+          <td>Website</td>
+          <td>技術 SEO 規格：sitemap/robots/OG/JSON-LD（read-only）</td>
+          <td>gemini-2.5-pro</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+        </tr>
+        <tr>
+          <td>Keeper</td>
+          <td>Website</td>
+          <td>網站上線後維護、bug 修復、監控</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Orion</td>
+          <td>Research</td>
+          <td>Memory Schema 治理、資料品質、RAG 遷移</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Lab</td>
+          <td>Research</td>
+          <td>模型 Benchmark、效能基線追蹤、A/B 測試</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>Lens</td>
+          <td>Research</td>
+          <td>PRES Pipeline — 競品逆向工程、架構推斷、規格生成</td>
+          <td>claude-sonnet-4-6</td>
+          <td><span class="badge badge-fixed">Fixed</span></td>
+        </tr>
+        <tr>
+          <td>GooayeAI</td>
+          <td>Investment</td>
+          <td>股票分析、Podcast 逐字稿、市場趨勢（Telegram Bot）</td>
+          <td>gemini-flash-lite</td>
+          <td><span class="badge badge-percall">Per-Call</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- External Tier 3 -->
+  <div class="layer-header">
+    <div class="layer-dot layer-dot-ext"></div>
+    <span class="layer-title">External Tier 3（OpenClaw Gateway）</span>
+    <span class="layer-count">7 agents</span>
+  </div>
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="agent-card-name">Noel</div>
+      <div class="agent-card-role">夜班主力 + Tier 3 協調 — Module A-L 自動化，01:00 開始執行</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">gemini-2.5-pro</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">no fallback</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Spider</div>
+      <div class="agent-card-role">靜態 HTML/sitemap/API 爬蟲（無 JS 渲染）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">glm-4-plus</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">Zhipu AI</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Lynx</div>
+      <div class="agent-card-role">API 批量抓取、資料轉換、去重</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">deepseek-chat</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">DeepSeek</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Nautilus ⚠️</div>
+      <div class="agent-card-role">Playwright 瀏覽器自動化、登入/反爬、JS 渲染、CAPTCHA</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">gpt-4.1</span>
+        <span class="meta-pill meta-pill-orange">Per-Call (最貴)</span>
+        <span class="meta-pill">OpenAI</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Buzz</div>
+      <div class="agent-card-role">多模態內容分析、社群發文（帳號：UMI，所有平台統一）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">gemini-flash</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">Google</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Probe</div>
+      <div class="agent-card-role">桌機/手機 UI 驗收測試（手動觸發）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">deepseek-chat</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+      </div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-name">Echo</div>
+      <div class="agent-card-role">Probe 的並行測試夥伴（手動觸發）</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">glm-4-plus</span>
+        <span class="meta-pill meta-pill-orange">Per-Call</span>
+        <span class="meta-pill">Zhipu AI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frozen -->
+  <div class="layer-header">
+    <div class="layer-dot layer-dot-frozen"></div>
+    <span class="layer-title">Frozen（保留解凍能力）</span>
+    <span class="layer-count">2 agents</span>
+  </div>
+  <div class="agent-grid">
+    <div class="agent-card" style="opacity:0.6;">
+      <div class="agent-card-name">Milo <span class="badge badge-frozen">frozen</span></div>
+      <div class="agent-card-role">ETL — 凍結原因：職責與 Spider/Lynx/Nautilus 重疊</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">Tier 3 全失敗時可解凍</span>
+      </div>
+    </div>
+    <div class="agent-card" style="opacity:0.6;">
+      <div class="agent-card-name">Sage <span class="badge badge-frozen">frozen</span></div>
+      <div class="agent-card-role">Account Lifecycle — 凍結原因：職責已併入 Knox</div>
+      <div class="agent-card-meta">
+        <span class="meta-pill">Knox 過載時可解凍</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Risks -->
+<section id="risks">
+  <div class="section-tag">03 / 風險清單</div>
+  <div class="section-title">R-01 ~ R-10 風險矩陣</div>
+  <p class="section-desc">共 10 項已識別風險，3 項 HIGH、5 項 MEDIUM、2 項 LOW。高風險項目需在 Auto Audit Agent 建置完成前優先處理。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>類型</th>
+          <th>風險說明</th>
+          <th>嚴重度</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R-01</td>
+          <td>架構風險</td>
+          <td>Noel（Gemini）是外部 per-call，無 fallback；夜班失敗全停</td>
+          <td><span class="risk-high">HIGH</span></td>
+        </tr>
+        <tr>
+          <td>R-02</td>
+          <td>架構風險</td>
+          <td>Ray（Codex Plus）是外部 per-call，無 fallback；Major/Critical 審查可能卡住</td>
+          <td><span class="risk-high">HIGH</span></td>
+        </tr>
+        <tr>
+          <td>R-03</td>
+          <td>架構風險</td>
+          <td>OpenClaw Tier 3 全部無 fallback（Spider/Lynx/Nautilus/Probe/Echo/Buzz）</td>
+          <td><span class="risk-medium">MEDIUM</span></td>
+        </tr>
+        <tr>
+          <td>R-04</td>
+          <td>成本風險</td>
+          <td>Nautilus (GPT-4.1) 無 token limit 保護，大型爬蟲任務可能成本爆炸</td>
+          <td><span class="risk-high">HIGH</span></td>
+        </tr>
+        <tr>
+          <td>R-05</td>
+          <td>成本風險</td>
+          <td>訂閱制 vs per-call 成本統計混雜（Kai task 的 token_input/output 欄位混計）</td>
+          <td><span class="risk-medium">MEDIUM</span></td>
+        </tr>
+        <tr>
+          <td>R-06</td>
+          <td>Observability</td>
+          <td>Kai 缺乏 latency tracking；無法識別哪個 Agent 最慢</td>
+          <td><span class="risk-medium">MEDIUM</span></td>
+        </tr>
+        <tr>
+          <td>R-07</td>
+          <td>Observability</td>
+          <td>外部 Tier 3 成本無集中追蹤（OpenClaw logs 未串接 Kai）</td>
+          <td><span class="risk-medium">MEDIUM</span></td>
+        </tr>
+        <tr>
+          <td>R-08</td>
+          <td>文件化</td>
+          <td>Atlas/Pixel/Vick 無完整 SKILL.md；on-demand 觸發條件依賴 CLAUDE.md 記憶</td>
+          <td><span class="risk-low">LOW</span></td>
+        </tr>
+        <tr>
+          <td>R-09</td>
+          <td>安全</td>
+          <td>Nova 的 Email href 為空 bug 未確認是否已修復（2026-03-21 logs）</td>
+          <td><span class="risk-medium">MEDIUM</span></td>
+        </tr>
+        <tr>
+          <td>R-10</td>
+          <td>成本風險</td>
+          <td>Ray fallback 鏈（Codex → OpenRouter → Vick/Grok）成本未知</td>
+          <td><span class="risk-low">LOW</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Observability matrix -->
+  <div style="margin-top: 36px;">
+    <div class="section-tag" style="margin-bottom: 12px;">Observability 現況</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Agent / 系統</th>
+            <th>Latency</th>
+            <th>Error Log</th>
+            <th>成功率</th>
+            <th>Cost Track</th>
+            <th>缺口評估</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kai task board</td>
+            <td>❌</td>
+            <td>❌ 無結構化</td>
+            <td>⚠️ 手動</td>
+            <td>⚠️ agent 自填</td>
+            <td>需補 latency + structured error</td>
+          </tr>
+          <tr>
+            <td>Claude Code agents</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>N/A（訂閱制）</td>
+            <td>latency 有意義，cost 無意義</td>
+          </tr>
+          <tr>
+            <td>Noel 夜班</td>
+            <td>⚠️ 部分</td>
+            <td>⚠️ 有</td>
+            <td>⚠️</td>
+            <td>⚠️</td>
+            <td>最完整但非結構化</td>
+          </tr>
+          <tr>
+            <td>OpenClaw Tier 3</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌</td>
+            <td>❌ <strong>最需補</strong></td>
+            <td>外部 per-call，成本追蹤最重要</td>
+          </tr>
+          <tr>
+            <td>Sentinel</td>
+            <td>✅</td>
+            <td>✅</td>
+            <td>⚠️</td>
+            <td>N/A</td>
+            <td>相對完整</td>
+          </tr>
+          <tr>
+            <td>Forge CI</td>
+            <td>✅</td>
+            <td>✅</td>
+            <td>✅</td>
+            <td>N/A</td>
+            <td>完整</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Cost Analysis -->
+<section id="costs">
+  <div class="section-tag">04 / 成本分析</div>
+  <div class="section-title">訂閱 vs Per-Call 明細</div>
+  <p class="section-desc">固定訂閱池 20 個 Agent 成本 = Claude Code 月費分攤，不計 token。以下列出需追蹤的 Per-Call Agent 相對成本評估。</p>
+
+  <!-- Fixed pool summary -->
+  <div class="spec-block" style="margin-bottom: 28px;">
+    <div class="spec-title"><span class="spec-num">FIXED POOL</span>Claude Code 訂閱制（不計 token）</div>
+    <div class="spec-body">
+      以下 20 個 Agent 不計 token 成本，成本 = Claude Code 月費分攤：<br>
+      Klay、Max、Rex、John、Iris、Forge、Scout、Quill、Nova、Knox、Inquisitor、Tax、Keeper、Webb、Sentinel、Orion、Lab、Lens、Strategist、Atlas
+    </div>
+  </div>
+
+  <!-- Per-call cost bars -->
+  <div style="margin-bottom: 8px; font-size: 12px; color: var(--grey-02); font-family: var(--font-mono);">PER-CALL AGENTS — 相對成本（高/中/低估算）</div>
+
+  <div class="cost-item">
+    <span class="cost-name">Nautilus</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-high" style="width:95%"></div></div>
+    <span class="cost-model">gpt-4.1 / OpenAI</span>
+    <span class="cost-label">最高 ⚠️</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Ray</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-high" style="width:80%"></div></div>
+    <span class="cost-model">codex-plus / OpenAI</span>
+    <span class="cost-label">高</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Noel</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-med" style="width:55%"></div></div>
+    <span class="cost-model">gemini-2.5-pro / Google</span>
+    <span class="cost-label">中</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Silo</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-med" style="width:50%"></div></div>
+    <span class="cost-model">gemini-2.5-pro / Google</span>
+    <span class="cost-label">中</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Vick</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-med" style="width:45%"></div></div>
+    <span class="cost-model">grok-3-mini / xAI</span>
+    <span class="cost-label">中</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Buzz</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:20%"></div></div>
+    <span class="cost-model">gemini-flash / Google</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">EchoMarketer</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:18%"></div></div>
+    <span class="cost-model">gemini-flash / Google</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">GooayeAI</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:12%"></div></div>
+    <span class="cost-model">gemini-flash-lite / Google</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Probe</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:10%"></div></div>
+    <span class="cost-model">deepseek-chat / DeepSeek</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Lynx</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:10%"></div></div>
+    <span class="cost-model">deepseek-chat / DeepSeek</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Spider</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:8%"></div></div>
+    <span class="cost-model">glm-4-plus / Zhipu AI</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Echo</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:8%"></div></div>
+    <span class="cost-model">glm-4-plus / Zhipu AI</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Pixel</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:8%"></div></div>
+    <span class="cost-model">gemini-cli / Google</span>
+    <span class="cost-label">低</span>
+  </div>
+  <div class="cost-item">
+    <span class="cost-name">Jarvis</span>
+    <div class="cost-bar-wrap"><div class="cost-bar cost-bar-low" style="width:5%"></div></div>
+    <span class="cost-model">gemini-flash / Google</span>
+    <span class="cost-label">低（備用）</span>
+  </div>
+
+  <p class="obs-note" style="margin-top: 20px;">* 成本為相對估算。Nautilus 無 token limit 保護為 R-04 HIGH 風險，需優先設定上限。</p>
+</section>
+
+<!-- Section 5: Auto Audit Spec -->
+<section id="audit">
+  <div class="section-tag">05 / Auto Audit Agent</div>
+  <div class="section-title">後續建置規格（A 階段）</div>
+  <p class="section-desc">此 Inventory 作為 Auto Audit Agent 的基線 schema。Runtime 補充以下資料後，輸出定期 Deck 報告寄送 Rain。</p>
+
+  <div class="spec-block">
+    <div class="spec-title"><span class="spec-num">INPUT</span>/api/audit/run — 接受的資料來源</div>
+    <div class="spec-body">
+      以 inventory.json 為 base schema，runtime 補充以下欄位：
+    </div>
+    <div class="spec-code">1. 每個 agent 最近 N 次任務的 duration
+   → 來源：Kai task board (GET /api/tasks?assigned_to={agent})
+
+2. 外部 agent 的 API call count + token usage
+   → 來源：OpenClaw logs（需新增集中追蹤）
+
+3. Forge CI pass rate
+   → 來源：CI logs（Vercel deploy history）
+
+4. Sentinel alert frequency
+   → 來源：Kai task board (GET /api/tasks?created_by=sentinel)</div>
+  </div>
+
+  <div class="spec-block">
+    <div class="spec-title"><span class="spec-num">OUTPUT</span>/api/audit/report — 輸出格式</div>
+    <div class="spec-body">
+      Nova 生成 Deck HTML → Slideless 部署 → Email Rain（asdapper8866@gmail.com）
+    </div>
+    <div class="spec-code">報告包含：
+- Agent 健康分（per agent 健康指標）
+- Per-Call 成本趨勢圖（週/月）
+- HIGH 風險項目追蹤（R-01 ~ R-10 狀態）
+- Observability 缺口進度
+- 新增/退役 Agent 變更記錄</div>
+  </div>
+
+  <div class="spec-block">
+    <div class="spec-title"><span class="spec-num">TRIGGER</span>自動執行條件</div>
+    <div class="spec-body">
+      由 Noel 夜班模組觸發，或手動呼叫 /api/audit/run。
+    </div>
+    <div class="spec-code">排程：每週一 09:00 TST（LaunchAgent 或 Kai cron）
+手動：Klay dispatch → Noel 執行 → Nova 報告
+更新觸發：任何 roster 變更後立即同步 inventory.json + 重跑審計</div>
+  </div>
+
+  <div class="spec-block">
+    <div class="spec-title"><span class="spec-num">PRIORITY</span>立即行動項目（依風險等級）</div>
+    <div class="spec-body">
+    </div>
+    <div class="spec-code">HIGH — 需優先處理：
+  R-01  Noel fallback 機制（Gemini 掛掉時的替代方案）
+  R-02  Ray fallback（codex-plus → OpenRouter → Vick 明確化）
+  R-04  Nautilus token limit 設定（max_tokens 或 cost_limit per task）
+
+MEDIUM — 下階段處理：
+  R-05  Kai task token 欄位區分訂閱/per-call
+  R-06  Kai latency tracking（task duration 已有，需結構化展示）
+  R-07  OpenClaw cost log 串接 Kai
+  R-09  Nova Email href bug 確認修復狀態
+
+LOW — 排進 backlog：
+  R-08  補齊 Atlas/Pixel/Vick SKILL.md
+  R-10  Ray fallback 成本估算文件化</div>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-brand">Rain AI Team — Agent Inventory v1.0</span>
+  <span class="footer-date">Generated 2026-03-21 | Owner: Klay</span>
+</footer>
+
+<script>
+// Progress bar
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  bar.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

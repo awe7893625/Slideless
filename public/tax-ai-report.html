@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax AI 架構報告 — 2026-03-18</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee8;
+  --white:#ffffff;
+  --black:#121212;
+  --grey-01:#e8e6df;
+  --grey-02:#8b877c;
+  --grey-03:#6c6a62;
+  --blue:#2563eb;
+  --blue-light:#eff4ff;
+  --blue-dark:#1d4ed8;
+  --purple:#7c3aed;
+  --purple-light:#f5f3ff;
+  --green:#059669;
+  --green-light:#ecfdf5;
+  --orange:#d97706;
+  --orange-light:#fffbeb;
+  --red:#dc2626;
+  --red-light:#fef2f2;
+  --font:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--black);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* ── Cover ────────────────────────────────── */
+.cover{background:var(--black);color:var(--white);padding:88px 32px 64px;text-align:center}
+.cover .eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#93c5fd;margin-bottom:14px;font-family:var(--mono)}
+.cover h1{font-size:clamp(24px,4.5vw,44px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:12px}
+.cover h1 .accent{color:#60a5fa}
+.cover .subtitle{font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:28px;max-width:560px;margin-left:auto;margin-right:auto}
+.cover-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.cover-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 22px;border-radius:6px;font-weight:700;font-size:12px;letter-spacing:0.04em;font-family:var(--mono)}
+.cover-badge.blue{border:1.5px solid #60a5fa;color:#60a5fa}
+.cover-badge.green{border:1.5px solid #34d399;color:#34d399}
+.cover-badge.purple{border:1.5px solid #c4b5fd;color:#c4b5fd}
+.cover-badge.orange{border:1.5px solid #fbbf24;color:#fbbf24}
+.cover .meta{font-size:11px;color:rgba(255,255,255,0.25);font-family:var(--mono);letter-spacing:1px;margin-top:4px}
+.cover .signers{display:flex;justify-content:center;gap:40px;margin-top:32px;flex-wrap:wrap}
+.cover .signer{text-align:center}
+.cover .signer .role{font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px}
+.cover .signer .name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.75)}
+
+/* ── Layout ───────────────────────────────── */
+.main{max-width:800px;margin:0 auto;padding:56px 28px 96px}
+@media(max-width:640px){
+  .main{padding:36px 18px 64px}
+  .cover{padding:64px 20px 48px}
+  .cover .signers{flex-direction:column;gap:16px;align-items:center}
+}
+
+/* ── Section ──────────────────────────────── */
+.section{margin-bottom:64px}
+.section-eyebrow{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:8px;font-family:var(--mono)}
+.section h2{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin-bottom:8px;color:var(--black)}
+.section-desc{font-size:13px;color:var(--grey-02);margin-bottom:28px;font-family:var(--mono)}
+.divider{height:1px;background:var(--grey-01);margin:0 0 56px}
+
+.subsection{margin-bottom:40px}
+.subsection-title{font-size:15px;font-weight:700;color:var(--black);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--grey-01)}
+
+/* ── KPI Grid ─────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px}
+.kpi-card{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:24px 16px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.kpi-num{font-size:32px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;margin-bottom:6px}
+.kpi-num.blue{color:var(--blue)}
+.kpi-num.purple{color:var(--purple)}
+.kpi-num.green{color:var(--green)}
+.kpi-num.orange{color:var(--orange)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--grey-02);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);line-height:1.5}
+
+/* ── Card ─────────────────────────────────── */
+.card{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:24px 28px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.card-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card-body{font-size:14px;color:#444;line-height:1.7}
+.card-body ul{margin-left:18px;margin-top:6px}
+.card-body li{margin-bottom:6px}
+.card-body p{margin-bottom:8px}
+
+/* ── Alert Banner ─────────────────────────── */
+.alert{border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;font-size:14px}
+.alert.warn{background:var(--orange-light);border-left:4px solid var(--orange)}
+.alert.info{background:var(--blue-light);border-left:4px solid var(--blue)}
+.alert.success{background:var(--green-light);border-left:4px solid var(--green)}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert-body{color:#333;line-height:1.6}
+.alert-body strong{font-weight:700;display:block;margin-bottom:4px}
+
+/* ── Flow Diagram ─────────────────────────── */
+.flow{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:32px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.flow-step{display:flex;gap:16px;margin-bottom:8px;align-items:flex-start}
+.flow-step:last-child{margin-bottom:0}
+.flow-step-connector{display:flex;flex-direction:column;align-items:center;min-width:32px}
+.flow-step-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);flex-shrink:0}
+.flow-step-num.blue{background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue)}
+.flow-step-num.purple{background:var(--purple-light);color:var(--purple);border:1.5px solid var(--purple)}
+.flow-step-num.green{background:var(--green-light);color:var(--green);border:1.5px solid var(--green)}
+.flow-step-num.orange{background:var(--orange-light);color:var(--orange);border:1.5px solid var(--orange)}
+.flow-arrow{font-size:18px;color:var(--grey-02);text-align:center;margin:4px 0 4px 8px;line-height:1}
+.flow-content{padding:4px 0}
+.flow-content .step-label{font-size:13px;font-weight:700;color:var(--black);margin-bottom:4px;font-family:var(--mono)}
+.flow-content .step-desc{font-size:13px;color:#555;line-height:1.6}
+.flow-content .step-sub{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.flow-content .step-branch{font-size:12px;color:var(--grey-03);padding:4px 10px;background:var(--cream);border-radius:6px;font-family:var(--mono)}
+.flow-content .step-branch span{font-weight:600}
+.flow-separator{text-align:center;color:var(--grey-02);font-size:20px;margin:6px 0 6px 8px;line-height:1}
+
+/* ── Table ────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px}
+.tbl-wrap::-webkit-scrollbar{height:5px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#d1cfc6;border-radius:3px}
+table{min-width:600px;width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:#f0ede5;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey-03);padding:12px 16px;text-align:left;border-bottom:2px solid var(--grey-01);font-family:var(--mono)}
+tbody td{padding:12px 16px;color:#333;border-bottom:1px solid var(--grey-01);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#faf9f6}
+
+/* ── Status Pill ──────────────────────────── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:0.02em}
+.pill.green{background:var(--green-light);color:var(--green)}
+.pill.red{background:var(--red-light);color:var(--red)}
+.pill.orange{background:var(--orange-light);color:var(--orange)}
+.pill.grey{background:#f3f2ef;color:var(--grey-03)}
+.pill.blue{background:var(--blue-light);color:var(--blue)}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── Priority Badge ───────────────────────── */
+.priority{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.priority.p1{background:#fee2e2;color:var(--red)}
+.priority.p2{background:var(--orange-light);color:var(--orange)}
+.priority.p3{background:#f3f4f6;color:#6b7280}
+
+/* ── Confidence Row ───────────────────────── */
+.conf-bar{display:flex;align-items:center;gap:8px;font-size:13px}
+.conf-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.conf-dot.high{background:var(--green)}
+.conf-dot.mid{background:var(--orange)}
+.conf-dot.low{background:var(--red)}
+
+/* ── Code Block ───────────────────────────── */
+.code-block{background:#1e1e2e;border-radius:10px;padding:20px 24px;font-family:var(--mono);font-size:13px;color:#cdd6f4;line-height:1.8;overflow-x:auto;margin:12px 0}
+.code-block .c-comment{color:#6c7086}
+.code-block .c-key{color:#89b4fa}
+.code-block .c-val{color:#a6e3a1}
+.code-block .c-str{color:#f38ba8}
+
+/* ── TOC Bar ──────────────────────────────── */
+.toc{background:var(--white);border:1px solid var(--grey-01);border-radius:12px;padding:20px 24px;margin-bottom:48px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.toc-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--grey-02);font-family:var(--mono);margin-bottom:12px}
+.toc-list{display:flex;flex-direction:column;gap:8px}
+.toc-item{display:flex;align-items:center;gap:10px;font-size:14px;color:#333;text-decoration:none}
+.toc-item:hover{color:var(--blue)}
+.toc-num{font-family:var(--mono);font-size:11px;color:var(--grey-02);min-width:20px}
+.toc-dot{width:4px;height:4px;background:var(--grey-01);border-radius:50%;flex-shrink:0}
+
+/* ── Knowledge Scope List ─────────────────── */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{display:inline-block;padding:5px 12px;background:var(--blue-light);color:var(--blue);border-radius:6px;font-size:12px;font-weight:600;font-family:var(--mono);letter-spacing:0.02em}
+
+/* ── Roadmap ──────────────────────────────── */
+.roadmap-item{display:flex;gap:16px;margin-bottom:16px}
+.roadmap-line{display:flex;flex-direction:column;align-items:center;gap:0}
+.roadmap-node{width:12px;height:12px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:4px}
+.roadmap-node.done{background:var(--green);border-color:var(--green)}
+.roadmap-node.pending{background:var(--white);border-color:var(--grey-02)}
+.roadmap-connector{width:2px;flex:1;background:var(--grey-01);min-height:16px}
+.roadmap-content{padding-bottom:8px}
+.roadmap-content .r-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:3px}
+.roadmap-content .r-desc{font-size:13px;color:var(--grey-02);line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ COVER ════════════════════ -->
+<div class="cover">
+  <div class="eyebrow">Tax AI · Architecture Report · 2026-03-18</div>
+  <h1>台灣稅法 AI 顧問系統<br><span class="accent">架構全覽報告</span></h1>
+  <p class="subtitle">知識庫現狀、查詢流程設計、信心度機制、部署規劃</p>
+  <div class="cover-badges">
+    <div class="cover-badge blue">2,443 法規文件</div>
+    <div class="cover-badge green">100% 向量覆蓋</div>
+    <div class="cover-badge purple">3 容錯 LLM 鏈</div>
+    <div class="cover-badge orange">8 欄結構化輸出</div>
+  </div>
+  <div class="meta">Iris · Rain AI Team · 報告製作：Nova 風格 Deck</div>
+  <div class="signers">
+    <div class="signer">
+      <div class="role">System Owner</div>
+      <div class="name">Tax AI</div>
+    </div>
+    <div class="signer">
+      <div class="role">Backend</div>
+      <div class="name">Max / Rex</div>
+    </div>
+    <div class="signer">
+      <div class="role">UI</div>
+      <div class="name">Iris</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ MAIN ════════════════════ -->
+<div class="main">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">目錄</div>
+    <div class="toc-list">
+      <a href="#section1" class="toc-item"><span class="toc-num">01</span><span class="toc-dot"></span>Tax AI 如何擔任顧問？</a>
+      <a href="#section2" class="toc-item"><span class="toc-num">02</span><span class="toc-dot"></span>Tax AI 有對外部署嗎？</a>
+      <a href="#section3" class="toc-item"><span class="toc-num">03</span><span class="toc-dot"></span>待辦與下一步</a>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 1 ════ -->
+  <div class="section" id="section1">
+    <div class="section-eyebrow">Section 01</div>
+    <h2>Tax AI 如何擔任顧問？</h2>
+    <p class="section-desc">顧問角色定義 · 完整查詢流程 · 信心度機制 · 知識庫現狀</p>
+
+    <div class="divider" style="margin-top:24px"></div>
+
+    <!-- 1-1 顧問角色 -->
+    <div class="subsection">
+      <div class="subsection-title">1-1 &nbsp;顧問角色定義</div>
+      <div class="card">
+        <div class="card-body">
+          <p>Tax AI 是一個以台灣稅法知識庫為基礎的 AI 諮詢系統，涵蓋以下四大能力範圍：</p>
+          <ul>
+            <li><strong>稅法條文查詢</strong> — 所得稅法、營業稅法、遺贈稅法等母法及施行細則</li>
+            <li><strong>實務稅務諮詢</strong> — 外籍人士申報、OBU 境外所得、移轉定價</li>
+            <li><strong>銀行業會計與稅務</strong> — 金融機構特殊會計處理與稅務規劃</li>
+            <li><strong>考試題型練習</strong> — 記帳士、會計師、稅務相關證照題型</li>
+          </ul>
+        </div>
+      </div>
+      <div class="alert info">
+        <div class="alert-icon">ℹ</div>
+        <div class="alert-body">
+          <strong>設計原則</strong>
+          所有回答必須附上具體法源引用（母法條文號 + 解釋令字號），不允許無出處的定性陳述。回答信心度依缺失事實數量自動分層，低信心回答強制顯示免責聲明。
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-2 查詢流程圖 -->
+    <div class="subsection">
+      <div class="subsection-title">1-2 &nbsp;完整查詢流程（6 Steps）</div>
+      <div class="flow">
+
+        <!-- Step 1 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num blue">01</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">3-class Router（規則優先，LLM fallback）</div>
+            <div class="step-desc">依問題類型分流，規則比對優先，節省 LLM 成本。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>tax_type_routing</span> → 加稅種 filter（所得稅 / 營業稅 / 遺贈稅 …）</div>
+              <div class="step-branch"><span>calculation</span> → 轉 /api/tax-calc（精確計算，不走 RAG）</div>
+              <div class="step-branch"><span>general</span> → 直接進 RAG Pipeline</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-separator">↓</div>
+
+        <!-- Step 2 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num blue">02</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">2-stage Fact Extraction</div>
+            <div class="step-desc">從問題中抽取關鍵事實，決定信心度上限。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>Stage 1:</span> Regex 抽取（年度 / 金額 / 稅種 / 身分）</div>
+              <div class="step-branch"><span>Stage 2:</span> LLM fallback — 抽到 &lt; 3 個事實時才呼叫</div>
+              <div class="step-branch"><span>missing_facts_count</span> → 直接影響信心度上限</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-separator">↓</div>
+
+        <!-- Step 3 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num purple">03</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">Hybrid RAG Pipeline</div>
+            <div class="step-desc">向量搜尋 + BM25 關鍵字雙管道，Reranker 法源層級加權。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>向量搜尋</span> — ChromaDB，status=active filter</div>
+              <div class="step-branch"><span>BM25 fallback</span> — SQLite 全文搜尋</div>
+              <div class="step-branch"><span>Reranker</span> — 母法 &gt; 施行細則 &gt; 函釋（層級加權）</div>
+              <div class="step-branch"><span>輸出</span> — Top-5 chunks 傳入 LLM</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-separator">↓</div>
+
+        <!-- Step 4 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num purple">04</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">LLM Reasoning Chain（三層容錯）</div>
+            <div class="step-desc">三道備援確保服務可用性，全失敗才回傳錯誤。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>第一優先：</span> claw-proxy Claude（Claude Code 訂閱）</div>
+              <div class="step-branch"><span>第二備援：</span> OpenRouter Claude Sonnet</div>
+              <div class="step-branch"><span>第三備援：</span> Grok-3-mini</div>
+              <div class="step-branch"><span>全失敗：</span> system_unavailable 錯誤回傳</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-separator">↓</div>
+
+        <!-- Step 5 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num green">05</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">Legal Basis Validator</div>
+            <div class="step-desc">驗證回答必須包含標準法源格式，否則拒絕輸出。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>通過條件：</span> 含「第 X 條」或「台財稅字 XXXXXXX 號」格式</div>
+              <div class="step-branch"><span>未通過：</span> 回傳 no_legal_basis 錯誤</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-separator">↓</div>
+
+        <!-- Step 6 -->
+        <div class="flow-step">
+          <div class="flow-step-connector">
+            <div class="flow-step-num green">06</div>
+          </div>
+          <div class="flow-content">
+            <div class="step-label">8-column 結構化輸出</div>
+            <div class="step-desc">標準化回答格式，依模式輸出對應欄位。</div>
+            <div class="step-sub">
+              <div class="step-branch"><span>summary</span> — 主要結論</div>
+              <div class="step-branch"><span>legal_basis</span> — 法源清單（母法 / 解釋令 / 函釋層級標示）</div>
+              <div class="step-branch"><span>explanation</span> — 判斷邏輯</div>
+              <div class="step-branch"><span>practical_steps</span> — 實務步驟</div>
+              <div class="step-branch"><span>accounting_treatment</span> — 會計處理（諮詢模式）</div>
+              <div class="step-branch"><span>answer_key</span> — 標準答案關鍵詞（考試模式）</div>
+              <div class="step-branch"><span>disclaimer</span> — 低信心警示</div>
+              <div class="step-branch"><span>disclaimer_footer</span> — 固定免責聲明</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 1-3 信心度 -->
+    <div class="subsection">
+      <div class="subsection-title">1-3 &nbsp;信心度評估機制</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>等級</th>
+              <th>條件</th>
+              <th>意義</th>
+              <th>建議動作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="conf-bar"><span class="conf-dot high"></span><strong style="color:var(--green)">高信心</strong></span></td>
+              <td><span style="font-family:var(--mono);font-size:13px">missing_facts = 0<br>法源覆蓋完整</span></td>
+              <td>AI 掌握完整事實，法源明確</td>
+              <td>可直接參考，建議與稅務師做最終確認</td>
+            </tr>
+            <tr>
+              <td><span class="conf-bar"><span class="conf-dot mid"></span><strong style="color:var(--orange)">中信心</strong></span></td>
+              <td><span style="font-family:var(--mono);font-size:13px">missing_facts 1–2 個</span></td>
+              <td>部分事實缺失，可能影響判斷</td>
+              <td>補充缺失事實後重新查詢，或直接諮詢國稅局</td>
+            </tr>
+            <tr>
+              <td><span class="conf-bar"><span class="conf-dot low"></span><strong style="color:var(--red)">低信心</strong></span></td>
+              <td><span style="font-family:var(--mono);font-size:13px">missing_facts ≥ 3<br>或法源不完整</span></td>
+              <td>事實嚴重缺失，無法可靠推論</td>
+              <td>僅供初步方向參考，須向國稅局正式確認</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 1-4 知識庫現狀 -->
+    <div class="subsection">
+      <div class="subsection-title">1-4 &nbsp;知識庫現狀（今日快照）</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-num blue">2,443</div>
+          <div class="kpi-label">法規文件總數</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num purple">2,541</div>
+          <div class="kpi-label">知識段落 chunks</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num green">100%</div>
+          <div class="kpi-label">向量覆蓋率</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num orange">715</div>
+          <div class="kpi-label">歷史查詢筆數</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">法規文件分類</div>
+        <div class="card-body">
+          <div class="tbl-wrap" style="margin-bottom:0">
+            <table>
+              <thead>
+                <tr>
+                  <th>類型</th>
+                  <th>數量</th>
+                  <th>說明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>母法（Acts）</td>
+                  <td><strong style="font-family:var(--mono)">1,411</strong></td>
+                  <td>所得稅法、營業稅法、遺贈稅法等主要法典</td>
+                </tr>
+                <tr>
+                  <td>施行細則（Regulations）</td>
+                  <td><strong style="font-family:var(--mono)">921</strong></td>
+                  <td>各母法對應施行細則與查核準則</td>
+                </tr>
+                <tr>
+                  <td>解釋令 / 函釋（Rulings）</td>
+                  <td><strong style="font-family:var(--mono)">111</strong></td>
+                  <td>財政部解釋令，台財稅字號格式</td>
+                </tr>
+                <tr>
+                  <td style="border-bottom:none"><strong>合計</strong></td>
+                  <td style="border-bottom:none"><strong style="font-family:var(--mono)">2,443</strong></td>
+                  <td style="border-bottom:none">全部 active（無廢止條文混入）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">查詢信心分布</div>
+        <div class="card-body">
+          <div class="tbl-wrap" style="margin-bottom:0">
+            <table>
+              <thead>
+                <tr>
+                  <th>等級</th>
+                  <th>筆數</th>
+                  <th>佔比</th>
+                  <th>說明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="conf-bar"><span class="conf-dot high"></span>高信心</span></td>
+                  <td style="font-family:var(--mono)">3</td>
+                  <td style="font-family:var(--mono)">0.4%</td>
+                  <td>事實完整、法源明確</td>
+                </tr>
+                <tr>
+                  <td><span class="conf-bar"><span class="conf-dot mid"></span>中信心</span></td>
+                  <td style="font-family:var(--mono)">100</td>
+                  <td style="font-family:var(--mono)">14.0%</td>
+                  <td>1–2 個事實缺失</td>
+                </tr>
+                <tr>
+                  <td style="border-bottom:none"><span class="conf-bar"><span class="conf-dot low"></span>低信心</span></td>
+                  <td style="border-bottom:none;font-family:var(--mono)">612</td>
+                  <td style="border-bottom:none;font-family:var(--mono)">85.6%</td>
+                  <td style="border-bottom:none">3+ 事實缺失或法源不完整</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-body">
+          <strong>待改善：低信心比例偏高（85.6%）</strong>
+          主因是使用者提問時缺少關鍵事實（年度、金額、身分）。P1 改善方向：在前端加入引導提問 UI，降低 missing_facts 平均值。
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-5 收錄法規範圍 -->
+    <div class="subsection">
+      <div class="subsection-title">1-5 &nbsp;已收錄法規範圍</div>
+      <div class="card">
+        <div class="card-body">
+          <p style="margin-bottom:12px">共收錄 <strong>2,443 部</strong>，涵蓋以下主要法規：</p>
+          <div class="tag-cloud">
+            <span class="tag">所得稅法</span>
+            <span class="tag">所得稅法施行細則</span>
+            <span class="tag">稅捐稽徵法</span>
+            <span class="tag">加值型及非加值型營業稅法</span>
+            <span class="tag">外國專業人才延攬及僱用法</span>
+            <span class="tag">薪資所得扣繳辦法</span>
+            <span class="tag">營利事業所得稅查核準則</span>
+            <span class="tag">所得基本稅額條例</span>
+            <span class="tag">印花稅法</span>
+            <span class="tag">商業會計法</span>
+            <span class="tag">記帳士法</span>
+            <span class="tag">會計師法</span>
+            <span class="tag">遺產及贈與稅法</span>
+            <span class="tag">財政部解釋函令</span>
+            <span class="tag" style="background:var(--purple-light);color:var(--purple)">+ 更多</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════ SECTION 2 ════ -->
+  <div class="section" id="section2">
+    <div class="section-eyebrow">Section 02</div>
+    <h2>Tax AI 有對外部署嗎？</h2>
+    <p class="section-desc">目前部署狀況 · 使用方式 · 對外開放規劃</p>
+
+    <div class="divider" style="margin-top:24px"></div>
+
+    <!-- 2-1 部署狀況 -->
+    <div class="subsection">
+      <div class="subsection-title">2-1 &nbsp;目前部署狀況</div>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-body">
+          <strong>Tax AI 目前僅在本機運行，尚未對外公開</strong>
+          系統已完整可用，但未經 Benchmark 達標前不開放外部使用。詳見 2-3 開放規劃。
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>狀態</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>後端 API</td>
+              <td><span class="pill green"><span class="pill-dot"></span>運行中</span></td>
+              <td style="font-family:var(--mono);font-size:13px">localhost:5002</td>
+            </tr>
+            <tr>
+              <td>前端操作介面</td>
+              <td><span class="pill green"><span class="pill-dot"></span>已完成</span></td>
+              <td>M4 中控台內建 Tax AI 頁面</td>
+            </tr>
+            <tr>
+              <td>公開網址</td>
+              <td><span class="pill red"><span class="pill-dot"></span>尚未部署</span></td>
+              <td>Phase 3 規劃後實施</td>
+            </tr>
+            <tr>
+              <td>手機 APP</td>
+              <td><span class="pill grey"><span class="pill-dot"></span>未開始</span></td>
+              <td>React Native 或 PWA 待評估</td>
+            </tr>
+            <tr>
+              <td>SaaS 訂閱</td>
+              <td><span class="pill orange"><span class="pill-dot"></span>規劃中</span></td>
+              <td>Phase 3 商業化方案</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2-2 目前使用方式 -->
+    <div class="subsection">
+      <div class="subsection-title">2-2 &nbsp;目前如何使用</div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">
+          <span style="background:var(--green-light);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);font-weight:700">推薦</span>
+          方法 A：透過 M4 中控台
+        </div>
+        <div class="card-body">
+          <p>網址：<code style="font-family:var(--mono);background:#f3f2ef;padding:2px 6px;border-radius:4px;font-size:13px">http://localhost:5002/tax-ai</code></p>
+          <ul style="margin-top:8px">
+            <li>選擇諮詢模式 → 輸入問題 → 取得 AI 回答（含法源引用）</li>
+            <li>支援三種模式：<strong>諮詢模式</strong> / <strong>法規查詢</strong> / <strong>考試題型</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">方法 B：直接呼叫 API</div>
+        <div class="card-body">
+          <div class="code-block">
+<span class="c-key">POST</span> http://localhost:5002/api/tax/query
+<span class="c-comment">{</span>
+  <span class="c-key">"question"</span>: <span class="c-str">"外籍人士在台居留超過 183 天的稅務處理？"</span>,
+  <span class="c-key">"mode"</span>: <span class="c-val">"consultation"</span>
+<span class="c-comment">}</span>
+
+<span class="c-comment">// 模式選項：consultation | query | exam</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-3 對外開放規劃 -->
+    <div class="subsection">
+      <div class="subsection-title">2-3 &nbsp;如何開放對外（Phase 3 規劃）</div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-line">
+          <div class="roadmap-node pending"></div>
+          <div class="roadmap-connector"></div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Step 1 — 後端雲端部署</div>
+          <div class="r-desc">部署至 Vercel（Serverless）或 Railway（容器），選定後可在 1 天內完成</div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-line">
+          <div class="roadmap-node pending"></div>
+          <div class="roadmap-connector"></div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Step 2 — 前端獨立建站</div>
+          <div class="r-desc">獨立網站或嵌入現有網站，提供乾淨的使用者介面</div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-line">
+          <div class="roadmap-node pending"></div>
+          <div class="roadmap-connector"></div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Step 3 — 使用者認證</div>
+          <div class="r-desc">免費方案：每日 5 題；付費方案：無限次查詢。Stripe 付款串接</div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-line">
+          <div class="roadmap-node pending"></div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Step 4 — Benchmark 達標後公開上線</div>
+          <div class="r-desc">目標：accuracy_avg &gt; 0.85（82 道正式題目，55 選擇 + 12 申論 + 15 實務）才開放外部訪問</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════ SECTION 3 ════ -->
+  <div class="section" id="section3">
+    <div class="section-eyebrow">Section 03</div>
+    <h2>待辦與下一步</h2>
+    <p class="section-desc">優先級排序 · 預計工作項目</p>
+
+    <div class="divider" style="margin-top:24px"></div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>優先級</th>
+            <th>項目</th>
+            <th>說明</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="priority p1">P1</span></td>
+            <td><strong>提升查詢信心度</strong></td>
+            <td>目前 85.6% 為低信心，優化 embedding 品質或前端引導提問 UI，降低 missing_facts 平均值</td>
+            <td><span class="pill orange"><span class="pill-dot"></span>進行中</span></td>
+          </tr>
+          <tr>
+            <td><span class="priority p1">P1</span></td>
+            <td><strong>Benchmark 題庫</strong></td>
+            <td>82 道正式評測題（55 選擇題 + 12 申論題 + 15 實務題），達標 accuracy_avg &gt; 0.85</td>
+            <td><span class="pill orange"><span class="pill-dot"></span>待準備</span></td>
+          </tr>
+          <tr>
+            <td><span class="priority p2">P2</span></td>
+            <td><strong>對外部署</strong></td>
+            <td>選定雲端主機（Vercel / Railway），1 天內可完成後端上線</td>
+            <td><span class="pill grey"><span class="pill-dot"></span>規劃中</span></td>
+          </tr>
+          <tr>
+            <td><span class="priority p2">P2</span></td>
+            <td><strong>使用者認證</strong></td>
+            <td>免費每日 5 題 / 付費無限制分層設計，Stripe 串接</td>
+            <td><span class="pill grey"><span class="pill-dot"></span>規劃中</span></td>
+          </tr>
+          <tr>
+            <td><span class="priority p3">P3</span></td>
+            <td><strong>手機介面</strong></td>
+            <td>React Native 或 PWA 評估後實作</td>
+            <td><span class="pill grey"><span class="pill-dot"></span>待評估</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert success">
+      <div class="alert-icon">✓</div>
+      <div class="alert-body">
+        <strong>今日完成：向量覆蓋率達到 100%</strong>
+        2,541 個知識段落全數完成向量化，ChromaDB 索引已更新。所有法規狀態確認為 active，無廢止條文混入。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding-top:32px;border-top:1px solid var(--grey-01)">
+    <p style="font-size:12px;color:var(--grey-02);font-family:var(--mono);letter-spacing:1px">TAX AI ARCHITECTURE REPORT · 2026-03-18 · RAIN AI TEAM</p>
+    <p style="font-size:11px;color:#bbb;margin-top:6px;font-family:var(--mono)">本報告由 Iris 製作，Nova 風格 Deck · Slideless</p>
+  </div>
+
+</div><!-- /main -->
+
+</body>
+</html>

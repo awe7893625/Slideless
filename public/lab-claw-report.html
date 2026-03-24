@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Claw 改進落地報告 — 2026-03-19</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #f6f5f1;
+      --white: #ffffff;
+      --grey-01: #f0eee6;
+      --grey-02: #8b877c;
+      --grey-03: #6c6a62;
+      --dark: #2d2d2d;
+      --accent-warm: #eb8054;
+      --accent-cool: #a8cde8;
+      --green: #85a268;
+      --red: #d94f4f;
+      --cover-bg: #121212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, 'PingFang TC', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Cover */
+    .cover {
+      background: var(--cover-bg);
+      color: #fff;
+      padding: 80px 40px 64px;
+      text-align: center;
+    }
+    .cover .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      margin-bottom: 20px;
+    }
+    .cover h1 {
+      font-size: clamp(26px, 5vw, 46px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .cover .subtitle {
+      font-size: 15px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 12px;
+    }
+    .cover .date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 1px;
+    }
+    .cover .tag-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .cover .tag {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Main content */
+    .main {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    /* Section headers */
+    .section-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--dark);
+      margin-bottom: 28px;
+      line-height: 1.3;
+    }
+    .section-block {
+      margin-bottom: 56px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 28px;
+      border: 1px solid var(--grey-01);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+    .card-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--grey-02);
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+    .card p {
+      color: var(--grey-03);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--grey-01);
+      border-radius: 12px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-number.accent { color: var(--accent-warm); }
+    .stat-number.green { color: var(--green); }
+    .stat-number.red { color: var(--red); }
+    .stat-label {
+      font-size: 12px;
+      color: var(--grey-02);
+    }
+
+    /* Tables */
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--grey-01);
+    }
+    .tbl-wrap::-webkit-scrollbar { height: 5px; }
+    .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    table {
+      min-width: 600px;
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      font-size: 13.5px;
+    }
+    thead th {
+      background: #faf9f6;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--grey-02);
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--grey-01);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--grey-01);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td {
+      padding: 11px 16px;
+      color: var(--dark);
+      vertical-align: top;
+    }
+    tbody tr:hover { background: #faf9f6; }
+
+    /* Tag badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-red { background: #fde8e8; color: var(--red); }
+    .badge-yellow { background: #fef3e2; color: #c47c0b; }
+    .badge-green { background: #e9f2e5; color: var(--green); }
+    .badge-blue { background: #e8f2fa; color: #3a7fb5; }
+    .badge-grey { background: var(--grey-01); color: var(--grey-02); }
+
+    /* Improvement item */
+    .improvement-item {
+      background: var(--white);
+      border: 1px solid var(--grey-01);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--accent-warm);
+    }
+    .improvement-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-warm);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .improvement-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+    .improvement-desc {
+      font-size: 14px;
+      color: var(--grey-03);
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+    .file-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .file-chip {
+      background: #f6f5f1;
+      border: 1px solid var(--grey-01);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--grey-03);
+    }
+
+    /* Git commit block */
+    .commit-block {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .commit-hash {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #eb8054;
+      white-space: nowrap;
+      padding-top: 1px;
+    }
+    .commit-message {
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+    .commit-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+
+    /* Status indicator */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--grey-01);
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-green { background: var(--green); }
+    .dot-red { background: var(--red); }
+    .dot-yellow { background: #f0b429; }
+    .status-label {
+      font-size: 14px;
+      color: var(--dark);
+      flex: 1;
+    }
+    .status-sub {
+      font-size: 12px;
+      color: var(--grey-02);
+    }
+
+    /* Warning list */
+    .warning-list {
+      background: var(--white);
+      border: 1px solid var(--grey-01);
+      border-radius: 12px;
+      padding: 6px 0;
+    }
+    .warning-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--grey-01);
+      font-size: 13.5px;
+    }
+    .warning-item:last-child { border-bottom: none; }
+    .warning-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #c47c0b;
+      background: #fef3e2;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+    .warning-text { color: var(--grey-03); line-height: 1.5; }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--grey-01);
+      padding: 28px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--grey-02);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--grey-01);
+      margin: 40px 0;
+    }
+
+    /* Summary banner */
+    .summary-banner {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2417 100%);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 56px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .summary-icon {
+      font-size: 36px;
+    }
+    .summary-content { flex: 1; min-width: 200px; }
+    .summary-content h3 {
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .summary-content p {
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+    }
+    .summary-badge {
+      background: rgba(235,128,84,0.15);
+      border: 1px solid rgba(235,128,84,0.3);
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-warm);
+      text-align: center;
+    }
+    .summary-badge .big { font-size: 22px; font-weight: 700; display: block; margin-bottom: 2px; }
+
+    @media (max-width: 480px) {
+      .cover { padding: 60px 20px 48px; }
+      .main { padding: 40px 16px 60px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .summary-banner { flex-direction: column; text-align: center; }
+      .improvement-item { padding: 18px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="eyebrow">Lab Claw · AI Team Internal Report</div>
+    <h1>SKILL.md 全員標準化<br>落地報告</h1>
+    <div class="subtitle">When / How / What Output 標準完成</div>
+    <div class="date">2026-03-19 · Lab Claw Improvement Sprint</div>
+    <div class="tag-row">
+      <span class="tag">35 files modified</span>
+      <span class="tag">3,157 insertions</span>
+      <span class="tag">18 agents completed</span>
+      <span class="tag">3 blockers fixed</span>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Summary Banner -->
+    <div class="summary-banner">
+      <div class="summary-icon">⚡</div>
+      <div class="summary-content">
+        <h3>全員 SKILL.md 標準化完成</h3>
+        <p>18 個 agent 補完 When/How/What Output 格式，3 個 Blocker 已修復，<br>4 個 Domain Shared Skill 資料夾建立完成</p>
+      </div>
+      <div class="summary-badge">
+        <span class="big">100%</span>
+        覆蓋完整性
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number accent">3</div>
+        <div class="stat-label">三大改進項目</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">18</div>
+        <div class="stat-label">補完 Agent 數量</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number green">3</div>
+        <div class="stat-label">Blockers 修復</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Warnings 待處理</div>
+      </div>
+    </div>
+
+    <!-- Section 01: Three Improvements -->
+    <div class="section-block">
+      <div class="section-eyebrow">01</div>
+      <div class="section-title">三大改進內容</div>
+
+      <div class="improvement-item">
+        <div class="improvement-number">改進 01</div>
+        <div class="improvement-title">Domain Shared Skill Folders</div>
+        <div class="improvement-desc">
+          建立 <code style="background:#f0eee6;padding:1px 6px;border-radius:3px;font-family:monospace;font-size:12px">~/.claude/agents/_shared/</code> 共用 skill 庫，
+          避免跨部門 agent 重複定義相同能力。相關 Agent 透過引用共用庫保持一致性。
+        </div>
+        <div class="file-list">
+          <span class="file-chip">research-skills.md</span>
+          <span class="file-chip">finance-skills.md</span>
+          <span class="file-chip">scraping-skills.md</span>
+          <span class="file-chip">deployment-skills.md</span>
+        </div>
+        <div style="margin-top:12px;font-size:12.5px;color:var(--grey-02);">
+          Orion · Lens · Lab · Scout 共用 research | Tax · Knox · Inquisitor 共用 finance | Spider · Lynx · Nautilus · Buzz 共用 scraping | Forge · John · Rex · Iris 共用 deployment
+        </div>
+      </div>
+
+      <div class="improvement-item">
+        <div class="improvement-number">改進 02</div>
+        <div class="improvement-title">Database-first Grounding</div>
+        <div class="improvement-desc">
+          Scout、Orion、Lens 三個 Research/Architecture agent 強制將第一個 tool call 指向真實資料庫或資料來源，
+          避免基於假設或過時快取進行規格設計與分析。這確保了架構決策的資料可信度。
+        </div>
+        <div class="file-list">
+          <span class="file-chip">scout/SKILL.md</span>
+          <span class="file-chip">orion/SKILL.md</span>
+          <span class="file-chip">lens/SKILL.md</span>
+        </div>
+      </div>
+
+      <div class="improvement-item">
+        <div class="improvement-number">改進 03</div>
+        <div class="improvement-title">When / How / What Output 標準化</div>
+        <div class="improvement-desc">
+          全員補完三區塊結構：<strong>When</strong>（何時觸發）、<strong>How</strong>（執行流程）、
+          <strong>What Output</strong>（輸出格式標準）。確保每個 agent 行為可預測、可審計、
+          可由 Quill 驗收。共補完 18 個 agent，覆蓋所有 Tier 1 / Tier 2 及外部 Agent。
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 02: 18 Agents Table -->
+    <div class="section-block">
+      <div class="section-eyebrow">02</div>
+      <div class="section-title">補完的 18 個 Agent</div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>所屬部門</th>
+              <th>補充重點</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sentinel</strong></td>
+              <td><span class="badge badge-red">Security</span></td>
+              <td>安全掃描報告格式（severity 分級表）</td>
+            </tr>
+            <tr>
+              <td><strong>Atlas</strong></td>
+              <td><span class="badge badge-blue">Tier 2</span></td>
+              <td>Trigger Conditions + Google API 整合報告格式</td>
+            </tr>
+            <tr>
+              <td><strong>Probe</strong></td>
+              <td><span class="badge badge-grey">External</span></td>
+              <td>桌機版 UI 測試報告格式（截圖 + 結果矩陣）</td>
+            </tr>
+            <tr>
+              <td><strong>Echo</strong></td>
+              <td><span class="badge badge-grey">External</span></td>
+              <td>手機版 RWD + 並行測試報告格式</td>
+            </tr>
+            <tr>
+              <td><strong>Buzz</strong></td>
+              <td><span class="badge badge-grey">External</span></td>
+              <td>社群發文報告格式（平台 / 帳號 / URL）</td>
+            </tr>
+            <tr>
+              <td><strong>Lynx</strong></td>
+              <td><span class="badge badge-grey">External</span></td>
+              <td>爬取結果 JSON 格式 + 並行分工說明</td>
+            </tr>
+            <tr>
+              <td><strong>Spider</strong></td>
+              <td><span class="badge badge-grey">External</span></td>
+              <td>完整 When / How / What 三區塊結構</td>
+            </tr>
+            <tr>
+              <td><strong>Lab</strong></td>
+              <td><span class="badge badge-blue">Research</span></td>
+              <td>Benchmark 執行流程 + 模型比較報告格式</td>
+            </tr>
+            <tr>
+              <td><strong>GooayeAI</strong></td>
+              <td><span class="badge badge-green">Investment</span></td>
+              <td>Telegram Bot 推送格式（股癌分析報告）</td>
+            </tr>
+            <tr>
+              <td><strong>Pixel</strong></td>
+              <td><span class="badge badge-blue">Tier 2</span></td>
+              <td>設計交付單格式（尺寸 / 路徑 / 下游 agent）</td>
+            </tr>
+            <tr>
+              <td><strong>Inquisitor</strong></td>
+              <td><span class="badge badge-yellow">Finance</span></td>
+              <td>財務審計指令範例 + 報告格式</td>
+            </tr>
+            <tr>
+              <td><strong>Strategist</strong></td>
+              <td><span class="badge badge-yellow">Strategy</span></td>
+              <td>Strategy Brief 交付流程摘要</td>
+            </tr>
+            <tr>
+              <td><strong>Knox</strong></td>
+              <td><span class="badge badge-yellow">Finance</span></td>
+              <td>帳號安全報告格式（vault + lifecycle）</td>
+            </tr>
+            <tr>
+              <td><strong>Noel</strong></td>
+              <td><span class="badge badge-blue">Core</span></td>
+              <td>夜班報告格式（任務完成數 / Dispatch Rate）</td>
+            </tr>
+            <tr>
+              <td><strong>Webb</strong></td>
+              <td><span class="badge badge-green">Website</span></td>
+              <td>網站交付報告格式（三層驗收結果）</td>
+            </tr>
+            <tr>
+              <td><strong>Forge</strong></td>
+              <td><span class="badge badge-blue">Core</span></td>
+              <td>CI Gate 報告格式（Standard / Major / Critical 分級）</td>
+            </tr>
+            <tr>
+              <td><strong>Scout</strong></td>
+              <td><span class="badge badge-blue">Core</span></td>
+              <td>DB-first Grounding 強制規則</td>
+            </tr>
+            <tr>
+              <td><strong>Lens + Orion</strong></td>
+              <td><span class="badge badge-blue">Research</span></td>
+              <td>DB-first Grounding 強制規則</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 03: Quill Audit -->
+    <div class="section-block">
+      <div class="section-eyebrow">03</div>
+      <div class="section-title">Quill 審計結果</div>
+
+      <!-- Pass items -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-label">全部通過</div>
+        <div class="card-title" style="color:var(--green)">✓ 三項通過</div>
+        <div style="padding-top:8px;">
+          <div class="status-row">
+            <div class="status-dot dot-green"></div>
+            <span class="status-label">覆蓋完整性</span>
+            <span class="badge badge-green">PASS</span>
+          </div>
+          <div class="status-row">
+            <div class="status-dot dot-green"></div>
+            <span class="status-label">腳本路徑驗證</span>
+            <span class="badge badge-green">PASS</span>
+          </div>
+          <div class="status-row">
+            <div class="status-dot dot-green"></div>
+            <span class="status-label">命令語法</span>
+            <span class="badge badge-green">PASS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blockers -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:600;color:var(--dark);">
+        <span class="badge badge-red" style="margin-right:8px;">Blocker × 3</span>
+        已全部修復
+      </div>
+      <div class="tbl-wrap" style="margin-bottom:24px;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>問題描述</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-red">B-1</span></td>
+              <td>Knox Python tilde expansion bug — <code style="font-family:monospace;font-size:12px;background:#f0eee6;padding:1px 5px;border-radius:3px">open('~/')</code> 未展開路徑，應改用 <code style="font-family:monospace;font-size:12px;background:#f0eee6;padding:1px 5px;border-radius:3px">os.path.expanduser()</code></td>
+              <td><span class="badge badge-green">FIXED</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">B-2</span></td>
+              <td>Lab 缺少 <code style="font-family:monospace;font-size:12px;background:#f0eee6;padding:1px 5px;border-radius:3px">**When**</code> section header，導致 Agent 無法識別觸發條件</td>
+              <td><span class="badge badge-green">FIXED</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">B-3</span></td>
+              <td>Inquisitor code review 路由錯誤：引用 Ray 負責（×2 處），應為 Quill</td>
+              <td><span class="badge badge-green">FIXED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Warnings -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:600;color:var(--dark);">
+        <span class="badge badge-yellow" style="margin-right:8px;">Warning × 7</span>
+        下一次 maintenance commit 處理
+      </div>
+      <div class="warning-list">
+        <div class="warning-item">
+          <span class="warning-id">W-1</span>
+          <span class="warning-text">Sentinel When/How/What 缺少 section header 標籤</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-2</span>
+          <span class="warning-text">Noel 邊界說明引用過時 Jarvis 描述（Jarvis 已降級為工具級）</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-3</span>
+          <span class="warning-text">Inquisitor 引用已凍結的 Sage（應改為 Knox）</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-4</span>
+          <span class="warning-text">Lynx / Spider / Buzz 路由到已凍結的 Milo（ETL）</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-5</span>
+          <span class="warning-text">Buzz <code style="font-family:monospace;font-size:12px;background:#f0eee6;padding:1px 5px;border-radius:3px">/done</code> payload 缺少 telemetry 欄位（agent_model / token_input / token_output）</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-6</span>
+          <span class="warning-text">Lynx / Buzz / Knox / Inquisitor 未引用對應 <code style="font-family:monospace;font-size:12px;background:#f0eee6;padding:1px 5px;border-radius:3px">_shared/</code> skill 庫</span>
+        </div>
+        <div class="warning-item">
+          <span class="warning-id">W-7</span>
+          <span class="warning-text">Scout / Lens / Orion DB-first block 內 When/How/What 格式寫在 code block 內，未展開為 section header</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 04: Git -->
+    <div class="section-block">
+      <div class="section-eyebrow">04</div>
+      <div class="section-title">Git 記錄</div>
+
+      <div class="commit-block">
+        <div class="commit-hash">5625e86</div>
+        <div>
+          <div class="commit-message">feat: [lab-claw] SKILL.md 全員補完（When/How/What Output 標準化）</div>
+          <div class="commit-meta">35 files changed · 3,157 insertions</div>
+        </div>
+      </div>
+
+      <div class="commit-block">
+        <div class="commit-hash">28a8565</div>
+        <div>
+          <div class="commit-message">fix: [quill] 3 Blockers 修復 — Knox tilde expansion / Lab section header / Inquisitor routing</div>
+          <div class="commit-meta">3 files changed · targeted bugfixes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 05: Next Steps -->
+    <div class="section-block">
+      <div class="section-eyebrow">05</div>
+      <div class="section-title">後續行動</div>
+
+      <div class="card">
+        <div class="card-label">即將進行</div>
+        <div style="padding-top:4px;">
+          <div class="status-row">
+            <div class="status-dot dot-yellow"></div>
+            <div>
+              <div class="status-label">7 個 Warning 修復</div>
+              <div class="status-sub">下一次 maintenance commit — 凍結 agent 引用清理 + section header 補完 + shared skill 引用</div>
+            </div>
+          </div>
+          <div class="status-row">
+            <div class="status-dot dot-yellow"></div>
+            <div>
+              <div class="status-label">W-6 _shared/ 引用補完</div>
+              <div class="status-sub">Lynx / Buzz / Knox / Inquisitor 四個 agent 補上對應 shared skill 引用</div>
+            </div>
+          </div>
+          <div class="status-row">
+            <div class="status-dot dot-yellow"></div>
+            <div>
+              <div class="status-label">W-7 DB-first block 格式重構</div>
+              <div class="status-sub">Scout / Lens / Orion 將 DB-first block 內容改為 section header 展開格式</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Nova · AI Team Docs · Lab Claw Improvement Sprint · 2026-03-19
+  </div>
+
+</body>
+</html>

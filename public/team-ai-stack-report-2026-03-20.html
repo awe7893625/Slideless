@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team - Gemini CLI / 模型 / 記憶 / 任務協作報告</title>
+<style>
+:root{
+  --bg:#f6f2eb;
+  --card:#fffdf9;
+  --text:#171717;
+  --muted:#6f6a61;
+  --line:#e8dfd2;
+  --accent:#c26a3a;
+  --accent2:#7d9b6f;
+  --blue:#5b7aa6;
+  --shadow:0 8px 30px rgba(0,0,0,.06);
+  --font: Inter, "Noto Sans TC", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(194,106,58,.09), transparent 28%),
+    radial-gradient(circle at 90% 10%, rgba(91,122,166,.10), transparent 22%),
+    var(--bg);
+  line-height:1.7;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 56px}
+.hero{
+  background:linear-gradient(135deg, #181818, #2a241f 58%, #403225);
+  color:#fff;
+  border-radius:28px;
+  padding:32px 30px;
+  box-shadow:var(--shadow);
+}
+.eyebrow{
+  font-size:11px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:#e8b78f;
+  font-family:var(--mono);
+}
+h1{
+  margin:10px 0 8px;
+  font-size:clamp(30px, 4vw, 52px);
+  line-height:1.08;
+  letter-spacing:-1px;
+}
+.sub{
+  max-width:760px;
+  color:rgba(255,255,255,.78);
+  font-size:16px;
+}
+.meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:22px;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:12px;
+  border:1px solid rgba(255,255,255,.1);
+  font-family:var(--mono);
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12, 1fr);
+  gap:16px;
+  margin-top:18px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.span-12{grid-column:span 12}
+.span-8{grid-column:span 8}
+.span-6{grid-column:span 6}
+.span-4{grid-column:span 4}
+.span-3{grid-column:span 3}
+h2{
+  margin:0 0 10px;
+  font-size:26px;
+  letter-spacing:-.3px;
+}
+h3{
+  margin:0 0 10px;
+  font-size:18px;
+}
+.muted{color:var(--muted)}
+.section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  background:#f0ece4;
+  color:#6d5f50;
+  white-space:nowrap;
+}
+.badge.blue{background:rgba(91,122,166,.12);color:#3f5d88}
+.badge.green{background:rgba(125,155,111,.14);color:#58714d}
+.badge.warm{background:rgba(194,106,58,.12);color:#9f5228}
+.badge.red{background:rgba(201,70,70,.12);color:#a33b3b}
+ul{margin:10px 0 0 20px;padding:0}
+li{margin:6px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th,td{
+  text-align:left;
+  vertical-align:top;
+  padding:11px 10px;
+  border-bottom:1px solid var(--line);
+}
+th{
+  font-size:12px;
+  color:#766b5c;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  font-family:var(--mono);
+}
+.mono{
+  font-family:var(--mono);
+  font-size:12px;
+  color:#534d43;
+}
+.callout{
+  border-left:4px solid var(--accent);
+  background:#fff8f3;
+  padding:14px 16px;
+  border-radius:12px;
+  color:#5b4a41;
+}
+.note{
+  border-left:4px solid var(--blue);
+  background:#f5f8fc;
+  padding:14px 16px;
+  border-radius:12px;
+  color:#44556f;
+}
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.footer{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:12px;
+  text-align:center;
+}
+a{color:#345d8f}
+@media (max-width: 900px){
+  .span-8,.span-6,.span-4,.span-3{grid-column:span 12}
+  .two-col{grid-template-columns:1fr}
+  .hero{padding:24px 20px}
+  .card{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Rain AI Team / Nova-style Report</div>
+    <h1>團隊配置、Gemini CLI、記憶與任務協作報告</h1>
+    <div class="sub">
+      這份報告整理你目前工作區內可驗證的配置：誰負責什麼、誰用什麼模型、Gemini CLI 實際出現在哪裡、記憶怎麼分層、任務怎麼串接，以及目前我找到的穩定性風險。
+    </div>
+    <div class="meta">
+      <span class="pill">2026-03-20</span>
+      <span class="pill">Source: ~/.claude / AGENTS / M4_AutoAgent / Stockcast</span>
+      <span class="pill">Delivery: Kai /api/email/send</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card span-12">
+      <div class="section-title">
+        <h2>1. 結論先講</h2>
+        <span class="badge warm">Executive Summary</span>
+      </div>
+      <ul>
+        <li>有，工作區內確實出現了 <strong>Gemini CLI</strong>，但它不是我在核心文件裡看到的一個獨立「CLI daemon」，而是被用作某些 subagent 的 <strong>interface 標記</strong>。</li>
+        <li>目前最核心的 Claude Code session 預設模型是 <span class="mono">haiku</span>；團隊 roster 裡真正承擔主幹工作的則是 <span class="mono">claude-opus-4-6</span>、<span class="mono">claude-sonnet-4-6</span>、<span class="mono">gemini-2.5-pro</span>、<span class="mono">gemini-flash</span>、<span class="mono">gemini-cli</span> 等不同層級。</li>
+        <li>任務流程不是單點執行，而是 <strong>Klay → 分工 agent → Ray / Forge gate → Kai / Jarvis delivery</strong> 的管線化結構。</li>
+        <li>記憶分成 <strong>日記式的 daily memory</strong> 與 <strong>長期 MEMORY.md</strong>，且 main session 會要求先讀今天與昨天的記錄，再讀長期記憶。</li>
+      </ul>
+    </section>
+
+    <section class="card span-8">
+      <div class="section-title">
+        <h2>2. 團隊配置</h2>
+        <span class="badge blue">Team Map</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>角色</th>
+            <th>模型</th>
+            <th>定位</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Klay</strong></td><td class="mono">claude-opus-4-6</td><td>CEO / Architecture Decisions，設計拍板與例外批准</td></tr>
+          <tr><td><strong>Max</strong></td><td class="mono">claude-opus-4-6</td><td>Senior Backend，Python / FastAPI / debug / refactor</td></tr>
+          <tr><td><strong>John</strong></td><td class="mono">claude-sonnet-4-6</td><td>Frontend，React / TypeScript / website feature</td></tr>
+          <tr><td><strong>Iris</strong></td><td class="mono">claude-sonnet-4-6</td><td>UI/UX，CSS / RWD / layout</td></tr>
+          <tr><td><strong>Forge</strong></td><td class="mono">claude-sonnet-4-6</td><td>CI/CD Gate，lint / test / build / deploy</td></tr>
+          <tr><td><strong>Scout</strong></td><td class="mono">claude-sonnet-4-6</td><td>System Architect / codebase analyst，read-only research</td></tr>
+          <tr><td><strong>Ray</strong></td><td class="mono">codex-plus-cli</td><td>Solution Architecture Reviewer，veto / design review</td></tr>
+          <tr><td><strong>Kai</strong></td><td class="mono">internal</td><td>Control Center，API / state / orchestration</td></tr>
+          <tr><td><strong>Jarvis</strong></td><td class="mono">gemini-flash</td><td>Email backup / tool-level channel，已降級為工具</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card span-4">
+      <div class="section-title">
+        <h2>3. Gemini CLI</h2>
+        <span class="badge green">Found</span>
+      </div>
+      <div class="callout">
+        我有找到 Gemini CLI 的實際痕跡，但它主要以 <strong>interface label</strong> 出現，不是核心文件裡的一個獨立執行守門人。
+      </div>
+      <ul>
+        <li><strong>EchoMarketer</strong>：<span class="mono">gemini-flash</span>，介面標成 <span class="mono">Claude Code Subagent (Gemini CLI)</span></li>
+        <li><strong>Silo</strong>：<span class="mono">gemini-2.5-pro</span>，介面標成 <span class="mono">Claude Code Subagent (Gemini CLI)</span></li>
+        <li><strong>Pixel</strong>：<span class="mono">gemini-cli</span></li>
+        <li><strong>Buzz</strong>：<span class="mono">gemini-flash</span></li>
+      </ul>
+      <div class="note" style="margin-top:12px">
+        簡單說，Gemini CLI 有被納入團隊分工，但我沒在這次檢查到一個獨立、統一的 <span class="mono">gemini</span> shell 主控流程。
+      </div>
+    </section>
+
+    <section class="card span-12">
+      <div class="section-title">
+        <h2>4. 服務層與模型路由</h2>
+        <span class="badge">Runtime</span>
+      </div>
+      <div class="two-col">
+        <div>
+          <h3>Active Services</h3>
+          <ul>
+            <li><strong>Agent Z</strong>：中控台後端 + Discord Bot，FastAPI / uvicorn，port <span class="mono">5002</span></li>
+            <li><strong>飲食紀錄 Bot</strong>：Python Discord bot，只跑 <span class="mono">rain</span> 那隻，不要把 coco / yuxuan 當成獨立 bot 開</li>
+            <li><strong>習慣改善 Bot</strong>：Node.js bot，獨立跑</li>
+            <li><strong>ClawdBot</strong>：Telegram bot，獨立控制通道</li>
+            <li><strong>OpenClaw</strong>：MCP skills service，port <span class="mono">18789</span></li>
+            <li><strong>Pikmin</strong>：按需啟動的 iOS / GPS 工具</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Model Routing</h3>
+          <ul>
+            <li>Claude Code session 預設模型：<span class="mono">haiku</span>（見 <a href="file:///Users/rain/.claude/settings.json">~/.claude/settings.json</a>）</li>
+            <li>M4 core roster：<span class="mono">claude-opus-4-6</span> / <span class="mono">claude-sonnet-4-6</span> 為主</li>
+            <li>Go-to-market / SEO / some content agents：<span class="mono">gemini-flash</span> / <span class="mono">gemini-2.5-pro</span></li>
+            <li>Review / veto：<span class="mono">codex-plus-cli</span> (Ray)</li>
+            <li>Local router fallback：<span class="mono">qwen2.5-coder:7b</span>（見 <span class="mono">app/core/ai_router.py</span>）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card span-6">
+      <div class="section-title">
+        <h2>5. 記憶配置</h2>
+        <span class="badge blue">Memory</span>
+      </div>
+      <ul>
+        <li><strong>AGENTS.md</strong> 要求每個 session 先讀 <span class="mono">SOUL.md</span>、<span class="mono">USER.md</span>、今天與昨天的 <span class="mono">memory/YYYY-MM-DD.md</span>。</li>
+        <li>如果是 main session，還要讀 <span class="mono">MEMORY.md</span>。</li>
+        <li><strong>Daily notes</strong>：原始事件、決策、執行紀錄，寫進 <span class="mono">memory/YYYY-MM-DD.md</span>。</li>
+        <li><strong>Long-term memory</strong>：從 daily notes 取精華寫進 <span class="mono">MEMORY.md</span>。</li>
+        <li><strong>.claude/settings.json</strong> 有 hook stack：session start、pre-tool gate、post-tool logger、typecheck、secret scan、format、done notify 等。</li>
+      </ul>
+    </section>
+
+    <section class="card span-6">
+      <div class="section-title">
+        <h2>6. 任務怎麼做</h2>
+        <span class="badge green">Workflow</span>
+      </div>
+      <ul>
+        <li>核心指揮鏈：<strong>Klay</strong> 定方向，<strong>Max / John / Iris / Forge / Scout</strong> 分工實作與審查。</li>
+        <li><strong>Ray</strong> 做架構 veto，不負責日常 code review。</li>
+        <li><strong>Kai</strong> 管狀態、API 與 orchestration；<strong>Jarvis</strong> 做通知與降級工具。</li>
+        <li>設計規則由 <span class="mono">DESIGN.md</span> 進入：<span class="mono">POST /design/load</span> → active rules → prompt injection → <span class="mono">POST /design/validate-ui</span>。</li>
+        <li>UI 違規會被 critic / finalizer 擋下；部署前走 CI/CD gate。</li>
+      </ul>
+    </section>
+
+    <section class="card span-12">
+      <div class="section-title">
+        <h2>7. 你要的「指令」大致長什麼樣</h2>
+        <span class="badge warm">Commands</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>用途</th>
+            <th>常見指令 / 介面</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>中控台啟動</td><td class="mono">bash 啟動中控台.sh</td><td>起 backend + Agent Z</td></tr>
+          <tr><td>狀態確認</td><td class="mono">GET http://127.0.0.1:5002/agents/status</td><td>查服務與 agent 狀態</td></tr>
+          <tr><td>ClawdBot</td><td class="mono">bash clawbot_telegram/clawdbot.sh</td><td>Telegram 遠端控制 bot</td></tr>
+          <tr><td>Gemini 檢查</td><td class="mono">python3 scripts/verify_gemini.py</td><td>驗證 Gemini API</td></tr>
+          <tr><td>皓角轉錄</td><td class="mono">python3 haojiao_transcribe.py --latest</td><td>RSS → 下載音檔 → OpenAI / Gemini / Whisper / fallback</td></tr>
+          <tr><td>M 平方管線</td><td class="mono">python3 macromicro-podcast-pipeline.py</td><td>同樣採逐級 fallback 轉錄</td></tr>
+          <tr><td>Stockcast 更新</td><td class="mono">python3 update_stockcast.py --run</td><td>生成頁面、快取、部署、通知</td></tr>
+          <tr><td>Email 發送</td><td class="mono">POST /api/email/send</td><td>Kai 本機 email gateway；失敗時切 SMTP fallback</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card span-12">
+      <div class="section-title">
+        <h2>8. 我看到的風險與結論</h2>
+        <span class="badge red">Risks</span>
+      </div>
+      <div class="two-col">
+        <div class="callout">
+          <strong>風險 1：</strong> Gemini quota 仍然不穩，不能把它當唯一主路徑。<br>
+          已知較穩的順序是：<span class="mono">OpenAI → Gemini → Whisper → RSS fallback</span>。
+        </div>
+        <div class="callout">
+          <strong>風險 2：</strong> Kai gateway 雖然現在健康，但它是獨立服務，不能假設永遠在線。<br>
+          寄信應該永遠保留 <span class="mono">SMTP fallback</span>。
+        </div>
+      </div>
+      <p class="muted" style="margin-top:14px">
+        總結：你現在的系統不是單一 bot，而是一個「多模型、分層治理、記憶分流、Kai 統一交付」的中控系統。Gemini CLI 有用到，但主要是分工中的一種接口形態，不是唯一核心。
+      </p>
+    </section>
+  </div>
+
+  <div class="footer">
+    Sources: <span class="mono">~/.claude/settings.json</span> · <span class="mono">~/.claude/team.json</span> · <span class="mono">AGENTS.md</span> · <span class="mono">MEMORY.md</span> · <span class="mono">M4_全服務總表.md</span> · <span class="mono">DESIGN_SYSTEM_INTEGRATION.md</span> · <span class="mono">generate_stockcast.py</span>
+  </div>
+</div>
+</body>
+</html>

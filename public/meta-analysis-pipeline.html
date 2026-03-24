@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Analysis Pipeline 評估報告 | AI Team Research</title>
+<style>
+  /* ===== KEFTEK WARM-TONE DESIGN SYSTEM ===== */
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --border: #e8e0d5;
+    --text: #1a1a2e;
+    --text-secondary: #5a6b85;
+    --accent: #e8b86d;
+    --accent-dark: #c99a4e;
+    --accent-light: #fdf3e0;
+    --success: #4a9e6e;
+    --warning: #d4742a;
+    --danger: #c0392b;
+    --info: #2980b9;
+    --code-bg: #f0ede8;
+    --nav-h: 60px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ===== STICKY NAV ===== */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(246,245,241,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 2px solid var(--border);
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .nav-brand {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent-dark);
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 4px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .nav a:hover {
+    background: var(--accent-light);
+    color: var(--accent-dark);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, #fffdf8 0%, #f6f5f1 60%, #ede8df 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 span {
+    color: var(--accent-dark);
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+
+  .verdict-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--accent);
+    color: #fff;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 16px rgba(232,184,109,0.4);
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+  }
+
+  .meta-item strong {
+    color: var(--text);
+  }
+
+  /* ===== LAYOUT ===== */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .section {
+    padding: 3.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child {
+    border-bottom: none;
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-num {
+    background: var(--accent);
+    color: #fff;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .section-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-body {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  /* ===== HIGHLIGHT CARDS ===== */
+  .highlight-card {
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .highlight-card .card-title {
+    color: var(--accent-dark);
+  }
+
+  /* ===== STATUS BADGES ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .badge-gold { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
+  .badge-green { background: #edfaf3; color: var(--success); border: 1px solid #a3dbbf; }
+  .badge-red { background: #fef0ef; color: var(--danger); border: 1px solid #f5b3ae; }
+  .badge-blue { background: #eaf4fd; color: var(--info); border: 1px solid #a8d4ef; }
+  .badge-gray { background: #f0ede8; color: var(--text-secondary); border: 1px solid var(--border); }
+
+  /* ===== TABLES ===== */
+  .tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+  table {
+    min-width: 700px;
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--accent-light);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  thead th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 700;
+    color: var(--accent-dark);
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fdfaf6; }
+
+  tbody td {
+    padding: 0.7rem 1rem;
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  tbody td:first-child {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ===== CODE BLOCKS ===== */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-size: 0.83rem;
+    line-height: 1.6;
+    color: #2d3748;
+    margin-bottom: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  pre::-webkit-scrollbar { height: 5px; }
+  pre::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  /* ===== LISTS ===== */
+  .check-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .check-list li {
+    padding: 0.4rem 0;
+    padding-left: 1.6rem;
+    position: relative;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  .check-list li::before {
+    position: absolute;
+    left: 0;
+    font-size: 0.9rem;
+  }
+
+  .check-list li.yes::before { content: '✅'; }
+  .check-list li.no::before { content: '❌'; }
+  .check-list li.warn::before { content: '⚠️'; }
+  .check-list li.info::before { content: '→'; color: var(--accent-dark); font-weight: 700; }
+
+  /* ===== PHASE TIMELINE ===== */
+  .phase-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .phase-item {
+    display: flex;
+    gap: 1.25rem;
+    position: relative;
+  }
+
+  .phase-item:not(:last-child) .phase-line {
+    position: absolute;
+    left: 1.35rem;
+    top: 2.8rem;
+    bottom: -0.75rem;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .phase-dot {
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(232,184,109,0.4);
+  }
+
+  .phase-content {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .phase-content h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .phase-content p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .phase-content ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+  }
+
+  .phase-content ul li {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    padding: 0.2rem 0;
+    padding-left: 1rem;
+    position: relative;
+  }
+
+  .phase-content ul li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ===== ARCH DIAGRAM ===== */
+  .arch-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .arch-layer {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .arch-layer-title {
+    background: var(--accent-light);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--accent-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .arch-layer-body {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .arch-tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .arch-tag.new {
+    background: #edfaf3;
+    border-color: #a3dbbf;
+    color: #2a7a50;
+    font-weight: 600;
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin: 0.25rem 0;
+  }
+
+  .arch-orchestration {
+    background: var(--text);
+    color: var(--accent-light);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  /* ===== GAP GRID ===== */
+  .gap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .gap-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--danger);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.87rem;
+  }
+
+  .gap-item .num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--danger);
+    margin-bottom: 0.2rem;
+  }
+
+  .gap-item .label {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .gap-item .desc {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    margin-top: 0.2rem;
+  }
+
+  .int-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--success);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.87rem;
+  }
+
+  .int-item .num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--success);
+    margin-bottom: 0.2rem;
+  }
+
+  .int-item .label {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .int-item .desc {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    margin-top: 0.2rem;
+  }
+
+  /* ===== VERDICT SECTION ===== */
+  .verdict-card {
+    background: linear-gradient(135deg, #fffbf0 0%, #fdf3e0 100%);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .verdict-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ===== ROUTING TABLE ===== */
+  .routing-table {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+
+  .routing-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .routing-row:last-child { border-bottom: none; }
+
+  .routing-row.header {
+    background: var(--accent-light);
+    font-weight: 700;
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .routing-cell {
+    padding: 0.7rem 1rem;
+    border-right: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .routing-cell:last-child { border-right: none; }
+  .routing-cell:first-child { color: var(--text); font-weight: 500; }
+
+  /* ===== WEEK CARDS ===== */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .week-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .week-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .week-body {
+    padding: 1rem;
+  }
+
+  .week-body p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .week-body .owner {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-dark);
+    background: var(--accent-light);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  .week-body .success {
+    font-size: 0.8rem;
+    color: var(--success);
+    font-style: italic;
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  /* ===== INFO BOX ===== */
+  .info-box {
+    background: #eaf4fd;
+    border: 1px solid #a8d4ef;
+    border-left: 4px solid var(--info);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    color: #1a4a6b;
+    margin-bottom: 1.25rem;
+  }
+
+  .warn-box {
+    background: #fff8f0;
+    border: 1px solid #f5c492;
+    border-left: 4px solid var(--warning);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    color: #7a3d0a;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.5rem 0;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.82rem;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    .nav { padding: 0 1rem; }
+    .hero { padding: 2.5rem 1.25rem 2rem; }
+    .section { padding: 2.5rem 0; }
+    .card-grid { grid-template-columns: 1fr; }
+    .gap-grid { grid-template-columns: 1fr; }
+    .week-grid { grid-template-columns: 1fr 1fr; }
+    .routing-row { grid-template-columns: 1fr; }
+    .routing-cell { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  /* ===== SMOOTH SCROLL ===== */
+  html { scroll-behavior: smooth; }
+  :target { scroll-margin-top: calc(var(--nav-h) + 1rem); }
+
+  /* ===== PRINT PROTECTION ===== */
+  .no-print { }
+
+  /* ===== HIGHLIGHT SPAN ===== */
+  .hl { color: var(--accent-dark); font-weight: 700; }
+  .hl-green { color: var(--success); font-weight: 600; }
+  .hl-red { color: var(--danger); font-weight: 600; }
+
+  /* ===== TWO COL ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ===== EXEC SUMMARY GRID ===== */
+  .exec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .exec-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .exec-stat .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent-dark);
+    line-height: 1.1;
+  }
+
+  .exec-stat .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+  }
+
+  @media (max-width: 640px) { .exec-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ===== STICKY NAV ===== -->
+<nav class="nav">
+  <span class="nav-brand">Meta-Analysis Pipeline</span>
+  <a href="#exec">摘要</a>
+  <a href="#d1">真相報告</a>
+  <a href="#d2">架構對照</a>
+  <a href="#d3">整合建議</a>
+  <a href="#d4">架構圖</a>
+  <a href="#d5">實作藍圖</a>
+  <a href="#d6">路由規則</a>
+  <a href="#d7">MVP計畫</a>
+  <a href="#d8">指令稿</a>
+</nav>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-badge">🔬 Research Evaluation Report</div>
+  <h1>Meta-Analysis Pipeline<br><span>評估研究報告</span></h1>
+  <p class="hero-subtitle">AI Team 對 Meta-Analysis Pipeline 架構的全面評估 — 含技術分析、能力缺口識別，以及整合建議</p>
+  <div class="verdict-banner">⚡ 最終裁決：部分吸收 (PARTIAL ABSORPTION)</div>
+  <div class="meta-row">
+    <span class="meta-item"><strong>日期</strong> 2026-03-22</span>
+    <span class="meta-item"><strong>主責</strong> Orion（外部研究）+ Scout（內部架構）</span>
+    <span class="meta-item"><strong>受眾</strong> Klay / Rain</span>
+    <span class="meta-item"><strong>狀態</strong> <span class="badge badge-gold">Final</span></span>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+  <!-- ===== EXECUTIVE SUMMARY ===== -->
+  <section class="section" id="exec">
+    <div class="section-header">
+      <div class="section-num">0</div>
+      <div>
+        <div class="section-title">Executive Summary — 執行摘要</div>
+        <div class="section-subtitle">3 分鐘版本：評估結論 + 核心數字</div>
+      </div>
+    </div>
+
+    <div class="verdict-card">
+      <div class="verdict-title">⚡ 裁決：部分吸收 (PARTIAL ABSORPTION)</div>
+      <p style="color:var(--text-secondary);font-size:0.95rem;margin-bottom:1rem;">
+        Meta-Analysis Pipeline 並非單一可安裝的產品 — 它是一種<strong>分散式架構模式</strong>（CLAUDE.md 專案腦 + 每階段 SKILL.md + 多 Agent 協調）。原始實作以學術系統性文獻回顧為核心設計，外部依賴（R + LaTeX + PubMed）與我們的市場研究需求不匹配。
+      </p>
+      <div class="two-col">
+        <div>
+          <p style="font-size:0.88rem;color:var(--text-secondary);font-weight:600;margin-bottom:0.5rem;">✅ 吸收這些架構思想</p>
+          <ul class="check-list">
+            <li class="yes">多輪篩選架構（PRISMA 概念）</li>
+            <li class="yes">結構化 ResearchItem schema</li>
+            <li class="yes">來源可信度評分機制</li>
+            <li class="yes">研究會話持久化設計</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:0.88rem;color:var(--text-secondary);font-weight:600;margin-bottom:0.5rem;">❌ 跳過這些學術組件</p>
+          <ul class="check-list">
+            <li class="no">R/metaforest 統計分析</li>
+            <li class="no">PRISMA 嚴格學術方法論</li>
+            <li class="no">LaTeX/tectonic PDF 輸出</li>
+            <li class="no">學術資料庫 API（PubMed 等）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="exec-grid">
+      <div class="exec-stat">
+        <div class="value">8</div>
+        <div class="label">識別出的能力缺口</div>
+      </div>
+      <div class="exec-stat">
+        <div class="value">8</div>
+        <div class="label">自然整合點（現有系統）</div>
+      </div>
+      <div class="exec-stat">
+        <div class="value">4w</div>
+        <div class="label">MVP 預估實作週期</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== D1: 專案真相報告 ===== -->
+  <section class="section" id="d1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">專案真相報告</div>
+        <div class="section-subtitle">Orion 外部研究 — Meta-Analysis Pipeline 到底是什麼？</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ 來源狀態：UNCONFIRMED</strong> — 無法找到單一正式的「Meta-Analysis Pipeline」產品或 Repo。以下為最佳匹配及概念推論。
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔍 最佳匹配實作</div>
+      <div class="card-body">
+        <p style="margin-bottom:0.75rem;">
+          <strong style="color:var(--text)">github.com/Imbad0202/academic-research-skills</strong>
+          <span class="badge badge-gray" style="margin-left:0.5rem;">886 stars</span>
+        </p>
+        <div class="two-col">
+          <div>
+            <p style="font-weight:600;color:var(--text);font-size:0.88rem;margin-bottom:0.4rem;">包含元件</p>
+            <ul class="check-list">
+              <li class="info">meta_analysis agent 主控</li>
+              <li class="info">PRISMA 系統性文獻回顧 pipeline</li>
+              <li class="info">risk_of_bias agents（偏誤評估）</li>
+              <li class="info">10 階段完整工作流程</li>
+              <li class="info">CLAUDE.md 作為專案大腦</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-weight:600;color:var(--text);font-size:0.88rem;margin-bottom:0.4rem;">技術棧</p>
+            <ul class="check-list">
+              <li class="info">Claude Code + Python/uv</li>
+              <li class="info">R/metaforest（統計分析）</li>
+              <li class="info">LaTeX/tectonic（PDF 生成）</li>
+              <li class="info">學術 API（Semantic Scholar, PubMed, arXiv, OpenAlex）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-card">
+      <div class="card-title">💡 核心認知：這是一種分散式架構模式，不是產品</div>
+      <div class="card-body">
+        <p style="margin-bottom:0.75rem;">「Pipeline」= <strong>CLAUDE.md 專案設定 + 每個階段的 SKILL.md + 多 Agent 協調機制</strong></p>
+        <p>任何人都可以用這個模式建自己的研究系統。它不是一個可以 <code>pip install</code> 的套件。</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin:1.5rem 0 0.75rem;">10 階段工作流程</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>階段</th>
+            <th>名稱</th>
+            <th>自動化層級</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Stage 1</td><td>Topic Definition</td><td><span class="badge badge-blue">Tier 2</span></td><td>研究主題定義與 PICO 架構</td></tr>
+          <tr><td>Stage 2</td><td>Literature Search</td><td><span class="badge badge-green">Tier 1</span></td><td>多學術資料庫自動搜尋</td></tr>
+          <tr><td>Stage 3</td><td>Screening / Filtering</td><td><span class="badge badge-blue">Tier 2</span></td><td>兩輪篩選（標題+摘要 → 全文）</td></tr>
+          <tr><td>Stage 4</td><td>Data Extraction</td><td><span class="badge badge-blue">Tier 2</span></td><td>結構化 CSV schema 提取</td></tr>
+          <tr><td>Stage 5</td><td>Quality Assessment</td><td><span class="badge badge-gold">Tier 3</span></td><td>GRADE/Cochrane 偏誤評分（需人工）</td></tr>
+          <tr><td>Stage 6</td><td>Statistical Analysis</td><td><span class="badge badge-green">Tier 1</span></td><td>R/metaforest 統計運算</td></tr>
+          <tr><td>Stage 7</td><td>Result Synthesis</td><td><span class="badge badge-blue">Tier 2</span></td><td>結果整合與詮釋</td></tr>
+          <tr><td>Stage 8</td><td>Academic Writing</td><td><span class="badge badge-blue">Tier 2</span></td><td>論文撰寫（AI 草稿 + 人工修訂）</td></tr>
+          <tr><td>Stage 9</td><td>Peer Review</td><td><span class="badge badge-gold">Tier 3</span></td><td>同儕審查（完全人工主導）</td></tr>
+          <tr><td>Stage 10</td><td>Report Generation</td><td><span class="badge badge-green">Tier 1</span></td><td>LaTeX/tectonic 自動 PDF 生成</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin:1.5rem 0 0.75rem;">三層自動化架構</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title"><span class="badge badge-green">Tier 1</span> 全自動</div>
+        <div class="card-body">搜尋 / 去重 / 格式化。系統可完全自主執行，無需人工介入。</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="badge badge-blue">Tier 2</span> AI + 人工審核</div>
+        <div class="card-body">篩選 / 提取。AI 完成初稿，人工做最終決策與品質控管。</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="badge badge-gold">Tier 3</span> 人工主導</div>
+        <div class="card-body">品質判斷 / 詮釋。核心判斷由人類負責，AI 僅提供支援工具。</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">學術用途 vs 我們的需求</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:600px;">
+        <thead>
+          <tr><th>維度</th><th>學術 Meta-Analysis</th><th>我們的市場研究</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>研究速度</td><td>月/年計</td><td>日/週計</td></tr>
+          <tr><td>嚴謹度要求</td><td>GRADE 等級證據</td><td>可信度評分即可</td></tr>
+          <tr><td>資料來源</td><td>同儕審查論文</td><td>新聞/財報/社群/播客</td></tr>
+          <tr><td>統計需求</td><td>森林圖/效應量</td><td>趨勢/方向判斷</td></tr>
+          <tr><td>輸出格式</td><td>LaTeX PDF 論文</td><td>Nova Deck + Email 摘要</td></tr>
+          <tr><td>排程模式</td><td>手動觸發</td><td>Noel 夜班自動化</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== D2: 架構對照報告 ===== -->
+  <section class="section" id="d2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div>
+        <div class="section-title">架構對照報告</div>
+        <div class="section-subtitle">Scout 內部架構分析 — 現有系統 vs Meta-Analysis Pipeline</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">現有研究 Agents 盤點</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">🏗️ Scout</div>
+        <div class="card-body">靜態分析、Phase 2 架構設計。唯讀模式，不執行爬蟲。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔬 Lens</div>
+        <div class="card-body">產品逆向工程（PRES Pipeline）、Feature Extraction、競品分析規格生成。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Orion</div>
+        <div class="card-body">資料治理、Memory Schema、索引自動化、RAG 遷移準備。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🐝 Buzz</div>
+        <div class="card-body">內容分析（Gemini Flash）。爬蟲後的分類與多模態分析。</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📈 GooayeAI</div>
+        <div class="card-body">播客分析、投資方向。股癌 EP530-EP638 深度分析系統。</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">8 個能力缺口</h3>
+    <div class="gap-grid">
+      <div class="gap-item">
+        <div class="num">GAP-01</div>
+        <div class="label">無多輪深度搜尋</div>
+        <div class="desc">現有系統僅支援單次搜尋，無法做初篩後深入驗證的兩輪機制</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-02</div>
+        <div class="label">無學術資料庫接入</div>
+        <div class="desc">Semantic Scholar、PubMed、arXiv 均未整合</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-03</div>
+        <div class="label">無持久化研究會話</div>
+        <div class="desc">跨次執行的 context 會丟失，無法做多夜連續研究</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-04</div>
+        <div class="label">無來源可信度評分</div>
+        <div class="desc">缺乏偏誤評估與資訊品質評分機制</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-05</div>
+        <div class="label">無結構化 ResearchItem</div>
+        <div class="desc">資料以非結構化 JSON cache 儲存，無標準化 schema</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-06</div>
+        <div class="label">無主題告警機制</div>
+        <div class="desc">無法監控特定主題的新動態並自動觸發深度研究</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-07</div>
+        <div class="label">歷史趨勢分析薄弱</div>
+        <div class="desc">缺乏時序追蹤與 delta 偵測能力</div>
+      </div>
+      <div class="gap-item">
+        <div class="num">GAP-08</div>
+        <div class="label">監控 vs 查詢失衡</div>
+        <div class="desc">被動監控能力強，主動深度查詢能力不足</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin:1.5rem 0 1rem;">8 個自然整合點</h3>
+    <div class="gap-grid">
+      <div class="int-item">
+        <div class="num">INT-01</div>
+        <div class="label">Kai Task Board</div>
+        <div class="desc">研究工作流程編排，天然 orchestration 層</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-02</div>
+        <div class="label">smart-scraper.py 兩段式</div>
+        <div class="desc">規則優先 + LLM 兜底，完美對應多輪篩選</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-03</div>
+        <div class="label">Stockcast JSON 快取模式</div>
+        <div class="desc">結構化 JSON 快取架構，可直接擴展為 ResearchItem</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-04</div>
+        <div class="label">Orion 作為 Pipeline Owner</div>
+        <div class="desc">Orion 的資料治理角色天然適合設計研究管線</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-05</div>
+        <div class="label">LightVectorStore</div>
+        <div class="desc">現有向量儲存可作為研究知識庫</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-06</div>
+        <div class="label">Nova Deck 輸出</div>
+        <div class="desc">HTML Deck 可完全替代 LaTeX PDF，功能等效</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-07</div>
+        <div class="label">Noel 夜班排程</div>
+        <div class="desc">長時間研究任務完美適配夜班自動化框架</div>
+      </div>
+      <div class="int-item">
+        <div class="num">INT-08</div>
+        <div class="label">PRES Pipeline 設計模板</div>
+        <div class="desc">Lens 的 PRES 架構可作為深度研究管線的設計參考</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">完整架構對照表</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:800px;">
+        <thead>
+          <tr>
+            <th>維度</th>
+            <th>Meta-Analysis Pipeline（學術）</th>
+            <th>我們現有系統</th>
+            <th>Gap 狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>搜尋層</td>
+            <td>Semantic Scholar / PubMed / arXiv API</td>
+            <td>smart-scraper + Nautilus</td>
+            <td><span class="badge badge-red">無學術 DB 接入</span></td>
+          </tr>
+          <tr>
+            <td>篩選層</td>
+            <td>PRISMA 兩輪篩選（標題+摘要 → 全文）</td>
+            <td>Buzz 單輪內容分析</td>
+            <td><span class="badge badge-red">無多輪篩選</span></td>
+          </tr>
+          <tr>
+            <td>資料提取層</td>
+            <td>結構化 CSV schema (PICO)</td>
+            <td>非結構化 JSON cache</td>
+            <td><span class="badge badge-red">缺 ResearchItem schema</span></td>
+          </tr>
+          <tr>
+            <td>品質評估層</td>
+            <td>GRADE / Cochrane 偏誤評分</td>
+            <td>無</td>
+            <td><span class="badge badge-red">完全缺失</span></td>
+          </tr>
+          <tr>
+            <td>統計分析層</td>
+            <td>R / metaforest 統計運算</td>
+            <td>無</td>
+            <td><span class="badge badge-gray">完全缺失（我們不需要）</span></td>
+          </tr>
+          <tr>
+            <td>知識持久化</td>
+            <td>Session-based（單次執行）</td>
+            <td>LightVectorStore</td>
+            <td><span class="badge badge-gold">部分覆蓋</span></td>
+          </tr>
+          <tr>
+            <td>輸出層</td>
+            <td>LaTeX / tectonic PDF</td>
+            <td>Nova Deck HTML</td>
+            <td><span class="badge badge-green">格式不同，功能等效</span></td>
+          </tr>
+          <tr>
+            <td>排程層</td>
+            <td>手動觸發</td>
+            <td>Noel 夜班自動化</td>
+            <td><span class="badge badge-green">我們更強</span></td>
+          </tr>
+          <tr>
+            <td>任務追蹤</td>
+            <td>無</td>
+            <td>Kai Task Board</td>
+            <td><span class="badge badge-green">我們更強</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== D3: 整合建議結論 ===== -->
+  <section class="section" id="d3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div>
+        <div class="section-title">整合建議結論</div>
+        <div class="section-subtitle">最終裁決 + 推理邏輯 + 做/不做清單</div>
+      </div>
+    </div>
+
+    <div class="verdict-card">
+      <div class="verdict-title">⚡ 最終裁決：部分吸收 (PARTIAL ABSORPTION)</div>
+      <p style="color:var(--text-secondary);font-size:0.93rem;line-height:1.7;">
+        吸收 <strong>架構思想</strong>（多輪篩選 + 結構化 schema + 品質評分概念），在<strong>現有技術棧</strong>上自建「Deep Market Research Layer」，而非直接整合學術用的原始 Repo。
+      </p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card" style="border-left:3px solid var(--danger);">
+        <div class="card-title" style="color:var(--danger);">❌ 為什麼不直接整合？</div>
+        <div class="card-body">
+          <ul class="check-list">
+            <li class="no">原始 repo 是學術設計，外部依賴過重（R + LaTeX + PubMed）</li>
+            <li class="no">與我們的市場研究需求不符（速度/嚴謹度要求不同）</li>
+            <li class="no">強制採用學術方法論會拖慢我們的商業節奏</li>
+            <li class="no">維護成本高，未來難以跟上我們系統演進</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--success);">
+        <div class="card-title" style="color:var(--success);">✅ 為什麼部分吸收？</div>
+        <div class="card-body">
+          <ul class="check-list">
+            <li class="yes">研究能力確有缺口，完全不導入會讓夜班資訊深度停留在淺層</li>
+            <li class="yes">架構思想（多輪篩選/結構化提取）完全適用市場研究</li>
+            <li class="yes">用自建方式可完全控制技術棧，無學術依賴</li>
+            <li class="yes">現有系統（smart-scraper/Orion/Noel）提供完美整合底座</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">精確吸收清單</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:600px;">
+        <thead>
+          <tr><th>吸收項目</th><th>來源概念</th><th>我們的實作方式</th><th>決策</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>多輪篩選架構</td>
+            <td>PRISMA 兩輪篩選</td>
+            <td>smart-scraper.py 加 Round 1 (rules) + Round 2 (Buzz)</td>
+            <td><span class="badge badge-green">✅ 吸收</span></td>
+          </tr>
+          <tr>
+            <td>結構化 ResearchItem</td>
+            <td>PICO CSV schema</td>
+            <td>Python dataclass，存進 Kai SQLite</td>
+            <td><span class="badge badge-green">✅ 吸收</span></td>
+          </tr>
+          <tr>
+            <td>來源可信度評分</td>
+            <td>GRADE/Cochrane 偏誤評分</td>
+            <td>簡化版 credibility_score (0-100)，規則+LLM混合</td>
+            <td><span class="badge badge-green">✅ 吸收（簡化）</span></td>
+          </tr>
+          <tr>
+            <td>研究會話持久化</td>
+            <td>Session-based workflow</td>
+            <td>/api/research/sessions CRUD，Noel 可跨夜恢復</td>
+            <td><span class="badge badge-green">✅ 吸收</span></td>
+          </tr>
+          <tr>
+            <td>R statistical analysis</td>
+            <td>metaforest/效應量</td>
+            <td>—</td>
+            <td><span class="badge badge-gray">⛔ 跳過</span></td>
+          </tr>
+          <tr>
+            <td>PRISMA 學術方法論</td>
+            <td>嚴格文獻回顧標準</td>
+            <td>—</td>
+            <td><span class="badge badge-gray">⛔ 跳過</span></td>
+          </tr>
+          <tr>
+            <td>LaTeX/tectonic 輸出</td>
+            <td>學術論文格式</td>
+            <td>Nova Deck 已足夠</td>
+            <td><span class="badge badge-gray">⛔ 跳過</span></td>
+          </tr>
+          <tr>
+            <td>學術資料庫 API</td>
+            <td>PubMed/arXiv</td>
+            <td>Firecrawl/Nautilus 替代</td>
+            <td><span class="badge badge-gray">⛔ 跳過</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== D4: 整合架構圖 ===== -->
+  <section class="section" id="d4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div>
+        <div class="section-title">最佳整合架構圖</div>
+        <div class="section-subtitle">Deep Market Research Layer — 新建層架構設計</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>架構設計原則</strong>：新建「Deep Market Research Layer」作為獨立層，插入在現有 smart-scraper（搜尋入口）和 Nova Deck（輸出層）之間。不替換任何現有元件，只做增強。
+    </div>
+
+    <div class="arch-diagram">
+      <div class="arch-layer">
+        <div class="arch-layer-title">🔍 Stage 1：Search &amp; Discovery</div>
+        <div class="arch-layer-body">
+          <span class="arch-tag">smart-scraper.py</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">→</span>
+          <span class="arch-tag">Nautilus (JS-heavy)</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">→</span>
+          <span class="arch-tag new">+ academic hint detection（新）</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-title">📋 Stage 2：Multi-round Screening</div>
+        <div class="arch-layer-body">
+          <span class="arch-tag">Round 1: Keyword match (fast/free)</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">→</span>
+          <span class="arch-tag">Round 2: Buzz content analysis</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">→</span>
+          <span class="arch-tag new">+ credibility_score field（新）</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-title">🗃️ Stage 3：Structured Extraction</div>
+        <div class="arch-layer-body">
+          <span class="arch-tag new">ResearchItem schema（新）</span>
+          <div style="width:100%;font-size:0.8rem;color:var(--text-secondary);margin-top:0.35rem;">
+            { topic, source, date, credibility, key_claims, evidence_type, relevance }
+          </div>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-title">💾 Stage 4：Knowledge Persistence</div>
+        <div class="arch-layer-body">
+          <span class="arch-tag">LightVectorStore (existing)</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">+</span>
+          <span class="arch-tag new">research_session table（新）</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="arch-layer-title">📊 Stage 5：Synthesis &amp; Output</div>
+        <div class="arch-layer-body">
+          <span class="arch-tag">Nova Deck (existing)</span>
+          <span style="color:var(--text-secondary);font-size:0.85rem;">+</span>
+          <span class="arch-tag new">trend delta detection（新）</span>
+        </div>
+      </div>
+      <div class="arch-orchestration">
+        🎛️ Orchestration：<strong>Orion</strong>（Pipeline Owner）+ <strong>Kai Task Board</strong>（工作流程追蹤）+ <strong>Noel</strong>（夜班排程長時間研究）
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-top:1.5rem;margin-bottom:1rem;">ResearchItem Schema 設計</h3>
+    <pre><code>@dataclass
+class ResearchItem:
+    id: str                    # UUID 前 8 碼
+    session_id: str            # 歸屬研究會話
+    topic: str                 # 研究主題
+    source_url: str            # 來源 URL
+    source_name: str           # 來源名稱（如：Bloomberg/Reuters）
+    publish_date: Optional[str]# 發布日期
+    credibility_score: int     # 0-100（60+ = 可信，80+ = 高可信）
+    key_claims: list[str]      # 關鍵主張列表
+    evidence_type: str         # primary / secondary / opinion
+    relevance_score: int       # 0-100（對研究主題的相關度）
+    extracted_at: str          # 提取時間戳
+    raw_content: str           # 原始內容備份</code></pre>
+  </section>
+
+  <!-- ===== D5: 實作藍圖 ===== -->
+  <section class="section" id="d5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div>
+        <div class="section-title">實作藍圖</div>
+        <div class="section-subtitle">4 Phase 詳細規格 — Owner / Tasks / Success Criteria</div>
+      </div>
+    </div>
+
+    <div class="phase-timeline">
+
+      <div class="phase-item">
+        <div class="phase-dot">P1</div>
+        <div class="phase-line"></div>
+        <div class="phase-content">
+          <h4>
+            Phase 1 — ResearchItem Schema + DB
+            <span class="badge badge-blue">1 週</span>
+            <span class="badge badge-gray">Orion + Max</span>
+          </h4>
+          <p><strong>目標</strong>：建立結構化研究資料的儲存基礎</p>
+          <ul>
+            <li>定義 ResearchItem dataclass → <code>~/Projects/scripts/research_types.py</code></li>
+            <li>欄位完整定義：topic / source_url / source_name / publish_date / credibility_score (0-100) / key_claims[] / evidence_type / relevance_score / extracted_at / session_id</li>
+            <li>在 Kai SQLite DB 新增 research_sessions table</li>
+            <li>基礎 CRUD API：/api/research/sessions (GET/POST/PATCH)</li>
+          </ul>
+          <p style="color:var(--success);margin-top:0.75rem;font-size:0.85rem;font-style:italic;">
+            ✅ Success: 可儲存並取出結構化 ResearchItem，session 在 Kai 後台可見
+          </p>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot">P2</div>
+        <div class="phase-line"></div>
+        <div class="phase-content">
+          <h4>
+            Phase 2 — Multi-round Screening
+            <span class="badge badge-blue">1 週</span>
+            <span class="badge badge-gray">Orion + Rex</span>
+          </h4>
+          <p><strong>目標</strong>：讓搜尋從單次 → 兩輪篩選，輸出帶可信度的 ResearchItem</p>
+          <ul>
+            <li>改造 smart-scraper.py：加 <code>--mode research</code> flag</li>
+            <li>Round 1：標題/描述關鍵字比對（規則式，免費）→ 快速初篩</li>
+            <li>Round 2：Buzz 全文內容可信度分析 → credibility_score 計算</li>
+            <li>輸出：ResearchItem JSON 清單</li>
+          </ul>
+          <p style="color:var(--success);margin-top:0.75rem;font-size:0.85rem;font-style:italic;">
+            ✅ Success: 搜尋 Stockcast 相關主題後，產出附有可信度評分的 ResearchItem 清單
+          </p>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot">P3</div>
+        <div class="phase-line"></div>
+        <div class="phase-content">
+          <h4>
+            Phase 3 — Persistence + Noel Integration
+            <span class="badge badge-blue">3 天</span>
+            <span class="badge badge-gray">Max + Noel</span>
+          </h4>
+          <p><strong>目標</strong>：讓研究會話可以跨夜恢復，支援多夜連續研究</p>
+          <ul>
+            <li>Session 恢復機制：Noel 可 PATCH /api/research/sessions/{id} 更新狀態</li>
+            <li>Noel 夜班深度研究任務模板（標準化任務格式）</li>
+            <li>LightVectorStore 整合：ResearchItem 向量化存入，支援語義查詢</li>
+            <li>趨勢 delta 偵測：同主題跨會話的觀點變化追蹤</li>
+          </ul>
+          <p style="color:var(--success);margin-top:0.75rem;font-size:0.85rem;font-style:italic;">
+            ✅ Success: Noel 可執行多夜連續深度研究活動（session 跨夜持續）
+          </p>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot">P4</div>
+        <div class="phase-content">
+          <h4>
+            Phase 4 — Kai UI + First Real Research
+            <span class="badge badge-blue">3 天</span>
+            <span class="badge badge-gray">John + Iris</span>
+          </h4>
+          <p><strong>目標</strong>：讓 Rain 可以在 Kai 中控台看到研究狀態，並執行第一個真實研究</p>
+          <ul>
+            <li>在 Kai frontend 新增「研究中心」tab</li>
+            <li>顯示：active research sessions / ResearchItem 清單 / credibility 分布圖</li>
+            <li>執行第一個真實研究：stockcast.tw SEO 競品深度分析</li>
+          </ul>
+          <p style="color:var(--success);margin-top:0.75rem;font-size:0.85rem;font-style:italic;">
+            ✅ Success: Rain 可在 Kai 中控台看到研究進度，第一個真實研究完成並輸出 Deck 報告
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== D6: Klay 路由規則 ===== -->
+  <section class="section" id="d6">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div>
+        <div class="section-title">Klay 路由規則</div>
+        <div class="section-subtitle">新增到 CLAUDE.md Department Routing 的路由規則</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      以下規則建議新增到 CLAUDE.md 的「Department Routing（強制）」表格中，用於自動路由研究類任務。
+    </div>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>任務類型</th>
+            <th>強制路由</th>
+            <th>主導</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>市場研究 / 競品分析 / 產業調查（深度）</td>
+            <td><strong>Deep Research Layer</strong></td>
+            <td>Orion（設計）+ Nautilus+Buzz（執行）+ Noel（排程）</td>
+          </tr>
+          <tr>
+            <td>學術 / 論文 / 系統性文獻回顧</td>
+            <td>External → Nautilus + Buzz</td>
+            <td>Orion 評估是否需 ResearchItem schema</td>
+          </tr>
+          <tr>
+            <td>快速資料查詢（&lt;30min）</td>
+            <td>smart-scraper.py（現有）</td>
+            <td>現有流程不變，不進入 Research Layer</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">觸發關鍵字</h3>
+    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.75rem;">以下任何關鍵字出現在任務描述中，Klay 應自動路由到 Deep Research Layer：</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+      <span class="badge badge-gold">研究</span>
+      <span class="badge badge-gold">調查</span>
+      <span class="badge badge-gold">深度分析</span>
+      <span class="badge badge-gold">Meta-Analysis</span>
+      <span class="badge badge-gold">systematic review</span>
+      <span class="badge badge-gold">literature review</span>
+      <span class="badge badge-gold">市場報告</span>
+      <span class="badge badge-gold">競品深度</span>
+      <span class="badge badge-gold">產業調查</span>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">判斷邏輯（快速決策）</h3>
+    <pre><code># Klay 路由決策樹
+if "研究/調查" in task AND duration > 30min:
+    route → Deep Research Layer (Orion + Nautilus + Buzz + Noel)
+elif "研究/調查" in task AND duration <= 30min:
+    route → smart-scraper.py (快速查詢，不建 ResearchItem)
+elif "學術/論文" in task:
+    route → Nautilus + Buzz (Orion 評估 schema 需求)
+else:
+    route → 現有流程</code></pre>
+  </section>
+
+  <!-- ===== D7: MVP 4週計畫 ===== -->
+  <section class="section" id="d7">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <div>
+        <div class="section-title">MVP 實作計畫</div>
+        <div class="section-subtitle">4 週 4 Phase 完整交付計畫</div>
+      </div>
+    </div>
+
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-header">Week 1 — Foundation</div>
+        <div class="week-body">
+          <div class="owner">Orion + Max</div>
+          <p><strong>核心任務</strong></p>
+          <p>ResearchItem dataclass 定義、research_sessions SQLite table、基礎 CRUD API 建立</p>
+          <div class="success">✅ Can store and retrieve structured research items</div>
+        </div>
+      </div>
+      <div class="week-card">
+        <div class="week-header">Week 2 — Multi-round Search</div>
+        <div class="week-body">
+          <div class="owner">Orion + Rex</div>
+          <p><strong>核心任務</strong></p>
+          <p>smart-scraper.py <code>--mode research</code> 增強、可信度評分規則 v1 實作</p>
+          <div class="success">✅ Stockcast 主題搜尋產出可信度評分 ResearchItem</div>
+        </div>
+      </div>
+      <div class="week-card">
+        <div class="week-header">Week 3 — Persistence + Noel</div>
+        <div class="week-body">
+          <div class="owner">Max + Noel</div>
+          <p><strong>核心任務</strong></p>
+          <p>Session 恢復機制、Noel 夜班深度研究任務模板、LightVectorStore 整合</p>
+          <div class="success">✅ Noel 可執行多夜連續深度研究活動</div>
+        </div>
+      </div>
+      <div class="week-card">
+        <div class="week-header">Week 4 — Kai UI + Launch</div>
+        <div class="week-body">
+          <div class="owner">John + Iris</div>
+          <p><strong>核心任務</strong></p>
+          <p>Kai「研究中心」tab、執行 stockcast.tw SEO 競品第一個真實深度研究</p>
+          <div class="success">✅ Rain 可在 Kai 看到研究進度，第一個研究完成</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">里程碑追蹤</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:620px;">
+        <thead>
+          <tr><th>里程碑</th><th>預計完成</th><th>驗收標準</th><th>Owner</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>M1：ResearchItem 可儲存/讀取</td>
+            <td>Week 1 結束</td>
+            <td>POST /api/research/sessions → 200，GET 回傳正確 ResearchItem</td>
+            <td>Orion + Max</td>
+          </tr>
+          <tr>
+            <td>M2：搜尋產出可信度評分</td>
+            <td>Week 2 結束</td>
+            <td>smart-scraper --mode research 輸出含 credibility_score 的 JSON</td>
+            <td>Orion + Rex</td>
+          </tr>
+          <tr>
+            <td>M3：Noel 可跨夜恢復研究</td>
+            <td>Week 3 結束</td>
+            <td>夜班日誌顯示「恢復 session X，繼續從 item Y」</td>
+            <td>Max + Noel</td>
+          </tr>
+          <tr>
+            <td>M4：Kai UI 研究中心上線</td>
+            <td>Week 4 結束</td>
+            <td>Kai 前台可見 active sessions + ResearchItem 清單</td>
+            <td>John + Iris</td>
+          </tr>
+          <tr>
+            <td>M5：第一個真實研究完成</td>
+            <td>Week 4 結束</td>
+            <td>stockcast.tw SEO 競品分析 Deck 報告產出，Email 寄給 Rain</td>
+            <td>Orion + Nova</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== D8: 可執行指令稿 ===== -->
+  <section class="section" id="d8">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <div>
+        <div class="section-title">最終可執行指令稿</div>
+        <div class="section-subtitle">MVP Bootstrap Script — 可直接在 Cursor 執行</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>執行方式</strong>：將以下腳本存為 <code>bootstrap_deep_research.py</code>，然後執行 <code>python3 bootstrap_deep_research.py</code>。
+      腳本會自動：① 建立 ResearchItem schema 檔案 ② 在 Kai 建立 Phase 1 任務 ③ 輸出後續步驟指引。
+    </div>
+
+    <pre><code># ============================================================
+# Deep Market Research Layer — MVP Bootstrap Script
+# Run with: python3 bootstrap_deep_research.py
+# ============================================================
+
+# Step 1: Create ResearchItem schema file
+# File: ~/Projects/scripts/research_types.py
+
+RESEARCH_TYPES_PY = '''
+from dataclasses import dataclass, field
+from typing import Literal, Optional
+from datetime import datetime
+import uuid
+
+@dataclass
+class ResearchItem:
+    id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    session_id: str = ""
+    topic: str = ""
+    source_url: str = ""
+    source_name: str = ""
+    publish_date: Optional[str] = None
+    credibility_score: int = 50  # 0-100
+    key_claims: list[str] = field(default_factory=list)
+    evidence_type: Literal["primary", "secondary", "opinion"] = "secondary"
+    relevance_score: int = 50  # 0-100
+    extracted_at: str = field(
+        default_factory=lambda: datetime.now().isoformat()
+    )
+    raw_content: str = ""
+
+@dataclass
+class ResearchSession:
+    id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    topic: str = ""
+    items: list[ResearchItem] = field(default_factory=list)
+    status: Literal["active", "completed", "paused"] = "active"
+    created_by: str = "orion"
+    created_at: str = field(
+        default_factory=lambda: datetime.now().isoformat()
+    )
+    completed_at: Optional[str] = None
+    notes: str = ""
+'''
+
+# Step 2: Create Kai task for Phase 1 implementation
+import subprocess, json
+
+task_payload = {
+    "title": "Deep Research Layer — Phase 1: ResearchItem Schema + DB",
+    "description": (
+        "實作 ResearchItem dataclass + research_sessions SQLite table + CRUD API。"
+        "詳見 Meta-Analysis Pipeline 評估報告 Deliverable 5。"
+        "檔案位置：~/Projects/scripts/research_types.py"
+    ),
+    "task_type": "feature",
+    "priority": 6,
+    "assigned_to": "orion",
+    "created_by": "klay",
+    "auto_start": False,
+    "source": "meta_analysis_evaluation",
+    "estimated_minutes": 180,
+    "manual_estimate_minutes": 480
+}
+
+result = subprocess.run(
+    [
+        "curl", "-s", "-X", "POST",
+        "http://127.0.0.1:5002/api/tasks",
+        "-H", "Content-Type: application/json",
+        "-d", json.dumps(task_payload)
+    ],
+    capture_output=True, text=True
+)
+print("Task created:", result.stdout)
+
+# Step 3: Write ResearchItem schema to disk
+import os
+schema_path = os.path.expanduser("~/Projects/scripts/research_types.py")
+with open(schema_path, "w") as f:
+    f.write(RESEARCH_TYPES_PY.strip())
+print(f"Schema written to {schema_path}")
+
+print("\n✅ MVP Bootstrap complete.")
+print("Next: Dispatch Orion to implement Phase 1 (ResearchItem schema + API)")
+print("Run: openclaw agent --agent orion \\")
+print("       --message 'implement deep research layer phase 1' \\")
+print("       --context 'see ~/Projects/scripts/research_types.py'")
+</code></pre>
+
+    <h3 style="font-size:1rem;font-weight:700;margin-top:1.5rem;margin-bottom:0.75rem;">後續 Dispatch 指令</h3>
+    <pre><code># Phase 1: Orion 實作 schema + DB
+openclaw agent --agent orion \
+  --message "implement ResearchItem dataclass + research_sessions SQLite table + CRUD API" \
+  --context "~/Projects/scripts/research_types.py"
+
+# Phase 2: Rex 改造 smart-scraper
+openclaw agent --agent rex \
+  --message "add --mode research flag to smart-scraper.py with two-round screening"
+
+# Phase 3: 確認 Noel 夜班模板就緒
+openclaw agent --agent noel \
+  --message "setup deep research session template for night-shift"
+
+# Phase 4: John + Iris 建 Kai 研究中心 tab
+openclaw agent --agent john \
+  --message "add 研究中心 tab to Kai Control Center frontend"</code></pre>
+  </section>
+
+</div><!-- end container -->
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <p>Meta-Analysis Pipeline 評估報告 · AI Team Research · 2026-03-22</p>
+  <p style="margin-top:0.4rem;">主責：Orion（外部研究）+ Scout（內部架構分析）+ Nova（報告製作）</p>
+  <p style="margin-top:0.4rem;">
+    <a href="https://slideless.vercel.app/meta-analysis-pipeline.html">slideless.vercel.app/meta-analysis-pipeline.html</a>
+  </p>
+</footer>
+
+</body>
+</html>

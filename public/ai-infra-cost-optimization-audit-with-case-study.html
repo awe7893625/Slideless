@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAIN AI TEAM LLM 成本優化審計報告｜Case Study</title>
+<meta name="description" content="RAIN AI TEAM LLM 成本優化審計報告案例版：board-style 版型、48 roster entries、L0/L1/L2、實戰節省 96.5%。">
+<style>
+:root{
+  --cream:#f6f5f1;
+  --cream-alt:#f0eee6;
+  --cream-dark:#e8e5dc;
+  --dark:#1a1a1a;
+  --dark-2:#2a2420;
+  --orange:#eb8054;
+  --orange-light:#fdf0e8;
+  --orange-dark:#c45e2a;
+  --white:#ffffff;
+  --grey-01:#e4e1d8;
+  --grey-02:#8b877c;
+  --grey-03:#5a564e;
+  --green:#5a8a48;
+  --green-bg:#eef5e8;
+  --blue:#3a6fcf;
+  --blue-bg:#eaf0fd;
+  --amber:#c78c00;
+  --amber-bg:#fdf6e0;
+  --red:#c94040;
+  --red-bg:#fdeaea;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Helvetica Neue',Arial,'Noto Sans TC',sans-serif;
+  background:var(--cream);
+  color:var(--dark);
+  -webkit-font-smoothing:antialiased;
+  height:100%;
+  overflow:hidden;
+}
+a{color:inherit;text-decoration:none}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--orange);transition:width .35s ease;z-index:200}
+#deck{width:100%;height:100vh;position:relative;overflow:hidden}
+.slide{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  overflow-y:auto;opacity:0;transform:translateX(60px);
+  transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none;display:flex;flex-direction:column;
+}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+.slide.exit-left{opacity:0;transform:translateX(-60px)}
+.slide-cover{
+  background:var(--dark);color:var(--white);justify-content:center;align-items:center;text-align:center;
+  padding:48px 28px 88px;position:relative;overflow:hidden;min-height:100vh;
+}
+.slide-cover::before{
+  content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);
+  width:600px;height:600px;background:radial-gradient(circle, rgba(235,128,84,0.18) 0%, transparent 60%);
+}
+.slide-cover::after{
+  content:'';position:absolute;bottom:-80px;right:-80px;
+  width:400px;height:400px;background:radial-gradient(circle, rgba(235,128,84,0.1) 0%, transparent 65%);
+}
+.cover-eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:5px;text-transform:uppercase;
+  color:var(--orange);margin-bottom:18px;font-family:monospace;
+}
+.cover-icon{font-size:64px;margin-bottom:18px;display:block;filter:drop-shadow(0 4px 24px rgba(235,128,84,0.3))}
+.cover h1{
+  font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;
+  margin-bottom:14px;color:var(--white);max-width:14ch;
+}
+.cover-sub{font-size:16px;color:rgba(255,255,255,0.62);margin-bottom:26px;line-height:1.6;max-width:760px}
+.cover-tags{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:18px}
+.cover-tag{
+  padding:7px 12px;border-radius:999px;background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);font-size:12px;font-weight:600;color:var(--white);font-family:monospace
+}
+.cover-date{font-size:12px;color:rgba(255,255,255,0.38);font-family:monospace;letter-spacing:2px}
+.slide-inner{max-width:820px;margin:0 auto;padding:48px 40px 96px;width:100%}
+.slide-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  color:var(--orange);font-family:monospace;margin-bottom:8px
+}
+.slide h2{
+  font-size:clamp(22px,4vw,36px);font-weight:800;letter-spacing:-0.02em;
+  margin-bottom:8px;color:var(--dark);line-height:1.2
+}
+.slide-lead{
+  font-size:14px;color:var(--grey-02);font-family:monospace;border-left:3px solid var(--orange);
+  padding-left:14px;margin-bottom:28px;line-height:1.6
+}
+.slide p{font-size:15px;color:#3a3630;margin-bottom:16px;line-height:1.75}
+.slide ul,.slide ol{margin:0 0 20px 22px;font-size:14.5px;color:#3a3630}
+.slide li{margin-bottom:8px;line-height:1.65}
+.slide ul li::marker,.slide ol li::marker{color:var(--orange)}
+.highlight-box{
+  background:var(--orange-light);border:1px solid rgba(235,128,84,0.25);
+  border-left:4px solid var(--orange);border-radius:10px;padding:18px 22px;margin:20px 0;
+  font-size:14px;color:var(--dark);line-height:1.65
+}
+.dark-block{
+  background:var(--dark);color:var(--white);border-radius:12px;padding:28px 30px;margin:24px 0
+}
+.dark-block h3{
+  font-size:16px;font-weight:700;color:var(--orange);margin-bottom:14px;
+  font-family:monospace;letter-spacing:1px
+}
+.dark-block p{color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin-bottom:8px}
+.tbl-wrap{
+  overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:24px;border-radius:10px;border:1px solid var(--grey-01);
+}
+table{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
+thead tr{background:var(--cream-alt)}
+th{
+  text-align:left;padding:12px 16px;font-weight:700;color:var(--grey-03);font-size:10.5px;
+  letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;border-bottom:2px solid var(--cream-dark);
+  word-break:break-word
+}
+td{
+  padding:12px 16px;border-bottom:1px solid var(--grey-01);color:#2e2b26;vertical-align:top;line-height:1.55;
+  font-size:14px;word-break:break-word
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(235,128,84,0.04)}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;
+  font-size:11px;font-weight:700;font-family:monospace
+}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-orange{background:var(--orange-light);color:var(--orange-dark)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-grey{background:var(--cream-dark);color:var(--grey-03)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.col-card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px 22px}
+.col-card h4{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:12px}
+.col-card ul{margin:0 0 0 18px;font-size:13.5px;color:#3a3630}
+.col-card li{margin-bottom:6px;line-height:1.6}
+.step-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.step-card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.step-num{font-size:11px;font-weight:800;font-family:monospace;letter-spacing:2px;color:var(--orange);margin-bottom:8px;text-transform:uppercase}
+.step-who{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.step-time{font-size:12px;color:var(--grey-02);font-family:monospace;margin-bottom:8px}
+.step-out{font-size:13px;color:var(--grey-03)}
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.member-card{background:var(--white);border:1px solid var(--grey-01);border-radius:10px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+.member-role{font-size:10px;font-weight:800;font-family:monospace;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.member-name{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.member-model{font-size:11px;font-family:monospace;color:var(--grey-02);margin-bottom:10px}
+.member-desc{font-size:12.5px;color:var(--grey-03);line-height:1.55}
+#nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(246,245,241,0.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-top:1px solid var(--grey-01);display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px
+}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:var(--dark);color:var(--white);
+  border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,transform .1s;font-family:inherit
+}
+.nav-btn:hover{background:var(--dark-2)}
+.nav-btn:active{transform:scale(.97)}
+.nav-btn:disabled{background:var(--grey-01);color:var(--grey-02);cursor:default}
+.nav-btn.primary{background:var(--orange)}
+.nav-btn.primary:hover{background:var(--orange-dark)}
+#counter{font-size:12px;font-weight:700;font-family:monospace;color:var(--grey-02);letter-spacing:2px}
+@media(max-width:900px){
+  .slide-inner{padding:32px 24px 96px}
+  .two-col{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .slide-inner{padding:28px 18px 96px}
+  .cover h1{font-size:28px}
+  .cover-sub{font-size:14px}
+  .cover-tags{gap:8px}
+  .cover-tag{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<div id="deck">
+  <div class="slide active" id="s1">
+    <div class="slide-cover">
+      <div style="position:relative;z-index:1;">
+        <div class="cover-eyebrow">Rain AI Team · Case Study</div>
+        <span class="cover-icon">📊</span>
+        <h1>LLM 成本優化審計案例版</h1>
+        <div class="cover-sub">board-style report · 實戰案例驗證 · 96.5% 成本節省 · 同一套版型與語言</div>
+        <div class="cover-tags">
+          <span class="cover-tag">Case Study</span>
+          <span class="cover-tag">96.5% savings</span>
+          <span class="cover-tag">Haiku + Free tools</span>
+          <span class="cover-tag">Board Format</span>
+        </div>
+        <div class="cover-date">2026-03-24 · RAIN AI TEAM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" id="s2">
+    <div class="slide-inner">
+      <div class="slide-eyebrow">SLIDE 02 · SUMMARY</div>
+      <h2>案例摘要</h2>
+      <div class="slide-lead">本案例把「AI Infra 成本優化審計」本身當成實戰，驗證低成本模型與免費工具能否完成高品質交付。</div>
+      <div class="step-grid">
+        <div class="step-card"><div class="step-num">CASE</div><div class="step-who">2.5 小時</div><div class="step-time">work time</div><div class="step-out">實戰完成整個審計、修正與報告輸出。</div></div>
+        <div class="step-card"><div class="step-num">CASE</div><div class="step-who">7 sub-tasks</div><div class="step-time">pipeline depth</div><div class="step-out">修復 / 測試 / 分析 / 報告 / 郵件等流程一起跑。</div></div>
+        <div class="step-card"><div class="step-num">CASE</div><div class="step-who">96.5%</div><div class="step-time">savings</div><div class="step-out">對比 100% 高階輸出基準，節省極高。</div></div>
+        <div class="step-card"><div class="step-num">CASE</div><div class="step-who">Haiku 80%</div><div class="step-time">tool usage</div><div class="step-out">大部分任務用低成本層完成。</div></div>
+      </div>
+      <div class="highlight-box"><strong>核心訊息：</strong>高品質輸出不等於高成本輸出；真正重要的是把正確任務放到正確模型層。</div>
+    </div>
+  </div>
+
+  <div class="slide" id="s3">
+    <div class="slide-inner">
+      <div class="slide-eyebrow">SLIDE 03 · TASK SPLIT</div>
+      <h2>實戰任務拆分</h2>
+      <div class="slide-lead">這次案例不是單一任務，而是一條完整交付鏈：修、測、寫、發。</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Task</th><th>Tools / Model</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><strong>HTTP 錯誤處理 / Git 恢復</strong></td><td>Haiku</td><td>一般修復、結構化分析、低風險 debug</td></tr>
+            <tr><td><strong>免費工具驗證</strong></td><td>Chrome MCP</td><td>點擊、填表、截圖、驗證流程</td></tr>
+            <tr><td><strong>交叉驗證 / P0 審查</strong></td><td>Vick / Grok</td><td>獨立視角、挑戰假設、找盲點</td></tr>
+            <tr><td><strong>報告與版型</strong></td><td>Nova / 高階輸出層</td><td>高品質 HTML deck 與 final output</td></tr>
+            <tr><td><strong>郵件與通知</strong></td><td>Bash + Kai</td><td>輸出與交付，不浪費高階模型</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two-col">
+        <div class="col-card">
+          <h4>成功用法</h4>
+          <ul>
+            <li>Haiku：HTTP 錯誤處理、Git 版本恢復、任務分類、結構化分析。</li>
+            <li>Chrome MCP：點擊、填表、驗證、screenshot。</li>
+            <li>Vick / Grok：交叉驗證與異見審查。</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <h4>必保高階用法</h4>
+          <ul>
+          <li>Deck 報告的最終版面與文字收斂（高階輸出層）。</li>
+            <li>結論與風險邊界的最後簽核。</li>
+            <li>需要高品質敘事與編排的輸出。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" id="s4">
+    <div class="slide-inner">
+      <div class="slide-eyebrow">SLIDE 04 · COST MODEL</div>
+      <h2>成本對比</h2>
+      <div class="slide-lead">對比基準是 100% 高階輸出的理想方案；實戰則混用 Haiku、免費工具與少量高階輸出。</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Time</th><th>Unit cost</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>100% 高階輸出</strong></td><td>160 min</td><td>~$21.88/min</td><td><span class="badge badge-red">$3,500</span></td></tr>
+            <tr><td><strong>Haiku</strong></td><td>80 min</td><td>~$0.80/min</td><td><span class="badge badge-amber">$64</span></td></tr>
+            <tr><td><strong>Chrome MCP</strong></td><td>20 min</td><td>$0</td><td><span class="badge badge-green">$0</span></td></tr>
+            <tr><td><strong>Nova / 高階輸出層</strong></td><td>30 min</td><td>~$2.50/min</td><td><span class="badge badge-amber">$75</span></td></tr>
+            <tr><td><strong>Vick / Grok</strong></td><td>20 min</td><td>$20/mo amortized</td><td><span class="badge badge-green">$0.66</span></td></tr>
+            <tr><td><strong>Bash + Kai</strong></td><td>10 min</td><td>$0</td><td><span class="badge badge-green">$0</span></td></tr>
+            <tr><td><strong>Total</strong></td><td>160 min</td><td>—</td><td><span class="badge badge-green">$140</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box"><strong>節省率：</strong>96.5% | $140 vs $3,500</div>
+    </div>
+  </div>
+
+  <div class="slide" id="s5">
+    <div class="slide-inner">
+      <div class="slide-eyebrow">SLIDE 05 · RESULTS</div>
+      <h2>案例結果</h2>
+      <div class="slide-lead">結果不是「省錢而已」，而是證明低階模型 + 免費工具足以完成大部分工程與報告任務。</div>
+      <div class="member-grid">
+        <div class="member-card"><div class="member-role">result</div><div class="member-name">Haiku 成功</div><div class="member-model">HTTP / Git / analysis</div><div class="member-desc">低風險修復與結構化分析成功由 Haiku 承擔。</div></div>
+        <div class="member-card"><div class="member-role">result</div><div class="member-name">Chrome MCP 成功</div><div class="member-model">testing</div><div class="member-desc">驗證、截圖、點擊、填表這些 UI 任務不該浪費高階模型。</div></div>
+        <div class="member-card"><div class="member-role">result</div><div class="member-name">Grok 成功</div><div class="member-model">cross-check</div><div class="member-desc">獨立視角抓出 3 個關鍵問題，提升整體可靠性。</div></div>
+        <div class="member-card"><div class="member-role">result</div><div class="member-name">高階輸出必保</div><div class="member-model">final deck</div><div class="member-desc">只有最終報告整編與敘事收斂需要高階輸出。</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Applied Rule</th><th>Evidence</th><th>Conclusion</th></tr></thead>
+          <tbody>
+            <tr><td>低風險任務先走 L0/L1</td><td>Haiku 完成大多數工程操作</td><td><span class="badge badge-green">Validated</span></td></tr>
+            <tr><td>免費工具優先</td><td>Chrome MCP 完成驗證流程</td><td><span class="badge badge-green">Validated</span></td></tr>
+            <tr><td>高風險任務保留高階模型</td><td>報告收斂 / 敘事 / final review</td><td><span class="badge badge-amber">Necessary</span></td></tr>
+            <tr><td>異見稽核</td><td>Vick / Grok 找到 3 個關鍵問題</td><td><span class="badge badge-blue">Useful</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-box"><strong>結論：</strong>這個案例證明三層路由不是理論，而是已被實戰驗證的成本治理手法。</div>
+    </div>
+  </div>
+
+  <div class="slide" id="s6">
+    <div class="slide-inner">
+      <div class="slide-eyebrow">SLIDE 06 · TAKEAWAYS</div>
+      <h2>可複用的原則</h2>
+      <div class="slide-lead">把正確的任務放在正確的模型層，是唯一能長期壓成本又保品質的做法。</div>
+      <div class="dark-block">
+        <h3>WORKING RULES</h3>
+        <p>1. default 走 L0；2. low-risk 任務升 L1；3. critical 任務才碰 L2。</p>
+        <p>4. provider 不要單點；5. 失敗要有 degraded result；6. 告警不能靠單一路徑。</p>
+      </div>
+      <div class="two-col">
+        <div class="col-card">
+          <h4>What worked</h4>
+          <ul>
+            <li>Haiku 足以處理大量工程支持性工作。</li>
+            <li>免費工具可替代一部分「模型工作」。</li>
+            <li>異見稽核能明顯提高決策品質。</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <h4>What stays high tier</h4>
+          <ul>
+            <li>最終報告整編。</li>
+            <li>風險與架構簽核。</li>
+            <li>需要高品質敘事與最終裁決的任務。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box"><strong>一句話總結：</strong>你不是缺模型，你是需要更嚴格的任務分類與降級契約。</div>
+    </div>
+  </div>
+</div>
+
+<div id="nav">
+  <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" disabled>← 上一頁</button>
+  <span id="counter">01 / 06</span>
+  <button class="nav-btn primary" id="btn-next" onclick="navigate(1)">下一頁 →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+function navigate(dir){
+  const next = current + dir;
+  if(next < 0 || next >= total) return;
+  slides[current].classList.remove('active');
+  if(dir > 0) slides[current].classList.add('exit-left');
+  setTimeout(() => {
+    slides[current].classList.remove('exit-left');
+    slides[current].style.transform = dir > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+    setTimeout(() => { slides[current].style.transform = ''; }, 10);
+  }, 350);
+  current = next;
+  slides[current].classList.add('active');
+  slides[current].scrollTop = 0;
+  updateUI();
+}
+function updateUI(){
+  document.getElementById('counter').textContent = String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === total - 1;
+  document.getElementById('btn-next').textContent = current === total - 1 ? '完 ✓' : '下一頁 →';
+  document.getElementById('progress-bar').style.width = (((current + 1) / total) * 100) + '%';
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navigate(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+});
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+}, { passive: true });
+updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Team 組織治理優化報告</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f5f1;
+      --panel: #ffffff;
+      --panel-alt: #121212;
+      --muted: #6c6a62;
+      --text: #121212;
+      --line: #e8e3d8;
+      --warm: #e8723a;
+      --cool: #a8cde8;
+      --green: #7d9766;
+      --red: #cb5a43;
+      --yellow: #c8a548;
+      --mono: 'JetBrains Mono', monospace;
+      --main: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+      --radius: 18px;
+      --shadow: 0 10px 40px rgba(18, 18, 18, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--main); background: var(--bg); color: var(--text); line-height: 1.7; }
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      padding: 16px 28px; backdrop-filter: blur(14px); background: rgba(246,245,241,0.86);
+      border-bottom: 1px solid rgba(232,227,216,0.8);
+    }
+    .nav-brand { font: 700 12px var(--mono); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
+    .nav-links { display: flex; gap: 14px; flex-wrap: wrap; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 12px; }
+    .nav-links a:hover { color: var(--warm); }
+    .hero {
+      background: radial-gradient(circle at top, rgba(232,114,58,0.16), transparent 45%), #121212;
+      color: #fff; padding: 92px 28px 72px;
+    }
+    .shell { max-width: 1080px; margin: 0 auto; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; border-radius: 999px;
+      padding: 8px 14px; background: rgba(232,114,58,0.12); border: 1px solid rgba(232,114,58,0.28);
+      color: #f2ad87; font: 700 11px var(--mono); letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .hero h1 {
+      margin-top: 22px; font-size: clamp(34px, 6vw, 64px); line-height: 1.06; letter-spacing: -0.04em;
+      max-width: 820px;
+    }
+    .hero p {
+      margin-top: 18px; max-width: 720px; color: rgba(255,255,255,0.68); font-size: 18px;
+    }
+    .hero-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+    .hero-tag {
+      padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.82); font-size: 12px;
+    }
+    main { padding: 52px 28px 96px; }
+    section { margin-bottom: 72px; }
+    .section-head { margin-bottom: 28px; }
+    .section-head .overline { color: var(--warm); font: 700 11px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+    .section-head h2 { font-size: clamp(24px, 3.8vw, 38px); line-height: 1.16; margin-top: 8px; }
+    .section-head p { margin-top: 12px; max-width: 760px; color: var(--muted); }
+    .metric-grid, .department-grid, .risk-grid, .recommendation-grid {
+      display: grid; gap: 18px;
+    }
+    .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .department-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .risk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .recommendation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric-card, .department-card, .panel, .risk-card, .recommendation-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .metric-card { padding: 26px; }
+    .metric-card.warning { border-color: rgba(200,165,72,0.45); }
+    .metric-value { font-size: 52px; line-height: 1; letter-spacing: -0.04em; font-weight: 800; }
+    .metric-label { margin-top: 10px; font-weight: 700; }
+    .metric-sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .department-card { padding: 22px; }
+    .department-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+    .department-head h3 { font-size: 18px; }
+    .department-head span { color: var(--muted); font: 600 12px var(--mono); }
+    .department-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .department-stats strong { display: block; font-size: 22px; }
+    .department-stats span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .panel { padding: 28px; }
+    .panel.dark { background: var(--panel-alt); color: #fff; border-color: rgba(255,255,255,0.08); }
+    .split { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; }
+    .flow-list li, .policy-list li { margin-left: 18px; margin-bottom: 10px; color: inherit; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 12px 14px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { border-top: 0; color: var(--muted); font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; }
+    code { font-family: var(--mono); font-size: 12px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    .risk-card, .recommendation-card { padding: 22px; }
+    .risk-top { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+    .chip { display: inline-flex; padding: 5px 10px; border-radius: 999px; font: 700 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+    .chip.warning { background: #f6ead0; color: #9a7c24; }
+    .recommendation-card.critical { border-color: rgba(203,90,67,0.32); background: #fff7f4; }
+    .recommendation-card.warning { border-color: rgba(200,165,72,0.32); background: #fffbee; }
+    .recommendation-card.stable { border-color: rgba(125,151,102,0.32); background: #f7fbf4; }
+    .recommendation-meta { color: var(--muted); font: 700 11px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
+    .footer { padding: 32px 0 0; color: var(--muted); font-size: 12px; }
+    .muted { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    @media (max-width: 900px) {
+      .metric-grid, .department-grid, .risk-grid, .recommendation-grid, .split { grid-template-columns: 1fr; }
+      .department-stats { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav { padding: 14px 18px; }
+      .hero, main { padding-left: 18px; padding-right: 18px; }
+      .hero p { font-size: 16px; }
+      .metric-value { font-size: 40px; }
+      th, td { padding: 10px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-brand">Rain AI Team · Governance Deck</div>
+    <div class="nav-links">
+      <a href="#summary">摘要</a>
+      <a href="#structure">組織</a>
+      <a href="#flow">流程</a>
+      <a href="#review">審核</a>
+      <a href="#actions">行動</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">Org Optimization · Nova-style Slideless Deck</div>
+      <h1>AI Team 組織治理與中控台優化報告</h1>
+      <p>這份 deck 不是靜態簡報，而是直接吃你目前 M4 中控台的組織分析輸出，把 review debt、handoff risk、瓶頸部門、團隊協作與任務流程一起拉回到同一套治理視角。</p>
+      <div class="hero-tags">
+        <span class="hero-tag">single org policy</span>
+        <span class="hero-tag">review gate enforced</span>
+        <span class="hero-tag">task flow truth in backend</span>
+        <span class="hero-tag">dashboard / team / task unified</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="summary">
+      <div class="section-head">
+        <div class="overline">Executive Summary</div>
+        <h2>這輪真正完成的是把「組織規則、流程真相、治理視圖」收斂成同一條線</h2>
+        <p>前一版系統的主要問題，不是頁面太少，而是角色定義、task routing、review gate、TaskBoard 顯示邏輯彼此分裂。現在已經把最關鍵的幾層先收回後端。</p>
+      </div>
+      
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-value">49</div>
+        <div class="metric-label">團隊成員數</div>
+        <div class="metric-sub">35 位處於 active</div>
+      </div>
+      <div class="metric-card warning">
+        <div class="metric-value">3</div>
+        <div class="metric-label">Review Debt</div>
+        <div class="metric-sub">0 個 critical 任務受影響</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">15</div>
+        <div class="metric-label">目前瓶頸</div>
+        <div class="metric-sub">最高風險交接 6 條</div>
+      </div>
+    </div>
+    
+    </section>
+
+    <section id="structure">
+      <div class="section-head">
+        <div class="overline">Org Structure</div>
+        <h2>部門負載與協作熱點</h2>
+        <p>組織視角現在不只看 roster，而是會一起看 active load、task volume、avg success rate 與常見技能分布。</p>
+      </div>
+      <div class="department-grid">
+        
+            <article class="department-card">
+              <div class="department-head">
+                <h3>executive</h3>
+                <span>2 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>317</strong><span>task volume</span></div>
+                <div><strong>95%</strong><span>avg success</span></div>
+              </div>
+              <p>architecture / planning / coordination / code-review</p>
+            </article>
+            
+            <article class="department-card">
+              <div class="department-head">
+                <h3>external</h3>
+                <span>1 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>52</strong><span>task volume</span></div>
+                <div><strong>81%</strong><span>avg success</span></div>
+              </div>
+              <p>task-dispatch / coordination / monitoring / reporting</p>
+            </article>
+            
+            <article class="department-card">
+              <div class="department-head">
+                <h3>operations</h3>
+                <span>1 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>38</strong><span>task volume</span></div>
+                <div><strong>100%</strong><span>avg success</span></div>
+              </div>
+              <p>monitoring / task-dispatch</p>
+            </article>
+            
+            <article class="department-card">
+              <div class="department-head">
+                <h3>backend</h3>
+                <span>2 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>17</strong><span>task volume</span></div>
+                <div><strong>97%</strong><span>avg success</span></div>
+              </div>
+              <p>backend / python / debugging / devops</p>
+            </article>
+            
+            <article class="department-card">
+              <div class="department-head">
+                <h3>frontend</h3>
+                <span>2 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>15</strong><span>task volume</span></div>
+                <div><strong>96%</strong><span>avg success</span></div>
+              </div>
+              <p>ui-ux / css / rwd / design</p>
+            </article>
+            
+            <article class="department-card">
+              <div class="department-head">
+                <h3>qa</h3>
+                <span>4 人</span>
+              </div>
+              <div class="department-stats">
+                <div><strong>0</strong><span>active load</span></div>
+                <div><strong>12</strong><span>task volume</span></div>
+                <div><strong>50%</strong><span>avg success</span></div>
+              </div>
+              <p>architecture-review / system-architecture / code-analysis / specification</p>
+            </article>
+            
+      </div>
+      <div class="panel" style="margin-top:18px;">
+        <h3 style="margin-bottom:14px;">高頻協作 Pair</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>協作組合</th><th>Count</th><th>解讀</th></tr>
+            </thead>
+            <tbody>
+              
+            <tr>
+              <td><strong>agent_runner + Noel</strong></td>
+              <td>50</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Iris + Klay</strong></td>
+              <td>4</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>John + Klay</strong></td>
+              <td>4</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>agent_runner + Scout</strong></td>
+              <td>4</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Iris + John</strong></td>
+              <td>4</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Klay + Max</strong></td>
+              <td>3</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>agent_runner + Max</strong></td>
+              <td>2</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Klay + Tax</strong></td>
+              <td>1</td>
+              <td>近期任務共同出現次數最高的協作組合</td>
+            </tr>
+            
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <div class="section-head">
+        <div class="overline">Task Flow</div>
+        <h2>流程真相回到後端，TaskBoard 不再各自推論</h2>
+        <p>目前 task API 已直接輸出 `stage / blockers / next_step / required_reviewers / missing_reviewers`，前端改成只顯示，不再偷偷重算另一份流程邏輯。</p>
+      </div>
+      <div class="split">
+        <div class="panel dark">
+          <h3 style="margin-bottom:12px;">Project Flow Snapshot</h3>
+          <ul class="flow-list">
+            <li>blocked tasks：<strong>3</strong></li>
+            <li>stage counts：verification=452, review=7, intake=6, architecture=1</li>
+            <li><strong>48</strong> · 需要 postmortem / reroute</li><li><strong>3</strong> · 等待 quill 審查</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:12px;">Org Policy / Review Gate</h3>
+          <ul class="policy-list">
+            <li><strong>major</strong>：quill · 程式碼品質、規格合規、測試缺口</li><li><strong>critical</strong>：quill, ray · 高風險變更需同時通過 code review 與 architecture veto</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="review">
+      <div class="section-head">
+        <div class="overline">Review & Handoffs</div>
+        <h2>現在最值得看的不是「誰在線上」，而是哪些任務卡在審核與交接</h2>
+        <p>下面這兩塊直接對應目前 backend org analysis 的輸出，能反映哪個 reviewer 缺位、哪條 handoff lane 風險最高。</p>
+      </div>
+      <div class="panel" style="margin-bottom:18px;">
+        <h3 style="margin-bottom:14px;">Review Debt 明細</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Task</th><th>Title</th><th>Severity</th><th>Missing Reviewers</th></tr>
+            </thead>
+            <tbody>
+              
+            <tr>
+              <td><code>8e372cdc</code></td>
+              <td>夜班品質審查修復 — hook/dispatch/slideless/deck報告</td>
+              <td>major</td>
+              <td>quill</td>
+            </tr>
+            
+            <tr>
+              <td><code>1842c384</code></td>
+              <td>AI Governance System v2 — 深度審查全面修復</td>
+              <td>major</td>
+              <td>quill</td>
+            </tr>
+            
+            <tr>
+              <td><code>010967d6</code></td>
+              <td>test-sev-ok</td>
+              <td>major</td>
+              <td>quill</td>
+            </tr>
+            
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="risk-grid">
+        
+            <article class="risk-card">
+              <div class="risk-top">
+                <span class="chip warning">Risk Score 2</span>
+                <span>ray</span>
+              </div>
+              <h3>task intake -&gt; architecture/review</h3>
+              <p>handoff 負載高或審查債務堆積</p>
+            </article>
+            
+            <article class="risk-card">
+              <div class="risk-top">
+                <span class="chip warning">Risk Score 2</span>
+                <span>forge</span>
+              </div>
+              <h3>implementation -&gt; delivery gate</h3>
+              <p>handoff 負載高或審查債務堆積</p>
+            </article>
+            
+            <article class="risk-card">
+              <div class="risk-top">
+                <span class="chip warning">Risk Score 1</span>
+                <span>max</span>
+              </div>
+              <h3>architecture -&gt; implementation</h3>
+              <p>handoff 負載高或審查債務堆積</p>
+            </article>
+            
+            <article class="risk-card">
+              <div class="risk-top">
+                <span class="chip warning">Risk Score 1</span>
+                <span>john</span>
+              </div>
+              <h3>architecture -&gt; UI execution</h3>
+              <p>handoff 負載高或審查債務堆積</p>
+            </article>
+            
+      </div>
+    </section>
+
+    <section id="actions">
+      <div class="section-head">
+        <div class="overline">Recommended Actions</div>
+        <h2>下一步不是加更多頁，而是把剩下的 hardcode 徹底收乾淨</h2>
+        <p>目前最值得收尾的是 `TASK_ROUTING / PARALLEL_GROUPS` 完全改讀 policy，以及正式把 `waiting_on / blocked_by` 拉成 task schema，而不是持續從既有欄位推導。</p>
+      </div>
+      <div class="recommendation-grid">
+        
+            <article class="recommendation-card critical">
+              <div class="recommendation-meta">HIGH</div>
+              <h3>補強 review gate 排程</h3>
+              <p>目前有 3 個 major/critical 任務缺審查，應把 Quill/Ray 排成專用 lane。</p>
+            </article>
+            
+            <article class="recommendation-card critical">
+              <div class="recommendation-meta">HIGH</div>
+              <h3>重新平衡高負載部門</h3>
+              <p>external 是目前主要瓶頸，建議啟用 backup 或把 tiny/standard 任務導向 Worker/Codex。</p>
+            </article>
+            
+            <article class="recommendation-card warning">
+              <div class="recommendation-meta">MEDIUM</div>
+              <h3>縮短跨部門交接鏈</h3>
+              <p>task intake -&gt; architecture/review 風險最高，建議在 TaskBoard 顯示 waiting on 與下一步 owner。</p>
+            </article>
+            
+      </div>
+      <div class="panel" style="margin-top:18px;">
+        <h3 style="margin-bottom:14px;">Top 10 運作焦點成員</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Agent</th><th>Completed / Total</th><th>Success</th><th>Active Load</th><th>Focus</th><th>常見協作</th></tr>
+            </thead>
+            <tbody>
+              
+            <tr>
+              <td><strong>Klay</strong><div class="muted">executive</div></td>
+              <td>274 / 306</td>
+              <td>90%</td>
+              <td>0</td>
+              <td>feature, general, other</td>
+              <td>Iris, John</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Noel</strong><div class="muted">external</div></td>
+              <td>42 / 52</td>
+              <td>81%</td>
+              <td>0</td>
+              <td>general, feature, bugfix</td>
+              <td>agent_runner</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Kai</strong><div class="muted">operations</div></td>
+              <td>38 / 38</td>
+              <td>100%</td>
+              <td>0</td>
+              <td>schedule</td>
+              <td>n/a</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Max</strong><div class="muted">backend</div></td>
+              <td>14 / 16</td>
+              <td>93%</td>
+              <td>0</td>
+              <td>feature, performance, bugfix</td>
+              <td>Klay, agent_runner</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Worker</strong><div class="muted">executive</div></td>
+              <td>11 / 11</td>
+              <td>100%</td>
+              <td>0</td>
+              <td>feature</td>
+              <td>n/a</td>
+            </tr>
+            
+            <tr>
+              <td><strong>John</strong><div class="muted">frontend</div></td>
+              <td>10 / 12</td>
+              <td>91%</td>
+              <td>0</td>
+              <td>feature, bugfix, refactor</td>
+              <td>Iris, Klay</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Ray</strong><div class="muted">qa</div></td>
+              <td>5 / 6</td>
+              <td>83%</td>
+              <td>0</td>
+              <td>review, feature, research</td>
+              <td>n/a</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Tax</strong><div class="muted">finance</div></td>
+              <td>5 / 5</td>
+              <td>100%</td>
+              <td>0</td>
+              <td>improvement, feature, exam</td>
+              <td>agent_runner, Klay</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Iris</strong><div class="muted">frontend</div></td>
+              <td>3 / 3</td>
+              <td>100%</td>
+              <td>0</td>
+              <td>feature</td>
+              <td>John, Klay</td>
+            </tr>
+            
+            <tr>
+              <td><strong>Nova</strong><div class="muted">admin</div></td>
+              <td>2 / 2</td>
+              <td>100%</td>
+              <td>0</td>
+              <td>feature, report</td>
+              <td>n/a</td>
+            </tr>
+            
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Generated at 2026-03-20 00:19 · Data source: `/api/team/analysis` + `/api/dashboard/summary` · Rain AI Team / M4 Control Center
+    </div>
+  </main>
+</body>
+</html>

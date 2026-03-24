@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2P Agent-to-Agent 分散式架構研究報告 | AgentDesk 設計參考</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
+    background: #f6f5f1;
+    color: #3d2b1f;
+    line-height: 1.7;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, #3d2b1f 0%, #5c3d28 60%, #7a5035 100%);
+    color: #f6f5f1;
+    padding: 64px 40px 56px;
+    text-align: center;
+  }
+  .hero .label {
+    display: inline-block;
+    background: #c47c3e;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: clamp(24px, 4vw, 42px);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .hero .subtitle {
+    font-size: 16px;
+    color: #d4b89a;
+    margin-bottom: 8px;
+  }
+  .hero .date {
+    font-size: 13px;
+    color: #a0826a;
+  }
+
+  /* Navigation */
+  .toc {
+    background: #fff;
+    border-bottom: 2px solid #e8e0d8;
+    padding: 16px 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(61,43,31,0.06);
+  }
+  .toc a {
+    color: #7a5035;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid #e0d0c0;
+    transition: all 0.2s;
+  }
+  .toc a:hover {
+    background: #c47c3e;
+    color: #fff;
+    border-color: #c47c3e;
+  }
+
+  /* Sections */
+  .section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #3d2b1f;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .num {
+    background: #c47c3e;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: #9a7a60;
+    margin-bottom: 28px;
+    padding-left: 40px;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #e8e0d8;
+    margin: 0;
+  }
+
+  /* Summary box */
+  .summary-box {
+    background: linear-gradient(135deg, #fffbf7, #fff8f0);
+    border: 1.5px solid #e8d4b8;
+    border-left: 5px solid #c47c3e;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 0;
+  }
+  .summary-box p {
+    font-size: 15px;
+    color: #5c3d28;
+    line-height: 1.8;
+  }
+
+  /* Cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 26px;
+    box-shadow: 0 2px 12px rgba(61,43,31,0.07), 0 1px 3px rgba(61,43,31,0.04);
+    border: 1px solid #f0e8e0;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 6px 24px rgba(61,43,31,0.12);
+    transform: translateY(-2px);
+  }
+  .card .icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+  }
+  .card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #3d2b1f;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .card p {
+    font-size: 14px;
+    color: #7a5a40;
+    line-height: 1.7;
+  }
+  .card.highlight {
+    border-top: 3px solid #c47c3e;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-red   { background: #ffeaea; color: #c62828; }
+  .badge-blue  { background: #e3f2fd; color: #1565c0; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+
+  /* Table */
+  .tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(61,43,31,0.07);
+  }
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #c8b49a; border-radius: 3px; }
+  table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 14px;
+  }
+  thead tr {
+    background: #3d2b1f;
+    color: #f6f5f1;
+  }
+  thead th {
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  tbody tr {
+    border-bottom: 1px solid #f0e8e0;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: #fffbf7; }
+  tbody td {
+    padding: 13px 18px;
+    color: #5c3d28;
+    vertical-align: top;
+  }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* Flow diagram */
+  .flow {
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 32px;
+    box-shadow: 0 2px 12px rgba(61,43,31,0.07);
+    border: 1px solid #f0e8e0;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .flow-node {
+    background: #f6f5f1;
+    border: 2px solid #c47c3e;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3d2b1f;
+    white-space: nowrap;
+  }
+  .flow-node.start { background: #c47c3e; color: #fff; border-color: #c47c3e; }
+  .flow-node.end-ok { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+  .flow-node.end-fail { background: #ffeaea; border-color: #c62828; color: #c62828; }
+  .flow-node.optional { border-style: dashed; background: #fffbf7; color: #7a5a40; }
+  .flow-arrow {
+    font-size: 18px;
+    color: #c47c3e;
+    margin: 0 8px;
+    flex-shrink: 0;
+  }
+  .flow-note {
+    font-size: 13px;
+    color: #9a7a60;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fffbf7;
+    border-radius: 8px;
+    border-left: 3px solid #e8d4b8;
+  }
+
+  /* Architecture diagram */
+  .arch {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(61,43,31,0.07);
+    border: 1px solid #f0e8e0;
+    overflow-x: auto;
+  }
+  .arch-container {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    min-width: 600px;
+  }
+  .arch-machine {
+    flex: 1;
+    border: 2px solid #e8d4b8;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fffbf7;
+  }
+  .arch-machine h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #c47c3e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e8d4b8;
+  }
+  .arch-agent {
+    background: #fff;
+    border: 1px solid #e0d0c0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #5c3d28;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .arch-agent .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #c47c3e;
+    flex-shrink: 0;
+  }
+  .arch-hub {
+    background: linear-gradient(135deg, #3d2b1f, #5c3d28);
+    color: #fff;
+    border-color: #3d2b1f;
+  }
+  .arch-hub .dot { background: #f9c78a; }
+  .arch-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .arch-connector .line {
+    width: 2px;
+    flex: 1;
+    background: repeating-linear-gradient(to bottom, #c47c3e 0px, #c47c3e 6px, transparent 6px, transparent 12px);
+    min-height: 40px;
+  }
+  .arch-connector .label {
+    font-size: 11px;
+    color: #c47c3e;
+    font-weight: 700;
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #e8d4b8;
+    white-space: nowrap;
+  }
+  .arch-db {
+    background: #e8f4fd;
+    border: 2px solid #1565c0;
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    font-size: 13px;
+    color: #1565c0;
+    font-weight: 700;
+    margin-top: 20px;
+  }
+
+  /* Phase cards */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .phase-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 10px rgba(61,43,31,0.07);
+    border: 1px solid #f0e8e0;
+  }
+  .phase-card .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .phase-num {
+    background: #c47c3e;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .phase-card h3 { font-size: 16px; font-weight: 700; color: #3d2b1f; }
+  .phase-card .phase-tag { font-size: 11px; color: #9a7a60; }
+  .phase-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .phase-card ul li {
+    font-size: 13px;
+    color: #5c3d28;
+    padding: 5px 0 5px 18px;
+    border-bottom: 1px solid #f8f0e8;
+    position: relative;
+  }
+  .phase-card ul li:last-child { border-bottom: none; }
+  .phase-card ul li::before {
+    content: '▸';
+    color: #c47c3e;
+    position: absolute;
+    left: 0;
+    top: 5px;
+    font-size: 12px;
+  }
+
+  /* Code block */
+  .code-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .code-card {
+    background: #2b1f14;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .code-card .code-header {
+    background: #3d2b1f;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .code-card .code-header .dots span {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .code-card .code-header .dots .d1 { background: #ff5f57; }
+  .code-card .code-header .dots .d2 { background: #febc2e; }
+  .code-card .code-header .dots .d3 { background: #28c840; }
+  .code-card .code-header .title {
+    font-size: 12px;
+    color: #d4b89a;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .code-card pre {
+    padding: 18px;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #f8e8d0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code-card pre .kw { color: #f9c78a; }
+  .code-card pre .cm { color: #7a9a8a; }
+  .code-card pre .st { color: #a8d8a0; }
+  .code-card pre .tp { color: #88c8f8; }
+  .code-card pre .nm { color: #f8e8d0; }
+
+  /* References */
+  .refs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .ref-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 20px;
+    border: 1px solid #f0e8e0;
+    box-shadow: 0 1px 4px rgba(61,43,31,0.05);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .ref-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .ref-item h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3d2b1f;
+    margin-bottom: 4px;
+  }
+  .ref-item p {
+    font-size: 12px;
+    color: #9a7a60;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  footer {
+    background: #3d2b1f;
+    color: #d4b89a;
+    text-align: center;
+    padding: 28px 24px;
+    font-size: 13px;
+  }
+  footer .footer-brand {
+    color: #c47c3e;
+    font-weight: 700;
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 20px; }
+    .toc { padding: 12px 16px; }
+    .section { padding: 36px 16px; }
+    .arch-container { flex-direction: column; }
+    .arch-connector { flex-direction: row; }
+    .arch-connector .line { width: 40px; height: 2px; flex: none; background: repeating-linear-gradient(to right, #c47c3e 0px, #c47c3e 6px, transparent 6px, transparent 12px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="label">Research Report</div>
+  <h1>P2P Agent-to-Agent<br>分散式架構研究報告</h1>
+  <div class="subtitle">AgentDesk 平台設計參考</div>
+  <div class="date">2026-03-18 ｜ Nova × Rain AI Team</div>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <a href="#summary">摘要</a>
+  <a href="#conclusions">核心結論</a>
+  <a href="#dispatch">任務分派比較</a>
+  <a href="#lifecycle">任務生命週期</a>
+  <a href="#security">安全性架構</a>
+  <a href="#architecture">推薦架構</a>
+  <a href="#phases">分階段實作</a>
+  <a href="#schema">資料模型</a>
+  <a href="#refs">參考來源</a>
+</nav>
+
+<!-- Summary -->
+<div id="summary" class="section">
+  <div class="section-title">
+    <span class="num">0</span>
+    研究背景與摘要
+  </div>
+  <div class="section-desc">本報告目標、研究範圍、核心問題</div>
+  <div class="summary-box">
+    <p>
+      Rain 正在設計 <strong>AgentDesk 平台</strong>，讓不同電腦上的 AI Agent 團隊協作。核心問題是：如何實現
+      Agent-to-Agent 的任務分派、身份驗證、狀態同步？本報告研究了
+      <strong>Google A2A Protocol v1.0</strong>、<strong>AGNTCY（Cisco）</strong>、<strong>Clawdentity（IETF Draft）</strong>、
+      <strong>Hyperspace AGI</strong>、<strong>SPIFFE/SPIRE</strong> 等業界最新方案，
+      並針對 AgentDesk 私有部署場景提出具體架構建議。
+    </p>
+    <br>
+    <p>
+      研究結論明確：<strong>AgentDesk 不應採用純 P2P 架構</strong>。GossipSub/DHT 是公開去中心化網路的解法，
+      私有受信任環境應選擇 Hub-and-Spoke，以 Kai 作為中央 Hub，實現最簡單、最安全、
+      最可觀測的架構。安全層面採用 <strong>Ed25519 業界標準</strong>，MVP 用 JWT，Production 升級 mTLS。
+    </p>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Core Conclusions -->
+<div id="conclusions" class="section">
+  <div class="section-title">
+    <span class="num">1</span>
+    核心結論
+  </div>
+  <div class="section-desc">三個關鍵決策方向，直接影響 AgentDesk 設計</div>
+  <div class="cards">
+    <div class="card highlight">
+      <div class="icon">🚫</div>
+      <div class="badge badge-red">架構決策</div>
+      <h3>不要用純 P2P</h3>
+      <p>
+        GossipSub / DHT 是公開去中心化網路設計的技術。AgentDesk 是<strong>私有受信任環境</strong>，
+        採用 Hub-and-Spoke（Kai 當 Hub）更簡單、安全、可觀測。
+        純 P2P 帶來不必要的複雜度，且缺乏集中控制與審計能力。
+      </p>
+    </div>
+    <div class="card highlight">
+      <div class="icon">✅</div>
+      <div class="badge badge-green">協議選型</div>
+      <h3>採用 Google A2A Protocol 格式</h3>
+      <p>
+        2025 年推出的業界標準（v1.0），<strong>Agent Card + Task lifecycle</strong> 設計成熟。
+        和現有 Kai task board 可直接對齊，避免重複造輪子。
+        跨框架互操作性強，未來可對接外部 Agent 生態系。
+      </p>
+    </div>
+    <div class="card highlight">
+      <div class="icon">🔐</div>
+      <div class="badge badge-blue">安全標準</div>
+      <h3>Ed25519 是業界標準</h3>
+      <p>
+        IETF Clawdentity Draft 已確立 Ed25519 為 Agent 身份標準，Hyperspace 實作印證可行性。
+        <strong>MVP 用 JWT</strong>（實作快），<strong>Production 用 mTLS</strong>（Hub 作 CA，24h 憑證自動輪替）。
+      </p>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Task Dispatch Comparison -->
+<div id="dispatch" class="section">
+  <div class="section-title">
+    <span class="num">2</span>
+    任務分派機制比較
+  </div>
+  <div class="section-desc">五種主流機制的技術特性與 AgentDesk 適用性評估</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>機制</th>
+          <th>代表方案</th>
+          <th>適用場景</th>
+          <th>複雜度</th>
+          <th>AgentDesk 適合？</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Well-Known URI</strong></td>
+          <td>Google A2A Protocol</td>
+          <td>跨組織、跨框架 Agent 發現</td>
+          <td><span class="badge badge-green">低</span></td>
+          <td><span class="badge badge-green">✅ 採用格式</span></td>
+        </tr>
+        <tr>
+          <td><strong>Private Registry</strong></td>
+          <td>A2A + 自建 PostgreSQL</td>
+          <td>私有部署、受控環境</td>
+          <td><span class="badge badge-green">低</span></td>
+          <td><span class="badge badge-green">✅ 推薦 MVP</span></td>
+        </tr>
+        <tr>
+          <td><strong>DHT 分散式索引</strong></td>
+          <td>AGNTCY（Cisco）</td>
+          <td>完全去中心化、無信任環境</td>
+          <td><span class="badge badge-red">高</span></td>
+          <td><span class="badge badge-red">❌ 太複雜</span></td>
+        </tr>
+        <tr>
+          <td><strong>Gossip Protocol</strong></td>
+          <td>Hyperspace AGI</td>
+          <td>開放 P2P 網路、公共 Agent 市場</td>
+          <td><span class="badge badge-red">高</span></td>
+          <td><span class="badge badge-red">❌ 不適合私有</span></td>
+        </tr>
+        <tr>
+          <td><strong>Subject-per-Skill</strong></td>
+          <td>NATS JetStream</td>
+          <td>生產環境、高吞吐消息隊列</td>
+          <td><span class="badge badge-orange">中</span></td>
+          <td><span class="badge badge-blue">✅ Phase 2 升級</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Task Lifecycle -->
+<div id="lifecycle" class="section">
+  <div class="section-title">
+    <span class="num">3</span>
+    任務生命週期（A2A 標準）
+  </div>
+  <div class="section-desc">基於 Google A2A Protocol v1.0 的狀態機設計</div>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-node start">submitted</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">working</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node optional">input-required？</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">working</div>
+    </div>
+    <div class="flow-row" style="margin-top: 8px;">
+      <div style="flex:1; display:flex; justify-content:flex-end; gap:16px; flex-wrap:wrap;">
+        <div class="flow-node end-ok">✅ completed</div>
+        <div class="flow-node end-fail">❌ failed</div>
+        <div class="flow-node" style="background:#f5f5f5; border-color:#aaa; color:#666;">canceled</div>
+      </div>
+    </div>
+    <div class="flow-note">
+      <strong>設計原則：</strong>
+      Task ID 全域唯一（UUID v7，含時間戳排序）｜
+      狀態只能前進，不可倒退｜
+      支援 <strong>SSE 即時進度推送</strong>（Server-Sent Events，無需輪詢）｜
+      input-required 狀態支援人機協作（Human-in-the-loop）
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Security Architecture -->
+<div id="security" class="section">
+  <div class="section-title">
+    <span class="num">4</span>
+    安全性架構比較
+  </div>
+  <div class="section-desc">四種主流方案的身份機制、傳輸加密與標準成熟度</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>方案</th>
+          <th>身份機制</th>
+          <th>傳輸加密</th>
+          <th>標準程度</th>
+          <th>適用時機</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Ed25519 + JWT</strong></td>
+          <td>Per-Agent Keypair</td>
+          <td>HTTPS / TLS</td>
+          <td><span class="badge badge-green">業界主流</span></td>
+          <td><span class="badge badge-green">✅ 推薦 MVP</span></td>
+        </tr>
+        <tr>
+          <td><strong>SPIFFE/SPIRE</strong></td>
+          <td>X.509 SVID（短期憑證）</td>
+          <td>mTLS（雙向驗證）</td>
+          <td><span class="badge badge-green">CNCF 標準</span></td>
+          <td><span class="badge badge-green">✅ 推薦 Production</span></td>
+        </tr>
+        <tr>
+          <td><strong>Microsoft Entra Agent ID</strong></td>
+          <td>Azure Active Directory</td>
+          <td>OAuth 2.1 + HTTPS</td>
+          <td><span class="badge badge-blue">企業標準</span></td>
+          <td>企業大型部署（需 Azure）</td>
+        </tr>
+        <tr>
+          <td><strong>Clawdentity（IETF）</strong></td>
+          <td>Ed25519 + AIT Pairing</td>
+          <td>Pairing Ceremony</td>
+          <td><span class="badge badge-orange">新興草案</span></td>
+          <td>未來參考，目前 Draft 階段</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Recommended Architecture -->
+<div id="architecture" class="section">
+  <div class="section-title">
+    <span class="num">5</span>
+    AgentDesk 推薦架構
+  </div>
+  <div class="section-desc">Hub-and-Spoke 模式，Kai 作為中央協調 Hub</div>
+  <div class="arch">
+    <div class="arch-container">
+      <!-- Machine A -->
+      <div class="arch-machine">
+        <h4>Machine A — Rain's Mac</h4>
+        <div class="arch-agent arch-hub">
+          <span class="dot"></span>
+          Kai Hub（Registry + Queue）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Klay（Orchestrator）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          John（Frontend）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Iris（UI/UX）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Quill（Code Review）
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="arch-connector">
+        <div class="line"></div>
+        <div class="label">NATS / WebSocket<br>mTLS</div>
+        <div class="line"></div>
+      </div>
+
+      <!-- Machine B -->
+      <div class="arch-machine">
+        <h4>Machine B — Cloud / VPS</h4>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Max（Backend）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Rex（API）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Scout（Architect）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Forge（CI/CD）
+        </div>
+        <div class="arch-agent">
+          <span class="dot"></span>
+          Agent Workers（Task Consumers）
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-db">
+      PostgreSQL — Shared State（Agent Registry · Task Board · Event Log）
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+    <div class="card" style="padding: 18px 20px;">
+      <div class="badge badge-green">設計優點</div>
+      <h3 style="font-size:15px; margin-top:8px;">集中可觀測</h3>
+      <p>所有 Agent 活動通過 Kai Hub，完整審計日誌，異常即時告警</p>
+    </div>
+    <div class="card" style="padding: 18px 20px;">
+      <div class="badge badge-green">設計優點</div>
+      <h3 style="font-size:15px; margin-top:8px;">安全邊界清晰</h3>
+      <p>Hub 作為 CA 簽發短期憑證，Agent 間不直接通信，降低攻擊面</p>
+    </div>
+    <div class="card" style="padding: 18px 20px;">
+      <div class="badge badge-green">設計優點</div>
+      <h3 style="font-size:15px; margin-top:8px;">漸進升級</h3>
+      <p>MVP 用 HTTP + JWT，隨業務成長無縫升級 NATS JetStream + mTLS</p>
+    </div>
+    <div class="card" style="padding: 18px 20px;">
+      <div class="badge badge-blue">現有資產</div>
+      <h3 style="font-size:15px; margin-top:8px;">對齊 Kai Task Board</h3>
+      <p>A2A Task 格式直接對齊現有任務板，無需重新設計資料模型</p>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Implementation Phases -->
+<div id="phases" class="section">
+  <div class="section-title">
+    <span class="num">6</span>
+    分階段實作建議
+  </div>
+  <div class="section-desc">三個階段漸進演進，從 MVP 到生產級分散式架構</div>
+  <div class="phases">
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-num">1</div>
+        <div>
+          <h3>MVP — 立即可做</h3>
+          <div class="phase-tag">HTTP + JWT + PostgreSQL</div>
+        </div>
+      </div>
+      <ul>
+        <li>Private Registry（PostgreSQL）</li>
+        <li>欄位：agent_id, name, public_key, skills[], status, last_heartbeat</li>
+        <li>Agent Card JSON（A2A 規範格式）</li>
+        <li>Ed25519 keypair per-Agent</li>
+        <li>JWT 驗證（HS256，24h 過期）</li>
+        <li>Heartbeat 每 30s，60s 無心跳 → offline</li>
+        <li>Task 狀態機（submitted → working → completed/failed）</li>
+        <li>SSE 即時狀態推送</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-num" style="background:#5c3d28;">2</div>
+        <div>
+          <h3>Production — 3~6 個月後</h3>
+          <div class="phase-tag">NATS JetStream + mTLS</div>
+        </div>
+      </div>
+      <ul>
+        <li>NATS JetStream（subject-per-skill 路由）</li>
+        <li>mTLS（Hub 作為 CA）</li>
+        <li>Agent 憑證 24h 自動輪替</li>
+        <li>Circuit Breaker（失敗率 > 50% → 暫停路由）</li>
+        <li>Saga Pattern（長任務補償回滾）</li>
+        <li>消息持久化（JetStream Stream）</li>
+        <li>Dead Letter Queue（失敗任務重試）</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-num" style="background:#7a5035;">3</div>
+        <div>
+          <h3>Scale — 長期目標</h3>
+          <div class="phase-tag">SPIFFE/SPIRE + Federation</div>
+        </div>
+      </div>
+      <ul>
+        <li>SPIFFE/SPIRE（workload identity 自動輪替）</li>
+        <li>OPA（Open Policy Agent，細粒度授權）</li>
+        <li>Federation（多 Hub 跨組織協作）</li>
+        <li>Distributed Tracing（OpenTelemetry）</li>
+        <li>Rate Limiting per Agent per Skill</li>
+        <li>Multi-region 部署</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- Data Models -->
+<div id="schema" class="section">
+  <div class="section-title">
+    <span class="num">7</span>
+    關鍵資料模型
+  </div>
+  <div class="section-desc">三張核心資料表的 PostgreSQL Schema 設計</div>
+  <div class="code-grid">
+    <div class="code-card">
+      <div class="code-header">
+        <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+        <div class="title">agents — Agent Registry</div>
+      </div>
+      <pre><span class="kw">CREATE TABLE</span> <span class="tp">agents</span> (
+  <span class="nm">id</span>           <span class="tp">UUID</span>        <span class="kw">PRIMARY KEY</span>
+                            <span class="kw">DEFAULT</span> gen_random_uuid(),
+  <span class="nm">name</span>         <span class="tp">VARCHAR(64)</span> <span class="kw">UNIQUE NOT NULL</span>,
+  <span class="nm">public_key</span>   <span class="tp">TEXT</span>        <span class="kw">NOT NULL</span>,
+  <span class="cm">-- Ed25519 公鑰（Base64）</span>
+  <span class="nm">skills</span>       <span class="tp">TEXT[]</span>      <span class="kw">NOT NULL DEFAULT</span> <span class="st">'{}'</span>,
+  <span class="nm">machine_id</span>   <span class="tp">VARCHAR(64)</span>,
+  <span class="cm">-- 部署機器識別</span>
+  <span class="nm">status</span>       <span class="tp">VARCHAR(16)</span> <span class="kw">NOT NULL DEFAULT</span> <span class="st">'offline'</span>,
+  <span class="cm">-- online / offline / busy</span>
+  <span class="nm">last_heartbeat</span> <span class="tp">TIMESTAMPTZ</span>,
+  <span class="nm">agent_card</span>   <span class="tp">JSONB</span>,
+  <span class="cm">-- A2A Agent Card JSON</span>
+  <span class="nm">created_at</span>   <span class="tp">TIMESTAMPTZ</span> <span class="kw">DEFAULT</span> now()
+);</pre>
+    </div>
+    <div class="code-card">
+      <div class="code-header">
+        <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+        <div class="title">tasks — Task Board</div>
+      </div>
+      <pre><span class="kw">CREATE TABLE</span> <span class="tp">tasks</span> (
+  <span class="nm">id</span>           <span class="tp">UUID</span>        <span class="kw">PRIMARY KEY</span>
+                            <span class="kw">DEFAULT</span> gen_random_uuid(),
+  <span class="nm">title</span>        <span class="tp">TEXT</span>        <span class="kw">NOT NULL</span>,
+  <span class="nm">description</span>  <span class="tp">TEXT</span>,
+  <span class="nm">status</span>       <span class="tp">VARCHAR(20)</span> <span class="kw">NOT NULL</span>
+                            <span class="kw">DEFAULT</span> <span class="st">'submitted'</span>,
+  <span class="cm">-- submitted/working/input-required</span>
+  <span class="cm">-- /completed/failed/canceled</span>
+  <span class="nm">assigned_to</span>  <span class="tp">UUID</span> <span class="kw">REFERENCES</span> agents(id),
+  <span class="nm">created_by</span>   <span class="tp">UUID</span> <span class="kw">REFERENCES</span> agents(id),
+  <span class="nm">required_skill</span> <span class="tp">VARCHAR(64)</span>,
+  <span class="nm">priority</span>     <span class="tp">INT</span>         <span class="kw">DEFAULT</span> 5,
+  <span class="nm">progress</span>     <span class="tp">INT</span>         <span class="kw">DEFAULT</span> 0,
+  <span class="nm">result</span>       <span class="tp">JSONB</span>,
+  <span class="nm">created_at</span>   <span class="tp">TIMESTAMPTZ</span> <span class="kw">DEFAULT</span> now(),
+  <span class="nm">completed_at</span> <span class="tp">TIMESTAMPTZ</span>
+);</pre>
+    </div>
+    <div class="code-card">
+      <div class="code-header">
+        <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+        <div class="title">task_events — Event Log</div>
+      </div>
+      <pre><span class="kw">CREATE TABLE</span> <span class="tp">task_events</span> (
+  <span class="nm">id</span>           <span class="tp">UUID</span>        <span class="kw">PRIMARY KEY</span>
+                            <span class="kw">DEFAULT</span> gen_random_uuid(),
+  <span class="nm">task_id</span>      <span class="tp">UUID</span>        <span class="kw">NOT NULL</span>
+                 <span class="kw">REFERENCES</span> tasks(id)
+                 <span class="kw">ON DELETE CASCADE</span>,
+  <span class="nm">agent_id</span>     <span class="tp">UUID</span>        <span class="kw">REFERENCES</span> agents(id),
+  <span class="nm">event_type</span>   <span class="tp">VARCHAR(32)</span> <span class="kw">NOT NULL</span>,
+  <span class="cm">-- status_change / progress / message</span>
+  <span class="cm">-- / artifact / error</span>
+  <span class="nm">payload</span>      <span class="tp">JSONB</span>,
+  <span class="nm">created_at</span>   <span class="tp">TIMESTAMPTZ</span> <span class="kw">DEFAULT</span> now()
+);
+
+<span class="cm">-- Index for SSE stream queries</span>
+<span class="kw">CREATE INDEX</span> idx_task_events_task
+  <span class="kw">ON</span> task_events(task_id, created_at <span class="kw">DESC</span>);</pre>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- References -->
+<div id="refs" class="section">
+  <div class="section-title">
+    <span class="num">8</span>
+    參考來源
+  </div>
+  <div class="section-desc">本研究涵蓋的六個業界方案與標準</div>
+  <div class="refs">
+    <div class="ref-item">
+      <div class="ref-icon">🔵</div>
+      <div>
+        <h4>Google A2A Protocol v1.0</h4>
+        <p>2025 年發布的 Agent-to-Agent 互操作標準。Agent Card 格式、Task 生命週期、SSE 推送規範。</p>
+      </div>
+    </div>
+    <div class="ref-item">
+      <div class="ref-icon">🟠</div>
+      <div>
+        <h4>AGNTCY — Agent Directory Service</h4>
+        <p>Cisco 提出的 ADS（Agent Directory Standard）。DHT 分散式索引，適用完全去中心化場景。arxiv 論文。</p>
+      </div>
+    </div>
+    <div class="ref-item">
+      <div class="ref-icon">🟣</div>
+      <div>
+        <h4>Clawdentity Protocol（IETF Draft）</h4>
+        <p>2026-02 IETF Draft。Ed25519 + AIT（Agent Identity Token）Pairing Ceremony，確立 Ed25519 為 Agent 身份業界標準。</p>
+      </div>
+    </div>
+    <div class="ref-item">
+      <div class="ref-icon">🟡</div>
+      <div>
+        <h4>Hyperspace AGI</h4>
+        <p>libp2p + GossipSub + CRDT 實作的開放 P2P Agent 網路。Ed25519 keypair per-Agent，適合公共市場場景。</p>
+      </div>
+    </div>
+    <div class="ref-item">
+      <div class="ref-icon">🟢</div>
+      <div>
+        <h4>SPIFFE/SPIRE（CNCF）</h4>
+        <p>雲原生 Workload Identity 標準。X.509 SVID 短期憑證 + 自動輪替 + mTLS，Production 級推薦方案。</p>
+      </div>
+    </div>
+    <div class="ref-item">
+      <div class="ref-icon">⚡</div>
+      <div>
+        <h4>NATS JetStream</h4>
+        <p>Subject-per-Skill 路由模式。持久化消息隊列 + Dead Letter Queue + Circuit Breaker 集成，Phase 2 升級目標。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div style="margin-bottom: 8px;">
+    <span class="footer-brand">Nova</span> × Rain AI Team
+  </div>
+  <div>P2P Agent-to-Agent 分散式架構研究報告 ｜ 2026-03-18</div>
+  <div style="margin-top: 6px; font-size: 12px; color: #9a7060;">AgentDesk 平台設計參考文件 — 僅供內部使用</div>
+</footer>
+
+</body>
+</html>

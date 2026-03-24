@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>韓籍銀行派駐員工薪酬稅務分析（更新版）</title>
+<style>
+  /* ─── Reset & Base ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Serif TC', Georgia, serif;
+    background: #f6f5f1;
+    color: #2c2a24;
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  /* ─── Scrollbar ─── */
+  .tbl-wrap::-webkit-scrollbar { height: 5px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+  /* ─── Header / Hero ─── */
+  .hero {
+    background: #1a1714;
+    color: #f6f5f1;
+    padding: 64px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,120,50,0.18) 0%, transparent 70%);
+  }
+  .hero .badge {
+    display: inline-block;
+    background: #e07832;
+    color: #fff;
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .hero .subtitle {
+    font-size: 15px;
+    color: #b0aba3;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 8px;
+  }
+  .hero .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .hero .meta-item {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #a09b93;
+    letter-spacing: 0.04em;
+  }
+  .hero .meta-item strong {
+    display: block;
+    color: #e07832;
+    font-size: 13px;
+    margin-bottom: 2px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ─── Nav Pills ─── */
+  .nav-bar {
+    background: #fff;
+    border-bottom: 1px solid #e8e4dc;
+    padding: 0 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .nav-bar a {
+    display: inline-block;
+    padding: 14px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #6b6760;
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .nav-bar a:hover { color: #e07832; border-bottom-color: #e07832; }
+
+  /* ─── Layout ─── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+
+  /* ─── Section ─── */
+  .section {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid #e8e4dc;
+  }
+  .section:last-child { border-bottom: none; }
+  .section-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #e07832;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .section h2 {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 28px;
+    color: #1a1714;
+  }
+  .section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 32px 0 14px;
+    color: #1a1714;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section h3::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: #e07832;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .section p { margin-bottom: 14px; color: #3d3a34; }
+
+  /* ─── Scenario Cards ─── */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; }
+  @media (max-width: 640px) { .scenario-grid { grid-template-columns: 1fr; } }
+  .scenario-card {
+    border-radius: 8px;
+    padding: 24px;
+    border: 1.5px solid;
+  }
+  .scenario-card.green {
+    background: #f0faf4;
+    border-color: #6dbf8a;
+  }
+  .scenario-card.orange {
+    background: #fff8f2;
+    border-color: #e07832;
+  }
+  .scenario-card .sc-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .scenario-card.green .sc-title { color: #2d8a50; }
+  .scenario-card.orange .sc-title { color: #c05f15; }
+  .scenario-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1a1714;
+  }
+  .scenario-card ul { padding-left: 18px; }
+  .scenario-card ul li { margin-bottom: 8px; font-size: 14px; color: #3d3a34; }
+
+  /* ─── Info Box ─── */
+  .info-box {
+    border-left: 4px solid #e07832;
+    background: #fff8f2;
+    padding: 16px 20px;
+    border-radius: 0 6px 6px 0;
+    margin: 20px 0;
+  }
+  .info-box.warning {
+    border-color: #d9534f;
+    background: #fff5f5;
+  }
+  .info-box.success {
+    border-color: #5cb85c;
+    background: #f0faf4;
+  }
+  .info-box.neutral {
+    border-color: #8b8680;
+    background: #f8f7f4;
+  }
+  .info-box strong { color: #1a1714; }
+  .info-box p:last-child { margin-bottom: 0; }
+
+  /* ─── Law Source ─── */
+  .law-ref {
+    display: inline-block;
+    background: #1a1714;
+    color: #f6f5f1;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    margin: 2px 2px 2px 0;
+    letter-spacing: 0.02em;
+  }
+  .law-block {
+    background: #f0ece4;
+    border: 1px solid #ddd8ce;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+  .law-block .law-title {
+    font-weight: 700;
+    color: #e07832;
+    margin-bottom: 6px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ─── Table ─── */
+  .tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 20px 0;
+  }
+  table {
+    min-width: 700px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+  thead tr {
+    background: #1a1714;
+    color: #f6f5f1;
+  }
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  tbody tr { border-bottom: 1px solid #e8e4dc; }
+  tbody tr:nth-child(even) { background: #faf9f6; }
+  tbody td { padding: 11px 16px; color: #3d3a34; line-height: 1.5; }
+  tbody td:first-child { font-weight: 600; color: #1a1714; }
+
+  /* ─── Risk Badge ─── */
+  .risk-high { display: inline-block; background: #d9534f; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+  .risk-mid { display: inline-block; background: #f0ad4e; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+  .risk-low { display: inline-block; background: #5cb85c; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+
+  /* ─── Steps ─── */
+  .steps { margin: 20px 0; }
+  .step-group { margin-bottom: 28px; }
+  .step-group-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #e07832;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 3px;
+    margin-bottom: 14px;
+  }
+  .step-group-title.dark { background: #1a1714; }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: #e07832;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .step-num.dark { background: #1a1714; }
+  .step-content { flex: 1; font-size: 15px; color: #3d3a34; }
+  .step-content strong { color: #1a1714; }
+
+  /* ─── Checklist Items ─── */
+  .check-list { list-style: none; margin: 10px 0; padding: 0; }
+  .check-list li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    border-bottom: 1px solid #ede9e0;
+    font-size: 14px;
+    color: #3d3a34;
+  }
+  .check-list li::before {
+    content: '□';
+    position: absolute;
+    left: 4px;
+    color: #e07832;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .check-list li:last-child { border-bottom: none; }
+
+  /* ─── Callout ─── */
+  .callout {
+    background: #1a1714;
+    color: #f6f5f1;
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .callout h3 {
+    color: #e07832 !important;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .callout h3::before { display: none; }
+  .callout ul { padding-left: 20px; }
+  .callout ul li { margin-bottom: 8px; color: #c8c3bb; font-size: 14px; }
+  .callout p { color: #c8c3bb; font-size: 14px; margin-bottom: 8px; }
+
+  /* ─── Calculation Example ─── */
+  .calc-box {
+    background: #fff;
+    border: 1px solid #ddd8ce;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    font-family: 'Inter', sans-serif;
+  }
+  .calc-box .calc-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e07832;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ede9e0;
+  }
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px dashed #ede9e0;
+    font-size: 14px;
+  }
+  .calc-row:last-child { border-bottom: none; }
+  .calc-row .label { color: #6b6760; }
+  .calc-row .value { font-weight: 600; color: #1a1714; }
+  .calc-row.highlight { background: #fff8f2; padding: 10px 12px; border-radius: 4px; border: none; margin-top: 8px; }
+  .calc-row.highlight .value { color: #e07832; font-size: 16px; }
+
+  /* ─── Warning Tag ─── */
+  .warn-tag {
+    display: inline-block;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    margin-left: 6px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    background: #1a1714;
+    color: #6b6760;
+    padding: 32px 48px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 2;
+  }
+  .footer strong { color: #a09b93; }
+
+  /* ─── Print ─── */
+  @media print { .nav-bar { display: none; } }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ HERO ═══════════════════════════════════════════ -->
+<div class="hero">
+  <div class="container">
+    <div class="badge">Tax Advisory · 更新版 v2</div>
+    <h1>韓籍銀行派駐員工<br>薪酬稅務分析報告</h1>
+    <p class="subtitle">租屋合約公司名義 · 就業金卡期間確認 · 風險評估與調整方案</p>
+    <div class="meta-row">
+      <div class="meta-item"><strong>機構</strong>韓國銀行台北分公司</div>
+      <div class="meta-item"><strong>對象</strong>韓籍派駐員工（就業金卡持有人）</div>
+      <div class="meta-item"><strong>分析基準日</strong>2026年3月</div>
+      <div class="meta-item"><strong>版本</strong>v2（含公司名義租屋更新）</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ NAV ═══════════════════════════════════════════ -->
+<nav class="nav-bar">
+  <a href="#s1">一、租屋定性</a>
+  <a href="#s2">二、獎學金補助</a>
+  <a href="#s3">三、就業金卡</a>
+  <a href="#s4">四、風險評估</a>
+  <a href="#s5">五、調整方案</a>
+  <a href="#s6">六、結論</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════ BACKGROUND ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="background">
+    <div class="section-label">案例背景</div>
+    <h2>已確認事實摘要</h2>
+
+    <div class="tbl-wrap tbl-wrap" style="margin:0 0 20px 0;">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>事實項目</th>
+            <th>確認狀況</th>
+            <th>稅務重要性</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>租屋合約承租人</td>
+            <td>台灣分公司（公司名義）</td>
+            <td>影響費用定性：房租費用 vs. 實物薪資</td>
+          </tr>
+          <tr>
+            <td>就業金卡狀態</td>
+            <td>仍在首次申請後3年豁免期間內</td>
+            <td>所得稅法第18-1條優惠可能適用</td>
+          </tr>
+          <tr>
+            <td>帳務科目</td>
+            <td>租金補助、獎學金補助列「員工福利費用」</td>
+            <td>若需重分類為薪資費用，須辦理扣繳</td>
+          </tr>
+          <tr>
+            <td>扣繳申報</td>
+            <td>不確定是否辦理個人所得扣繳</td>
+            <td>未扣繳將面臨補稅+罰鍰風險</td>
+          </tr>
+          <tr>
+            <td>薪資支付主體</td>
+            <td>台灣分公司（含補助款）</td>
+            <td>台灣分公司負有扣繳義務</td>
+          </tr>
+          <tr>
+            <td>合約主體</td>
+            <td>韓國母公司（員工與母公司簽約）</td>
+            <td>影響金卡優惠條文適用認定</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 1 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s1">
+    <div class="section-label">第一節</div>
+    <h2>租屋合約公司名義的稅務定性</h2>
+
+    <p><strong>核心問題：</strong>公司（台灣分公司）為承租人、直接支付房租給房東，這筆費用在稅務上究竟屬於「公司費用」還是「員工的實物薪資」？兩種認定結果截然不同。</p>
+
+    <div class="scenario-grid">
+      <div class="scenario-card green">
+        <div class="sc-title">情境 A — 對公司有利</div>
+        <h4>認定為公司費用（房租費用）</h4>
+        <ul>
+          <li>借：房租費用 ／ 貸：應付帳款</li>
+          <li>公司可認列費用，依法列支</li>
+          <li><strong>員工個人無需計入薪資所得</strong></li>
+          <li>無扣繳義務</li>
+        </ul>
+      </div>
+      <div class="scenario-card orange">
+        <div class="sc-title">情境 B — 風險較高</div>
+        <h4>認定為實物薪資（非現金給付）</h4>
+        <ul>
+          <li>借：薪資費用 ／ 貸：應付帳款</li>
+          <li>依時價計入員工薪資所得</li>
+          <li><strong>公司負有扣繳義務</strong></li>
+          <li>未扣繳面臨補稅+罰鍰</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>情境 A 的適用條件與法源</h3>
+
+    <div class="law-block">
+      <div class="law-title">所得稅法第38條</div>
+      <p>「經營本業及附屬業務之費用及損失，得自各該業收入中減除。」</p>
+    </div>
+
+    <p>若要主張公司費用（非薪資），需同時符合以下條件：</p>
+    <ul class="check-list">
+      <li><strong>公司統一管理</strong>：住宅由公司統一規劃、分配，員工無自主選擇權（類似公司宿舍概念）</li>
+      <li><strong>業務目的明確</strong>：租屋係為使員工能順利執行業務（如外派必要性），非提供個人生活便利</li>
+      <li><strong>合約為公司名義</strong>：✅ 已符合（台灣分公司為承租人，支付對象為房東）</li>
+      <li><strong>受益者為公司</strong>：業務推展有必要性，且公司能說明業務關聯性</li>
+    </ul>
+
+    <div class="info-box success">
+      <p><strong>✅ 現況優勢：</strong>合約名義為公司，付款方也是公司直接支付給房東（非付給員工再轉付），這在帳務上具有一定的支持基礎。</p>
+    </div>
+
+    <h3>情境 B 的認定依據與法源</h3>
+
+    <div class="law-block">
+      <div class="law-title">所得稅法第14條第1項第3類</div>
+      <p>「薪資所得：凡公、教、軍、警、公私事業職工薪資及提供勞務者之所得……包括……實物給與……均屬之。」</p>
+    </div>
+
+    <div class="law-block">
+      <div class="law-title">財政部83年台財稅第831601126號函釋</div>
+      <p>「雇主為員工支付之房租或住宅津貼，如係直接由雇主支付予房東，或由雇主交付員工轉付，均應以市價計入員工薪資所得課稅。</p>
+      <p>但如係雇主提供宿舍（公司統一管理、分配），且住宿之受益者係公司業務而非員工個人，得列為公司費用，不列入薪資所得。」</p>
+    </div>
+
+    <div class="info-box warning">
+      <p><strong>⚠️ 關鍵解釋：</strong>上述函釋的核心在於「<strong>業務必要性</strong>」與「<strong>受益對象</strong>」。若稅局認定租屋主要受益者是員工個人生活（而非公司業務），即使合約是公司名義，仍可能認定為實物薪資。</p>
+    </div>
+
+    <h3>實務上台灣國稅局的傾向</h3>
+
+    <p>根據稅務實務，國稅局通常從以下角度判斷：</p>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>判斷因素</th>
+            <th>傾向認定公司費用</th>
+            <th>傾向認定實物薪資</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>住宅選擇權</td>
+            <td>公司統一選定、分配</td>
+            <td>員工自行選房，公司付款</td>
+          </tr>
+          <tr>
+            <td>合約安排</td>
+            <td>公司為承租人（✅ 現況）</td>
+            <td>員工為承租人，公司補貼</td>
+          </tr>
+          <tr>
+            <td>外派性質</td>
+            <td>短期外派、輪調人員</td>
+            <td>長期定居、家庭隨行</td>
+          </tr>
+          <tr>
+            <td>住宅使用</td>
+            <td>僅供工作期間使用</td>
+            <td>家庭全員居住（帶家人來台）</td>
+          </tr>
+          <tr>
+            <td>公司文件</td>
+            <td>有外派政策、住宅管理規章</td>
+            <td>無正式住宅管理文件</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <h3>實務判斷結論</h3>
+      <p><strong>國稅局的審查重點</strong>並非僅看合約名義，而是綜合考量「實質受益者」。銀行派駐員工通常屬短期外派性質，若公司能提供：</p>
+      <ul>
+        <li>外派政策文件（Secondment Agreement）</li>
+        <li>住宅係公司統一安排（非員工自選）的佐證</li>
+        <li>與業務必要性相關的說明</li>
+      </ul>
+      <p style="margin-top:12px;">認定為<strong>公司費用的勝算較高</strong>。但若員工攜家帶眷、長期定居，稅局傾向認定為實物薪資。</p>
+      <p style="margin-top:8px;color:#f0ad4e;font-size:13px;">⚠️ 建議向稅務師或申請國稅局事前確認函，取得明確函釋保障。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 2 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s2">
+    <div class="section-label">第二節</div>
+    <h2>獎學金補助（小孩學費補助）的稅務定性</h2>
+
+    <div class="info-box warning">
+      <p><strong>結論先說：</strong>員工子女學費補助（獎學金補助）幾乎確定屬於<strong>薪資所得</strong>，無法免稅。公司需辦理扣繳申報。</p>
+    </div>
+
+    <h3>財政部函釋對員工子女獎學金的認定</h3>
+
+    <div class="law-block">
+      <div class="law-title">所得稅法第14條第1項第3類（薪資所得定義）</div>
+      <p>「凡公、教、軍、警、公私事業職工薪資及提供勞務者之所得……包括薪金、俸給、工資、津貼、歲費、獎金、紅利及各種補助費均屬之。」</p>
+      <p style="margin-top:8px;"><em>關鍵：「<strong>各種補助費</strong>」這個用語已涵蓋學費補助。</em></p>
+    </div>
+
+    <div class="law-block">
+      <div class="law-title">財政部71年台財稅第37598號函釋</div>
+      <p>「公、私立公司行號或機關團體，以鼓勵員工子女向學為由，發給員工子女就學之獎學金，應視為員工之薪資所得，列入員工之薪資所得計稅，並依法辦理扣繳。」</p>
+    </div>
+
+    <div class="law-block">
+      <div class="law-title">財政部87年台財稅第870453485號函釋</div>
+      <p>「事業單位核給員工子女教育補助費，係雇主對員工提供之額外給付，屬員工薪資所得。」</p>
+    </div>
+
+    <h3>是否有豁免條款？</h3>
+
+    <p>目前僅有兩類組織的獎學金可能免稅，但均不適用本案：</p>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>豁免類型</th>
+            <th>適用對象</th>
+            <th>本案是否適用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>政府機關、學校、公益慈善機關設立的獎學金</td>
+            <td>所得稅法第4條第1項第14款：「教育、文化、公益、慈善機關或團體，符合行政院規定標準者，其本身之所得及其附屬作業組織之所得。」</td>
+            <td><span class="risk-high">不適用</span> 韓國銀行台北分公司為商業銀行，非公益機構</td>
+          </tr>
+          <tr>
+            <td>教育部核准的獎學金基金</td>
+            <td>需為政府認可的特定教育基金，有正式審查程序</td>
+            <td><span class="risk-high">不適用</span> 銀行發放學費補助非此類</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>為何幾乎確定屬薪資所得</h3>
+
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content"><strong>發放主體是商業銀行</strong>：非教育機構或公益機構，無法適用免稅豁免條款</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content"><strong>受益者是員工（間接）</strong>：補助員工子女學費，實質受益者仍是員工（減少家庭支出），財政部函釋明確認定為薪資所得</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content"><strong>財政部函釋明確</strong>：71年及87年函釋均明確指出員工子女獎學金屬薪資所得，且已有40年以上的穩定解釋立場</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content"><strong>目前列員工福利費用</strong>：現況科目分類可能有誤，需重分類至薪資費用並辦理扣繳</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <p><strong>帳務調整建議：</strong></p>
+      <p>調整前：借：員工福利費用 ／ 貸：現金</p>
+      <p>調整後：借：薪資費用 ／ 貸：現金（同時需辦理扣繳申報）</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 3 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s3">
+    <div class="section-label">第三節</div>
+    <h2>就業金卡＋所得稅法第18-1條適用評估</h2>
+
+    <h3>條文要件逐一對照</h3>
+
+    <div class="law-block">
+      <div class="law-title">所得稅法第18-1條（就業金卡免稅條款）</div>
+      <p>「外國特定專業人才於中華民國境內從事專業工作，依外國專業人才延攬及僱用法取得就業金卡者，其於首次核准效期內之薪資所得……前三年每年薪資所得超過新臺幣三百萬元部分，減除百分之五十後，再計入個人綜合所得總額。」</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>條文要件</th>
+            <th>要件內容</th>
+            <th>本案狀況</th>
+            <th>評估</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>身分要件</td>
+            <td>外國特定專業人才</td>
+            <td>韓籍人員，持有就業金卡</td>
+            <td><span class="risk-low">✅ 符合</span></td>
+          </tr>
+          <tr>
+            <td>工作性質</td>
+            <td>在台從事專業工作</td>
+            <td>銀行業務，屬金融專業工作</td>
+            <td><span class="risk-low">✅ 符合</span></td>
+          </tr>
+          <tr>
+            <td>持卡要件</td>
+            <td>依外專法取得就業金卡</td>
+            <td>✅ 持有就業金卡</td>
+            <td><span class="risk-low">✅ 符合</span></td>
+          </tr>
+          <tr>
+            <td>時間要件</td>
+            <td>首次核准效期內（3年）</td>
+            <td>✅ 仍在3年期間內</td>
+            <td><span class="risk-low">✅ 符合</span></td>
+          </tr>
+          <tr>
+            <td>所得門檻</td>
+            <td>年薪資所得超過300萬元的部分</td>
+            <td>需確認實際薪資水準</td>
+            <td><span class="risk-mid">⚠️ 待確認</span></td>
+          </tr>
+          <tr>
+            <td>合約主體</td>
+            <td>條文未明確限定</td>
+            <td>與韓國母公司簽約，台灣分公司支付</td>
+            <td><span class="risk-mid">⚠️ 存在疑義</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>合約主體（母公司 vs. 台灣分公司）對適用性的影響</h3>
+
+    <p>這是本案最關鍵的不確定因素。所得稅法第18-1條的立法意旨在於吸引外國專業人才來台工作，但條文本身對「雇主為誰」並無明確限制。</p>
+
+    <div class="scenario-grid">
+      <div class="scenario-card green">
+        <div class="sc-title">有利解釋</div>
+        <h4>母公司合約不影響適用</h4>
+        <ul>
+          <li>條文著重「在台從事專業工作」，非合約形式</li>
+          <li>台灣分公司實際支付薪資（扣繳義務人）</li>
+          <li>員工實際在台居住、工作、繳稅</li>
+          <li>外專法對跨國派駐模式有一定容忍空間</li>
+        </ul>
+      </div>
+      <div class="scenario-card orange">
+        <div class="sc-title">不利解釋風險</div>
+        <h4>稅局可能質疑</h4>
+        <ul>
+          <li>勞動契約是否真正在台灣有效成立</li>
+          <li>員工法律地位：台灣員工 vs. 外派人員</li>
+          <li>若認定為「出差/短期外派」而非「在台工作」</li>
+          <li>目前無財政部函釋明確解釋此類情形</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box warning">
+      <p><strong>⚠️ 目前無明確函釋：</strong>財政部或勞動部目前尚無針對「跨國派駐員工是否適用就業金卡優惠」的明確函釋（字號）。此為本案最大的法律不確定性，<strong>強烈建議向稅務師確認，並申請國稅局事前確認函</strong>。</p>
+    </div>
+
+    <h3>實務建議：補強適用性的文件</h3>
+
+    <div class="steps">
+      <div class="step-group">
+        <div class="step-group-title">文件補強措施</div>
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>補簽 Secondment Agreement（三方派駐協議）</strong><br>
+            當事人：韓國母公司 + 台灣分公司 + 員工本人<br>
+            內容：明確約定在台工作期間、職責歸屬、薪資支付主體、稅務責任分擔
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>向國稅局申請事前確認函</strong><br>
+            依稅捐稽徵法第33-1條，納稅義務人可向主管稽徵機關申請預先確認課稅處理方式<br>
+            說明：派駐架構、薪資支付、金卡持有情形，請求確認第18-1條之適用
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>建立薪資台帳</strong><br>
+            完整記錄每月薪資、補助款項，區分台灣分公司支付部分與母公司支付部分
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>若適用：前3年50%免稅計算示例</h3>
+
+    <div class="calc-box">
+      <div class="calc-title">計算示例（假設年薪450萬台幣）</div>
+      <div class="calc-row">
+        <span class="label">年薪資所得（含所有補助）</span>
+        <span class="value">NT$ 4,500,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">免稅門檻</span>
+        <span class="value">NT$ 3,000,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">超過門檻部分</span>
+        <span class="value">NT$ 1,500,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">50%免稅額（超過部分 × 50%）</span>
+        <span class="value">NT$ 750,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">計入綜合所得的薪資金額</span>
+        <span class="value">NT$ 3,750,000</span>
+      </div>
+      <div class="calc-row highlight">
+        <span class="label"><strong>實際節稅效果（適用40%稅率估算）</strong></span>
+        <span class="value">約 NT$ 300,000 / 年</span>
+      </div>
+    </div>
+
+    <div class="info-box neutral">
+      <p><strong>注意：</strong>實物給付（如認定為薪資的住宅補助）依財政部解釋，亦應計入薪資所得，適用300萬元門檻計算。因此正確申報實物給付反而可能增加可適用50%免稅的金額。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 4 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s4">
+    <div class="section-label">第四節</div>
+    <h2>現況風險評估</h2>
+
+    <div class="tbl-wrap">
+      <table style="min-width:800px;">
+        <thead>
+          <tr>
+            <th>風險項目</th>
+            <th>現況描述</th>
+            <th>風險等級</th>
+            <th>法源依據</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>租金補助扣繳</td>
+            <td>列員工福利費用，未辦理扣繳</td>
+            <td><span class="risk-high">高（情境B）<br>中（情境A）</span></td>
+            <td>所得稅法第14條第1項第3類；財政部83年台財稅第831601126號函</td>
+            <td>若認定實物薪資（情境B），需補辦扣繳；情境A則無需扣繳</td>
+          </tr>
+          <tr>
+            <td>獎學金補助扣繳</td>
+            <td>列員工福利費用，未辦理扣繳</td>
+            <td><span class="risk-high">高</span></td>
+            <td>所得稅法第14條第1項第3類；財政部71年台財稅第37598號函；87年台財稅第870453485號函</td>
+            <td>財政部函釋明確認定為薪資所得，需補辦扣繳，科目應重分類</td>
+          </tr>
+          <tr>
+            <td>金卡優惠未申報</td>
+            <td>仍在3年期間，未申報適用優惠</td>
+            <td><span class="risk-mid">中（錯失節稅）</span></td>
+            <td>所得稅法第18-1條；外國專業人才延攬及僱用法</td>
+            <td>若年薪超過300萬，每年可能錯失數十萬元節稅效果</td>
+          </tr>
+          <tr>
+            <td>母公司薪資境外給付</td>
+            <td>是否有境外薪資，扣繳義務不確定</td>
+            <td><span class="risk-high">高</span></td>
+            <td>所得稅法第88條；各類所得扣繳率標準第2條</td>
+            <td>若母公司另有支付薪資，且員工在台居留超過183天，全球所得均需申報，境外給付亦應計入</td>
+          </tr>
+          <tr>
+            <td>科目分類錯誤</td>
+            <td>獎學金補助列員工福利費用</td>
+            <td><span class="risk-mid">中</span></td>
+            <td>會計準則：IAS 19員工福利</td>
+            <td>分類錯誤本身不直接影響稅務，但補扣繳後需調整帳務分類</td>
+          </tr>
+          <tr>
+            <td>補報罰鍰風險</td>
+            <td>未扣繳期間待確認</td>
+            <td><span class="risk-mid">中（自動補報可減輕）</span></td>
+            <td>稅捐稽徵法第48-1條（自動補報免罰）；所得稅法第114條</td>
+            <td>主動補報可適用免罰或減輕罰鍰；被查到後補報罰鍰較重</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>罰鍰風險說明</h3>
+
+    <div class="law-block">
+      <div class="law-title">所得稅法第114條（扣繳義務人違規罰鍰）</div>
+      <p>「扣繳義務人未按規定扣繳稅款者，除限期責令補繳並補報扣繳憑單外，按應扣未扣或短扣之稅額處1倍以下之罰鍰；怠於補扣且未於限期內補繳者，處3倍以下之罰鍰。」</p>
+    </div>
+
+    <div class="law-block">
+      <div class="law-title">稅捐稽徵法第48-1條（自動補報免罰）</div>
+      <p>「納稅義務人自動向稅捐稽徵機關補報並補繳所漏稅款者，凡屬未經檢舉、未經稽徵機關或財政部指定之調查人員進行調查之案件，下列之處罰一律免除……」</p>
+    </div>
+
+    <div class="info-box success">
+      <p><strong>重要：</strong>若主動補申報（在被稅局查核前），可依稅捐稽徵法第48-1條申請免除罰鍰，僅需補繳本稅及按日加計利息（年利率約1.08%）。<strong>及早行動比等待查核更有利。</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 5 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s5">
+    <div class="section-label">第五節</div>
+    <h2>調整方案（分步驟執行）</h2>
+
+    <div class="steps">
+      <div class="step-group">
+        <div class="step-group-title">立即行動（本月內）</div>
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>確認每位韓籍員工的金卡首次核發日期</strong><br>
+            向員工收集就業金卡影本，確認核發日期及到期日，計算3年豁免期的精確起訖日
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>確認租屋合約性質</strong><br>
+            調查：是公司統一選定並分配住宅，還是員工自行選租後由公司承租名義？<br>
+            目的：決定情境A或情境B，影響是否需要辦理扣繳
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>統計歷年未扣繳金額</strong><br>
+            分類統計：①租金補助（視情境而定）②獎學金補助（確定需補扣繳）<br>
+            按年度、按員工分別統計，計算潛在補稅金額
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <strong>確認是否有母公司境外薪資給付</strong><br>
+            向各員工確認母公司是否另有薪資支付，確認金額及幣別
+          </div>
+        </div>
+      </div>
+
+      <div class="step-group">
+        <div class="step-group-title">短期行動（1至3個月）</div>
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>補簽 Secondment Agreement（三方派駐協議）</strong><br>
+            當事人：韓國母公司 + 台灣分公司 + 員工<br>
+            內容要點：派駐期間、職責歸屬、薪資主體、稅務責任、住宅安排政策<br>
+            目的：強化金卡優惠適用性，建立租屋公司費用認定的文件基礎
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>向國稅局申請事前確認函</strong><br>
+            依稅捐稽徵法第33-1條向轄區國稅局提出書面申請<br>
+            申請事項：①金卡第18-1條適用性（派駐員工情形）②租屋是否認定為公司費用<br>
+            <span class="warn-tag">⚠️ 建議委由稅務師辦理，較有把握</span>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>獎學金補助：辦理補扣繳申報</strong><br>
+            依稅捐稽徵法第48-1條主動補報，可免除罰鍰<br>
+            補申報期限：選在稅局尚未發函查核之前<br>
+            步驟：計算各年度應扣未扣稅額 → 補繳稅款 → 補報各類所得扣繳暨免扣繳憑單
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <strong>建立往後扣繳SOP</strong><br>
+            獎學金補助：每月計入薪資，按時扣繳<br>
+            租金補助：視確認結果（情境A免扣繳；情境B需按月扣繳）<br>
+            建立每月扣繳時程表，避免再次遺漏
+          </div>
+        </div>
+      </div>
+
+      <div class="step-group">
+        <div class="step-group-title dark">帳務調整（依情境分流）</div>
+      </div>
+    </div>
+
+    <div class="scenario-grid">
+      <div class="scenario-card green">
+        <div class="sc-title">情境 A — 租金認定為公司費用</div>
+        <h4>帳務無需調整</h4>
+        <ul>
+          <li>維持現況：房租費用科目</li>
+          <li>獎學金補助：重分類為薪資費用</li>
+          <li>無需為租金辦理扣繳</li>
+          <li>獎學金補助補辦扣繳</li>
+        </ul>
+      </div>
+      <div class="scenario-card orange">
+        <div class="sc-title">情境 B — 租金認定為實物薪資</div>
+        <h4>帳務需調整</h4>
+        <ul>
+          <li>從員工福利費用重分類為薪資費用</li>
+          <li>帳面費用金額相同，差別在科目</li>
+          <li>需補辦租金部分的扣繳申報</li>
+          <li>獎學金補助同步補辦扣繳</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <p><strong>帳務調整原則：</strong>無論情境A或B，公司帳面認列的費用金額不變（租金費用總額相同）。差異僅在於：①科目名稱（房租費用 vs. 薪資費用）②是否需要辦理扣繳申報。對公司損益影響為零，但對合規性影響重大。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SECTION 6 ═══════════════════════════════════════════ -->
+<div class="container">
+  <div class="section" id="s6">
+    <div class="section-label">第六節</div>
+    <h2>結論與優先行動</h2>
+
+    <div class="callout">
+      <h3>核心發現摘要</h3>
+      <ul>
+        <li><strong>租屋公司名義</strong>：具備情境A（公司費用）的形式要件，但認定結果取決於「業務必要性」與「受益者」。需補充Secondment Agreement及住宅管理文件強化認定。</li>
+        <li><strong>獎學金補助</strong>：依財政部71年及87年函釋，幾乎確定屬薪資所得，需立即規劃補扣繳申報，及早申報可適用免罰條款。</li>
+        <li><strong>就業金卡優惠</strong>：金卡仍在3年期間內，具申報價值。但派駐合約與母公司簽約造成法律疑義，需申請事前確認函才能安全適用。若年薪超300萬，每年節稅效果可觀。</li>
+        <li><strong>整體策略</strong>：主動補申報 > 被動等待稅局查核。及早行動可免除罰鍰，降低合規成本。</li>
+      </ul>
+    </div>
+
+    <h3>優先行動清單（依急迫性排序）</h3>
+
+    <div class="tbl-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>優先順序</th>
+            <th>行動項目</th>
+            <th>時程</th>
+            <th>負責人</th>
+            <th>預期效果</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P0</td>
+            <td>委任稅務師全面評估</td>
+            <td>本週</td>
+            <td>管理層</td>
+            <td>取得專業法律意見，確認補報策略</td>
+          </tr>
+          <tr>
+            <td>P1</td>
+            <td>統計歷年未扣繳金額</td>
+            <td>本月</td>
+            <td>財務部</td>
+            <td>確認補稅規模，評估財務影響</td>
+          </tr>
+          <tr>
+            <td>P1</td>
+            <td>確認金卡首次核發日期</td>
+            <td>本月</td>
+            <td>HR部門</td>
+            <td>確認3年豁免期，把握節稅機會</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td>補簽Secondment Agreement</td>
+            <td>1個月內</td>
+            <td>法務+HR</td>
+            <td>強化金卡優惠及租屋公司費用認定</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td>向國稅局申請事前確認函</td>
+            <td>1-2個月</td>
+            <td>稅務師代辦</td>
+            <td>取得官方確認，消除法律不確定性</td>
+          </tr>
+          <tr>
+            <td>P3</td>
+            <td>獎學金補助補扣繳申報</td>
+            <td>2-3個月</td>
+            <td>財務+稅務師</td>
+            <td>適用免罰條款，降低罰鍰風險</td>
+          </tr>
+          <tr>
+            <td>P3</td>
+            <td>建立往後月度扣繳SOP</td>
+            <td>3個月內</td>
+            <td>財務部</td>
+            <td>確保合規，避免再次遺漏</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box warning">
+      <p><strong>⚠️ 重要免責聲明：</strong>本報告為初步稅務分析，引用法源均為公開條文及財政部已公告函釋。派駐員工金卡優惠適用性因目前無明確函釋，法律見解存在不確定性。所有帳務調整及補申報決策，<strong>建議委由合格執業稅務師或會計師辦理</strong>，並以事前確認函取得稅局正式確認後再行執行。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ FOOTER ═══════════════════════════════════════════ -->
+<div class="footer">
+  <strong>韓籍銀行派駐員工薪酬稅務分析報告 v2</strong><br>
+  分析基準日：2026年3月 ｜ 適用法規：中華民國所得稅法、稅捐稽徵法及相關財政部函釋<br>
+  本報告僅供內部參考，不構成正式法律或稅務意見。重大決策請諮詢持牌稅務師。
+</div>
+
+</body>
+</html>

@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain AI Team Manual · 2026-03-24</title>
+<style>
+:root{
+  --bg:#f6f5f1;
+  --bg-soft:#f0eee6;
+  --paper:#ffffff;
+  --paper-strong:#ffffff;
+  --ink:#1a1a1a;
+  --ink-soft:#5a564e;
+  --line:#e4e1d8;
+  --accent:#eb8054;
+  --accent-soft:#fdf0e8;
+  --gold:#c45e2a;
+  --teal:#5a8a48;
+  --blue:#3a6fcf;
+  --red:#c94040;
+  --shadow:0 1px 4px rgba(0,0,0,.04);
+  --shadow-soft:0 1px 3px rgba(0,0,0,.03);
+  --radius-xl:16px;
+  --radius-lg:12px;
+  --radius-md:10px;
+  --mono:"SFMono-Regular",ui-monospace,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Helvetica Neue",Arial,"Noto Sans TC",sans-serif;
+  --serif:var(--sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit}
+
+.backdrop{
+  display:none;
+}
+
+.shell{max-width:980px;margin:0 auto;padding:12px 12px 36px}
+
+.topbar{
+  position:sticky;top:0;z-index:80;
+  margin-bottom:14px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  backdrop-filter:blur(8px);
+  background:rgba(246,245,241,.94);
+  box-shadow:var(--shadow-soft);
+}
+.topbar-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:38px;height:38px;border-radius:12px;
+  display:grid;place-items:center;
+  background:#1a1a1a;
+  color:#fff;
+  border:none;
+  font:800 14px/1 var(--mono);letter-spacing:1px;
+}
+.brand-copy small{
+  display:block;
+  font:800 10px/1.2 var(--mono);
+  letter-spacing:2.2px;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+.brand-copy strong{
+  display:block;
+  margin-top:4px;
+  font-size:14px;
+  letter-spacing:.02em;
+  text-transform:none;
+  font-weight:700;
+}
+.top-meta{
+  display:flex;align-items:center;justify-content:flex-end;
+}
+.top-actions{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.top-meta-line{
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.72);
+  color:var(--ink-soft);
+  font:700 11px/1 var(--mono);
+}
+.top-meta-line strong{
+  color:var(--ink);
+  font-weight:800;
+}
+.top-meta-line code{
+  padding:3px 7px;border-radius:999px;border:1px solid var(--line);
+  background:#f8f3ea;color:var(--ink-soft);font:700 10px/1 var(--mono);
+}
+.menu-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:34px;padding:0 12px;border:none;border-radius:999px;cursor:pointer;
+  background:#1a1a1a;color:#fff;font:800 10px/1 var(--mono);letter-spacing:1.6px;text-transform:uppercase;
+}
+.sidebar-backdrop{
+  position:fixed;inset:0;background:rgba(26,26,26,.32);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:120;
+}
+.sidebar-backdrop.open{opacity:1;pointer-events:auto}
+.sidebar{
+  position:fixed;top:0;right:0;width:min(360px,90vw);height:100vh;background:var(--paper);
+  border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:130;
+  transform:translateX(100%);transition:transform .24s ease;display:flex;flex-direction:column;
+}
+.sidebar.open{transform:translateX(0)}
+.sidebar-head{
+  padding:18px 18px 14px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+}
+.sidebar-title strong{
+  display:block;font-size:16px;line-height:1.2;
+}
+.sidebar-title span{
+  display:block;margin-top:6px;color:var(--ink-soft);font-size:12px;line-height:1.55;
+}
+.sidebar-close{
+  width:34px;height:34px;border:none;border-radius:999px;background:#f0eee6;cursor:pointer;color:var(--ink);font-size:18px;
+}
+.sidebar-body{
+  padding:14px 18px 24px;overflow:auto;display:grid;gap:16px;
+}
+.sidebar-search{
+  width:100%;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+}
+.sidebar-group{
+  display:grid;gap:8px;
+}
+.sidebar-group-label{
+  font:800 10px/1 var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--gold);
+}
+.sidebar-note{
+  color:var(--ink-soft);
+  font-size:12px;
+  line-height:1.55;
+}
+.sidebar-subgrid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+.sidebar-pill{
+  display:flex;align-items:center;justify-content:center;
+  min-height:36px;padding:0 10px;border:1px solid var(--line);border-radius:999px;
+  background:#fff;cursor:pointer;color:var(--ink-soft);font:800 10px/1 var(--mono);letter-spacing:1px;text-transform:uppercase;
+}
+.sidebar-pill:hover{
+  border-color:#d2cbbd;
+  color:var(--ink);
+}
+.sidebar-link{
+  display:block;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
+}
+.sidebar-link strong{
+  display:block;font-size:13px;line-height:1.35;
+}
+.sidebar-link span{
+  display:block;margin-top:4px;color:var(--ink-soft);font-size:12px;line-height:1.5;
+}
+.sidebar-link.hidden,.sidebar-pill.hidden{display:none}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 10px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.75);
+  font:700 10px/1 var(--mono);color:var(--ink-soft);
+}
+.live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#2a9b61;box-shadow:0 0 0 5px rgba(42,155,97,.12);
+}
+
+.hero{
+  display:grid;grid-template-columns:1fr;gap:10px;
+  margin-bottom:14px;
+}
+.hero-main,.hero-side,.slide,.panel,.glass{
+  border:1px solid var(--line);
+  border-radius:var(--radius-xl);
+  background:var(--paper);
+  box-shadow:var(--shadow);
+}
+.hero-main{
+  position:relative;overflow:hidden;padding:40px 28px 32px;
+  color:#fff;
+  background:#1a1a1a;
+  min-height:440px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.hero-main::after{
+  content:"";
+  position:absolute;top:-100px;left:50%;transform:translateX(-50%);
+  width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle, rgba(235,128,84,.16), transparent 60%);
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:0;border-radius:0;border:none;
+  font:800 10px/1 var(--mono);
+  letter-spacing:4px;text-transform:uppercase;color:var(--accent);
+}
+.hero-title{
+  margin-top:18px;
+  font-family:var(--serif);
+  font-size:clamp(28px,4.4vw,44px);
+  line-height:1.12;
+  letter-spacing:-.02em;
+  max-width:14ch;
+  font-weight:800;
+}
+.hero-title span{color:var(--accent);font-style:normal}
+.hero-copy{
+  max-width:60ch;
+  margin-top:14px;
+  color:rgba(255,255,255,.68);
+  font-size:14px;
+  line-height:1.6;
+}
+.hero-actions{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;
+}
+.action-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:38px;padding:0 14px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  color:#fff;background:rgba(255,255,255,.06);
+  font:700 11px/1 var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+}
+.action-btn.primary{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.hero-facts{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px;
+}
+.fact{
+  padding:14px 14px 12px;
+  border-radius:18px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+}
+.fact .label{
+  color:#efc9b1;
+  font:800 10px/1 var(--mono);
+  letter-spacing:1.8px;text-transform:uppercase;
+}
+.fact .value{
+  margin-top:8px;
+  font:900 26px/1 var(--sans);
+}
+.fact .sub{
+  margin-top:6px;
+  color:rgba(255,255,255,.72);
+  font-size:12px;
+}
+
+.hero-side{
+  padding:16px 18px;
+  background:var(--paper);
+}
+.hero-side h2{
+  font-family:var(--serif);
+  font-size:16px;
+  line-height:1.2;
+  letter-spacing:-.01em;
+  font-weight:700;
+}
+.hero-side p{
+  margin-top:6px;color:var(--ink-soft);font-size:12.5px;line-height:1.55;
+}
+.quick-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px;
+}
+.quick-link{
+  padding:10px 11px;border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--paper-strong);
+  transition:transform .15s ease,border-color .15s ease;
+}
+.quick-link:hover{transform:translateY(-2px);border-color:rgba(187,100,62,.34)}
+.quick-link small{
+  display:block;
+  color:var(--gold);
+  font:800 10px/1 var(--mono);
+  letter-spacing:1.8px;text-transform:uppercase;
+}
+.quick-link strong{
+  display:block;margin-top:6px;font-size:12px;line-height:1.35;font-weight:700;
+}
+
+.deck-shell{
+  position:relative;
+  padding:0;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.deck-head{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:start;
+  margin-bottom:10px;
+}
+.deck-hint{
+  min-width:0;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.82);
+  color:var(--ink);
+}
+.deck-hint-copy strong{
+  display:block;
+  font:800 10px/1 var(--mono);
+  letter-spacing:2px;text-transform:uppercase;color:var(--gold);
+}
+.deck-hint-copy span{
+  display:block;margin-top:5px;font-size:12px;line-height:1.55;color:var(--ink-soft);
+}
+.deck-hint-meta{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.hint-chip{
+  display:inline-flex;align-items:center;min-height:30px;padding:0 9px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;
+  font:800 9px/1 var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-soft);
+}
+.section-nav{
+  grid-column:1 / -1;
+  display:flex;gap:8px;overflow:auto;scrollbar-width:none;padding:0 0 4px;
+}
+.section-nav::-webkit-scrollbar{display:none}
+.nav-chip{
+  border:none;cursor:pointer;
+  padding:8px 11px;border-radius:999px;
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--ink-soft);
+  font:800 10px/1 var(--mono);
+  letter-spacing:1px;text-transform:uppercase;
+  white-space:nowrap;
+  transition:all .18s ease;
+}
+.nav-chip.active{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.deck-tools{
+  display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;
+}
+.deck-btn{
+  border:none;cursor:pointer;
+  min-width:38px;height:38px;padding:0 12px;border-radius:999px;
+  background:#1a1a1a;color:#fff;
+  font:800 11px/1 var(--mono);letter-spacing:1px;text-transform:none;
+}
+.deck-status{
+  padding:0 11px;height:38px;border-radius:999px;
+  display:inline-flex;align-items:center;
+  background:rgba(255,255,255,.78);
+  border:1px solid var(--line);
+  font:800 10px/1 var(--mono);color:var(--ink-soft);
+}
+.progress{
+  height:5px;border-radius:999px;background:rgba(23,20,16,.08);overflow:hidden;margin-bottom:14px;
+}
+.progress-bar{
+  width:0;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--accent),#efac86);
+  transition:width .24s ease;
+}
+
+.slides{
+  display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;
+  scrollbar-width:none;scroll-padding-left:0;
+}
+.slides::-webkit-scrollbar{display:none}
+.slide{
+  min-width:100%;
+  scroll-snap-align:start;
+  padding:32px 40px 88px;
+  min-height:min(78vh,920px);
+  background:var(--paper);
+}
+.slide > *{
+  max-width:800px;
+  width:100%;
+  margin-left:auto;
+  margin-right:auto;
+}
+.slide::before{
+  content:"";
+  display:block;
+  height:5px;border-radius:999px;
+  background:linear-gradient(90deg,var(--accent),#efac86);
+  margin-bottom:18px;
+}
+.slide[data-theme="board"]::before{background:linear-gradient(90deg,#8f6430,#d5b06f)}
+.slide[data-theme="models"]::before{background:linear-gradient(90deg,#4b6fb2,#8db1f4)}
+.slide[data-theme="flow"]::before{background:linear-gradient(90deg,#2d766c,#7bc4b9)}
+.slide[data-theme="departments"]::before{background:linear-gradient(90deg,#bb643e,#dca36d)}
+.slide[data-theme="roster"]::before{background:linear-gradient(90deg,#6c56b0,#a892e6)}
+.slide[data-theme="fallback"]::before{background:linear-gradient(90deg,#93453d,#de9f8d)}
+.slide[data-theme="archive"]::before{background:linear-gradient(90deg,#43644e,#8ec4a1)}
+.slide[data-theme="sources"]::before{background:linear-gradient(90deg,#4c4a46,#9e9a90)}
+.slide-head{
+  display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.slide-meta{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.slide-index{
+  width:36px;height:36px;border-radius:10px;
+  display:grid;place-items:center;
+  background:#1b1511;color:#fff;
+  border:none;
+  font:800 12px/1 var(--mono);
+}
+.slide-kicker{
+  color:var(--gold);
+  font:800 10px/1 var(--mono);
+  letter-spacing:2px;text-transform:uppercase;
+}
+.slide-head h2{
+  margin-top:8px;
+  font-family:var(--serif);
+  font-size:clamp(22px,4vw,34px);
+  line-height:1.2;
+  letter-spacing:-.02em;
+  font-weight:800;
+}
+.slide-head p{
+  max-width:68ch;margin-top:8px;color:#5a564e;line-height:1.6;font-size:14px;
+}
+.slide-tag{
+  padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+  background:var(--accent-soft);
+  font:800 10px/1 var(--mono);color:var(--accent);letter-spacing:1px;text-transform:none;
+}
+.chapter-strip{display:none}
+.chapter-card{
+  padding:12px 13px;border-radius:16px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(249,244,235,.78));
+  box-shadow:var(--shadow-soft);
+}
+.chapter-card small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:1.8px;text-transform:uppercase;
+}
+.chapter-card strong{
+  display:block;margin-top:7px;font-size:14px;line-height:1.35;
+}
+.chapter-card span{
+  display:block;margin-top:6px;color:var(--ink-soft);font-size:12px;line-height:1.5;
+}
+
+.grid-2,.grid-3,.grid-4{display:grid;gap:14px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+.panel{
+  padding:18px;
+  border-radius:var(--radius-lg);
+  background:var(--paper);
+}
+.panel h3{
+  font-size:17px;
+  line-height:1.2;
+}
+.panel p{
+  margin-top:8px;color:var(--ink-soft);line-height:1.65;font-size:13px;
+}
+.stats-card{
+  padding:16px 0 0;border-radius:0;
+  background:var(--paper);
+  border:none;
+  border-top:1px solid rgba(31,29,24,.12);
+}
+.stats-card .label{
+  color:var(--ink-soft);
+  font:800 10px/1 var(--mono);
+  letter-spacing:1.7px;text-transform:uppercase;
+}
+.stats-card .value{
+  margin-top:10px;
+  font-size:34px;font-weight:400;line-height:.95;color:var(--ink);font-family:var(--serif);
+}
+.stats-card .sub{
+  margin-top:8px;color:var(--ink-soft);font-size:12px;line-height:1.5;
+}
+
+.note-stack{display:grid;gap:12px}
+.note{
+  padding:14px 15px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.note strong{display:block;font-size:13px;margin-bottom:5px}
+.note.info{background:#eef5ff}
+.note.warn{background:#fff6e5}
+.note.ok{background:#edf8f2}
+.note.danger{background:#fff0ec}
+
+.diagram{
+  position:relative;overflow:hidden;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--line);
+  background:var(--paper);
+  padding:16px;
+}
+.diagram h3{font-size:17px}
+.diagram p{margin-top:7px;color:var(--ink-soft);font-size:13px;line-height:1.6}
+.diagram-canvas{
+  margin-top:10px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+.diagram svg{display:block;width:100%;height:auto;margin-top:10px}
+.mobile-diagram{display:none}
+.label{font:800 11px/1.2 var(--mono);fill:#5d564c}
+.box{fill:#fff;stroke:#ddd2c1;stroke-width:1.5}
+.box.dark{fill:#1b1511;stroke:#1b1511}
+.box.accent{fill:#fff1e8;stroke:#e9b897}
+.box.gold{fill:#fbf3e1;stroke:#dbc59c}
+.box.blue{fill:#edf4ff;stroke:#c9daf9}
+.box.green{fill:#eef8f0;stroke:#c9e2cd}
+.text-dark{fill:#fff}
+.line{stroke:#b9ab97;stroke-width:2;fill:none}
+
+.member-card{
+  position:relative;overflow:hidden;
+  padding:18px 18px 18px 22px;border-radius:var(--radius-lg);
+  background:var(--paper);
+  border:1px solid var(--line);
+}
+.member-card::before{
+  content:"";
+  position:absolute;left:0;top:18px;bottom:18px;width:1px;
+  background:rgba(31,29,24,.14);
+}
+.member-seat{
+  color:var(--gold);
+  font:800 10px/1 var(--mono);
+  letter-spacing:2px;text-transform:uppercase;
+}
+.member-name{
+  margin-top:8px;font-size:22px;font-weight:900;letter-spacing:-.03em;
+}
+.member-model{
+  margin-top:6px;color:var(--ink-soft);
+  font:700 12px/1.5 var(--mono);
+}
+.member-copy{
+  margin-top:10px;color:var(--ink-soft);line-height:1.6;font-size:13px;
+}
+
+.flow-rail{
+  display:flex;gap:10px;flex-wrap:wrap;
+}
+.step{
+  display:flex;align-items:center;gap:10px;
+  min-height:46px;padding:9px 12px;
+  border-radius:14px;border:1px solid var(--line);
+  background:rgba(255,255,255,.84);
+}
+.step-num{
+  width:26px;height:26px;border-radius:999px;
+  display:grid;place-items:center;
+  background:#1b1511;color:#fff;
+  font:800 11px/1 var(--mono);
+}
+.step-arrow{
+  align-self:center;color:#b19f87;font-size:18px;font-weight:900;
+}
+
+.lane-card{
+  padding:18px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.lane-top{
+  display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+}
+.lane-top h3{font-size:18px;line-height:1.15}
+.badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:24px;padding:0 9px;border-radius:999px;
+  background:transparent;border:1px solid rgba(31,29,24,.12);
+  color:var(--ink-soft);
+  font:700 9px/1 var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+}
+.lane-card p{
+  margin-top:8px;color:var(--ink-soft);font-size:13px;line-height:1.65;
+}
+.bullet-list{
+  display:grid;gap:10px;margin-top:14px;
+}
+.bullet{
+  position:relative;padding-left:16px;color:var(--ink-soft);font-size:13px;line-height:1.58;
+}
+.bullet::before{
+  content:"";position:absolute;left:0;top:.68em;width:7px;height:7px;border-radius:50%;
+  background:linear-gradient(180deg,var(--accent),#e9b997);
+}
+
+.dept-card{
+  padding:18px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.dept-top{
+  display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+}
+.dept-name{
+  font-size:21px;font-weight:900;letter-spacing:-.03em;
+}
+.dept-count{
+  color:var(--ink-soft);font:700 12px/1.4 var(--mono);
+}
+.tag-row{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;
+}
+.tag{
+  padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;font:700 11px/1 var(--mono);color:var(--ink-soft);
+}
+
+.toolbar{
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+}
+.toolbar-left,.toolbar-right{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+}
+.search,.filter{
+  min-height:40px;padding:0 12px;border-radius:999px;
+  border:1px solid var(--line);background:transparent;color:var(--ink);
+}
+.search{min-width:280px}
+.summary-chip{
+  display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border-radius:12px;
+  border:1px solid rgba(31,29,24,.12);background:transparent;
+  color:var(--ink-soft);font:700 10px/1 var(--mono);letter-spacing:1px;text-transform:uppercase;
+}
+
+.roster-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+.role-card{
+  padding:16px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.role-top{
+  display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+}
+.role-name{
+  font-size:18px;font-weight:900;letter-spacing:-.03em;
+}
+.role-id{
+  margin-top:5px;color:var(--ink-soft);font:700 11px/1.4 var(--mono);
+}
+.role-copy{
+  margin-top:10px;font-size:13px;color:var(--ink-soft);line-height:1.6;
+}
+.meta-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;
+}
+.meta-item{
+  padding:10px;border-radius:var(--radius-md);background:transparent;border:1px solid rgba(31,29,24,.12);
+}
+.meta-item small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:1.6px;text-transform:uppercase;
+}
+.meta-item strong{
+  display:block;margin-top:8px;font-size:13px;line-height:1.45;
+}
+.status,.tier{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:28px;padding:0 10px;border-radius:999px;
+  font:800 10px/1 var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+}
+.st-active{background:#edf8f2;color:#2a8b59}
+.st-frozen{background:#efefec;color:#7c766e}
+.tier-opus{background:#fff0ec;color:var(--red)}
+.tier-sonnet{background:#fff6e4;color:#9a6d18}
+.tier-haiku{background:#edf4ff;color:var(--blue)}
+.tier-specialist{background:#f5f0ff;color:#6d55b2}
+.tier-codex{background:#edf1ff;color:#4256b0}
+.tier-internal{background:#f0f0ed;color:#615b53}
+
+.role-detail{
+  margin-top:14px;border-top:1px dashed rgba(93,86,76,.18);padding-top:12px;
+}
+.detail-toggle{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font:800 12px/1 var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);
+}
+.detail-toggle::-webkit-details-marker{display:none}
+.detail-toggle::after{
+  content:"+";
+  width:24px;height:24px;border-radius:999px;
+  display:grid;place-items:center;
+  background:#26231d;color:#f7f2ea;
+}
+details[open] .detail-toggle::after{content:"-"}
+.chain{
+  display:grid;gap:8px;margin-top:14px;
+}
+.chain-step{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:9px 10px;border-radius:var(--radius-md);border:1px solid rgba(31,29,24,.12);background:transparent;
+}
+.chain-order{
+  width:22px;height:22px;border-radius:999px;flex:0 0 auto;
+  display:grid;place-items:center;
+  background:#26231d;color:#f7f2ea;font:700 10px/1 var(--mono);
+}
+.chain-step span:last-child{
+  color:var(--ink-soft);font-size:13px;line-height:1.55;
+}
+
+.matrix{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+.matrix-card{
+  padding:16px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.matrix-head{
+  display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+}
+.matrix-title{
+  font-size:17px;font-weight:900;letter-spacing:-.03em;
+}
+.matrix-body{
+  display:grid;gap:10px;margin-top:14px;
+}
+.matrix-item{
+  padding:10px;border-radius:var(--radius-md);border:1px solid rgba(31,29,24,.12);background:transparent;
+}
+.matrix-item small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:1.6px;text-transform:uppercase;
+}
+.matrix-item strong{
+  display:block;margin-top:8px;font-size:13px;line-height:1.55;
+}
+
+.archive-grid,.source-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+}
+.archive-card,.source-card{
+  display:block;padding:16px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.archive-actions{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+}
+.archive-link{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:38px;padding:0 14px;border-radius:999px;
+  border:1px solid rgba(31,29,24,.12);background:transparent;
+  color:var(--ink-soft);font:700 10px/1 var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+}
+.archive-link.primary{
+  background:#26231d;border-color:#26231d;color:#f7f2ea;
+}
+.archive-caption{
+  margin:-2px 0 14px;color:var(--ink-soft);font-size:13px;line-height:1.6;
+}
+.archive-card small,.source-card small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:2px;text-transform:uppercase;
+}
+.archive-card h3,.source-card h3{
+  margin-top:8px;font-size:17px;line-height:1.15;
+}
+.archive-card p,.source-card p{
+  margin-top:8px;color:var(--ink-soft);font-size:13px;line-height:1.6;
+}
+.archive-card .meta,.source-card code{
+  display:block;margin-top:12px;
+  padding:10px 12px;border-radius:14px;border:1px solid var(--line);
+  background:#f8f3ea;color:var(--ink-soft);font:700 11px/1.55 var(--mono);
+  word-break:break-word;
+}
+.source-layout{
+  display:grid;grid-template-columns:1.08fr .92fr;gap:14px;
+}
+.source-priority,.source-aside,.sync-map{
+  display:grid;gap:10px;
+}
+.source-rank{
+  display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:flex-start;
+  padding:16px;border-radius:var(--radius-lg);border:1px solid var(--line);
+  background:var(--paper);
+}
+.source-rank-num{
+  width:34px;height:34px;border-radius:999px;display:grid;place-items:center;
+  background:transparent;color:var(--ink);font:700 11px/1 var(--mono);border:1px solid rgba(31,29,24,.14);
+}
+.source-rank small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:1.8px;text-transform:uppercase;
+}
+.source-rank h3{
+  margin-top:7px;font-size:17px;line-height:1.15;
+}
+.source-rank p{
+  margin-top:7px;color:var(--ink-soft);font-size:13px;line-height:1.6;
+}
+.source-rank code{
+  display:block;margin-top:10px;padding:9px 11px;border-radius:12px;
+  border:1px solid var(--line);background:#f8f3ea;color:var(--ink-soft);
+  font:700 11px/1.6 var(--mono);word-break:break-word;
+}
+.sync-step{
+  position:relative;
+  padding:12px 14px 12px 38px;border-radius:var(--radius-lg);border:1px solid rgba(31,29,24,.12);
+  background:transparent;
+}
+.sync-step::before{
+  content:"";position:absolute;left:17px;top:19px;width:10px;height:10px;border-radius:999px;
+  background:linear-gradient(180deg,var(--accent),#e9b997);
+  box-shadow:0 0 0 6px rgba(187,100,62,.10);
+}
+.sync-step:not(:last-child)::after{
+  content:"";position:absolute;left:21px;top:34px;bottom:-12px;width:2px;background:rgba(187,100,62,.18);
+}
+.sync-step strong{
+  display:block;font-size:14px;line-height:1.35;
+}
+.sync-step span{
+  display:block;margin-top:5px;color:var(--ink-soft);font-size:12px;line-height:1.55;
+}
+.conflict-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;
+}
+.rule-card{
+  padding:14px 15px;border-radius:var(--radius-lg);border:1px solid rgba(31,29,24,.12);
+  background:transparent;
+}
+.rule-card small{
+  display:block;color:var(--gold);font:800 10px/1 var(--mono);letter-spacing:1.6px;text-transform:uppercase;
+}
+.rule-card strong{
+  display:block;margin-top:7px;font-size:14px;line-height:1.35;
+}
+.rule-card p{
+  margin-top:6px;color:var(--ink-soft);font-size:12px;line-height:1.55;
+}
+.mobile-dock{
+  display:none;
+}
+.dock-btn{
+  border:none;cursor:pointer;min-height:40px;padding:0 12px;border-radius:999px;
+  background:#26231d;color:#f7f2ea;font:700 10px/1 var(--mono);letter-spacing:1.2px;text-transform:uppercase;
+}
+.dock-btn.secondary{
+  background:transparent;color:var(--ink-soft);border:1px solid rgba(31,29,24,.12);
+}
+.dock-status{
+  min-width:0;flex:1;padding:0 11px;height:40px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,252,246,.88);display:flex;align-items:center;justify-content:center;
+  color:var(--ink-soft);font:700 10px/1.2 var(--mono);letter-spacing:.5px;text-transform:uppercase;
+  text-align:center;
+}
+
+.footer{
+  margin-top:18px;padding:18px;color:var(--ink-soft);text-align:center;
+  font:700 12px/1.7 var(--mono);
+}
+
+@media (max-width:1120px){
+  .hero,.grid-4,.archive-grid,.source-grid,.chapter-strip,.conflict-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero{grid-template-columns:1fr}
+  .hero-main{padding:40px 30px}
+  .roster-grid,.matrix,.source-layout{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .shell{padding:12px 12px 96px}
+  .topbar{border-radius:0;position:static;margin-bottom:16px}
+  .top-actions{width:100%;justify-content:space-between}
+  .top-meta{width:auto;min-width:0}
+  .top-meta-line{
+    max-width:100%;
+    gap:6px;
+    padding:0 10px;
+    font-size:10px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .top-meta-line code{
+    display:none;
+  }
+  .hero,.grid-2,.grid-3,.grid-4,.archive-grid,.source-grid,.quick-grid,.hero-facts,.meta-grid,.chapter-strip,.conflict-grid{grid-template-columns:1fr}
+  .hero-main,.hero-side,.slide,.panel,.diagram,.member-card,.lane-card,.dept-card,.role-card,.matrix-card,.archive-card,.source-card{border-radius:18px}
+  .hero-main{min-height:auto;padding:34px 22px 24px}
+  .hero-title{max-width:none;font-size:44px;line-height:.98}
+  .hero-copy{font-size:14px}
+  .slide{padding:16px}
+  .slide-head h2{font-size:34px}
+  .deck-shell{padding:10px;border-radius:26px}
+  .deck-head{grid-template-columns:1fr;align-items:stretch}
+  .deck-hint{align-items:flex-start;padding:10px 12px}
+  .deck-hint-copy span{font-size:11px}
+  .deck-hint-meta{display:none}
+  .section-nav{display:none}
+  .deck-tools{display:none}
+  .slides{display:grid;gap:14px;overflow:visible;scroll-snap-type:none;padding-right:0}
+  .slide{min-width:100%;padding:22px 18px 96px;min-height:auto}
+  .slide > *{max-width:none}
+  .slide-head p{font-size:14px}
+  .diagram-canvas{margin-top:12px;padding-bottom:4px}
+  .diagram svg{display:block;width:680px;min-width:680px;height:auto;margin-top:0}
+  .mobile-diagram{
+    display:grid;gap:10px;margin-top:12px;
+  }
+  .mobile-diagram .matrix-item strong{font-size:14px}
+  .search,.filter{width:100%;min-width:0}
+  .toolbar-left,.toolbar-right{width:100%}
+  .mobile-dock{
+    position:fixed;left:12px;right:12px;bottom:12px;z-index:90;
+    display:flex;gap:8px;align-items:center;
+    padding:10px;border-radius:22px;border:1px solid var(--line);
+    background:rgba(248,244,236,.92);backdrop-filter:blur(18px);box-shadow:var(--shadow);
+  }
+  .sidebar{width:min(100vw,380px)}
+}
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="brand-mark">RA</div>
+        <div class="brand-copy">
+          <small>Canonical Handbook URL</small>
+          <strong>Rain AI Team Manual</strong>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="menu-btn" id="menu-btn">選單</button>
+        <div class="top-meta">
+          <span class="top-meta-line"><span class="live-dot"></span><strong>Live manual</strong><span>2026-03-24</span><code>~/.claude/team.json</code></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="sidebar" id="manual-sidebar" aria-label="manual navigation">
+    <div class="sidebar-head">
+      <div class="sidebar-title">
+        <strong>Manual Index</strong>
+        <span>像手冊一樣找章節，不再靠左右翻頁。可以直接跳到分類、角色和歷史報告。</span>
+      </div>
+      <button class="sidebar-close" id="sidebar-close" aria-label="close menu">×</button>
+    </div>
+    <div class="sidebar-body">
+      <input class="sidebar-search" id="sidebar-search" type="search" placeholder="搜尋章節或關鍵詞">
+      <div id="sidebar-groups"></div>
+    </div>
+  </aside>
+
+  <section class="hero">
+    <div class="hero-main">
+      <span class="eyebrow">Update in place · mobile-first manual</span>
+      <h1 class="hero-title">Rain AI Team <span>完整手冊</span></h1>
+      <p class="hero-copy">這一頁現在是固定手冊，不再是一次性報告。團隊架構、模型配置、fallback lane、董事會、部門分工、指揮鏈有變動時，直接更新同一頁。你在手機上應該先看得懂全局，再決定要不要往下看角色細節。</p>
+      <div class="hero-actions">
+        <a class="action-btn primary" href="#deck">進入手冊</a>
+        <a class="action-btn" href="#roster">角色清單</a>
+      </div>
+      <div class="hero-facts" id="hero-facts"></div>
+    </div>
+    <aside class="hero-side">
+      <h2>這一版怎麼看最快</h2>
+      <p>先用上方選單或左右翻頁看 Overview、Models、Flow。需要細查某個角色，再去 Roster 搜尋。歷史月報和特定戰役報告，統一從 Archive 點進去，不再和現行手冊混在一起。</p>
+      <div class="quick-grid">
+        <a class="quick-link" href="#summary">
+          <small>01</small>
+          <strong>先看全局與目前口徑</strong>
+        </a>
+        <a class="quick-link" href="#board">
+          <small>02</small>
+          <strong>董事會與重大決策規則</strong>
+        </a>
+        <a class="quick-link" href="#models">
+          <small>03</small>
+          <strong>模型層級與輪替備援</strong>
+        </a>
+        <a class="quick-link" href="#operating-system">
+          <small>04</small>
+          <strong>任務如何實際流動</strong>
+        </a>
+        <a class="quick-link" href="#roster">
+          <small>06</small>
+          <strong>找某一位角色的細節</strong>
+        </a>
+        <a class="quick-link" href="#archive">
+          <small>08</small>
+          <strong>回看每次改版與報告</strong>
+        </a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="deck-shell" id="deck">
+    <div class="deck-head">
+      <div class="deck-hint">
+        <div class="deck-hint-copy">
+          <strong>Manual navigation</strong>
+          <span>桌面用章節列加前後翻頁；手機改成直向閱讀，切換交給底部 dock。</span>
+        </div>
+        <div class="deck-hint-meta">
+          <span class="hint-chip" id="hint-page">Page 1 / 9</span>
+          <span class="hint-chip" id="hint-next">Next: Board</span>
+        </div>
+      </div>
+      <div class="chapter-strip">
+        <div class="chapter-card">
+          <small>Read first</small>
+          <strong>Overview / Board</strong>
+          <span>先抓整體隊形、董事會與最後裁決權。</span>
+        </div>
+        <div class="chapter-card">
+          <small>Operate</small>
+          <strong>Models / Flow</strong>
+          <span>看模型層級、fallback 與任務流動方式。</span>
+        </div>
+        <div class="chapter-card">
+          <small>Inspect</small>
+          <strong>Departments / Roster</strong>
+          <span>需要查人員配置時再深入部門與角色細節。</span>
+        </div>
+        <div class="chapter-card">
+          <small>Verify</small>
+          <strong>Archive / Sources</strong>
+          <span>看歷史報告與 source of truth，避免把舊口徑當現況。</span>
+        </div>
+      </div>
+      <div class="section-nav" id="section-nav"></div>
+      <div class="deck-tools">
+        <button class="deck-btn" id="prev-btn">Prev</button>
+        <div class="deck-status" id="deck-status">01 / 09 · Overview</div>
+        <button class="deck-btn" id="next-btn">Next</button>
+      </div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <div class="slides" id="slides">
+      <article class="slide" id="summary" data-theme="summary">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">01</div>
+              <div>
+                <div class="slide-kicker">Overview</div>
+                <h2>目前團隊到底怎麼站著運作</h2>
+              </div>
+            </div>
+            <p>現在的 Rain AI Team 是董事會策略層、Klay 總控、HQ 協調、部門 owner、review spine、外部 specialist 的混合系統。核心不是把所有角色塞進同一模型，而是每個角色有自己的 primary model、fallback class、責任邊界與升級規則。</p>
+          </div>
+          <div class="slide-tag">read this first</div>
+        </div>
+
+        <div class="grid-4" id="stats-grid"></div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="note-stack">
+            <div class="note ok">
+              <strong>手冊已改成固定網址</strong>
+              與團隊相關的重大更新優先回寫這一頁；只有一次性的審計、戰役、改版報告，才另外做新頁並進 archive。
+            </div>
+            <div class="note info">
+              <strong>現在的 canonical 不是舊版 Haiku-heavy</strong>
+              2026-03-24 之後，核心工程、研究、安全、審查與部分投研資料角色已回到 Claude Sonnet 4.6，Haiku 保留給協調、文書與模板化分析席位。
+            </div>
+            <div class="note warn">
+              <strong>Codex contingency 已分級</strong>
+              Opus-tier 切 gpt-5.4，Sonnet-tier 切 gpt-5.3-codex，Haiku-tier 與 specialist contingency 切 gpt-5.4-mini，Ray 保持 codex-first。
+            </div>
+          </div>
+          <div class="diagram">
+            <h3>團隊心智圖</h3>
+            <p>先看這張圖，比先讀長名單更快理解隊形。</p>
+            <div class="mobile-diagram">
+              <div class="matrix-item"><small>Top</small><strong>Rain → Klay / Board / OM</strong></div>
+              <div class="matrix-item"><small>Execution</small><strong>Max / Rex / John / Iris / Webb</strong></div>
+              <div class="matrix-item"><small>Review</small><strong>Quill / Forge / Ray / Scout / Kai</strong></div>
+              <div class="matrix-item"><small>Support orgs</small><strong>Finance / Investment / Research / External</strong></div>
+            </div>
+            <div class="diagram-canvas" aria-label="team mind map scroll area">
+            <svg viewBox="0 0 680 440" aria-label="team mind map">
+              <defs>
+                <marker id="arrow-a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b9ab97"></path>
+                </marker>
+              </defs>
+              <rect class="box dark" x="270" y="24" width="140" height="50" rx="18"></rect>
+              <text class="label text-dark" x="340" y="54" text-anchor="middle">Rain</text>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M340 74 L340 112"></path>
+              <rect class="box accent" x="224" y="112" width="232" height="60" rx="22"></rect>
+              <text class="label" x="340" y="142" text-anchor="middle">Klay · Board · OM</text>
+              <text class="label" x="340" y="160" text-anchor="middle">direction · classification · routing</text>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M340 172 L140 236"></path>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M340 172 L340 236"></path>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M340 172 L540 236"></path>
+              <rect class="box gold" x="38" y="236" width="204" height="76" rx="22"></rect>
+              <text class="label" x="140" y="264" text-anchor="middle">Execution spine</text>
+              <text class="label" x="140" y="286" text-anchor="middle">Max · Rex · John · Iris · Webb</text>
+              <rect class="box blue" x="238" y="236" width="204" height="76" rx="22"></rect>
+              <text class="label" x="340" y="264" text-anchor="middle">Review spine</text>
+              <text class="label" x="340" y="286" text-anchor="middle">Quill · Forge · Ray · Scout · Kai</text>
+              <rect class="box green" x="438" y="236" width="204" height="76" rx="22"></rect>
+              <text class="label" x="540" y="264" text-anchor="middle">Specialized orgs</text>
+              <text class="label" x="540" y="286" text-anchor="middle">Finance · Investment · Research · External</text>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M140 312 L140 370"></path>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M340 312 L340 370"></path>
+              <path class="line" style="marker-end:url(#arrow-a)" d="M540 312 L540 370"></path>
+              <rect class="box" x="62" y="370" width="156" height="42" rx="16"></rect>
+              <text class="label" x="140" y="396" text-anchor="middle">build + ship</text>
+              <rect class="box" x="262" y="370" width="156" height="42" rx="16"></rect>
+              <text class="label" x="340" y="396" text-anchor="middle">review + gate</text>
+              <rect class="box" x="462" y="370" width="156" height="42" rx="16"></rect>
+              <text class="label" x="540" y="396" text-anchor="middle">data + strategy + support</text>
+            </svg>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" id="board" data-theme="board">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">02</div>
+              <div>
+                <div class="slide-kicker">Board Layer</div>
+                <h2>董事會是方向決策層，不是 execution 替代品</h2>
+              </div>
+            </div>
+            <p>董事會只在 strategic choice 出現時介入，例如產品方向、資源配置、商業模式、新市場與高風險專案。純技術 hotfix、production incident、payment incident 直接走 Klay 的執行鏈，不需要董事會兜一圈。</p>
+          </div>
+          <div class="slide-tag">Trigger: Critical + strategy choice</div>
+        </div>
+
+        <div class="grid-4" id="board-grid"></div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="panel">
+            <h3>何時應啟動董事會</h3>
+            <div class="bullet-list">
+              <div class="bullet">新產品方向與是否進入新市場。</div>
+              <div class="bullet">重大資源配置與是否重組部門。</div>
+              <div class="bullet">高風險高不確定性的專案是否啟動。</div>
+              <div class="bullet">Rain 明確下達 <code>/board [topic]</code>。</div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>董事會後續流程</h3>
+            <div class="flow-rail" style="margin-top:12px">
+              <div class="step"><span class="step-num">1</span><span>Rain / board trigger</span></div>
+              <div class="step-arrow">→</div>
+              <div class="step"><span class="step-num">2</span><span>Klay 主持與整併上下文</span></div>
+              <div class="step-arrow">→</div>
+              <div class="step"><span class="step-num">3</span><span>Ray / Vick / Gemini Pro advisory</span></div>
+              <div class="step-arrow">→</div>
+              <div class="step"><span class="step-num">4</span><span>策略裁決</span></div>
+              <div class="step-arrow">→</div>
+              <div class="step"><span class="step-num">5</span><span>回到工程三階段執行</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" id="models" data-theme="models">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">03</div>
+              <div>
+                <div class="slide-kicker">Model Stack</div>
+                <h2>模型堆疊要分成 primary roster 和 contingency lane 看</h2>
+              </div>
+            </div>
+            <p>同一個角色同時存在兩種模型描述。第一層是 roster primary model，決定平常哪個模型上場。第二層是 contingency lane，決定 Claude 路徑受限時按角色層級切哪一種 Codex。這樣才不會把所有 fallback 全部降成同一個品質。</p>
+          </div>
+          <div class="slide-tag">tiered fallback, not one-size-fits-all</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="diagram">
+            <h3>模型層級地圖</h3>
+            <p>這張圖把日常主模型和退化路徑拆開看。</p>
+            <div class="mobile-diagram">
+              <div class="matrix-item"><small>Opus primary</small><strong>Claude Opus 4.6 → Codex gpt-5.4 → OpenRouter</strong></div>
+              <div class="matrix-item"><small>Sonnet primary</small><strong>Claude Sonnet 4.6 → Codex gpt-5.3-codex → OpenRouter</strong></div>
+              <div class="matrix-item"><small>Haiku / specialist</small><strong>Claude Haiku 4.5 或 provider-native → Codex gpt-5.4-mini</strong></div>
+            </div>
+            <div class="diagram-canvas" aria-label="model stack scroll area">
+            <svg viewBox="0 0 680 420" aria-label="model stack">
+              <defs>
+                <marker id="arrow-b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b9ab97"></path>
+                </marker>
+              </defs>
+              <rect class="box accent" x="44" y="30" width="592" height="68" rx="24"></rect>
+              <text class="label" x="340" y="58" text-anchor="middle">Primary roster</text>
+              <text class="label" x="340" y="80" text-anchor="middle">Opus-tier · Sonnet-tier · Haiku-tier · provider-native specialists</text>
+              <path class="line" style="marker-end:url(#arrow-b)" d="M156 98 L156 148"></path>
+              <path class="line" style="marker-end:url(#arrow-b)" d="M340 98 L340 148"></path>
+              <path class="line" style="marker-end:url(#arrow-b)" d="M524 98 L524 148"></path>
+              <rect class="box gold" x="58" y="148" width="196" height="82" rx="22"></rect>
+              <text class="label" x="156" y="178" text-anchor="middle">Opus primary</text>
+              <text class="label" x="156" y="202" text-anchor="middle">Codex backup: gpt-5.4</text>
+              <rect class="box blue" x="242" y="148" width="196" height="82" rx="22"></rect>
+              <text class="label" x="340" y="178" text-anchor="middle">Sonnet primary</text>
+              <text class="label" x="340" y="202" text-anchor="middle">Codex backup: gpt-5.3-codex</text>
+              <rect class="box green" x="426" y="148" width="196" height="82" rx="22"></rect>
+              <text class="label" x="524" y="178" text-anchor="middle">Haiku / Specialist</text>
+              <text class="label" x="524" y="202" text-anchor="middle">Codex backup: gpt-5.4-mini</text>
+              <path class="line" d="M156 230 L156 300"></path>
+              <path class="line" d="M340 230 L340 300"></path>
+              <path class="line" d="M524 230 L524 300"></path>
+              <rect class="box dark" x="126" y="300" width="428" height="84" rx="24"></rect>
+              <text class="label text-dark" x="340" y="334" text-anchor="middle">Common degraded floor</text>
+              <text class="label text-dark" x="340" y="358" text-anchor="middle">OpenRouter deepseek / deepseek-chat-v3-0324</text>
+            </svg>
+            </div>
+          </div>
+          <div id="lane-grid" class="grid-2"></div>
+        </div>
+      </article>
+
+      <article class="slide" id="operating-system" data-theme="flow">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">04</div>
+              <div>
+                <div class="slide-kicker">Operating System</div>
+                <h2>你下指令後，任務理論上應該怎麼走</h2>
+              </div>
+            </div>
+            <p>這套團隊應該像 operating system 一樣運作，而不是單一聊天視窗。Rain 直接對 Klay 下任務，Klay 先 intake、classify、route，再把工作交給 owner 執行；OM 只做作戰室級別的協調；Quill、Forge、Ray 組成 review spine。</p>
+          </div>
+          <div class="slide-tag">intake → classify → route → execute → review</div>
+        </div>
+
+        <div class="panel">
+          <div class="flow-rail">
+            <div class="step"><span class="step-num">1</span><span>Rain task</span></div>
+            <div class="step-arrow">→</div>
+            <div class="step"><span class="step-num">2</span><span>Klay 定級與裁決</span></div>
+            <div class="step-arrow">→</div>
+            <div class="step"><span class="step-num">3</span><span>OM 協調與負載平衡</span></div>
+            <div class="step-arrow">→</div>
+            <div class="step"><span class="step-num">4</span><span>Owner execution</span></div>
+            <div class="step-arrow">→</div>
+            <div class="step"><span class="step-num">5</span><span>Quill / Forge / Ray review</span></div>
+            <div class="step-arrow">→</div>
+            <div class="step"><span class="step-num">6</span><span>Acceptance-ready handoff</span></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="diagram">
+            <h3>任務流程圖</h3>
+            <p>標準路徑應先分級，再決定是否 phase 拆分與多人協作。</p>
+            <div class="mobile-diagram">
+              <div class="matrix-item"><small>1</small><strong>Rain task → Klay intake</strong></div>
+              <div class="matrix-item"><small>2</small><strong>Classify → route → assign owner(s)</strong></div>
+              <div class="matrix-item"><small>3</small><strong>Execute + parallel collaboration</strong></div>
+              <div class="matrix-item"><small>4</small><strong>Quill / Forge / Ray review → acceptance-ready</strong></div>
+            </div>
+            <div class="diagram-canvas" aria-label="workflow scroll area">
+            <svg viewBox="0 0 680 390" aria-label="workflow">
+              <defs>
+                <marker id="arrow-c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b9ab97"></path>
+                </marker>
+              </defs>
+              <rect class="box dark" x="38" y="36" width="112" height="48" rx="18"></rect>
+              <text class="label text-dark" x="94" y="64" text-anchor="middle">Rain task</text>
+              <rect class="box accent" x="184" y="36" width="122" height="48" rx="18"></rect>
+              <text class="label" x="245" y="64" text-anchor="middle">Klay intake</text>
+              <rect class="box gold" x="340" y="36" width="122" height="48" rx="18"></rect>
+              <text class="label" x="401" y="64" text-anchor="middle">Classify</text>
+              <rect class="box blue" x="496" y="36" width="122" height="48" rx="18"></rect>
+              <text class="label" x="557" y="64" text-anchor="middle">Route</text>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M150 60 L184 60"></path>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M306 60 L340 60"></path>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M462 60 L496 60"></path>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M557 84 L557 128"></path>
+              <rect class="box" x="470" y="128" width="174" height="52" rx="18"></rect>
+              <text class="label" x="557" y="159" text-anchor="middle">Assign owner(s) + phase</text>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M557 180 L557 230"></path>
+              <rect class="box accent" x="438" y="230" width="238" height="64" rx="20"></rect>
+              <text class="label" x="557" y="258" text-anchor="middle">Execute + parallel collaboration</text>
+              <text class="label" x="557" y="280" text-anchor="middle">Major/Critical: explicit ownership</text>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M438 262 L332 262"></path>
+              <rect class="box gold" x="154" y="230" width="146" height="64" rx="20"></rect>
+              <text class="label" x="227" y="258" text-anchor="middle">Review + CI + veto</text>
+              <text class="label" x="227" y="280" text-anchor="middle">Quill / Forge / Ray</text>
+              <path class="line" style="marker-end:url(#arrow-c)" d="M154 262 L92 262 L92 332 L227 332"></path>
+              <rect class="box dark" x="154" y="308" width="146" height="48" rx="18"></rect>
+              <text class="label text-dark" x="227" y="337" text-anchor="middle">Acceptance-ready</text>
+            </svg>
+            </div>
+          </div>
+          <div class="note-stack">
+            <div class="note">
+              <strong>Tiny / Standard / Major / Critical</strong>
+              Tiny 可以直接完成；Standard 至少有 owner 加 review；Major/Critical 要有 phase、ownership、驗證與剩餘風險。
+            </div>
+            <div class="note">
+              <strong>Review spine</strong>
+              Quill 看 code quality 與 diff，Forge 看 build/test/deploy gate，Ray 看方案與設計風險。三者不是互斥，而是不同角度的防線。
+            </div>
+            <div class="note">
+              <strong>特殊 domain 規則</strong>
+              Website 強制先出規格包；Investment Phase 1 report-only；Research 逆向分析走 PRES；Finance 由 Inquisitor 發現、Knox 決策與執行。
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" id="departments" data-theme="departments">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">05</div>
+              <div>
+                <div class="slide-kicker">Departments</div>
+                <h2>部門與指揮鏈，不是名單而已</h2>
+              </div>
+            </div>
+            <p>這裡按職能拆分，看誰掌握什麼權限、什麼類型的任務應該去哪一條線。部門說明以 2026-03-24 的 canonical 口徑整理。</p>
+          </div>
+          <div class="slide-tag">command chain by function</div>
+        </div>
+
+        <div class="grid-2" id="dept-grid"></div>
+      </article>
+
+      <article class="slide" id="roster" data-theme="roster">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">06</div>
+              <div>
+                <div class="slide-kicker">Complete Roster</div>
+                <h2>完整角色清單，改成手機可讀的展開卡片</h2>
+              </div>
+            </div>
+            <p>Primary model 來自 canonical roster；tier 反映 contingency class；每張卡片可以展開看 fallback chain、介面、職責與特殊規則。這樣在手機上找角色，比橫向捲表格快很多。</p>
+          </div>
+          <div class="slide-tag">searchable + expandable</div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <input id="search" class="search" type="search" placeholder="搜尋角色、ID、部門、模型、職責">
+              <select id="dept-filter" class="filter">
+                <option value="">全部部門</option>
+              </select>
+              <select id="tier-filter" class="filter">
+                <option value="">全部 contingency class</option>
+                <option value="opus">Opus-tier</option>
+                <option value="sonnet">Sonnet-tier</option>
+                <option value="haiku">Haiku-tier</option>
+                <option value="codex-first">Codex-first</option>
+                <option value="specialist">Specialist</option>
+                <option value="internal">Internal</option>
+                <option value="frozen">Frozen</option>
+              </select>
+            </div>
+            <div class="toolbar-right">
+              <div class="summary-chip">visible roles: <span id="visible-count" style="margin-left:8px">0</span></div>
+            </div>
+          </div>
+      <div class="roster-grid" id="roster-grid"></div>
+        </div>
+      </article>
+
+      <article class="slide" id="fallback" data-theme="fallback">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">07</div>
+              <div>
+                <div class="slide-kicker">Fallback Matrix</div>
+                <h2>輪替與備援的真實規則</h2>
+              </div>
+            </div>
+            <p>主模型、Codex contingency、degraded path 要分開看。這裡攤開的是目前 proxy 與 routing policy 應該遵守的規則，而不是抽象理想圖。</p>
+          </div>
+          <div class="slide-tag">primary ≠ contingency ≠ degraded</div>
+        </div>
+
+        <div class="matrix" id="fallback-grid"></div>
+      </article>
+
+      <article class="slide" id="archive" data-theme="archive">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">08</div>
+              <div>
+                <div class="slide-kicker">Archive</div>
+                <h2>固定手冊和歷史報告要分開放</h2>
+              </div>
+            </div>
+            <p>手冊頁只放現在有效的版本；歷史上的月報、治理更新、改版報告、審計頁面統一收進 archive。這樣你看現況時不會混到舊口徑，要追脈絡時也找得到。</p>
+          </div>
+        <div class="slide-tag">manual for now, archive for history</div>
+        </div>
+
+        <div class="archive-actions">
+          <a class="archive-link primary" href="/team-reports.html">看全部報告分頁</a>
+          <a class="archive-link" href="/team-report-2026-03.html">看月報入口</a>
+          <a class="archive-link" href="/board-system-report.html">看董事會報告</a>
+        </div>
+        <p class="archive-caption">下面是最近與最常用的 team report 分頁。要看完整清單，直接進 `team-reports.html`。</p>
+        <div class="archive-grid" id="archive-grid"></div>
+        <div class="grid-2" style="margin-top:14px">
+          <div class="note ok">
+            <strong>之後的寫法</strong>
+            `team-manual.html` 永遠是現在有效的版本。只要模型、fallback、董事會、指揮鏈、角色分工變動，優先改手冊本身。
+          </div>
+          <div class="note info">
+            <strong>Nova 的規則</strong>
+            先判斷這次是手冊更新還是事件報告。若是手冊更新就直接覆寫；若是事件報告才新開網址，並把卡片登錄到 `team-reports.html`。
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" id="sources" data-theme="sources">
+        <div class="slide-head">
+          <div>
+            <div class="slide-meta">
+              <div class="slide-index">09</div>
+              <div>
+                <div class="slide-kicker">Sources & Sync</div>
+                <h2>這份手冊根據哪些來源整理</h2>
+              </div>
+            </div>
+            <p>2026-03-24 之後，舊報告與 canonical 之間存在時間差。這裡列出應優先相信的來源，還有 roster 變更時應同步的鏈條，避免再次出現手冊、proxy、memory 三邊不同步。</p>
+          </div>
+          <div class="slide-tag">sync source of truth</div>
+        </div>
+
+        <div class="source-layout">
+          <div class="source-priority">
+            <div class="source-rank">
+              <div class="source-rank-num">01</div>
+              <div>
+                <small>Canonical roster</small>
+                <h3>唯一 primary model 與 roster 真相來源</h3>
+                <p>角色主模型、active / frozen、部門歸屬、目前 roster 全部先看這份。只要和其他文件衝突，這份先贏。</p>
+                <code>~/.claude/team.json</code>
+              </div>
+            </div>
+            <div class="source-rank">
+              <div class="source-rank-num">02</div>
+              <div>
+                <small>Command rules</small>
+                <h3>董事會、HQ command、review spine 的運行規則</h3>
+                <p>補董事會席次、command chain、各部門協作規則。它定義怎麼運作，但若和 primary model 衝突，仍由 canonical roster 覆蓋。</p>
+                <code>~/.claude/rules/team-roster.md</code>
+              </div>
+            </div>
+            <div class="source-rank">
+              <div class="source-rank-num">03</div>
+              <div>
+                <small>Contingency lane</small>
+                <h3>Claude 不可用時的 Codex 分層備援</h3>
+                <p>這裡定義 Opus / Sonnet / Haiku 對應哪個 Codex 模型，也處理 alias 對齊，避免 `operations-manager` 與投研角色錯 tier。</p>
+                <code>claw-claude-proxy/src/team-models.js</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="source-aside">
+            <div class="panel">
+              <h3>同步鏈條</h3>
+              <p>這頁不是原始資料庫，而是整理後的手冊。所以來源必須有先後順序，不然 roster、proxy、memory 很容易再次分叉。</p>
+              <div class="sync-map">
+                <div class="sync-step">
+                  <strong>Rules layer</strong>
+                  <span>`CLAUDE.md` / `team-roster.md` 定義 command 與 board 規則。</span>
+                </div>
+                <div class="sync-step">
+                  <strong>Canonical layer</strong>
+                  <span>`team.json` 定義 roster 與 primary model，是手冊與系統對齊的主鍵。</span>
+                </div>
+                <div class="sync-step">
+                  <strong>Runtime layer</strong>
+                  <span>`team-models.js`、`team_service.py`、`agent_task_service.py` 讓 proxy / Kai 依同一口徑運行。</span>
+                </div>
+                <div class="sync-step">
+                  <strong>Narrative layer</strong>
+                  <span>`MEMORY.md`、`team-manual.html`、`team-reports.html` 只負責人讀版本，不反向覆蓋 canonical。</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>衝突時怎麼判</h3>
+              <p>這裡把判斷規則寫死，避免看到舊報告時還要重新猜哪份才是對的。</p>
+              <div class="conflict-grid">
+                <div class="rule-card">
+                  <small>Rule A</small>
+                  <strong>模型衝突</strong>
+                  <p>先信 `team.json`，再回頭修 proxy 與手冊，不反過來。</p>
+                </div>
+                <div class="rule-card">
+                  <small>Rule B</small>
+                  <strong>組織衝突</strong>
+                  <p>先信 `team-roster.md` 的 command 結構，再檢查手冊是否漏更新。</p>
+                </div>
+                <div class="rule-card">
+                  <small>Rule C</small>
+                  <strong>歷史報告衝突</strong>
+                  <p>歷史頁只保留當時上下文，不能覆蓋現行手冊。</p>
+                </div>
+                <div class="rule-card">
+                  <small>Rule D</small>
+                  <strong>Runtime 異常</strong>
+                  <p>看 `team-models.js` 與 Kai / proxy 實際輸出，不靠頁面文案猜狀態。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="note warn">
+            <strong>本頁刻意修正的舊口徑</strong>
+            舊報告曾把 Market Intel / News Collector 寫成 Haiku，也把 Knox 長期寫成固定 Opus。這份手冊已用目前 canonical 修正。
+          </div>
+          <div class="note ok">
+            <strong>頁面用途</strong>
+            這一頁只負責「現在有效的版本」。任何一次性 upgrade report、設計 review、審計紀錄，改登錄到 archive，不再把手冊寫成月報格式。
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <div class="mobile-dock" aria-label="manual mobile navigation">
+    <button class="dock-btn secondary" id="dock-prev">Prev</button>
+    <div class="dock-status" id="dock-status">01 / 09 · Overview</div>
+    <button class="dock-btn" id="dock-next">Next</button>
+  </div>
+
+  <footer class="footer">
+    Rain AI Team · stable handbook URL: /team-manual.html · archive: /team-reports.html
+  </footer>
+</div>
+
+<script>
+const stats = [
+  { label: 'Unique roster entries', value: '46', sub: '44 active + 2 frozen' },
+  { label: 'Board seats', value: '4', sub: '3 active + 1 optional external advisory seat' },
+  { label: 'Anthropic primary roles', value: '27', sub: 'Opus, Sonnet, Haiku combined' },
+  { label: 'Provider families', value: '7', sub: 'Anthropic, OpenAI, Google, xAI, Zhipu, DeepSeek, Internal' },
+];
+
+const boardMembers = [
+  {
+    seat: '主席',
+    name: 'Klay',
+    model: 'Claude Opus 4.6',
+    copy: '主持董事會、整併上下文、定義選項與取捨、產出最終策略建議。董事會內的核心工作不是 coding，而是裁決方向。'
+  },
+  {
+    seat: '工程稽核',
+    name: 'Ray',
+    model: 'Codex Plus CLI',
+    copy: '提供工程 feasibility、技術風險、架構爭議點與 veto angle。此席位在董事會中是 advisory，不等於正式 Phase 3 審查。'
+  },
+  {
+    seat: '異見稽核',
+    name: 'Vick',
+    model: 'Grok 3 Mini / Grok 3',
+    copy: '負責挑戰假設與提出 bear case，避免董事會只剩單一視角。適合處理高不確定性與外部社群脈絡。'
+  },
+  {
+    seat: '外部視角',
+    name: 'Gemini Pro',
+    model: 'Gemini 2.5 Pro',
+    copy: '董事會的 optional 外掛席位。只有 Rain 明確要求時啟用，用於補充外部脈絡與非主鏈條觀點。'
+  }
+];
+
+const laneCards = [
+  {
+    title: 'Opus-tier authority lane',
+    badge: 'Primary authority',
+    copy: '給最終裁決與高風險高價值角色。平常用 Claude Opus 4.6；Claude 路徑受限時，切最高等級 Codex contingency。',
+    bullets: [
+      '適用：Klay、Max、Investment Manager、Bull Researcher',
+      'Primary：Claude Opus 4.6',
+      'Codex contingency：gpt-5.4',
+      'Degraded：OpenRouter deepseek/deepseek-chat-v3-0324'
+    ]
+  },
+  {
+    title: 'Sonnet-tier execution lane',
+    badge: 'Core execution',
+    copy: '核心工程、設計、審查、安全、研究與部分投研資料角色的主幹執行層。這是目前團隊最密集的一層。',
+    bullets: [
+      '適用：Rex、John、Iris、Forge、Scout、Quill、Sentinel、Knox、Tax、Strategist、Webb、Orion、Lab、Lens、Market Intel、News Collector、Fundamental Analyst',
+      'Primary：Claude Sonnet 4.6',
+      'Codex contingency：gpt-5.3-codex',
+      'Degraded：OpenRouter deepseek/deepseek-chat-v3-0324'
+    ]
+  },
+  {
+    title: 'Haiku-tier structured ops lane',
+    badge: 'Coordinated ops',
+    copy: '高節奏、可模板化、協調型與較輕量分析型角色。成本更保守，但仍保留獨立的 Codex mini contingency。',
+    bullets: [
+      '適用：Nova、Keeper、Operations Manager、Inquisitor、Technical Analyst、Macro Analyst',
+      'Primary：Claude Haiku 4.5',
+      'Codex contingency：gpt-5.4-mini',
+      'Degraded：OpenRouter deepseek/deepseek-chat-v3-0324'
+    ]
+  },
+  {
+    title: 'Codex-first / Specialist lane',
+    badge: 'Hybrid lane',
+    copy: 'Ray 本身就是 Codex-first。Google、xAI、GLM、DeepSeek、GPT-4.1 specialist 的 business primary 仍是 provider-native，但統一 contingency lane 保留 Codex mini。',
+    bullets: [
+      'Ray：Codex gpt-5.3-codex → OpenRouter degraded',
+      'Google / xAI / GLM / DeepSeek / GPT-4.1 specialists：以 roster primary 為主',
+      'Specialist contingency：gpt-5.4-mini',
+      'Kai：internal，不走一般模型 fallback'
+    ]
+  }
+];
+
+const departments = [
+  {
+    name: 'Core',
+    count: '10 active',
+    copy: 'Klay、Max、Rex、John、Iris、Forge、Scout、Ray、Quill、Kai。這是指揮、工程、架構、審查、中控骨幹。Klay 定級裁決；Max/Rex/John/Iris/Forge 做執行；Scout 做 read-only architectural analysis；Quill / Ray 負責不同層級的審查；Kai 負責 control center。',
+    tags: ['Klay authority', 'Execution spine', 'Review spine', 'Internal control']
+  },
+  {
+    name: 'Security + Finance',
+    count: '4 active + 1 frozen',
+    copy: 'Sentinel 做 hardening 與 secrets leak prevention。Knox 是 finance/security crossover owner，整合 vault、key management 與 account lifecycle；Inquisitor 做 audit；Tax 處理台灣稅法、銀行會計、OBU/DBU 與韓商銀行財務；Sage 已凍結併入 Knox。',
+    tags: ['SoD', 'Vault', 'API keys', 'Tax']
+  },
+  {
+    name: 'Docs + HQ Command',
+    count: '3 active',
+    copy: 'Nova 專責 deck aesthetics 與報告輸出；Jarvis 已降級為工具級 email backup，不在主指揮鏈；OM 是 HQ 協調層，只做作戰室摘要、進度追蹤、升級處理與負載均衡，不做技術裁決。',
+    tags: ['Deck output', 'Email backup', 'Ops coordination']
+  },
+  {
+    name: 'Strategy + Website',
+    count: '5 active',
+    copy: 'Strategist 與 EchoMarketer 負責市場研究、定位、GTM 與內容策略；Webb 是網站部門 owner；Silo 處理 technical SEO spec；Keeper 做規格階段維護性審查與上線後維護。網站任務強制規格包先行。',
+    tags: ['Strategy brief', 'Website spec pack', 'SEO split']
+  },
+  {
+    name: 'Investment',
+    count: '9 active',
+    copy: 'Investment Manager 為主管與 sign-off；Market Intel / News Collector / GooayeAI 負責資料收集；Fundamental / Technical / Macro Analyst 做分析；Bull Researcher 與 Bear Researcher 負責異質辯論。Phase 1 強制 report-only，不進 order API。',
+    tags: ['Research only', 'Debate unit', 'Podcast intel', 'No trade API']
+  },
+  {
+    name: 'External + Research',
+    count: '13 active + 1 frozen',
+    copy: 'Noel 管外部 specialist 與夜班。Atlas、Pixel、Vick、Spider、Lynx、Probe、Echo、Nautilus、Buzz 各自對應 Google、生圖、xAI 驗證、抓取、測試、browser automation 與社群分析。Research 端的 Orion / Lab / Lens 則負責資料治理、benchmark 與 PRES 逆向分析。',
+    tags: ['Night shift', 'OpenClaw workers', 'PRES pipeline', 'Research infra']
+  }
+];
+
+const fallbackRows = [
+  {
+    cls: 'Opus-tier',
+    applies: 'Klay / Max / Investment Manager / Bull Researcher',
+    primary: 'Claude Opus 4.6',
+    codex: 'Codex CLI (gpt-5.4)',
+    degraded: 'OpenRouter deepseek/deepseek-chat-v3-0324',
+    notes: '最高裁決層；成本最高但保留最高品質 contingency。'
+  },
+  {
+    cls: 'Sonnet-tier',
+    applies: '核心工程 / 安全 / 審查 / 研究 / 投研資料主幹',
+    primary: 'Claude Sonnet 4.6',
+    codex: 'Codex CLI (gpt-5.3-codex)',
+    degraded: 'OpenRouter deepseek/deepseek-chat-v3-0324',
+    notes: '目前最重要的 execution lane。'
+  },
+  {
+    cls: 'Haiku-tier',
+    applies: 'OM / Nova / Keeper / Inquisitor / Technical / Macro',
+    primary: 'Claude Haiku 4.5',
+    codex: 'Codex CLI (gpt-5.4-mini)',
+    degraded: 'OpenRouter deepseek/deepseek-chat-v3-0324',
+    notes: '協調、文書、可模板化分析保守配置。'
+  },
+  {
+    cls: 'Codex-first',
+    applies: 'Ray / codex entry',
+    primary: 'Codex CLI (gpt-5.3-codex)',
+    codex: 'Same as primary',
+    degraded: 'OpenRouter deepseek/deepseek-chat-v3-0324',
+    notes: 'Ray 不以 Claude 為 primary。'
+  },
+  {
+    cls: 'Specialist contingency',
+    applies: 'Google / xAI / GLM / DeepSeek / GPT-4.1 / Gemini CLI roster roles',
+    primary: 'Provider-native model per roster',
+    codex: 'Codex CLI (gpt-5.4-mini)',
+    degraded: 'Provider-specific path / OpenRouter where unified proxy applies',
+    notes: 'Business primary 不變；這裡描述的是統一 contingency lane。'
+  },
+  {
+    cls: 'Internal',
+    applies: 'Kai',
+    primary: 'Internal control center',
+    codex: 'Not applicable',
+    degraded: 'Not applicable',
+    notes: 'Kai 是 service，不是一般 LLM seat。'
+  }
+];
+
+const archiveCards = [
+  {
+    kicker: 'Archive Index',
+    title: 'Team Reports Archive',
+    desc: '所有 team 類歷史報告、月報、治理更新、改版報告、審計頁面的統一索引入口。',
+    meta: '/team-reports.html',
+    href: '/team-reports.html'
+  },
+  {
+    kicker: 'Monthly',
+    title: 'Team Report 2026-03',
+    desc: '2026 年 3 月的整體團隊報告入口，適合快速回看當月配置與組織狀態。',
+    meta: '/team-report-2026-03.html',
+    href: '/team-report-2026-03.html'
+  },
+  {
+    kicker: 'Board',
+    title: 'Board System Report',
+    desc: '董事會系統正式化與 board 運作說明，適合追溯董事會成形脈絡。',
+    meta: '/board-system-report.html',
+    href: '/board-system-report.html'
+  },
+  {
+    kicker: 'Workflow',
+    title: 'Team Workflow Report',
+    desc: '團隊工作流與執行方式報告，適合看流程設計與責任鏈。',
+    meta: '/team-workflow-report.html',
+    href: '/team-workflow-report.html'
+  },
+  {
+    kicker: 'Upgrade',
+    title: 'AI Team Corp Upgrade 2026-03-23',
+    desc: '公司級配置與模型升級報告，適合追最近一輪 corporate 改版脈絡。',
+    meta: '/ai-team-corp-upgrade-2026-03-23.html',
+    href: '/ai-team-corp-upgrade-2026-03-23.html'
+  },
+  {
+    kicker: 'Governance',
+    title: 'AI Team Org Governance 2026-03-23',
+    desc: '較新的組織治理報告，適合看角色治理與 command 結構演變。',
+    meta: '/ai-team-org-governance-2026-03-23.html',
+    href: '/ai-team-org-governance-2026-03-23.html'
+  }
+];
+
+const roles = [
+  {name:'Klay',id:'klay',department:'core',status:'active',primary:'Claude Opus 4.6',tier:'opus',role:'CEO — Architecture Decisions',reportsTo:'—',interface:'spawn-klay.py → tmux',notes:'董事會主席；商業目標、優先級、定級與最終裁決。'},
+  {name:'Max',id:'max',department:'core',status:'active',primary:'Claude Opus 4.6',tier:'opus',role:'Senior Backend — Python, FastAPI',reportsTo:'Klay',interface:'tmux session max',notes:'複雜後端、效能、重構 owner。'},
+  {name:'Rex',id:'rex',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Backend — API, CRUD',reportsTo:'Max',interface:'tmux session rex',notes:'API、CRUD、database、金流類實作。'},
+  {name:'John',id:'john',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Frontend — React, TypeScript',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'網站與 app 前端主力。'},
+  {name:'Iris',id:'iris',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'UI/UX — Design, CSS, RWD',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'UI/UX 與 layout owner；網站規格包的重要產出者。'},
+  {name:'Forge',id:'forge',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'CI/CD Gate Owner',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'lint / typecheck / test / build / deploy gate。'},
+  {name:'Scout',id:'scout',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'System Architect & Codebase Analyst (read-only)',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'read-only 架構分析、研究、規格輸出。'},
+  {name:'Ray',id:'ray',department:'core',status:'active',primary:'Codex Plus CLI',tier:'codex-first',role:'Solution Architecture Reviewer',reportsTo:'Klay',interface:'spawn-ray.py → codex exec',notes:'董事會工程稽核席；Major/Critical 設計審查與 veto。'},
+  {name:'Quill',id:'quill',department:'core',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Code Reviewer — PR / diff / compliance',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'Standard+ 任務的 code review spine。'},
+  {name:'Kai',id:'kai',department:'core',status:'active',primary:'Internal',tier:'internal',role:'Control Center (Monitoring)',reportsTo:'Klay',interface:'http://127.0.0.1:5002',notes:'狀態監控、中控台、任務服務；非一般 LLM seat。'},
+
+  {name:'Sentinel',id:'sentinel',department:'security',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Cybersecurity — Hardening, Secrets Leak Prevention',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'hardening、密鑰外洩防護、security 掃描。'},
+  {name:'Knox',id:'knox',department:'finance',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Finance Lead — Vault & Key Management + Account Lifecycle',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'預設 Sonnet；vault / api_key / account_lifecycle 的 Major/Critical 或安全域任務才升 Opus。'},
+  {name:'Sage',id:'sage',department:'finance',status:'frozen',primary:'Claude Sonnet 4.6',tier:'frozen',role:'Account Lifecycle Manager (FROZEN)',reportsTo:'Knox',interface:'tmux session sage',notes:'已於 2026-03-13 併入 Knox，保留解凍能力。'},
+  {name:'Inquisitor',id:'inquisitor',department:'finance',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'Finance Auditor',reportsTo:'Knox',interface:'Claude Code Subagent',notes:'SoD 結構中的發現者；負責 audit 與問題提出。'},
+  {name:'Tax',id:'tax',department:'finance',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Finance & Accounting Consultant',reportsTo:'Knox',interface:'Claude Code Subagent',notes:'台灣稅法、銀行會計、OBU/DBU、韓商銀行財務。'},
+
+  {name:'Nova',id:'nova',department:'docs',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'Report Engineer — Deck default',reportsTo:'Noel',interface:'Claude Code Subagent',notes:'預設輸出格式是 Deck；PPT/PDF 屬例外。'},
+  {name:'Jarvis',id:'jarvis',department:'docs',status:'active',primary:'Gemini Flash',tier:'specialist',role:'Email Backup Channel (tool-level)',reportsTo:'—',interface:'Telegram Bot',notes:'已降級為工具級，不參與主指揮鏈。'},
+
+  {name:'Strategist',id:'strategist',department:'strategy',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Strategy & Marketing Lead',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'市場研究、競爭分析、定位、GTM、定價策略。'},
+  {name:'EchoMarketer',id:'echomarketer',department:'strategy',status:'active',primary:'Gemini Flash',tier:'specialist',role:'SEO Content Strategist',reportsTo:'Strategist',interface:'Claude Code Subagent (Gemini CLI)',notes:'關鍵字、廣告文案、SEO 內容策略；內容而非技術 SEO。'},
+
+  {name:'Webb',id:'webb',department:'website',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Website Department Lead',reportsTo:'Klay',interface:'Claude Code Session',notes:'網站規格包 owner + project coordination + 上線驗收。'},
+  {name:'Silo',id:'silo',department:'website',status:'active',primary:'Gemini 2.5 Pro',tier:'specialist',role:'SEO Architect (read-only, spec output)',reportsTo:'Webb',interface:'Claude Code Subagent (Gemini CLI)',notes:'技術 SEO 結構、spec 輸出；不做內容。'},
+  {name:'Keeper',id:'keeper',department:'website',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'Website Maintenance Engineer',reportsTo:'Webb',interface:'Claude Code Subagent',notes:'規格階段維護性審查 + 上線後維護/監控。'},
+
+  {name:'Operations Manager',id:'operations-manager',department:'hq_command',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'HQ Command — coordination, escalation, load balancing',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'OM 不做技術決策、不做 review、不做實作；只做作戰室摘要與協調。'},
+
+  {name:'Investment Manager',id:'investment-manager',department:'investment',status:'active',primary:'Claude Opus 4.6',tier:'opus',role:'Investment Department Lead — final sign-off',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'Phase 1 研究 only；主管、綜合裁決、最終 sign-off。'},
+  {name:'Market Intel',id:'market-intel',department:'investment',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Investment Data Unit — market data & indicators',reportsTo:'Investment Manager',interface:'Claude Code Subagent',notes:'已從舊口徑的 Haiku 修正為目前 canonical Sonnet。'},
+  {name:'News Collector',id:'news-collector',department:'investment',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Investment Data Unit — news, earnings, macro events',reportsTo:'Investment Manager',interface:'Claude Code Subagent',notes:'已從舊口徑修正為目前 canonical Sonnet。'},
+  {name:'GooayeAI',id:'gooayeai',department:'investment',status:'active',primary:'Gemini 2.5 Flash Lite',tier:'specialist',role:'Podcast Intelligence daemon',reportsTo:'Investment Manager',interface:'Telegram Bot @GooayeAI_bot',notes:'獨立 daemon；輸出結構化 JSON 給投研部門。'},
+  {name:'Fundamental Analyst',id:'fundamental-analyst',department:'investment',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Analyst Unit — earnings / valuation / DCF',reportsTo:'Investment Manager',interface:'Claude Code Agent',notes:'Phase B 財報與估值主力。'},
+  {name:'Technical Analyst',id:'technical-analyst',department:'investment',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'Analyst Unit — chart / MACD / RSI / volume',reportsTo:'Investment Manager',interface:'Claude Code Agent',notes:'Phase B 技術分析 seat。'},
+  {name:'Macro Analyst',id:'macro-analyst',department:'investment',status:'active',primary:'Claude Haiku 4.5',tier:'haiku',role:'Analyst Unit — Fed / CPI / GDP / geopolitics',reportsTo:'Investment Manager',interface:'Claude Code Agent',notes:'整合 GooayeAI 的宏觀脈絡。'},
+  {name:'Bull Researcher',id:'bull-researcher',department:'investment',status:'active',primary:'Claude Opus 4.6',tier:'opus',role:'Debate Unit — bullish side',reportsTo:'Investment Manager',interface:'Claude Code Agent',notes:'TradingAgents 式辯論，多頭論證。'},
+  {name:'Bear Researcher',id:'bear-researcher',department:'investment',status:'active',primary:'Grok 3',tier:'specialist',role:'Debate Unit — bearish side',reportsTo:'Investment Manager',interface:'Claude Code Agent',notes:'故意使用異質模型，避免 echo chamber。'},
+
+  {name:'Noel',id:'noel',department:'external',status:'active',primary:'Gemini 2.5 Flash',tier:'specialist',role:'Night Shift Lead + External Coordinator',reportsTo:'Klay',interface:'tmux session noel',notes:'夜班執行與 Tier 3 外部 agent 管理。'},
+  {name:'Atlas',id:'atlas',department:'external',status:'active',primary:'Gemini 2.5 Flash',tier:'specialist',role:'Google Ecosystem Specialist',reportsTo:'Noel',interface:'tmux session atlas',notes:'GA4 / Gmail / Calendar / OAuth / GCP。'},
+  {name:'Milo',id:'milo',department:'external',status:'frozen',primary:'Gemini 2.5 Flash Lite',tier:'frozen',role:'Data / Crawler Engineer (FROZEN)',reportsTo:'Noel',interface:'tmux session milo',notes:'與 Spider/Lynx/Nautilus 職責重疊，保留解凍能力。'},
+  {name:'Pixel',id:'pixel',department:'external',status:'active',primary:'Gemini CLI',tier:'specialist',role:'Creative Engineer — AI Image Generation',reportsTo:'Noel',interface:'Claude Code Subagent',notes:'品牌素材與圖像生成。'},
+  {name:'Vick',id:'vick',department:'external',status:'active',primary:'Grok 3 Mini',tier:'specialist',role:'Grok Cross-Validator',reportsTo:'Ray',interface:'Claude Code Subagent + xAI API',notes:'非 Anthropic 視角方案驗證；董事會異見席。'},
+  {name:'Spider',id:'spider',department:'external',status:'active',primary:'GLM-4-Plus',tier:'specialist',role:'Web Crawler Specialist',reportsTo:'Milo / Noel',interface:'OpenClaw Gateway',notes:'靜態 HTML / sitemap / API 抓取。'},
+  {name:'Lynx',id:'lynx',department:'external',status:'active',primary:'DeepSeek Chat',tier:'specialist',role:'Parallel Crawler Engineer',reportsTo:'Milo / Noel',interface:'OpenClaw Gateway',notes:'API 批量抓取與資料提取。'},
+  {name:'Probe',id:'probe',department:'external',status:'active',primary:'DeepSeek Chat',tier:'specialist',role:'Web Tester Specialist',reportsTo:'Noel / Webb',interface:'OpenClaw Gateway',notes:'non-website 時 Noel dispatch；QA 類測試。'},
+  {name:'Echo',id:'echo',department:'external',status:'active',primary:'GLM-4-Plus',tier:'specialist',role:'Parallel Web Tester',reportsTo:'Noel / Webb',interface:'OpenClaw Gateway',notes:'Probe partner。'},
+  {name:'Nautilus',id:'nautilus',department:'external',status:'active',primary:'GPT-4.1',tier:'specialist',role:'Browser Automation Engineer',reportsTo:'Noel',interface:'OpenClaw Gateway',notes:'Playwright、登入自動化、反爬、真人模擬。'},
+  {name:'Buzz',id:'buzz',department:'external',status:'active',primary:'Gemini Flash',tier:'specialist',role:'Content Analysis & Social Media',reportsTo:'Noel',interface:'OpenClaw Gateway',notes:'內容分類、社群貼文與社群情報。'},
+
+  {name:'Orion',id:'orion',department:'research',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Data Engineer — memory schema / indexing / data quality',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'RAG 遷移準備、資料品質、索引自動化。'},
+  {name:'Lab',id:'lab',department:'research',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Experimentation Agent — benchmark / A/B / evaluation',reportsTo:'Klay',interface:'Claude Code Subagent',notes:'新模型 benchmark 與效能基線。'},
+  {name:'Lens',id:'lens',department:'research',status:'active',primary:'Claude Sonnet 4.6',tier:'sonnet',role:'Product Intelligence Analyst — PRES pipeline lead',reportsTo:'Klay',interface:'Claude Code Session',notes:'Feature extraction、architecture inference、競品逆向規格生成。'}
+];
+
+const sectionOrder = [
+  { id:'summary', label:'Overview' },
+  { id:'board', label:'Board' },
+  { id:'models', label:'Models' },
+  { id:'operating-system', label:'Flow' },
+  { id:'departments', label:'Departments' },
+  { id:'roster', label:'Roster' },
+  { id:'fallback', label:'Fallback' },
+  { id:'archive', label:'Archive' },
+  { id:'sources', label:'Sources' }
+];
+
+const sidebarRoleShortcuts = [
+  { label:'Core', department:'core' },
+  { label:'HQ', department:'hq_command' },
+  { label:'Finance', department:'finance' },
+  { label:'Investment', department:'investment' },
+  { label:'Website', department:'website' },
+  { label:'Research', department:'research' },
+  { label:'External', department:'external' },
+  { label:'Docs', department:'docs' }
+];
+
+const sourceTruthCards = [
+  {
+    title:'Canonical roster',
+    target:'#sources',
+    meta:'~/.claude/team.json',
+    desc:'唯一 primary model、active/frozen 與 roster 真相來源。'
+  },
+  {
+    title:'Org and board rules',
+    target:'#sources',
+    meta:'~/.claude/rules/team-roster.md',
+    desc:'董事會、command chain、治理規則與部門運作。'
+  },
+  {
+    title:'Live manual',
+    target:'#summary',
+    meta:'/team-manual.html',
+    desc:'把現行配置整理成可讀手冊，但衝突時要回頭信 source of truth。'
+  }
+];
+
+function tierBadge(tier) {
+  const map = {
+    opus: ['tier-opus', 'Opus-tier'],
+    sonnet: ['tier-sonnet', 'Sonnet-tier'],
+    haiku: ['tier-haiku', 'Haiku-tier'],
+    specialist: ['tier-specialist', 'Specialist'],
+    'codex-first': ['tier-codex', 'Codex-first'],
+    internal: ['tier-internal', 'Internal'],
+    frozen: ['tier-internal', 'Frozen'],
+  };
+  const [cls, label] = map[tier] || ['tier-internal', tier];
+  return `<span class="tier ${cls}">${label}</span>`;
+}
+
+function statusBadge(status) {
+  return status === 'active'
+    ? '<span class="status st-active">Active</span>'
+    : '<span class="status st-frozen">Frozen</span>';
+}
+
+function fallbackChain(role) {
+  if (role.tier === 'opus') {
+    return ['Claude Opus 4.6', 'Codex CLI (gpt-5.4)', 'OpenRouter deepseek/deepseek-chat-v3-0324'];
+  }
+  if (role.tier === 'sonnet') {
+    return ['Claude Sonnet 4.6', 'Codex CLI (gpt-5.3-codex)', 'OpenRouter deepseek/deepseek-chat-v3-0324'];
+  }
+  if (role.tier === 'haiku') {
+    return ['Claude Haiku 4.5', 'Codex CLI (gpt-5.4-mini)', 'OpenRouter deepseek/deepseek-chat-v3-0324'];
+  }
+  if (role.tier === 'codex-first') {
+    return ['Codex CLI (gpt-5.3-codex)', 'OpenRouter deepseek/deepseek-chat-v3-0324'];
+  }
+  if (role.tier === 'specialist') {
+    return [role.primary, 'Codex CLI (gpt-5.4-mini) contingency', 'Provider-native / OpenRouter degraded where applicable'];
+  }
+  if (role.tier === 'internal') {
+    return ['Internal service only'];
+  }
+  if (role.tier === 'frozen') {
+    return ['Frozen role', 'Restore only when department needs expansion'];
+  }
+  return [role.primary];
+}
+
+function chainHtml(role) {
+  return `<div class="chain">${fallbackChain(role).map((step, index) => `
+    <div class="chain-step">
+      <span class="chain-order">${index + 1}</span>
+      <span>${step}</span>
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderHeroFacts() {
+  const activeCount = roles.filter(role => role.status === 'active').length;
+  const frozenCount = roles.filter(role => role.status === 'frozen').length;
+  const anthropicCount = roles.filter(role => /^Claude /.test(role.primary)).length;
+  const host = document.getElementById('hero-facts');
+  host.innerHTML = [
+    {label:'Roster',value:String(roles.length),sub:`${activeCount} active / ${frozenCount} frozen`},
+    {label:'Anthropic',value:String(anthropicCount),sub:'roles with Claude as primary'}
+  ].map(item => `
+    <div class="fact">
+      <div class="label">${item.label}</div>
+      <div class="value">${item.value}</div>
+      <div class="sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderStats() {
+  const providerFamilies = new Set(roles.map(role => providerFamily(role.primary)));
+  const computedStats = [
+    { label: 'Unique roster entries', value: String(roles.length), sub: `${roles.filter(role => role.status === 'active').length} active + ${roles.filter(role => role.status === 'frozen').length} frozen` },
+    { label: 'Board seats', value: String(boardMembers.length), sub: '3 active + 1 optional external advisory seat' },
+    { label: 'Anthropic primary roles', value: String(roles.filter(role => /^Claude /.test(role.primary)).length), sub: 'Opus, Sonnet, Haiku combined' },
+    { label: 'Provider families', value: String(providerFamilies.size), sub: Array.from(providerFamilies).sort().join(', ') }
+  ];
+  document.getElementById('stats-grid').innerHTML = computedStats.map(item => `
+    <div class="stats-card">
+      <div class="label">${item.label}</div>
+      <div class="value">${item.value}</div>
+      <div class="sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderBoard() {
+  document.getElementById('board-grid').innerHTML = boardMembers.map(item => `
+    <div class="member-card">
+      <div class="member-seat">${item.seat}</div>
+      <div class="member-name">${item.name}</div>
+      <div class="member-model">${item.model}</div>
+      <div class="member-copy">${item.copy}</div>
+    </div>
+  `).join('');
+}
+
+function renderLanes() {
+  document.getElementById('lane-grid').innerHTML = laneCards.map(item => `
+    <div class="lane-card">
+      <div class="lane-top">
+        <h3>${item.title}</h3>
+        <span class="badge">${item.badge}</span>
+      </div>
+      <p>${item.copy}</p>
+      <div class="bullet-list">
+        ${item.bullets.map(bullet => `<div class="bullet">${bullet}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderDepartments() {
+  document.getElementById('dept-grid').innerHTML = departments.map(item => `
+    <div class="dept-card">
+      <div class="dept-top">
+        <div class="dept-name">${item.name}</div>
+        <div class="dept-count">${item.count}</div>
+      </div>
+      <p>${item.copy}</p>
+      <div class="tag-row">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function renderFallback() {
+  document.getElementById('fallback-grid').innerHTML = fallbackRows.map(row => `
+    <div class="matrix-card">
+      <div class="matrix-head">
+        <div class="matrix-title">${row.cls}</div>
+        <span class="badge">active rule</span>
+      </div>
+      <div class="matrix-body">
+        <div class="matrix-item"><small>Applies to</small><strong>${row.applies}</strong></div>
+        <div class="matrix-item"><small>Primary</small><strong>${row.primary}</strong></div>
+        <div class="matrix-item"><small>Codex contingency</small><strong>${row.codex}</strong></div>
+        <div class="matrix-item"><small>Degraded</small><strong>${row.degraded}</strong></div>
+        <div class="matrix-item"><small>Notes</small><strong>${row.notes}</strong></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderArchive() {
+  document.getElementById('archive-grid').innerHTML = archiveCards.map(item => `
+    <a class="archive-card" href="${item.href}">
+      <small>${item.kicker}</small>
+      <h3>${item.title}</h3>
+      <p>${item.desc}</p>
+      <span class="meta">${item.meta}</span>
+    </a>
+  `).join('');
+}
+
+function populateDeptFilter() {
+  const select = document.getElementById('dept-filter');
+  [...new Set(roles.map(role => role.department))].sort().forEach(value => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+}
+
+function renderRoster() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const dept = document.getElementById('dept-filter').value;
+  const tier = document.getElementById('tier-filter').value;
+  const filtered = roles.filter(role => {
+    const haystack = [
+      role.name, role.id, role.department, role.primary, role.role,
+      role.notes, role.interface, role.reportsTo
+    ].join(' ').toLowerCase();
+    return (!query || haystack.includes(query)) &&
+      (!dept || role.department === dept) &&
+      (!tier || role.tier === tier);
+  });
+  document.getElementById('visible-count').textContent = filtered.length;
+  document.getElementById('roster-grid').innerHTML = filtered.map(role => `
+    <article class="role-card">
+      <div class="role-top">
+        <div>
+          <div class="role-name">${role.name}</div>
+          <div class="role-id">${role.id}</div>
+        </div>
+        <div style="display:grid;gap:8px;justify-items:end">
+          ${statusBadge(role.status)}
+          ${tierBadge(role.tier)}
+        </div>
+      </div>
+      <div class="role-copy">${role.role}</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <small>Primary model</small>
+          <strong>${role.primary}</strong>
+        </div>
+        <div class="meta-item">
+          <small>Department</small>
+          <strong>${role.department}</strong>
+        </div>
+      </div>
+      <details class="role-detail">
+        <summary class="detail-toggle">Details & fallback</summary>
+        ${chainHtml(role)}
+        <div class="meta-grid" style="margin-top:12px">
+          <div class="meta-item">
+            <small>Reports to</small>
+            <strong>${role.reportsTo}</strong>
+          </div>
+          <div class="meta-item">
+            <small>Interface</small>
+            <strong>${role.interface}</strong>
+          </div>
+          <div class="meta-item" style="grid-column:1 / -1">
+            <small>Notes</small>
+            <strong>${role.notes}</strong>
+          </div>
+        </div>
+      </details>
+    </article>
+  `).join('');
+}
+
+function renderSectionNav() {
+  const host = document.getElementById('section-nav');
+  host.innerHTML = sectionOrder.map((section, index) => `
+    <button class="nav-chip${index === 0 ? ' active' : ''}" data-target="${section.id}">
+      ${String(index + 1).padStart(2,'0')} ${section.label}
+    </button>
+  `).join('');
+}
+
+function renderSidebar() {
+  const host = document.getElementById('sidebar-groups');
+  host.innerHTML = `
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Manual Chapters</div>
+      ${sectionOrder.map((section, index) => `
+        <a class="sidebar-link" data-sidebar-link href="#${section.id}" data-keywords="${section.label.toLowerCase()} ${section.id}">
+          <strong>${String(index + 1).padStart(2,'0')} ${section.label}</strong>
+          <span>${({
+            summary:'全局摘要與目前口徑',
+            board:'董事會與決策規則',
+            models:'模型層級與 contingency',
+            'operating-system':'團隊流程與執行鏈',
+            departments:'部門與 command chain',
+            roster:'完整 roster 與搜尋',
+            fallback:'輪替與 degraded 規則',
+            archive:'歷史報告與入口',
+            sources:'source of truth 與同步鏈'
+          })[section.id] || ''}</span>
+        </a>
+      `).join('')}
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Role Shortcuts</div>
+      <div class="sidebar-note">直接把 roster 切到指定部門，省掉先進 roster 再重找一次。</div>
+      <div class="sidebar-subgrid">
+        ${sidebarRoleShortcuts.map(item => `
+          <button
+            class="sidebar-pill"
+            type="button"
+            data-roster-filter="${item.department}"
+            data-sidebar-link
+            data-keywords="${item.label.toLowerCase()} ${item.department} roster role department"
+          >${item.label}</button>
+        `).join('')}
+      </div>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Reports</div>
+      ${archiveCards.map(item => `
+        <a class="sidebar-link" data-sidebar-link href="${item.href}" data-keywords="${`${item.kicker} ${item.title} ${item.desc}`.toLowerCase()}">
+          <strong>${item.title}</strong>
+          <span>${item.kicker} · ${item.meta}</span>
+        </a>
+      `).join('')}
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Source of Truth</div>
+      ${sourceTruthCards.map(item => `
+        <a class="sidebar-link" data-sidebar-link href="${item.target}" data-keywords="${`${item.title} ${item.meta} ${item.desc}`.toLowerCase()}">
+          <strong>${item.title}</strong>
+          <span>${item.meta} · ${item.desc}</span>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function providerFamily(primary) {
+  if (/^Claude /.test(primary)) return 'Anthropic';
+  if (/^Codex|^GPT-4\.1/.test(primary)) return 'OpenAI';
+  if (/Gemini/.test(primary)) return 'Google';
+  if (/Grok/.test(primary)) return 'xAI';
+  if (/GLM/.test(primary)) return 'Zhipu';
+  if (/DeepSeek/.test(primary)) return 'DeepSeek';
+  if (/Internal/.test(primary)) return 'Internal';
+  return 'Other';
+}
+
+function setupDeck() {
+  const slides = document.getElementById('slides');
+  const slideEls = Array.from(slides.querySelectorAll('.slide'));
+  const navButtons = Array.from(document.querySelectorAll('.nav-chip'));
+  const progressBar = document.getElementById('progress-bar');
+  const status = document.getElementById('deck-status');
+  const isMobile = true;
+  let currentIndex = 0;
+
+  function goTo(index, behavior = 'smooth') {
+    const nextIndex = Math.max(0, Math.min(sectionOrder.length - 1, index));
+    currentIndex = nextIndex;
+    const target = document.getElementById(sectionOrder[nextIndex].id);
+    target.scrollIntoView({ behavior, block: 'start' });
+    updateUi();
+  }
+
+  function updateUi() {
+    navButtons.forEach((button, index) => {
+      button.classList.toggle('active', index === currentIndex);
+    });
+    status.textContent = `${String(currentIndex + 1).padStart(2,'0')} / ${String(sectionOrder.length).padStart(2,'0')} · ${sectionOrder[currentIndex].label}`;
+    progressBar.style.width = `${((currentIndex + 1) / sectionOrder.length) * 100}%`;
+    document.getElementById('hint-page').textContent = `Page ${currentIndex + 1} / ${sectionOrder.length}`;
+    document.getElementById('hint-next').textContent = currentIndex < sectionOrder.length - 1
+      ? `Next: ${sectionOrder[currentIndex + 1].label}`
+      : 'Last chapter';
+    document.getElementById('prev-btn').disabled = currentIndex === 0;
+    document.getElementById('next-btn').disabled = currentIndex === sectionOrder.length - 1;
+    const dockStatus = document.getElementById('dock-status');
+    const dockPrev = document.getElementById('dock-prev');
+    const dockNext = document.getElementById('dock-next');
+    if (dockStatus) {
+      dockStatus.textContent = `${String(currentIndex + 1).padStart(2,'0')} / ${String(sectionOrder.length).padStart(2,'0')} · ${sectionOrder[currentIndex].label}`;
+    }
+    if (dockPrev) dockPrev.disabled = currentIndex === 0;
+    if (dockNext) dockNext.disabled = currentIndex === sectionOrder.length - 1;
+    if (history.replaceState) {
+      history.replaceState(null, '', `#${sectionOrder[currentIndex].id}`);
+    }
+  }
+
+  navButtons.forEach((button, index) => {
+    button.addEventListener('click', () => goTo(index));
+  });
+
+  document.getElementById('prev-btn')?.addEventListener('click', () => goTo(currentIndex - 1));
+  document.getElementById('next-btn')?.addEventListener('click', () => goTo(currentIndex + 1));
+  document.getElementById('dock-prev')?.addEventListener('click', () => goTo(currentIndex - 1));
+  document.getElementById('dock-next')?.addEventListener('click', () => goTo(currentIndex + 1));
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const nextIndex = sectionOrder.findIndex(section => section.id === entry.target.id);
+      if (nextIndex !== -1 && nextIndex !== currentIndex) {
+        currentIndex = nextIndex;
+        updateUi();
+      }
+    });
+  }, { root: null, threshold: .3 });
+  slideEls.forEach(slide => observer.observe(slide));
+
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', event => {
+      const href = link.getAttribute('href');
+      if (!href || href === '#deck') return;
+      const index = sectionOrder.findIndex(section => `#${section.id}` === href);
+      if (index === -1) return;
+      event.preventDefault();
+      goTo(index);
+      closeSidebar();
+    });
+  });
+
+  const hash = window.location.hash.replace('#', '');
+  const initialIndex = sectionOrder.findIndex(section => section.id === hash);
+  if (initialIndex >= 0) {
+    requestAnimationFrame(() => goTo(initialIndex, 'auto'));
+  } else {
+    updateUi();
+  }
+
+  window.addEventListener('hashchange', () => {
+    const nextHash = window.location.hash.replace('#', '');
+    const nextIndex = sectionOrder.findIndex(section => section.id === nextHash);
+    if (nextIndex >= 0) {
+      goTo(nextIndex);
+    }
+  });
+}
+
+function openSidebar() {
+  document.getElementById('manual-sidebar')?.classList.add('open');
+  document.getElementById('sidebar-backdrop')?.classList.add('open');
+}
+
+function closeSidebar() {
+  document.getElementById('manual-sidebar')?.classList.remove('open');
+  document.getElementById('sidebar-backdrop')?.classList.remove('open');
+}
+
+function setupSidebar() {
+  document.getElementById('menu-btn')?.addEventListener('click', openSidebar);
+  document.getElementById('sidebar-close')?.addEventListener('click', closeSidebar);
+  document.getElementById('sidebar-backdrop')?.addEventListener('click', closeSidebar);
+  document.getElementById('sidebar-search')?.addEventListener('input', (event) => {
+    const q = event.target.value.trim().toLowerCase();
+    document.querySelectorAll('[data-sidebar-link]').forEach(link => {
+      const keywords = (link.getAttribute('data-keywords') || '') + ' ' + link.textContent.toLowerCase();
+      link.classList.toggle('hidden', !!q && !keywords.includes(q));
+    });
+  });
+  document.querySelectorAll('[data-roster-filter]').forEach(button => {
+    button.addEventListener('click', () => {
+      const department = button.getAttribute('data-roster-filter') || '';
+      const deptFilter = document.getElementById('dept-filter');
+      const search = document.getElementById('search');
+      const rosterIndex = sectionOrder.findIndex(section => section.id === 'roster');
+      if (deptFilter) deptFilter.value = department;
+      if (search) search.value = '';
+      renderRoster();
+      closeSidebar();
+      if (rosterIndex >= 0) {
+        const target = document.getElementById('roster');
+        target?.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    });
+  });
+}
+
+renderHeroFacts();
+renderStats();
+renderBoard();
+renderLanes();
+renderDepartments();
+renderFallback();
+renderArchive();
+renderSectionNav();
+renderSidebar();
+populateDeptFilter();
+renderRoster();
+setupDeck();
+setupSidebar();
+
+document.getElementById('search').addEventListener('input', renderRoster);
+document.getElementById('dept-filter').addEventListener('change', renderRoster);
+document.getElementById('tier-filter').addEventListener('change', renderRoster);
+</script>
+</body>
+</html>
