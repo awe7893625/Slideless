@@ -1,0 +1,2928 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 遠端控制系統 v2.0 — 完整工程規格書</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#121212;--white:#fff;--cream:#f6f5f1;--g1:#f0eee6;--g2:#8b877c;--g3:#6c6a62;--blue:#5b9bd5;--blue-l:#e8f0fa;--orange:#eb8054;--green:#4a9d5b;--green-l:#e8f5eb;--red:#d94f4f;--red-l:#fdeaea;--yellow:#d4a843;--yellow-l:#fef9eb;--purple:#7c6bc4;--purple-l:#f0ecfa;--f:'Inter','Noto Sans TC',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--cream);color:var(--black);line-height:1.7;-webkit-font-smoothing:antialiased}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--orange);width:0%;z-index:1000;transition:width .1s}
+.nav{position:sticky;top:0;z-index:100;background:rgba(246,245,241,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,.06);padding:12px 24px}
+.nav-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-link{font-size:12px;font-weight:500;color:var(--g2);text-decoration:none;padding:5px 12px;border-radius:16px;transition:all .2s;flex-shrink:0;white-space:nowrap}
+.nav-link:hover,.nav-link.active{color:var(--black);background:rgba(0,0,0,.05)}
+.w{max-width:960px;margin:0 auto;padding:0 24px}
+.hero{padding:72px 0 40px}
+.hero-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;display:block}
+.hero h1{font-size:clamp(26px,5vw,38px);font-weight:800;line-height:1.15;margin-bottom:12px;letter-spacing:-.5px}
+.hero-sub{font-size:15px;color:var(--g3);max-width:620px}
+.hero-meta{margin-top:20px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--g2)}
+.sec{padding:48px 0}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:8px;display:block}
+.sec h2{font-size:clamp(20px,4vw,28px);font-weight:700;line-height:1.3;margin-bottom:6px}
+.sec-desc{font-size:14px;color:var(--g3);margin-bottom:28px;max-width:620px}
+.card{background:var(--white);border-radius:14px;padding:24px;margin-bottom:16px;border:1px solid rgba(0,0,0,.04);box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card h3{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card p,.card li{font-size:14px;color:var(--g3);line-height:1.7}
+.code-block{background:var(--black);border-radius:12px;padding:24px;margin:16px 0;overflow-x:auto}
+.code-block pre{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#e0e0e0;white-space:pre;margin:0}
+.code-block .cm{color:#6a9955} .code-block .kw{color:#569cd6} .code-block .st{color:#ce9178} .code-block .fn{color:#dcdcaa} .code-block .or{color:#eb8054} .code-block .gr{color:#6bdb8a} .code-block .yl{color:#f0c674} .code-block .gy{color:#666}
+.pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:.3px}
+.pill-g{background:var(--green-l);color:var(--green)} .pill-y{background:var(--yellow-l);color:var(--yellow)} .pill-r{background:var(--red-l);color:var(--red)} .pill-b{background:var(--blue-l);color:var(--blue)} .pill-p{background:var(--purple-l);color:var(--purple)}
+table.t{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+table.t th{background:var(--g1);font-weight:600;text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--g3);border-bottom:2px solid rgba(0,0,0,.06)}
+table.t td{padding:10px 14px;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:top}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:12px 0}
+.api-endpoint{background:var(--white);border-radius:10px;padding:16px;margin:10px 0;border-left:4px solid var(--blue)}
+.api-endpoint .method{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:8px}
+.api-endpoint .method.post{background:#e8f5eb;color:#4a9d5b} .api-endpoint .method.get{background:#e8f0fa;color:#5b9bd5} .api-endpoint .method.delete{background:#fdeaea;color:#d94f4f}
+.api-endpoint .path{font-family:var(--mono);font-size:13px;font-weight:600}
+.api-endpoint .desc{font-size:12px;color:var(--g2);margin-top:6px}
+.step-flow{display:flex;flex-wrap:wrap;gap:0;margin:20px 0;align-items:stretch}
+.step-box{flex:1;min-width:140px;background:var(--white);padding:16px;text-align:center;position:relative;border:1px solid rgba(0,0,0,.04)}
+.step-box:first-child{border-radius:10px 0 0 10px}
+.step-box:last-child{border-radius:0 10px 10px 0}
+.step-box::after{content:'→';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--g2);z-index:1}
+.step-box:last-child::after{display:none}
+.step-box h4{font-size:12px;font-weight:700;margin-bottom:4px}
+.step-box p{font-size:11px;color:var(--g2)}
+.warn-box{background:var(--yellow-l);border:1px solid var(--yellow);border-radius:10px;padding:16px;margin:12px 0;font-size:13px}
+.ok-box{background:var(--green-l);border:1px solid var(--green);border-radius:10px;padding:16px;margin:12px 0;font-size:13px}
+.footer{padding:32px 0;font-size:11px;color:var(--g2);border-top:1px solid rgba(0,0,0,.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media(max-width:640px){.hero{padding:48px 0 24px}.sec{padding:32px 0}.card{padding:18px}.grid-2{grid-template-columns:1fr}.step-flow{flex-direction:column}.step-box{border-radius:10px!important}.step-box::after{display:none}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="#infra" class="nav-link active">基礎建設</a>
+<a href="#ai-modes" class="nav-link">AI 控制</a>
+<a href="#api" class="nav-link">API</a>
+<a href="#trigger" class="nav-link">觸發</a>
+<a href="#client" class="nav-link">Client</a>
+<a href="#demo" class="nav-link">Demo</a>
+<a href="#security" class="nav-link">安全</a>
+<a href="#assign" class="nav-link">分工</a>
+<a href="#protocol" class="nav-link">控制協議</a>
+<a href="#daemon" class="nav-link">Daemon</a>
+<a href="#engine" class="nav-link">決策引擎</a>
+<a href="#agentloop" class="nav-link">Agent Loop</a>
+<a href="#queue" class="nav-link">Queue</a>
+<a href="#multidevice" class="nav-link">多機並控</a>
+<a href="#edge" class="nav-link">異常處理</a>
+<a href="#files" class="nav-link">檔案結構</a>
+</div>
+</nav>
+
+<div class="w">
+
+<!-- Hero -->
+<header class="hero">
+<span class="hero-label">Engineering Specification v2.2 — Production Ready</span>
+<h1>AI 遠端控制系統<br>完整工程規格書</h1>
+<p class="hero-sub">
+16 章完整規格：控制協議、Agent Daemon、決策引擎、Agent Loop、Task Queue、多機並控、異常處理、檔案結構。<strong>可直接丟進 IDE 開發。</strong>
+</p>
+<div class="hero-meta">
+<span>Rain AI Team</span>
+<span>2026-03-26</span>
+<span>Status: Ready for Development</span>
+</div>
+</header>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: INFRASTRUCTURE -->
+<!-- ============================================================ -->
+<section id="infra" class="sec">
+<span class="sec-label">01 — Infrastructure</span>
+<h2>RustDesk Server 部署架構</h2>
+<p class="sec-desc">自架 hbbs（信令）+ hbbr（中繼），跑在 Docker，15 分鐘部署完成。</p>
+
+<div class="code-block">
+<pre>
+<span class="cm"># ============================================</span>
+<span class="cm"># RustDesk Server 部署（Docker Compose）</span>
+<span class="cm"># 放在 VPS 或 Rain Mac 的 Docker 裡</span>
+<span class="cm"># ============================================</span>
+
+<span class="cm"># docker-compose.yml</span>
+<span class="kw">version</span>: <span class="st">"3"</span>
+<span class="kw">services</span>:
+  <span class="or">hbbs</span>:                          <span class="cm"># 信令 server（ID/Rendezvous）</span>
+    <span class="kw">image</span>: rustdesk/rustdesk-server
+    <span class="kw">command</span>: hbbs
+    <span class="kw">ports</span>:
+      - <span class="st">"21115:21115"</span>             <span class="cm"># NAT type test</span>
+      - <span class="st">"21116:21116"</span>             <span class="cm"># TCP hole punching</span>
+      - <span class="st">"21116:21116/udp"</span>         <span class="cm"># ID registration + heartbeat</span>
+      - <span class="st">"21118:21118"</span>             <span class="cm"># Web console (optional)</span>
+    <span class="kw">volumes</span>:
+      - ./data:/root
+    <span class="kw">restart</span>: always
+
+  <span class="or">hbbr</span>:                          <span class="cm"># 中繼 server（Relay，P2P 失敗時）</span>
+    <span class="kw">image</span>: rustdesk/rustdesk-server
+    <span class="kw">command</span>: hbbr
+    <span class="kw">ports</span>:
+      - <span class="st">"21117:21117"</span>             <span class="cm"># Relay traffic</span>
+      - <span class="st">"21119:21119"</span>             <span class="cm"># Web console (optional)</span>
+    <span class="kw">volumes</span>:
+      - ./data:/root
+    <span class="kw">restart</span>: always
+</pre>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<h3>部署選項</h3>
+<table class="t">
+<tr><th>方案</th><th>成本</th><th>適用</th></tr>
+<tr><td><strong>Rain Mac（Colima Docker）</strong></td><td>$0/月</td><td>開發/測試/少量客戶</td></tr>
+<tr><td><strong>VPS（Hetzner/Vultr）</strong></td><td>$5-10/月</td><td>正式運營（推薦）</td></tr>
+<tr><td><strong>Cloudflare Tunnel + Mac</strong></td><td>$0/月</td><td>不開 port 的替代方案</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>網路需求</h3>
+<table class="t">
+<tr><th>Port</th><th>協議</th><th>用途</th></tr>
+<tr><td>21115</td><td>TCP</td><td>NAT type test</td></tr>
+<tr><td>21116</td><td>TCP+UDP</td><td>ID 註冊 + hole punching</td></tr>
+<tr><td>21117</td><td>TCP</td><td>Relay（P2P 失敗時）</td></tr>
+<tr><td>21118-19</td><td>TCP</td><td>Web console（可選）</td></tr>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>P2P 穿透原理（為什麼不一定需要 Relay）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># RustDesk 連線流程</span>
+
+<span class="gr">Step 1</span>: Client A 啟動 → 向 hbbs 註冊 ID（UDP 21116）
+<span class="gr">Step 2</span>: Client B 要連 A → 向 hbbs 查詢 A 的 public IP:port
+<span class="gr">Step 3</span>: hbbs 通知雙方互相 UDP punch
+<span class="gr">Step 4</span>: <span class="or">P2P 穿透成功</span> → 直連（延遲 &lt;50ms，零中繼流量）
+<span class="yl">Step 4b</span>: P2P 失敗（對稱 NAT）→ 走 hbbr relay（延遲 +30-80ms）
+
+<span class="gy">穿透成功率：</span>
+  Cone NAT（家用路由器）    → <span class="gr">~85% 成功</span>
+  對稱 NAT（企業防火牆）   → <span class="yl">~30% 成功</span>，其餘走 relay
+  全域 relay fallback       → <span class="gr">100% 連線率</span>（一定能連）
+</pre>
+</div>
+</div>
+
+<div class="ok-box">
+<strong>Infra 開工前提：</strong>Rain 確認用 Mac Docker 還是開 VPS。不影響其他模組開發 — AI Agent 層用 localhost 測試即可。
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: AI CONTROL MODES -->
+<!-- ============================================================ -->
+<section id="ai-modes" class="sec">
+<span class="sec-label">02 — AI Control Implementation</span>
+<h2>AI 三模式控制（實作細節）</h2>
+<p class="sec-desc">每種模式的 code 層級設計。控制通道統一走 <strong>Agent Daemon WebSocket</strong>（Section 10），不依賴 RustDesk SSH tunnel。RustDesk 僅負責 P2P 連線建立和畫面串流，AI 控制指令全走 Daemon。</p>
+
+<div class="warn-box">
+<strong>架構決策（v2.0 明確）：</strong>RustDesk = 連線層（P2P 穿透 + 畫面串流 + 客戶即時觀看）。AI 控制指令 = Daemon WebSocket（Kai Server ↔ Client Daemon）。兩條通道獨立運作，RustDesk 宕機不影響 AI 指令執行，Daemon 斷線不影響客戶觀看畫面。
+</div>
+
+<!-- Mode A: Browser Agent -->
+<div class="card" style="border-left:4px solid var(--green)">
+<h3><span class="pill pill-g">Mode A · 推薦</span> Browser Agent（Playwright CDP）</h3>
+<p><strong>用途</strong>：操作遠端瀏覽器裡的一切 — SaaS 後台、CMS、線上申請、網站部署。</p>
+
+<div class="code-block">
+<pre>
+<span class="cm"># ========================================</span>
+<span class="cm"># Mode A: Browser Agent 實作</span>
+<span class="cm"># ========================================</span>
+
+<span class="cm"># 1. Daemon 在客戶電腦上啟動 Chrome（收到 browser 任務時自動啟動）</span>
+<span class="cm"># Client Daemon 本機執行，不需 SSH tunnel</span>
+<span class="cm"># Daemon handler: handle_browser_navigate / handle_browser_click / ...</span>
+subprocess.<span class="fn">Popen</span>([<span class="st">"google-chrome"</span>,
+  <span class="st">"--remote-debugging-port=9222"</span>,
+  <span class="st">"--remote-debugging-address=127.0.0.1"</span>,  <span class="cm"># 僅本機，不暴露</span>
+  <span class="st">"--no-first-run"</span>])
+
+<span class="cm"># 2. Daemon 本機用 Playwright 連入 Chrome CDP</span>
+<span class="cm">#    （Daemon 和 Chrome 在同一台機器，無需 tunnel）</span>
+
+<span class="cm"># 3. Playwright 執行操作，結果透過 WebSocket 回傳 Kai Server</span>
+<span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright
+
+<span class="kw">with</span> sync_playwright() <span class="kw">as</span> p:
+    browser = p.chromium.<span class="fn">connect_over_cdp</span>(<span class="st">"http://localhost:9222"</span>)
+    page = browser.contexts[0].pages[0]
+
+    <span class="cm"># AI Agent 操作</span>
+    page.<span class="fn">goto</span>(<span class="st">"https://target-saas.com/admin"</span>)
+    page.<span class="fn">fill</span>(<span class="st">"#username"</span>, <span class="st">"admin"</span>)
+    page.<span class="fn">fill</span>(<span class="st">"#password"</span>, credentials[<span class="st">"password"</span>])
+    page.<span class="fn">click</span>(<span class="st">"button[type=submit]"</span>)
+
+    <span class="cm"># 截圖驗證操作結果</span>
+    page.<span class="fn">screenshot</span>(path=<span class="st">"step_1_login.png"</span>)
+</pre>
+</div>
+
+<table class="t">
+<tr><th>項目</th><th>規格</th></tr>
+<tr><td>連線方式</td><td>Daemon 本機啟動 Chrome → CDP localhost:9222 → 結果 WebSocket 回傳 Kai</td></tr>
+<tr><td>操作能力</td><td>click / fill / select / upload / screenshot / evaluate JS</td></tr>
+<tr><td>延遲</td><td>每步 200-500ms（網路決定）</td></tr>
+<tr><td>失敗處理</td><td>每步截圖驗證 → 失敗重試 3 次 → 升級 Mode C（Vision）</td></tr>
+<tr><td>現有資產</td><td>Kai 已有 Playwright MCP + Chrome MCP，直接複用</td></tr>
+<tr><td>適用率</td><td><strong>~70%</strong> 的客戶作業在瀏覽器內完成</td></tr>
+</table>
+</div>
+
+<!-- Mode B: System Agent -->
+<div class="card" style="border-left:4px solid var(--blue)">
+<h3><span class="pill pill-b">Mode B · 最強</span> System Agent（OS 原生指令）</h3>
+<p><strong>用途</strong>：安裝軟體、系統設定、檔案管理、桌面 App 操作。瀏覽器做不到的全靠這個。</p>
+
+<div class="code-block">
+<pre>
+<span class="cm"># ========================================</span>
+<span class="cm"># Mode B: System Agent 實作</span>
+<span class="cm"># ========================================</span>
+
+<span class="cm"># Client Daemon 本機執行 OS 指令，結果 WebSocket 回傳</span>
+
+<span class="cm"># --- macOS ---</span>
+<span class="kw">class</span> <span class="fn">MacSystemAgent</span>:
+    <span class="kw">def</span> <span class="fn">install_app</span>(self, app_name):
+        <span class="st">"""用 Homebrew 安裝"""</span>
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(f<span class="st">"brew install {app_name}"</span>)
+
+    <span class="kw">def</span> <span class="fn">open_app</span>(self, app_name):
+        <span class="st">"""用 AppleScript 開啟 App"""</span>
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(
+            f<span class="st">'osascript -e "tell application \\"{app_name}\\" to activate"'</span>
+        )
+
+    <span class="kw">def</span> <span class="fn">click_ui</span>(self, x, y):
+        <span class="st">"""AppleScript 模擬點擊"""</span>
+        script = f<span class="st">'tell application "System Events" to click at {{{x}, {y}}}'</span>
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(f<span class="st">'osascript -e "{script}"'</span>)
+
+    <span class="kw">def</span> <span class="fn">type_text</span>(self, text):
+        <span class="st">"""AppleScript 模擬鍵盤輸入"""</span>
+        script = f<span class="st">'tell application "System Events" to keystroke "{text}"'</span>
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(f<span class="st">'osascript -e "{script}"'</span>)
+
+<span class="cm"># --- Windows ---</span>
+<span class="kw">class</span> <span class="fn">WinSystemAgent</span>:
+    <span class="kw">def</span> <span class="fn">install_app</span>(self, app_name):
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(f<span class="st">"winget install {app_name}"</span>)
+
+    <span class="kw">def</span> <span class="fn">run_powershell</span>(self, script):
+        <span class="kw">return</span> self.<span class="fn">ssh_exec</span>(f<span class="st">"powershell -Command '{script}'"</span>)
+
+<span class="cm"># --- 統一介面 ---</span>
+<span class="kw">class</span> <span class="fn">SystemAgent</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, os_type):
+        self.agent = <span class="fn">MacSystemAgent</span>() <span class="kw">if</span> os_type == <span class="st">"macos"</span> <span class="kw">else</span> <span class="fn">WinSystemAgent</span>()
+</pre>
+</div>
+
+<table class="t">
+<tr><th>項目</th><th>規格</th></tr>
+<tr><td>連線方式</td><td>Daemon 本機 subprocess → 結果 WebSocket 回傳 Kai</td></tr>
+<tr><td>macOS</td><td>osascript + AppleScript + brew + launchctl</td></tr>
+<tr><td>Windows</td><td>PowerShell + winget + COM automation + Registry</td></tr>
+<tr><td>Linux</td><td>bash + apt/yum + xdotool + xclip</td></tr>
+<tr><td>適用率</td><td><strong>~25%</strong> 的客戶作業（安裝/設定/桌面 App）</td></tr>
+</table>
+</div>
+
+<!-- Mode C: Vision Agent -->
+<div class="card" style="border-left:4px solid var(--purple)">
+<h3><span class="pill pill-p">Mode C · 萬能</span> Vision Agent（截圖 + AI 視覺）</h3>
+<p><strong>用途</strong>：Mode A/B 都搞不定的時候。看畫面 → 理解 → 點擊。萬能但慢。</p>
+
+<div class="code-block">
+<pre>
+<span class="cm"># ========================================</span>
+<span class="cm"># Mode C: Vision Agent 實作</span>
+<span class="cm"># ========================================</span>
+
+<span class="kw">import</span> anthropic
+
+<span class="kw">class</span> <span class="fn">VisionAgent</span>:
+    <span class="kw">def</span> <span class="fn">step</span>(self, instruction: str):
+        <span class="cm"># 1. 截圖</span>
+        screenshot = self.<span class="fn">take_screenshot</span>()  <span class="cm"># RustDesk 截圖 API</span>
+
+        <span class="cm"># 2. 送給 Claude Vision 分析</span>
+        response = anthropic.messages.<span class="fn">create</span>(
+            model=<span class="st">"claude-sonnet-4-6"</span>,
+            messages=[{
+                <span class="st">"role"</span>: <span class="st">"user"</span>,
+                <span class="st">"content"</span>: [
+                    {<span class="st">"type"</span>: <span class="st">"image"</span>, <span class="st">"source"</span>: screenshot},
+                    {<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: f<span class="st">"""
+                        你正在看一台遠端電腦的螢幕截圖。
+                        目標：{instruction}
+                        請回傳：要點擊的座標 (x, y) 或要輸入的文字。
+                        格式：{{"action": "click", "x": 500, "y": 300}}
+                    """</span>}
+                ]
+            }]
+        )
+
+        <span class="cm"># 3. 執行動作</span>
+        action = parse_json(response)
+        <span class="kw">if</span> action[<span class="st">"action"</span>] == <span class="st">"click"</span>:
+            self.<span class="fn">mouse_click</span>(action[<span class="st">"x"</span>], action[<span class="st">"y"</span>])
+        <span class="kw">elif</span> action[<span class="st">"action"</span>] == <span class="st">"type"</span>:
+            self.<span class="fn">keyboard_type</span>(action[<span class="st">"text"</span>])
+
+        <span class="cm"># 4. 截圖驗證</span>
+        verify = self.<span class="fn">take_screenshot</span>()
+        <span class="kw">return</span> self.<span class="fn">verify_success</span>(verify, instruction)
+</pre>
+</div>
+
+<table class="t">
+<tr><th>項目</th><th>規格</th></tr>
+<tr><td>技術</td><td>RustDesk 截圖 + Claude Vision / GPT-4V + 座標計算 + 模擬點擊</td></tr>
+<tr><td>每步延遲</td><td>2-5 秒（Vision API 回應時間）</td></tr>
+<tr><td>每步成本</td><td>~$0.01-0.03（Vision API token）</td></tr>
+<tr><td>準確度</td><td>~85%（需驗證截圖確認）</td></tr>
+<tr><td>適用率</td><td><strong>~5%</strong>（Mode A/B 都失敗時的 fallback）</td></tr>
+</table>
+</div>
+
+<!-- Auto-switch logic -->
+<div class="card" style="background:var(--blue-l)">
+<h3>自動切換邏輯（Controller）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># RemoteController — 自動選擇最佳控制模式</span>
+
+<span class="kw">class</span> <span class="fn">RemoteController</span>:
+    <span class="kw">def</span> <span class="fn">execute</span>(self, task):
+        <span class="cm"># 1. 判斷任務類型 → 選模式</span>
+        <span class="kw">if</span> task.type == <span class="st">"browser"</span>:
+            result = self.<span class="fn">browser_agent</span>.execute(task)       <span class="cm"># Mode A</span>
+            <span class="kw">if</span> result.failed:
+                result = self.<span class="fn">vision_agent</span>.execute(task)    <span class="cm"># Fallback → C</span>
+
+        <span class="kw">elif</span> task.type == <span class="st">"install"</span> <span class="kw">or</span> task.type == <span class="st">"system"</span>:
+            result = self.<span class="fn">system_agent</span>.execute(task)       <span class="cm"># Mode B</span>
+            <span class="kw">if</span> result.failed:
+                result = self.<span class="fn">vision_agent</span>.execute(task)    <span class="cm"># Fallback → C</span>
+
+        <span class="kw">elif</span> task.type == <span class="st">"unknown"</span>:
+            result = self.<span class="fn">vision_agent</span>.execute(task)       <span class="cm"># Mode C 直接</span>
+
+        <span class="cm"># 2. 全部失敗 → 升級人工（TeamViewer）</span>
+        <span class="kw">if</span> result.failed:
+            self.<span class="fn">escalate_to_human</span>(task)                   <span class="cm"># TeamViewer</span>
+
+        <span class="kw">return</span> result
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: API DESIGN -->
+<!-- ============================================================ -->
+<section id="api" class="sec">
+<span class="sec-label">03 — API Design</span>
+<h2>Kai 中控台 API（新增）</h2>
+<p class="sec-desc">新增到 Kai Backend（FastAPI），prefix: <code>/api/remote/</code></p>
+
+<div class="api-endpoint">
+<span class="method post">POST</span>
+<span class="path">/api/remote/connect</span>
+<div class="desc">建立遠端連線 session</div>
+<div class="code-block" style="margin-top:8px">
+<pre>
+<span class="cm"># Request</span>
+{
+  <span class="st">"device_id"</span>: <span class="st">"rain-mac-office"</span>,       <span class="cm"># 設備 alias</span>
+  <span class="st">"mode"</span>: <span class="st">"browser"</span>,                    <span class="cm"># browser | system | vision | auto</span>
+  <span class="st">"task_description"</span>: <span class="st">"登入 Vercel 部署網站"</span>,
+  <span class="st">"operator"</span>: <span class="st">"klay"</span>                    <span class="cm"># AI agent 或 human</span>
+}
+
+<span class="cm"># Response</span>
+{
+  <span class="st">"session_id"</span>: <span class="st">"rs-20260326-001"</span>,
+  <span class="st">"status"</span>: <span class="st">"connected"</span>,
+  <span class="st">"mode"</span>: <span class="st">"browser"</span>,
+  <span class="st">"cdp_endpoint"</span>: <span class="st">"http://localhost:9222"</span>,
+  <span class="st">"ssh_tunnel"</span>: <span class="st">"active"</span>
+}
+</pre>
+</div>
+</div>
+
+<div class="api-endpoint">
+<span class="method post">POST</span>
+<span class="path">/api/remote/execute</span>
+<div class="desc">在遠端執行一個操作步驟</div>
+<div class="code-block" style="margin-top:8px">
+<pre>
+<span class="cm"># Request</span>
+{
+  <span class="st">"session_id"</span>: <span class="st">"rs-20260326-001"</span>,
+  <span class="st">"action"</span>: <span class="st">"click"</span>,                   <span class="cm"># click | fill | navigate | screenshot | shell</span>
+  <span class="st">"target"</span>: <span class="st">"#deploy-button"</span>,          <span class="cm"># CSS selector / 座標 / shell command</span>
+  <span class="st">"value"</span>: <span class="kw">null</span>                         <span class="cm"># fill 時的輸入值</span>
+}
+
+<span class="cm"># Response</span>
+{
+  <span class="st">"step_id"</span>: 3,
+  <span class="st">"status"</span>: <span class="st">"success"</span>,
+  <span class="st">"screenshot_url"</span>: <span class="st">"/api/remote/screenshot/rs-20260326-001/step-3.png"</span>,
+  <span class="st">"duration_ms"</span>: 340
+}
+</pre>
+</div>
+</div>
+
+<div class="api-endpoint">
+<span class="method get">GET</span>
+<span class="path">/api/remote/sessions</span>
+<div class="desc">列出所有遠端 session（進行中 + 歷史）</div>
+</div>
+
+<div class="api-endpoint">
+<span class="method get">GET</span>
+<span class="path">/api/remote/sessions/{session_id}/log</span>
+<div class="desc">取得完整操作日誌（每步截圖 + 動作 + 時間）</div>
+</div>
+
+<div class="api-endpoint">
+<span class="method post">POST</span>
+<span class="path">/api/remote/disconnect</span>
+<div class="desc">斷開遠端連線、清理 tunnel</div>
+</div>
+
+<div class="api-endpoint">
+<span class="method post">POST</span>
+<span class="path">/api/remote/escalate</span>
+<div class="desc">AI 失敗 → 升級人工（啟動 TeamViewer + Discord 通知 Rain）</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: TRIGGER FLOW -->
+<!-- ============================================================ -->
+<section id="trigger" class="sec">
+<span class="sec-label">04 — Trigger Flow</span>
+<h2>觸發流程：誰能啟動遠端控制</h2>
+
+<div class="step-flow">
+<div class="step-box">
+<h4>觸發</h4>
+<p>Rain / Telegram<br>/ Web UI / API</p>
+</div>
+<div class="step-box">
+<h4>Kai 中控台</h4>
+<p>建立 session<br>選擇控制模式</p>
+</div>
+<div class="step-box">
+<h4>AI Agent</h4>
+<p>Browser / System<br>/ Vision 執行</p>
+</div>
+<div class="step-box">
+<h4>客戶端</h4>
+<p>RustDesk 接收<br>操作在客戶 PC</p>
+</div>
+<div class="step-box">
+<h4>回報</h4>
+<p>截圖日誌<br>Discord 通知</p>
+</div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<h3>Telegram 觸發（給 Rain 用）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Rain 在 Telegram 對 Kai Bot 說：</span>
+<span class="st">"幫我連到客戶 A 的電腦，登入他的 Vercel 部署網站"</span>
+
+<span class="cm"># Kai 解析意圖：</span>
+→ device: <span class="st">"client-a-mac"</span>
+→ task: <span class="st">"login vercel + deploy"</span>
+→ mode: <span class="st">"auto"</span>（AI 自動判斷）
+
+<span class="cm"># Kai 回覆：</span>
+<span class="st">"已連線 client-a-mac，開始操作..."</span>
+<span class="st">"[步驟 1] 開啟 Chrome → vercel.com ✅"</span>
+<span class="st">"[步驟 2] 登入帳號 ✅"</span>
+<span class="st">"[步驟 3] 點擊 Deploy ✅"</span>
+<span class="st">"[截圖] 部署成功 🎉"</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Web UI 觸發（Kai 面板）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Kai 前端新增 RemotePage.tsx</span>
+<span class="cm"># 路由：/remote</span>
+
+<span class="cm">功能：</span>
+├── 設備列表（從 teamviewer-devices.json）
+├── 連線按鈕 → POST /api/remote/connect
+├── 即時操作日誌（WebSocket 推送）
+├── 截圖預覽（每步自動顯示）
+├── 手動接管按鈕 → 開啟 TeamViewer
+└── 斷線按鈕 → POST /api/remote/disconnect
+</pre>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>CLI 觸發（給團隊內部用）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 新增 CLI 指令：remote-control</span>
+<span class="cm"># 放在 ~/.local/bin/remote-control</span>
+
+<span class="gr">remote-control connect</span> client-a-mac              <span class="cm"># 連線</span>
+<span class="gr">remote-control exec</span> "登入 Vercel 部署網站"       <span class="cm"># AI 自動執行</span>
+<span class="gr">remote-control screenshot</span>                        <span class="cm"># 截圖</span>
+<span class="gr">remote-control shell</span> "brew install node"          <span class="cm"># 遠端執行指令</span>
+<span class="gr">remote-control escalate</span>                           <span class="cm"># 升級人工</span>
+<span class="gr">remote-control disconnect</span>                         <span class="cm"># 斷線</span>
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: CLIENT INSTALLER -->
+<!-- ============================================================ -->
+<section id="client" class="sec">
+<span class="sec-label">05 — Client Package</span>
+<h2>客戶端一鍵安裝包</h2>
+<p class="sec-desc">客戶<strong>只做一件事：下載並打開安裝包</strong>。完成後，Console 直接顯示 Device = ONLINE。不需要打開 Terminal、不需要輸入任何東西。</p>
+
+<div class="card" style="border:2px solid var(--orange)">
+<h3>客戶體驗（最終版 — 2 步完成）</h3>
+<div class="step-flow">
+<div class="step-box" style="background:var(--green-l)">
+<h4>Step 1</h4>
+<p>客戶收到下載連結<br>下載 <code>.pkg</code> 或 <code>.exe</code></p>
+</div>
+<div class="step-box" style="background:var(--blue-l);border-radius:0 10px 10px 0!important">
+<h4>Step 2</h4>
+<p>雙擊打開安裝包<br><strong>結束。沒有 Step 3。</strong></p>
+</div>
+</div>
+<p style="font-size:13px;color:var(--g3);margin-top:12px">
+安裝包內部自動完成：安裝 RustDesk → 安裝 Agent Daemon → 設定 Server → 啟動 Daemon → 向 Kai 註冊 → 開始心跳。<br>
+<strong>客戶不需要知道這些。</strong>
+</p>
+</div>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>安裝包內部流程（客戶看不到）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># installer.pkg / installer.exe 雙擊後自動執行</span>
+
+<span class="yl">[1]</span> 安裝 RustDesk（靜默安裝，無彈窗）
+    macOS: cp RustDesk.app → /Applications/
+    Win:   rustdesk.exe --silent-install
+
+<span class="yl">[2]</span> 安裝 Agent Daemon → <span class="or">/opt/rain-remote/</span>
+    daemon.py + requirements → pip install
+
+<span class="yl">[3]</span> 寫入 config.json（<span class="st">install_token 已烤進安裝包</span>）
+    {
+      "server_url": "https://api.rain-ai.com",
+      "ws_url": "wss://api.rain-ai.com/ws",
+      "install_token": "tok_xxxxxxxx",   <span class="cm">← 打包時烤入</span>
+      "heartbeat_interval": 10
+    }
+
+<span class="yl">[4]</span> 設定 RustDesk 指向我們的 Server
+    custom-rendezvous-server = OUR_SERVER_IP
+    relay-server = OUR_SERVER_IP
+
+<span class="yl">[5]</span> 設定開機自動啟動
+    macOS: launchctl load com.rain-ai.remote-agent.plist
+    Win:   sc create RainRemoteAgent ...
+
+<span class="yl">[6]</span> 啟動 Daemon → 自動執行:
+    讀 config → 呼叫 POST /api/device/register → 取得 device_id
+    → 連 WebSocket → 開始 heartbeat
+    → Console 顯示 <span class="gr">🟢 ONLINE</span>
+</pre>
+</div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<h3>macOS Installer（.pkg）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 打包工具：pkgbuild + productbuild</span>
+<span class="cm"># 產出：RainRemote-{customer}.pkg</span>
+
+<span class="cm"># 安裝包內容</span>
+rain-remote-installer/
+├── RustDesk.app          <span class="cm"># 預載</span>
+├── daemon/
+│   ├── daemon.py
+│   ├── requirements.txt
+│   └── config.json       <span class="cm"># ← install_token 已烤入</span>
+├── scripts/
+│   ├── preinstall         <span class="cm"># 檢查環境</span>
+│   └── postinstall        <span class="cm"># 啟動 daemon</span>
+└── com.rain-ai.remote-agent.plist
+
+<span class="cm"># postinstall 腳本（pkg 安裝完自動執行）</span>
+#!/bin/bash
+<span class="cm"># 1. 複製 daemon → /opt/rain-remote/</span>
+mkdir -p /opt/rain-remote/{logs,checkpoints}
+cp -R /tmp/rain-remote-pkg/daemon/* /opt/rain-remote/
+
+<span class="cm"># 2. 安裝 Python 依賴</span>
+python3 -m pip install -q -r /opt/rain-remote/requirements.txt
+
+<span class="cm"># 3. 安裝 LaunchAgent</span>
+cp com.rain-ai.remote-agent.plist \
+  ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.rain-ai.remote-agent.plist
+
+<span class="cm"># 4. 安裝 RustDesk</span>
+cp -R RustDesk.app /Applications/
+defaults write com.rustdesk.RustDesk \
+  custom-rendezvous-server <span class="st">"OUR_SERVER_IP"</span>
+
+<span class="cm"># 完成 — Daemon 啟動後自動註冊</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Windows Installer（.exe）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 打包工具：NSIS 或 Inno Setup</span>
+<span class="cm"># 產出：RainRemote-{customer}.exe</span>
+
+<span class="cm"># Inno Setup 腳本（精簡版）</span>
+[Setup]
+AppName=Rain AI Remote
+DefaultDirName={pf}\RainRemote
+OutputBaseFilename=RainRemote-setup
+
+[Files]
+Source: "rustdesk.exe"; DestDir: "{tmp}"
+Source: "daemon\*"; DestDir: "{app}"
+Source: "config.json"; DestDir: "{app}"
+
+[Run]
+<span class="cm">; 靜默安裝 RustDesk</span>
+Filename: "{tmp}\rustdesk.exe"; \
+  Parameters: "--silent-install"; \
+  Flags: waituntilterminated
+
+<span class="cm">; 設定 RustDesk Server</span>
+Filename: "reg"; Parameters: "add \
+  HKLM\SOFTWARE\RustDesk /v \
+  custom-rendezvous-server /d OUR_IP"
+
+<span class="cm">; 安裝 Python 依賴</span>
+Filename: "python"; Parameters: "-m pip \
+  install -q -r {app}\requirements.txt"
+
+<span class="cm">; 註冊 Windows Service</span>
+Filename: "sc"; Parameters: "create \
+  RainRemoteAgent binPath= \
+  \"python {app}\daemon.py\" start= auto"
+
+<span class="cm">; 啟動 Daemon</span>
+Filename: "sc"; Parameters: "start \
+  RainRemoteAgent"
+</pre>
+</div>
+</div>
+</div>
+
+<div class="card" style="border:2px solid var(--purple)">
+<h3>Install Token 機制（安全核心）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Token 生命週期</span>
+
+<span class="or">Console（你）</span>→ 產生 Token → 烤入 Installer → 給客戶
+                                                    ↓
+                                              客戶雙擊安裝
+                                                    ↓
+                                           Daemon 用 Token 註冊
+                                                    ↓
+                                       Server 驗證 Token → 核發 device_id
+                                                    ↓
+                                           Token 自動失效（一次性）
+</pre>
+</div>
+<table class="t">
+<tr><th>屬性</th><th>規格</th></tr>
+<tr><td>格式</td><td><code>tok_</code> + 32 位 hex（<code>tok_a3f2c8e1b9d4...</code>）</td></tr>
+<tr><td>生成方式</td><td>Console UI → <code>POST /api/device/token</code> → 綁定客戶名稱</td></tr>
+<tr><td>有效期</td><td><strong>72 小時</strong>（過期自動失效）</td></tr>
+<tr><td>使用次數</td><td><strong>一次性</strong>（註冊成功後立即標記 used）</td></tr>
+<tr><td>烤入方式</td><td>打包 Installer 時寫入 <code>config.json</code></td></tr>
+<tr><td>無 Token 安裝</td><td>Daemon 啟動 → 註冊失敗 → 不連線（安全）</td></tr>
+</table>
+</div>
+
+<div class="card" style="border-left:4px solid var(--green)">
+<h3>Device Registry — DB Schema</h3>
+<div class="code-block">
+<pre>
+<span class="cm">-- 裝置註冊表（Kai SQLite）</span>
+<span class="kw">CREATE TABLE</span> remote_devices (
+  device_id     TEXT PRIMARY KEY,           <span class="cm">-- dev_a3f2c8e1</span>
+  device_name   TEXT NOT NULL,              <span class="cm">-- Rain-MacBook</span>
+  customer_id   TEXT,                       <span class="cm">-- 客戶 ID（從 token 綁定）</span>
+  os            TEXT NOT NULL,              <span class="cm">-- macOS 15.3 / Windows 11</span>
+  arch          TEXT,                       <span class="cm">-- arm64 / x86_64</span>
+  agent_version TEXT DEFAULT '1.0.0',
+  status        TEXT DEFAULT 'registered',  <span class="cm">-- registered / online / offline / revoked</span>
+  last_seen     TIMESTAMP,                  <span class="cm">-- 最後心跳時間</span>
+  capabilities  TEXT,                       <span class="cm">-- JSON: {has_chrome, modes, ...}</span>
+  install_token TEXT,                       <span class="cm">-- 用了哪個 token 註冊</span>
+  ip_address    TEXT,                       <span class="cm">-- 自動偵測</span>
+  registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+<span class="cm">-- Install Token 表</span>
+<span class="kw">CREATE TABLE</span> remote_install_tokens (
+  token         TEXT PRIMARY KEY,           <span class="cm">-- tok_a3f2c8e1...</span>
+  customer_name TEXT NOT NULL,              <span class="cm">-- 客戶名稱</span>
+  created_by    TEXT DEFAULT 'rain',        <span class="cm">-- 誰產生的</span>
+  status        TEXT DEFAULT 'active',      <span class="cm">-- active / used / expired / revoked</span>
+  used_by       TEXT,                       <span class="cm">-- device_id（註冊後回填）</span>
+  expires_at    TIMESTAMP NOT NULL,         <span class="cm">-- 建立時 +72h</span>
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+<span class="kw">CREATE INDEX</span> idx_devices_status ON remote_devices(status);
+<span class="kw">CREATE INDEX</span> idx_devices_customer ON remote_devices(customer_id);
+<span class="kw">CREATE INDEX</span> idx_tokens_status ON remote_install_tokens(status);
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--blue)">
+<h3>Device Register API（Daemon 啟動時呼叫）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># POST /api/device/register</span>
+
+<span class="cm"># Request（Daemon 自動發送，客戶不知道）</span>
+{
+  <span class="st">"device_name"</span>: <span class="st">"Rain-MacBook"</span>,         <span class="cm"># hostname 自動取</span>
+  <span class="st">"os"</span>: <span class="st">"macOS 15.3"</span>,
+  <span class="st">"arch"</span>: <span class="st">"arm64"</span>,
+  <span class="st">"agent_version"</span>: <span class="st">"1.0.0"</span>,
+  <span class="st">"token"</span>: <span class="st">"tok_a3f2c8e1..."</span>,           <span class="cm"># 從 config.json 讀取</span>
+  <span class="st">"capabilities"</span>: {
+    <span class="st">"has_chrome"</span>: true,
+    <span class="st">"has_python"</span>: true,
+    <span class="st">"modes"</span>: [<span class="st">"browser"</span>, <span class="st">"system"</span>, <span class="st">"vision"</span>]
+  }
+}
+
+<span class="cm"># Response（成功）</span>
+{
+  <span class="st">"device_id"</span>: <span class="st">"dev_a3f2c8e1"</span>,
+  <span class="st">"status"</span>: <span class="st">"registered"</span>,
+  <span class="st">"ws_url"</span>: <span class="st">"wss://api.rain-ai.com/ws/remote/dev_a3f2c8e1"</span>
+}
+
+<span class="cm"># Response（失敗）</span>
+<span class="cm"># 401 — Token 無效或過期</span>
+<span class="cm"># 409 — Token 已被使用</span>
+<span class="cm"># 429 — 此客戶裝置數已達上限</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Daemon 啟動流程（Agent 視角）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Agent Daemon 啟動後的完整流程</span>
+
+<span class="yl">啟動</span>
+  ↓
+<span class="yl">讀取 /opt/rain-remote/config.json</span>
+  ↓
+<span class="yl">POST /api/device/register</span> （帶 install_token）
+  ├── 成功 → 取得 device_id + ws_url
+  └── 失敗 → 寫 log + 每 60 秒重試（Token 問題不重試）
+  ↓
+<span class="yl">連接 WebSocket</span>（wss://.../{device_id}）
+  ├── 成功 → 開始 heartbeat
+  └── 失敗 → backoff 重連（1s → 3s → 10s → 30s → 60s）
+  ↓
+<span class="gr">開始 Heartbeat（每 10 秒）</span>
+  {
+    "type": "heartbeat",
+    "device_id": "dev_a3f2c8e1",
+    "status": "online",
+    "cpu_pct": 12,
+    "mem_used_mb": 4096,
+    "uptime_sec": 3600
+  }
+  ↓
+<span class="gr">等待 Command（WebSocket receive）</span>
+  → 收到 → 執行 → 回傳結果 → 繼續等待
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Console UI — 裝置清單（你會看到的畫面）</h3>
+<div class="code-block">
+<pre>
+<span class="cm">╔══════════════════════════════════════════════════════════╗</span>
+<span class="cm">║  Remote Control — Device List                            ║</span>
+<span class="cm">╠══════════════════════════════════════════════════════════╣</span>
+<span class="cm">║                                                          ║</span>
+<span class="cm">║  <span class="gr">🟢</span> Rain-MacBook       macOS 15.3    Last: 3s ago       ║</span>
+<span class="cm">║     [Connect] [Execute Task] [View Logs]                 ║</span>
+<span class="cm">║                                                          ║</span>
+<span class="cm">║  <span class="st">🔴</span> Office-PC          Windows 11    Last: 2h ago       ║</span>
+<span class="cm">║     [Wake Up] [View Logs]                                ║</span>
+<span class="cm">║                                                          ║</span>
+<span class="cm">║  <span class="gr">🟢</span> Client-01-Mac      macOS 14.5    Last: 8s ago       ║</span>
+<span class="cm">║     [Connect] [Execute Task] [View Logs]                 ║</span>
+<span class="cm">║                                                          ║</span>
+<span class="cm">╠══════════════════════════════════════════════════════════╣</span>
+<span class="cm">║  Online: 2 / Total: 3    [+ Generate Install Token]      ║</span>
+<span class="cm">╚══════════════════════════════════════════════════════════╝</span>
+</pre>
+</div>
+<p style="font-size:13px;color:var(--g3);margin-top:8px">
+<strong>Online 判斷</strong>：30 秒內有收到 heartbeat = 🟢 Online，否則 🔴 Offline。<br>
+<strong>首次接入時間</strong>：理想 3-5 分鐘、一般 5-10 分鐘、複雜環境 10-20 分鐘。
+</p>
+</div>
+
+<div class="card" style="border-left:4px solid var(--red)">
+<h3>Installer 打包流程（我們這邊做）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 每個客戶 = 一個專屬 Installer</span>
+<span class="cm"># 因為 install_token 不同</span>
+
+<span class="yl">Console UI</span>: 點「Generate Install Token」
+  ↓
+<span class="yl">API</span>: POST /api/device/token
+  → 產生 tok_xxxxxxxx（72h 有效）
+  → 綁定客戶名稱
+  ↓
+<span class="yl">Build Script</span>: 把 token 寫入 config.json → 打包
+  macOS: pkgbuild → RainRemote-{customer}.pkg
+  Win:   NSIS/Inno → RainRemote-{customer}.exe
+  ↓
+<span class="yl">Upload</span>: 上傳到 CDN → 產生下載連結
+  → https://get.rain-ai.com/install/{token_short}
+  ↓
+<span class="yl">Send</span>: 把連結發給客戶（Email / LINE / 面對面）
+</pre>
+</div>
+</div>
+
+<div class="warn-box">
+<strong>設計原則（Rain 定義）：</strong><br>
+- 客戶 = <strong>雙擊安裝包，結束</strong>。不開 Terminal、不輸入指令、不複製 ID<br>
+- 所有複雜度在我們這邊（打包 + token + 註冊 + 連線）<br>
+- 不同客戶 = 不同 Installer（token 烤入）= 自動綁定客戶身份<br>
+- 安裝路徑：macOS <code>/opt/rain-remote/</code>、Windows <code>C:\Program Files\RainRemote\</code>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: DEMO FLOW -->
+<!-- ============================================================ -->
+<section id="demo" class="sec">
+<span class="sec-label">06 — Demo Flow</span>
+<h2>第一個 Demo：AI 幫客戶部署網站</h2>
+<p class="sec-desc">完整端到端操作流程，證明系統可以 work。</p>
+
+<div class="card" style="border:2px solid var(--orange)">
+<h3 style="color:var(--orange)">Demo 場景：幫客戶 A 在 Vercel 部署 Next.js 網站</h3>
+
+<div class="code-block">
+<pre>
+<span class="or">═══════════════════════════════════════════════════</span>
+<span class="or"> Demo Flow: AI 遠端部署網站（端到端）</span>
+<span class="or">═══════════════════════════════════════════════════</span>
+
+<span class="gr">[00:00]</span> Rain 在 Telegram 說：
+        <span class="st">"幫客戶 A 部署網站到 Vercel"</span>
+
+<span class="gr">[00:05]</span> Kai 解析 → 建立 remote session
+        → POST /api/remote/connect
+        → device: <span class="st">"client-a-mac"</span>, mode: <span class="st">"auto"</span>
+
+<span class="gr">[00:10]</span> RustDesk SSH tunnel 建立
+        → Chrome CDP 連線成功
+        → <span class="yl">Mode A: Browser Agent 啟動</span>
+
+<span class="gr">[00:15]</span> <span class="fn">Step 1</span>: 開啟 vercel.com
+        → page.goto("https://vercel.com")
+        → 截圖確認 ✅
+
+<span class="gr">[00:20]</span> <span class="fn">Step 2</span>: 登入客戶帳號
+        → page.click("Sign In")
+        → page.fill("#email", credentials.email)
+        → page.fill("#password", credentials.password)
+        → 截圖確認 ✅
+
+<span class="gr">[00:30]</span> <span class="fn">Step 3</span>: Import Git Repository
+        → page.click("Import Project")
+        → page.click("Import Git Repository")
+        → page.fill("#repo-url", "https://github.com/client-a/website")
+        → 截圖確認 ✅
+
+<span class="gr">[00:40]</span> <span class="fn">Step 4</span>: 設定 Environment Variables
+        → 識別 env 輸入欄位
+        → 逐一填入：NEXT_PUBLIC_API_URL, DATABASE_URL...
+        → 截圖確認 ✅
+
+<span class="gr">[00:50]</span> <span class="fn">Step 5</span>: Deploy
+        → page.click("Deploy")
+        → 等待部署完成（polling 狀態）
+        → 截圖確認 ✅
+
+<span class="gr">[02:00]</span> <span class="fn">完成</span>: 回報 Rain
+        → Discord: <span class="st">"客戶 A 網站已部署 ✅ https://client-a.vercel.app"</span>
+        → 附操作日誌（5 張截圖 + 每步時間）
+        → POST /api/remote/disconnect
+
+<span class="or">═══════════════════════════════════════════════════</span>
+<span class="or"> 總時間：~2 分鐘（人工做至少 10 分鐘）</span>
+<span class="or"> 模式：Mode A (Browser Agent) — 全程自動</span>
+<span class="or">═══════════════════════════════════════════════════</span>
+</pre>
+</div>
+</div>
+
+<div class="warn-box">
+<strong>Demo 成功標準：</strong>Rain 在 Telegram 說一句話 → AI 全自動完成 → 2 分鐘內回報結果 + 截圖。如果這個 demo 能跑通，系統 v1.0 就成立。
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: SECURITY -->
+<!-- ============================================================ -->
+<section id="security" class="sec">
+<span class="sec-label">07 — Security Architecture</span>
+<h2>安全架構</h2>
+
+<div class="grid-2">
+<div class="card">
+<h3>連線安全</h3>
+<ul style="padding-left:18px">
+<li>RustDesk 全程 <strong>AES-256 + RSA-2048</strong> 加密</li>
+<li>自架 Server = 金鑰在我們手上</li>
+<li>SSH tunnel 雙重加密</li>
+<li>每次 session 新 key pair</li>
+</ul>
+</div>
+<div class="card">
+<h3>操作安全</h3>
+<ul style="padding-left:18px">
+<li><strong>每步截圖</strong> — 完整操作記錄可回溯</li>
+<li><strong>Exclusion Rules</strong> — 高風險操作需人工確認</li>
+<li><strong>操作前快照</strong> — 可回滾</li>
+<li><strong>Session 錄影</strong> — 客戶可查看完整操作</li>
+</ul>
+</div>
+<div class="card">
+<h3>存取控制</h3>
+<ul style="padding-left:18px">
+<li>設備需先<strong>註冊</strong>（teamviewer-devices.json）</li>
+<li>連線需<strong>客戶授權</strong>（同意 popup）</li>
+<li><strong>一鍵中斷</strong>按鈕（客戶端）</li>
+<li>Session <strong>30 分鐘自動過期</strong></li>
+</ul>
+</div>
+<div class="card">
+<h3>客戶信任</h3>
+<ul style="padding-left:18px">
+<li><strong>書面授權</strong>同意書（客戶簽署）</li>
+<li><strong>即時觀看</strong>畫面（客戶看 AI 在幹嘛）</li>
+<li>操作日誌<strong>即時推送</strong>給客戶</li>
+<li>操作完成<strong>清除快取</strong>（不留資料）</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--red)">
+<h3>授權矩陣（誰能做什麼）</h3>
+<table class="t">
+<tr><th>操作</th><th>Rain</th><th>Klay (AI)</th><th>其他 Agent</th><th>Client Daemon</th></tr>
+<tr><td><strong>建立 Session</strong></td><td>直接</td><td>直接（Telegram 觸發）</td><td>需 Klay 授權</td><td>—</td></tr>
+<tr><td><strong>browser.navigate</strong></td><td>直接</td><td>直接</td><td>需 session owner 授權</td><td>僅執行，不發起</td></tr>
+<tr><td><strong>browser.fill</strong>（含密碼欄位）</td><td>直接</td><td>直接</td><td>密碼欄位需 Rain 確認</td><td>僅執行</td></tr>
+<tr><td><strong>system.shell</strong>（一般指令）</td><td>直接</td><td>直接</td><td>需 Klay 授權</td><td>僅執行，黑名單檢查</td></tr>
+<tr><td><strong>system.shell</strong>（sudo / admin）</td><td style="color:var(--red)"><strong>需人工確認</strong></td><td style="color:var(--red)"><strong>禁止</strong></td><td style="color:var(--red)"><strong>禁止</strong></td><td>拒絕執行</td></tr>
+<tr><td><strong>system.install</strong></td><td>直接</td><td>直接（白名單內）</td><td>需 Klay 授權</td><td>僅執行</td></tr>
+<tr><td><strong>system.file_write</strong></td><td>直接</td><td>白名單目錄內</td><td>需 Klay 授權</td><td>白名單檢查</td></tr>
+<tr><td><strong>system.file_read</strong></td><td>直接</td><td>白名單目錄內</td><td>白名單目錄內</td><td>白名單檢查</td></tr>
+<tr><td><strong>escalate</strong>（升級人工）</td><td>直接</td><td>直接</td><td>直接</td><td>自動（3x 失敗）</td></tr>
+<tr><td><strong>disconnect</strong>（斷線）</td><td>直接</td><td>直接</td><td>直接</td><td>客戶端也能斷</td></tr>
+</table>
+</div>
+
+<div class="card" style="border-left:4px solid var(--yellow)">
+<h3>Credential 存放與生命週期</h3>
+<table class="t">
+<tr><th>憑證類型</th><th>存放位置</th><th>誰能存取</th><th>生命週期</th></tr>
+<tr><td>Device AUTH_TOKEN</td><td>Client: <code>/opt/rain-remote/config.json</code>（AES 加密）</td><td>Daemon 程序</td><td>永久，可 revoke</td></tr>
+<tr><td>客戶 SaaS 密碼</td><td>Kai Backend: <code>remote_credentials</code> 表（AES-256-GCM）</td><td>僅 session 執行時解密</td><td>Session 結束後清記憶體</td></tr>
+<tr><td>RustDesk Server Key</td><td><code>docker-volume/data/id_ed25519</code></td><td>Server 端</td><td>永久，手動 rotate</td></tr>
+<tr><td>Session Token</td><td>Kai Backend 記憶體（不落地）</td><td>當前 Session</td><td>30 分鐘過期</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>危險指令黑名單（Client Daemon 強制攔截）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Daemon config.json → blocked_commands</span>
+<span class="cm"># 任何匹配的指令直接拒絕，不執行，回傳 "blocked_by_policy"</span>
+
+BLOCKED_PATTERNS = [
+    <span class="st">r"rm\s+-rf\s+/"</span>,           <span class="cm"># 刪根目錄</span>
+    <span class="st">r"format\s+[cCdD]:"</span>,        <span class="cm"># Windows 格式化磁碟</span>
+    <span class="st">r"mkfs\."</span>,                   <span class="cm"># Linux 格式化</span>
+    <span class="st">r"dd\s+if=.*of=/dev/"</span>,      <span class="cm"># 覆寫磁碟</span>
+    <span class="st">r":(){ :\|:& };:"</span>,          <span class="cm"># Fork bomb</span>
+    <span class="st">r"shutdown|reboot|halt"</span>,     <span class="cm"># 關機/重啟（需人工）</span>
+    <span class="st">r"passwd|chpasswd"</span>,          <span class="cm"># 改密碼</span>
+    <span class="st">r"useradd|userdel"</span>,          <span class="cm"># 增刪使用者</span>
+    <span class="st">r"iptables|ufw|firewall"</span>,   <span class="cm"># 防火牆</span>
+    <span class="st">r"curl.*\|\s*bash"</span>,         <span class="cm"># 管道執行遠端腳本</span>
+    <span class="st">r"wget.*\|\s*sh"</span>,           <span class="cm"># 同上</span>
+    <span class="st">r"eval\s+"</span>,                  <span class="cm"># 動態執行（高風險）</span>
+]
+
+<span class="cm"># 白名單目錄（system.file_write / file_read）</span>
+ALLOWED_DIRS = [
+    <span class="st">"~/Projects"</span>,                <span class="cm"># 專案目錄</span>
+    <span class="st">"~/Desktop"</span>,                 <span class="cm"># 桌面</span>
+    <span class="st">"~/Downloads"</span>,               <span class="cm"># 下載</span>
+    <span class="st">"/tmp"</span>,                      <span class="cm"># 暫存</span>
+]
+<span class="cm"># 以外路徑 → 拒絕 + 回報 "path_not_whitelisted"</span>
+
+<span class="cm"># Log 保留策略</span>
+<span class="cm"># Client 端: commands.jsonl 保留 30 天，自動 rotate</span>
+<span class="cm"># Server 端: remote_sessions + remote_command_queue 永久保留（審計）</span>
+<span class="cm"># 截圖: Client 24h 清理 / Server 7 天清理（可調）</span>
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: ASSIGNMENT -->
+<!-- ============================================================ -->
+<section id="assign" class="sec">
+<span class="sec-label">08 — Team Assignment</span>
+<h2>分工 + 排程</h2>
+
+<table class="t">
+<thead>
+<tr>
+<th>Phase</th>
+<th>工作項目</th>
+<th>負責人</th>
+<th>時間</th>
+<th>前置</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background:var(--green-l)">
+<td><strong>Phase 1</strong></td>
+<td>RustDesk Server Docker 部署</td>
+<td>Max + Forge</td>
+<td>Week 1</td>
+<td>Rain 決定 VPS/Mac</td>
+</tr>
+<tr style="background:var(--green-l)">
+<td></td>
+<td>Client 安裝腳本（macOS + Windows）</td>
+<td>Rex</td>
+<td>Week 1</td>
+<td>Server 部署完</td>
+</tr>
+<tr>
+<td><strong>Phase 2</strong></td>
+<td>Kai Remote API（6 endpoints）</td>
+<td>Rex</td>
+<td>Week 2</td>
+<td>Phase 1</td>
+</tr>
+<tr>
+<td></td>
+<td>Browser Agent（Mode A）實作</td>
+<td>Max</td>
+<td>Week 2-3</td>
+<td>API 完成</td>
+</tr>
+<tr>
+<td></td>
+<td>Kai RemotePage.tsx 前端</td>
+<td>John + Iris</td>
+<td>Week 2-3</td>
+<td>API 完成</td>
+</tr>
+<tr>
+<td><strong>Phase 3</strong></td>
+<td>System Agent（Mode B）實作</td>
+<td>Max</td>
+<td>Week 4</td>
+<td>Mode A 完成</td>
+</tr>
+<tr>
+<td></td>
+<td>Vision Agent（Mode C）實作</td>
+<td>Max + Klay</td>
+<td>Week 4-5</td>
+<td>Mode A 完成</td>
+</tr>
+<tr>
+<td></td>
+<td>自動切換 Controller</td>
+<td>Max</td>
+<td>Week 5</td>
+<td>三模式都完成</td>
+</tr>
+<tr>
+<td><strong>Phase 4</strong></td>
+<td>Telegram 觸發整合</td>
+<td>Rex</td>
+<td>Week 5</td>
+<td>API + Controller</td>
+</tr>
+<tr>
+<td></td>
+<td>CLI 工具 remote-control</td>
+<td>Rex</td>
+<td>Week 5</td>
+<td>API</td>
+</tr>
+<tr style="background:var(--yellow-l)">
+<td><strong>Demo</strong></td>
+<td>端到端 Demo（Vercel 部署場景）</td>
+<td>Klay 指揮</td>
+<td>Week 6</td>
+<td>全部 Phase</td>
+</tr>
+</tbody>
+</table>
+
+<div class="ok-box">
+<strong>6 週交付 v1.0。</strong>Phase 1 不依賴其他 Phase，Rain 裁決後可立即開工。
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: CONTROL PROTOCOL & STATE MACHINE -->
+<!-- ============================================================ -->
+<section id="protocol" class="sec">
+<span class="sec-label">09 — Control Protocol</span>
+<h2>控制協議：Command / Response / State</h2>
+<p class="sec-desc">所有遠端操作的通訊格式。Kai Server ↔ Agent Daemon 之間用 WebSocket 傳輸這些 JSON。</p>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>Command（Server → Client）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Kai Server 發送給 Client Agent Daemon 的指令格式</span>
+{
+  <span class="st">"command_id"</span>: <span class="st">"cmd-20260326-001"</span>,
+  <span class="st">"session_id"</span>: <span class="st">"rs-20260326-001"</span>,
+  <span class="st">"device_id"</span>: <span class="st">"client-a-mac"</span>,
+  <span class="st">"action"</span>: <span class="st">"browser.navigate"</span>,          <span class="cm"># 動作分類，見下方表格</span>
+  <span class="st">"params"</span>: {
+    <span class="st">"url"</span>: <span class="st">"https://vercel.com/dashboard"</span>
+  },
+  <span class="st">"timeout_ms"</span>: 30000,                    <span class="cm"># 單步超時（預設 30s）</span>
+  <span class="st">"retry_policy"</span>: {
+    <span class="st">"max_retries"</span>: 3,
+    <span class="st">"backoff_ms"</span>: [1000, 3000, 10000]      <span class="cm"># 指數退避</span>
+  },
+  <span class="st">"on_failure"</span>: <span class="st">"fallback_vision"</span>,        <span class="cm"># 失敗策略</span>
+  <span class="st">"priority"</span>: 1,                           <span class="cm"># 0=urgent 1=normal 2=low</span>
+  <span class="st">"timestamp"</span>: <span class="st">"2026-03-26T10:05:00Z"</span>
+}
+</pre>
+</div>
+
+<table class="t">
+<tr><th>action 分類</th><th>params</th><th>說明</th></tr>
+<tr><td><code>browser.navigate</code></td><td><code>{url}</code></td><td>開啟網址</td></tr>
+<tr><td><code>browser.click</code></td><td><code>{selector}</code> 或 <code>{x, y}</code></td><td>點擊元素或座標</td></tr>
+<tr><td><code>browser.fill</code></td><td><code>{selector, value}</code></td><td>填入表單</td></tr>
+<tr><td><code>browser.screenshot</code></td><td><code>{}</code></td><td>截圖回傳</td></tr>
+<tr><td><code>browser.evaluate</code></td><td><code>{script}</code></td><td>執行 JS</td></tr>
+<tr><td><code>system.shell</code></td><td><code>{command, cwd}</code></td><td>執行 shell 指令</td></tr>
+<tr><td><code>system.install</code></td><td><code>{package, manager}</code></td><td>安裝軟體</td></tr>
+<tr><td><code>system.file_write</code></td><td><code>{path, content}</code></td><td>寫入檔案</td></tr>
+<tr><td><code>system.file_read</code></td><td><code>{path}</code></td><td>讀取檔案</td></tr>
+<tr><td><code>vision.analyze</code></td><td><code>{instruction}</code></td><td>截圖 + AI 視覺分析</td></tr>
+<tr><td><code>vision.click_at</code></td><td><code>{instruction}</code></td><td>AI 看畫面找位置點擊</td></tr>
+<tr><td><code>meta.heartbeat</code></td><td><code>{}</code></td><td>心跳（10s 間隔）</td></tr>
+<tr><td><code>meta.capabilities</code></td><td><code>{}</code></td><td>回報裝置能力</td></tr>
+</table>
+</div>
+
+<div class="card" style="border-left:4px solid var(--green)">
+<h3>Response（Client → Server）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Client Agent Daemon 回傳給 Kai Server 的結果</span>
+{
+  <span class="st">"command_id"</span>: <span class="st">"cmd-20260326-001"</span>,
+  <span class="st">"status"</span>: <span class="st">"success"</span>,                    <span class="cm"># success | failed | timeout | partial</span>
+  <span class="st">"result"</span>: {
+    <span class="st">"screenshot_b64"</span>: <span class="st">"iVBORw0KGgo..."</span>,  <span class="cm"># 每步截圖（Base64 PNG）</span>
+    <span class="st">"page_title"</span>: <span class="st">"Vercel Dashboard"</span>,
+    <span class="st">"page_url"</span>: <span class="st">"https://vercel.com/dashboard"</span>,
+    <span class="st">"output"</span>: <span class="kw">null</span>,                     <span class="cm"># shell 指令的 stdout</span>
+    <span class="st">"duration_ms"</span>: 1250
+  },
+  <span class="st">"error"</span>: <span class="kw">null</span>,                           <span class="cm"># 失敗時填錯誤訊息</span>
+  <span class="st">"device_state"</span>: {                        <span class="cm"># 每次回傳都帶裝置狀態</span>
+    <span class="st">"cpu_pct"</span>: 23,
+    <span class="st">"mem_used_mb"</span>: 4096,
+    <span class="st">"mem_total_mb"</span>: 16384,
+    <span class="st">"disk_free_gb"</span>: 42,
+    <span class="st">"active_mode"</span>: <span class="st">"browser"</span>,
+    <span class="st">"chrome_pid"</span>: 12345,                  <span class="cm"># Chrome 程序 PID（Mode A 用）</span>
+    <span class="st">"connection_quality"</span>: <span class="st">"good"</span>,         <span class="cm"># good | degraded | poor</span>
+    <span class="st">"uptime_sec"</span>: 3600
+  },
+  <span class="st">"timestamp"</span>: <span class="st">"2026-03-26T10:05:03Z"</span>
+}
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--purple)">
+<h3>Session 狀態機</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># Session 生命週期狀態轉移</span>
+
+<span class="or">IDLE</span> ──connect──→ <span class="yl">CONNECTING</span> ──success──→ <span class="gr">CONNECTED</span>
+                       │                       │
+                     fail                    execute
+                       ↓                       ↓
+                   <span class="yl">RETRY</span> ←──────────── <span class="gr">EXECUTING</span>
+                       │                    │      │
+                    3x fail              success  fail
+                       ↓                    ↓      ↓
+                   <span class="st">FAILED</span>            <span class="gr">CONNECTED</span>  <span class="yl">FALLBACK</span>
+                       │                    │         │
+                   escalate             disconnect  mode_switch
+                       ↓                    ↓         ↓
+                   <span class="or">ESCALATED</span>          <span class="gy">CLOSED</span>   <span class="gr">EXECUTING</span>
+                   (TeamViewer)
+
+<span class="cm"># 狀態說明</span>
+IDLE        → 等待連線
+CONNECTING  → SSH tunnel 建立中 + RustDesk handshake
+CONNECTED   → 已連線，等待指令
+EXECUTING   → 正在執行指令
+FALLBACK    → 當前模式失敗，切換備援模式
+RETRY       → 連線/指令失敗，重試中
+FAILED      → 重試用盡，需人工介入
+ESCALATED   → 已升級到 TeamViewer 人工操作
+CLOSED      → Session 正常結束
+
+<span class="cm"># 自動過期規則</span>
+CONNECTED 閒置 30 分鐘 → 自動 CLOSED
+EXECUTING 超時 → 自動截圖 + 標記 timeout
+FAILED 超過 1 小時無人處理 → Discord 再次通知
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>WebSocket 通訊協議</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># WebSocket 連線：ws://kai-server:5002/ws/remote/{device_id}</span>
+<span class="cm"># 心跳：每 30 秒 Client 發送 meta.heartbeat</span>
+<span class="cm"># Server 90 秒沒收到心跳 → 標記裝置 offline</span>
+
+<span class="cm"># 訊息封裝格式</span>
+{
+  <span class="st">"type"</span>: <span class="st">"command"</span>,        <span class="cm"># command | response | heartbeat | state_update</span>
+  <span class="st">"payload"</span>: { ... },      <span class="cm"># 上面定義的 Command 或 Response</span>
+  <span class="st">"seq"</span>: 42,                <span class="cm"># 序號（保證順序 + 去重）</span>
+  <span class="st">"ack"</span>: 41                 <span class="cm"># 確認收到對方的 seq</span>
+}
+
+<span class="cm"># 斷線重連</span>
+<span class="cm"># Client 斷線後立即重連，backoff: 1s → 3s → 10s → 30s → 60s</span>
+<span class="cm"># 重連成功後發送 meta.capabilities 重新註冊</span>
+<span class="cm"># Server 端保留未送達的 command（最多 100 筆，10 分鐘過期）</span>
+</pre>
+</div>
+</div>
+
+<div class="card" style="border:2px solid var(--orange)">
+<h3>統一 Domain Schema（所有模組共用）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/models/remote_models.py — 全域定義，三種 Agent + Queue + API 共用</span>
+
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> typing <span class="kw">import</span> Optional, Any
+
+<span class="cm"># ═══ Enums（全域統一，不允許各模組自定義）═══</span>
+
+<span class="kw">class</span> <span class="fn">ActionType</span>(str, Enum):
+    <span class="cm"># Browser（Mode A）</span>
+    BROWSER_NAVIGATE   = <span class="st">"browser.navigate"</span>
+    BROWSER_CLICK      = <span class="st">"browser.click"</span>
+    BROWSER_FILL       = <span class="st">"browser.fill"</span>
+    BROWSER_SCREENSHOT = <span class="st">"browser.screenshot"</span>
+    BROWSER_EVALUATE   = <span class="st">"browser.evaluate"</span>
+    <span class="cm"># System（Mode B）</span>
+    SYSTEM_SHELL       = <span class="st">"system.shell"</span>
+    SYSTEM_INSTALL     = <span class="st">"system.install"</span>
+    SYSTEM_FILE_WRITE  = <span class="st">"system.file_write"</span>
+    SYSTEM_FILE_READ   = <span class="st">"system.file_read"</span>
+    <span class="cm"># Vision（Mode C）</span>
+    VISION_ANALYZE     = <span class="st">"vision.analyze"</span>
+    VISION_CLICK_AT    = <span class="st">"vision.click_at"</span>
+    <span class="cm"># Meta</span>
+    META_HEARTBEAT     = <span class="st">"meta.heartbeat"</span>
+    META_CAPABILITIES  = <span class="st">"meta.capabilities"</span>
+
+<span class="kw">class</span> <span class="fn">TaskType</span>(str, Enum):
+    BROWSER = <span class="st">"browser"</span>
+    SYSTEM  = <span class="st">"system"</span>
+    VISION  = <span class="st">"vision"</span>
+    UNKNOWN = <span class="st">"unknown"</span>
+
+<span class="kw">class</span> <span class="fn">ControlMode</span>(str, Enum):
+    BROWSER_CDP = <span class="st">"browser"</span>
+    SYSTEM_CMD  = <span class="st">"system"</span>
+    VISION_AI   = <span class="st">"vision"</span>
+    ESCALATE    = <span class="st">"escalate"</span>
+
+<span class="kw">class</span> <span class="fn">SessionStatus</span>(str, Enum):
+    IDLE        = <span class="st">"idle"</span>
+    CONNECTING  = <span class="st">"connecting"</span>
+    CONNECTED   = <span class="st">"connected"</span>
+    EXECUTING   = <span class="st">"executing"</span>
+    FALLBACK    = <span class="st">"fallback"</span>
+    RETRY       = <span class="st">"retry"</span>
+    FAILED      = <span class="st">"failed"</span>
+    ESCALATED   = <span class="st">"escalated"</span>
+    CLOSED      = <span class="st">"closed"</span>
+
+<span class="kw">class</span> <span class="fn">CommandStatus</span>(str, Enum):
+    PENDING  = <span class="st">"pending"</span>
+    RUNNING  = <span class="st">"running"</span>
+    SUCCESS  = <span class="st">"success"</span>
+    FAILED   = <span class="st">"failed"</span>
+    TIMEOUT  = <span class="st">"timeout"</span>
+    PARTIAL  = <span class="st">"partial"</span>      <span class="cm"># 部分成功（多步驟中）</span>
+    DLQ      = <span class="st">"dlq"</span>          <span class="cm"># Dead Letter Queue</span>
+    BLOCKED  = <span class="st">"blocked"</span>      <span class="cm"># 安全攔截</span>
+
+<span class="kw">class</span> <span class="fn">ConnectionQuality</span>(str, Enum):
+    GOOD     = <span class="st">"good"</span>         <span class="cm"># RTT &lt; 100ms</span>
+    DEGRADED = <span class="st">"degraded"</span>     <span class="cm"># 100-500ms</span>
+    POOR     = <span class="st">"poor"</span>         <span class="cm"># &gt; 500ms</span>
+
+<span class="kw">class</span> <span class="fn">ErrorCode</span>(str, Enum):
+    TIMEOUT              = <span class="st">"timeout"</span>
+    CONNECTION_LOST      = <span class="st">"connection_lost"</span>
+    ELEMENT_NOT_FOUND    = <span class="st">"element_not_found"</span>
+    PERMISSION_DENIED    = <span class="st">"permission_denied"</span>
+    BLOCKED_BY_POLICY    = <span class="st">"blocked_by_policy"</span>
+    PATH_NOT_WHITELISTED = <span class="st">"path_not_whitelisted"</span>
+    CHROME_CRASHED       = <span class="st">"chrome_crashed"</span>
+    DISK_FULL            = <span class="st">"disk_full"</span>
+    AUTH_EXPIRED         = <span class="st">"auth_expired"</span>
+    VISION_MISCLICK      = <span class="st">"vision_misclick"</span>
+    DEVICE_OFFLINE       = <span class="st">"device_offline"</span>
+    SESSION_LIMIT        = <span class="st">"session_limit_reached"</span>
+    DUPLICATE_SESSION    = <span class="st">"duplicate_session"</span>
+    UNKNOWN              = <span class="st">"unknown_error"</span>
+
+<span class="cm"># ═══ 共用 Models ═══</span>
+
+<span class="kw">class</span> <span class="fn">DeviceState</span>(BaseModel):
+    cpu_pct: float
+    mem_used_mb: int
+    mem_total_mb: int
+    disk_free_gb: float
+    active_mode: Optional[ControlMode]
+    chrome_pid: Optional[int]
+    connection_quality: ConnectionQuality
+    uptime_sec: int
+
+<span class="kw">class</span> <span class="fn">CommandResult</span>(BaseModel):
+    screenshot_b64: Optional[str]
+    page_title: Optional[str]
+    page_url: Optional[str]
+    output: Optional[str]          <span class="cm"># shell stdout</span>
+    duration_ms: int
+    file_content: Optional[str]    <span class="cm"># file_read 回傳</span>
+</pre>
+</div>
+<p style="font-size:13px;color:var(--g3);margin-top:8px">
+<strong>規則</strong>：所有 service（browser_agent、system_agent、vision_agent、queue、session_manager）都 import 這個檔案的 Enum 和 Model。禁止各模組自己定義 status/action/error 字串。違反 = Quill code review Blocker。
+</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: AGENT DAEMON -->
+<!-- ============================================================ -->
+<section id="daemon" class="sec">
+<span class="sec-label">10 — Agent Daemon</span>
+<h2>Client-Side Agent Daemon（常駐程序）</h2>
+<p class="sec-desc">安裝在客戶電腦上的常駐背景程序。開機自啟、自動連線、接收指令、回報狀態。</p>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>Daemon 主程式架構</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># scripts/remote_agent_daemon.py</span>
+<span class="cm"># 客戶端常駐程序 — 單一 Python 檔案，無外部依賴（除 websockets）</span>
+
+<span class="kw">import</span> asyncio, json, platform, subprocess, os, time, logging
+<span class="kw">import</span> websockets
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+
+<span class="cm"># ── 設定 ──</span>
+<span class="or">KAI_SERVER</span>   = os.getenv(<span class="st">"KAI_SERVER"</span>, <span class="st">"ws://YOUR_SERVER:5002"</span>)
+<span class="or">DEVICE_ID</span>    = os.getenv(<span class="st">"DEVICE_ID"</span>, <span class="st">""</span>)  <span class="cm"># 安裝時寫入</span>
+<span class="or">AUTH_TOKEN</span>   = os.getenv(<span class="st">"AUTH_TOKEN"</span>, <span class="st">""</span>) <span class="cm"># 安裝時寫入</span>
+<span class="or">HEARTBEAT_INTERVAL</span> = 10   <span class="cm"># 秒</span>
+<span class="or">RECONNECT_BACKOFF</span> = [1, 3, 10, 30, 60]  <span class="cm"># 秒</span>
+<span class="or">LOG_DIR</span>      = Path(<span class="st">"/opt/rain-remote"</span>) / <span class="st">"logs"</span>
+<span class="or">STATE_FILE</span>   = Path(<span class="st">"/opt/rain-remote"</span>) / <span class="st">"state.json"</span>
+
+log = logging.<span class="fn">getLogger</span>(<span class="st">"rain-remote"</span>)
+
+<span class="kw">class</span> <span class="fn">AgentDaemon</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.ws = <span class="kw">None</span>
+        self.session_id = <span class="kw">None</span>
+        self.capabilities = self.<span class="fn">detect_capabilities</span>()
+        self.command_handlers = {
+            <span class="st">"browser.navigate"</span>:  self.<span class="fn">handle_browser_navigate</span>,
+            <span class="st">"browser.click"</span>:     self.<span class="fn">handle_browser_click</span>,
+            <span class="st">"browser.fill"</span>:      self.<span class="fn">handle_browser_fill</span>,
+            <span class="st">"browser.screenshot"</span>: self.<span class="fn">handle_browser_screenshot</span>,
+            <span class="st">"browser.evaluate"</span>:  self.<span class="fn">handle_browser_evaluate</span>,
+            <span class="st">"system.shell"</span>:      self.<span class="fn">handle_system_shell</span>,
+            <span class="st">"system.install"</span>:    self.<span class="fn">handle_system_install</span>,
+            <span class="st">"system.file_write"</span>: self.<span class="fn">handle_file_write</span>,
+            <span class="st">"system.file_read"</span>:  self.<span class="fn">handle_file_read</span>,
+            <span class="st">"vision.analyze"</span>:    self.<span class="fn">handle_vision_analyze</span>,
+            <span class="st">"vision.click_at"</span>:   self.<span class="fn">handle_vision_click</span>,
+            <span class="st">"meta.heartbeat"</span>:    self.<span class="fn">handle_heartbeat</span>,
+            <span class="st">"meta.capabilities"</span>: self.<span class="fn">handle_capabilities</span>,
+        }
+        self.chrome_process = <span class="kw">None</span>  <span class="cm"># Chrome CDP 程序追蹤</span>
+        self.seq = 0
+
+    <span class="kw">def</span> <span class="fn">detect_capabilities</span>(self):
+        <span class="st">"""偵測這台電腦能做什麼"""</span>
+        os_type = platform.<span class="fn">system</span>().lower()  <span class="cm"># darwin/windows/linux</span>
+        caps = {
+            <span class="st">"os"</span>: os_type,
+            <span class="st">"os_version"</span>: platform.<span class="fn">version</span>(),
+            <span class="st">"hostname"</span>: platform.<span class="fn">node</span>(),
+            <span class="st">"python"</span>: platform.<span class="fn">python_version</span>(),
+            <span class="st">"chrome"</span>: self.<span class="fn">_check_chrome</span>(),
+            <span class="st">"brew"</span>: os_type == <span class="st">"darwin"</span> <span class="kw">and</span> self.<span class="fn">_cmd_exists</span>(<span class="st">"brew"</span>),
+            <span class="st">"winget"</span>: os_type == <span class="st">"windows"</span> <span class="kw">and</span> self.<span class="fn">_cmd_exists</span>(<span class="st">"winget"</span>),
+            <span class="st">"ssh"</span>: self.<span class="fn">_cmd_exists</span>(<span class="st">"ssh"</span>),
+            <span class="st">"node"</span>: self.<span class="fn">_cmd_exists</span>(<span class="st">"node"</span>),
+            <span class="st">"git"</span>: self.<span class="fn">_cmd_exists</span>(<span class="st">"git"</span>),
+            <span class="st">"modes"</span>: []  <span class="cm"># 可用模式清單</span>
+        }
+        <span class="kw">if</span> caps[<span class="st">"chrome"</span>]: caps[<span class="st">"modes"</span>].append(<span class="st">"browser"</span>)
+        caps[<span class="st">"modes"</span>].append(<span class="st">"system"</span>)   <span class="cm"># 永遠可用</span>
+        caps[<span class="st">"modes"</span>].append(<span class="st">"vision"</span>)   <span class="cm"># 永遠可用（截圖就行）</span>
+        <span class="kw">return</span> caps
+
+    <span class="kw">async def</span> <span class="fn">run</span>(self):
+        <span class="st">"""主迴圈：連線 → 心跳 → 收指令"""</span>
+        retry_idx = 0
+        <span class="kw">while True</span>:
+            <span class="kw">try</span>:
+                url = f<span class="st">"{KAI_SERVER}/ws/remote/{DEVICE_ID}"</span>
+                headers = {<span class="st">"Authorization"</span>: f<span class="st">"Bearer {AUTH_TOKEN}"</span>}
+                <span class="kw">async with</span> websockets.<span class="fn">connect</span>(url, extra_headers=headers) <span class="kw">as</span> ws:
+                    self.ws = ws
+                    retry_idx = 0  <span class="cm"># 連線成功，重置退避</span>
+                    log.<span class="fn">info</span>(f<span class="st">"Connected to {url}"</span>)
+
+                    <span class="cm"># 1. 註冊能力</span>
+                    <span class="kw">await</span> self.<span class="fn">send_capabilities</span>()
+
+                    <span class="cm"># 2. 並行：心跳 + 收指令</span>
+                    <span class="kw">await</span> asyncio.<span class="fn">gather</span>(
+                        self.<span class="fn">heartbeat_loop</span>(),
+                        self.<span class="fn">command_loop</span>()
+                    )
+            <span class="kw">except</span> (websockets.ConnectionClosed, ConnectionRefusedError, OSError) <span class="kw">as</span> e:
+                wait = RECONNECT_BACKOFF[min(retry_idx, len(RECONNECT_BACKOFF)-1)]
+                log.<span class="fn">warning</span>(f<span class="st">"Disconnected: {e}. Retry in {wait}s"</span>)
+                <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(wait)
+                retry_idx += 1
+
+    <span class="kw">async def</span> <span class="fn">command_loop</span>(self):
+        <span class="st">"""接收並執行指令"""</span>
+        <span class="kw">async for</span> raw <span class="kw">in</span> self.ws:
+            msg = json.<span class="fn">loads</span>(raw)
+            <span class="kw">if</span> msg[<span class="st">"type"</span>] != <span class="st">"command"</span>: <span class="kw">continue</span>
+            cmd = msg[<span class="st">"payload"</span>]
+            handler = self.command_handlers.get(cmd[<span class="st">"action"</span>])
+            <span class="kw">if not</span> handler:
+                <span class="kw">await</span> self.<span class="fn">send_response</span>(cmd[<span class="st">"command_id"</span>], <span class="st">"failed"</span>,
+                    error=f<span class="st">"Unknown action: {cmd['action']}"</span>)
+                <span class="kw">continue</span>
+            <span class="cm"># 非同步執行（不阻塞心跳）</span>
+            asyncio.<span class="fn">create_task</span>(self.<span class="fn">execute_with_timeout</span>(handler, cmd))
+
+    <span class="kw">async def</span> <span class="fn">execute_with_timeout</span>(self, handler, cmd):
+        <span class="st">"""帶超時的指令執行"""</span>
+        timeout = cmd.get(<span class="st">"timeout_ms"</span>, 30000) / 1000
+        <span class="kw">try</span>:
+            result = <span class="kw">await</span> asyncio.<span class="fn">wait_for</span>(handler(cmd), timeout=timeout)
+            <span class="kw">await</span> self.<span class="fn">send_response</span>(cmd[<span class="st">"command_id"</span>], <span class="st">"success"</span>, result=result)
+        <span class="kw">except</span> asyncio.TimeoutError:
+            screenshot = <span class="kw">await</span> self.<span class="fn">take_screenshot</span>()  <span class="cm"># 超時截圖保存現場</span>
+            <span class="kw">await</span> self.<span class="fn">send_response</span>(cmd[<span class="st">"command_id"</span>], <span class="st">"timeout"</span>,
+                error=f<span class="st">"Timeout after {timeout}s"</span>, screenshot=screenshot)
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">await</span> self.<span class="fn">send_response</span>(cmd[<span class="st">"command_id"</span>], <span class="st">"failed"</span>, error=str(e))
+
+<span class="cm"># ── 啟動 ──</span>
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    LOG_DIR.<span class="fn">mkdir</span>(parents=True, exist_ok=True)
+    daemon = <span class="fn">AgentDaemon</span>()
+    asyncio.<span class="fn">run</span>(daemon.<span class="fn">run</span>())
+</pre>
+</div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<h3>macOS 開機自啟（LaunchAgent）</h3>
+<div class="code-block">
+<pre>
+<span class="cm">&lt;!-- ~/Library/LaunchAgents/
+     ai.rain.remote-agent.plist --&gt;</span>
+&lt;<span class="kw">plist</span>&gt;
+  &lt;<span class="kw">dict</span>&gt;
+    &lt;key&gt;Label&lt;/key&gt;
+    &lt;string&gt;<span class="st">ai.rain.remote-agent</span>&lt;/string&gt;
+    &lt;key&gt;ProgramArguments&lt;/key&gt;
+    &lt;array&gt;
+      &lt;string&gt;<span class="st">/usr/bin/python3</span>&lt;/string&gt;
+      &lt;string&gt;<span class="st">/opt/rain-remote/daemon.py</span>&lt;/string&gt;
+    &lt;/array&gt;
+    &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
+    &lt;key&gt;KeepAlive&lt;/key&gt;&lt;true/&gt;
+    &lt;key&gt;StandardOutPath&lt;/key&gt;
+    &lt;string&gt;<span class="st">/opt/rain-remote/logs/daemon.log</span>&lt;/string&gt;
+    &lt;key&gt;EnvironmentVariables&lt;/key&gt;
+    &lt;dict&gt;
+      &lt;key&gt;DEVICE_ID&lt;/key&gt;
+      &lt;string&gt;<span class="st">CLIENT_DEVICE_ID</span>&lt;/string&gt;
+      &lt;key&gt;AUTH_TOKEN&lt;/key&gt;
+      &lt;string&gt;<span class="st">CLIENT_AUTH_TOKEN</span>&lt;/string&gt;
+      &lt;key&gt;KAI_SERVER&lt;/key&gt;
+      &lt;string&gt;<span class="st">wss://YOUR_SERVER/ws</span>&lt;/string&gt;
+    &lt;/dict&gt;
+  &lt;/dict&gt;
+&lt;/plist&gt;
+</pre>
+</div>
+</div>
+<div class="card">
+<h3>Windows 開機自啟（Task Scheduler）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># install_service.ps1</span>
+<span class="cm"># 註冊為 Windows 排程任務</span>
+
+<span class="kw">$action</span> = New-ScheduledTaskAction `
+  -Execute <span class="st">"python"</span> `
+  -Argument <span class="st">"C:\rain-remote\daemon.py"</span>
+
+<span class="kw">$trigger</span> = New-ScheduledTaskTrigger `
+  -AtLogon
+
+<span class="kw">$settings</span> = New-ScheduledTaskSettingsSet `
+  -RestartCount 999 `
+  -RestartInterval (New-TimeSpan -Minutes 1)
+
+Register-ScheduledTask `
+  -TaskName <span class="st">"RainRemoteAgent"</span> `
+  -Action <span class="kw">$action</span> `
+  -Trigger <span class="kw">$trigger</span> `
+  -Settings <span class="kw">$settings</span> `
+  -Description <span class="st">"Rain AI Remote Agent"</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>Daemon 安裝後的本機目錄結構</h3>
+<div class="code-block">
+<pre>
+/opt/rain-remote/                   <span class="cm"># 客戶電腦上的所有檔案（macOS/Linux）</span>
+├── daemon.py                      <span class="cm"># 主程式（單檔，含所有 handler）</span>
+├── config.json                    <span class="cm"># 設定檔</span>
+│   {
+│     <span class="st">"device_id"</span>: <span class="st">"client-a-mac"</span>,
+│     <span class="st">"kai_server"</span>: <span class="st">"wss://server:5002"</span>,
+│     <span class="st">"auth_token"</span>: <span class="st">"encrypted..."</span>,
+│     <span class="st">"allowed_dirs"</span>: [<span class="st">"/Users/client/Projects"</span>],   <span class="cm"># 白名單目錄</span>
+│     <span class="st">"blocked_commands"</span>: [<span class="st">"rm -rf /"</span>, <span class="st">"format"</span>],   <span class="cm"># 危險指令黑名單</span>
+│     <span class="st">"max_concurrent_tasks"</span>: 3
+│   }
+├── state.json                     <span class="cm"># 當前狀態（斷線恢復用）</span>
+├── screenshots/                   <span class="cm"># 截圖暫存（自動清理 24h）</span>
+└── logs/                          <span class="cm"># 日誌（自動 rotate 7 天）</span>
+    ├── daemon.log
+    └── commands.jsonl             <span class="cm"># 指令執行記錄（審計用）</span>
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: DECISION ENGINE -->
+<!-- ============================================================ -->
+<section id="engine" class="sec">
+<span class="sec-label">11 — Decision Engine</span>
+<h2>AI 決策引擎：怎麼判斷用哪個模式</h2>
+<p class="sec-desc">不是隨便選 Mode A/B/C。有明確的判斷樹，基於任務分類 + 裝置能力 + 歷史成功率。</p>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>完整決策流程圖</h3>
+<div class="code-block">
+<pre>
+<span class="or">╔══════════════════════════════════════════════════════════════════╗</span>
+<span class="or">║              DECISION ENGINE — 模式選擇決策樹                    ║</span>
+<span class="or">╚══════════════════════════════════════════════════════════════════╝</span>
+
+<span class="gr">INPUT</span>: task_description + device_capabilities + history
+
+<span class="yl">STEP 1: 任務分類（規則優先，LLM 備援）</span>
+  ┌─────────────────────────────────────────────────┐
+  │ 關鍵字比對（免費、即時）                          │
+  │                                                 │
+  │ browser_keywords = [                            │
+  │   "登入","網站","部署","SaaS","後台","CMS",      │
+  │   "表單","上傳","下載","vercel","github",         │
+  │   "login","deploy","dashboard","upload"          │
+  │ ]                                               │
+  │ system_keywords = [                             │
+  │   "安裝","設定","config","brew","npm","git",      │
+  │   "install","環境","env","啟動","restart",        │
+  │   "檔案","folder","目錄","terminal"              │
+  │ ]                                               │
+  │                                                 │
+  │ 比對到 browser_keywords → <span class="gr">BROWSER_TASK</span>          │
+  │ 比對到 system_keywords  → <span class="kw">SYSTEM_TASK</span>           │
+  │ 都沒比對到              → <span class="yl">LLM 分類（Haiku）</span>     │
+  │ LLM 也不確定            → <span class="st">UNKNOWN_TASK</span>          │
+  └─────────────────────────────────────────────────┘
+
+<span class="yl">STEP 2: 裝置能力檢查</span>
+  ┌─────────────────────────────────────────────────┐
+  │ <span class="gr">BROWSER_TASK</span>:                                   │
+  │   Chrome installed?  ──YES──→ CDP connectable?  │
+  │        │                          │              │
+  │       NO                    YES      NO          │
+  │        ↓                     ↓       ↓           │
+  │   <span class="st">降級 VISION</span>           <span class="gr">MODE A</span>  <span class="yl">啟動 Chrome</span>   │
+  │                                    再試 CDP      │
+  │                                                 │
+  │ <span class="kw">SYSTEM_TASK</span>:                                    │
+  │   SSH available?  ──YES──→ OS detected?         │
+  │        │                      │                  │
+  │       NO                darwin/windows/linux     │
+  │        ↓                      ↓                  │
+  │   <span class="st">降級 VISION</span>           <span class="kw">MODE B</span>（對應 Agent）   │
+  │                                                 │
+  │ <span class="st">UNKNOWN_TASK</span>:                                   │
+  │   直接 → <span class="st">MODE C（Vision）</span>                       │
+  └─────────────────────────────────────────────────┘
+
+<span class="yl">STEP 3: 歷史成功率加權（Phase 2 實作）</span>
+  ┌─────────────────────────────────────────────────┐
+  │ 查詢此裝置 + 此類任務的歷史：                      │
+  │                                                 │
+  │ Mode A 對此裝置成功率 &lt; 50%                      │
+  │   → 降優先級，先試 Mode B 或 C                    │
+  │                                                 │
+  │ 某裝置 Chrome 版本太舊（CDP 不穩定）              │
+  │   → 自動標記 "chrome_unstable"，跳過 Mode A      │
+  │                                                 │
+  │ 此裝置 Vision 成功率 &gt; 90%                       │
+  │   → 對此裝置 UNKNOWN 任務直接走 Vision            │
+  └─────────────────────────────────────────────────┘
+
+<span class="yl">STEP 4: 執行 + Fallback Chain</span>
+  ┌─────────────────────────────────────────────────┐
+  │ <span class="gr">Mode A</span> 失敗 → 重試 3 次（指數退避）              │
+  │   → 仍失敗 → <span class="st">Mode C (Vision)</span>                   │
+  │     → 仍失敗 → <span class="or">ESCALATE (TeamViewer + Discord)</span> │
+  │                                                 │
+  │ <span class="kw">Mode B</span> 失敗 → 重試 3 次                         │
+  │   → 仍失敗 → <span class="st">Mode C (Vision)</span>                   │
+  │     → 仍失敗 → <span class="or">ESCALATE</span>                        │
+  │                                                 │
+  │ <span class="st">Mode C</span> 失敗 → 重試 3 次                         │
+  │   → 仍失敗 → <span class="or">ESCALATE</span>（無更低 fallback）       │
+  └─────────────────────────────────────────────────┘
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Decision Engine 程式碼</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/services/remote_decision_engine.py</span>
+
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+
+<span class="kw">class</span> <span class="fn">TaskType</span>(Enum):
+    BROWSER = <span class="st">"browser"</span>
+    SYSTEM  = <span class="st">"system"</span>
+    VISION  = <span class="st">"vision"</span>
+    UNKNOWN = <span class="st">"unknown"</span>
+
+<span class="kw">class</span> <span class="fn">ControlMode</span>(Enum):
+    BROWSER_CDP = <span class="st">"browser"</span>   <span class="cm"># Mode A</span>
+    SYSTEM_CMD  = <span class="st">"system"</span>    <span class="cm"># Mode B</span>
+    VISION_AI   = <span class="st">"vision"</span>    <span class="cm"># Mode C</span>
+    ESCALATE    = <span class="st">"escalate"</span>  <span class="cm"># 人工</span>
+
+BROWSER_KW = {<span class="st">"登入"</span>,<span class="st">"網站"</span>,<span class="st">"部署"</span>,<span class="st">"saas"</span>,<span class="st">"後台"</span>,<span class="st">"cms"</span>,<span class="st">"表單"</span>,
+    <span class="st">"login"</span>,<span class="st">"deploy"</span>,<span class="st">"dashboard"</span>,<span class="st">"upload"</span>,<span class="st">"vercel"</span>,<span class="st">"github"</span>}
+SYSTEM_KW = {<span class="st">"安裝"</span>,<span class="st">"設定"</span>,<span class="st">"config"</span>,<span class="st">"brew"</span>,<span class="st">"npm"</span>,<span class="st">"git"</span>,<span class="st">"install"</span>,
+    <span class="st">"環境"</span>,<span class="st">"env"</span>,<span class="st">"啟動"</span>,<span class="st">"restart"</span>,<span class="st">"terminal"</span>,<span class="st">"檔案"</span>}
+
+<span class="kw">class</span> <span class="fn">DecisionEngine</span>:
+    <span class="kw">def</span> <span class="fn">classify_task</span>(self, description: str) -> TaskType:
+        <span class="st">"""兩階段分類：關鍵字優先，LLM 備援"""</span>
+        desc_lower = description.lower()
+        <span class="kw">if</span> <span class="kw">any</span>(kw <span class="kw">in</span> desc_lower <span class="kw">for</span> kw <span class="kw">in</span> BROWSER_KW):
+            <span class="kw">return</span> TaskType.BROWSER
+        <span class="kw">if</span> <span class="kw">any</span>(kw <span class="kw">in</span> desc_lower <span class="kw">for</span> kw <span class="kw">in</span> SYSTEM_KW):
+            <span class="kw">return</span> TaskType.SYSTEM
+        <span class="cm"># Fallback: Haiku 分類（便宜 + 快）</span>
+        <span class="kw">return</span> self.<span class="fn">llm_classify</span>(description)
+
+    <span class="kw">def</span> <span class="fn">select_mode</span>(self, task_type: TaskType, caps: dict) -> list[ControlMode]:
+        <span class="st">"""回傳 [主模式, fallback1, fallback2]"""</span>
+        <span class="kw">if</span> task_type == TaskType.BROWSER:
+            <span class="kw">if</span> <span class="st">"browser"</span> <span class="kw">in</span> caps[<span class="st">"modes"</span>]:
+                <span class="kw">return</span> [ControlMode.BROWSER_CDP, ControlMode.VISION_AI, ControlMode.ESCALATE]
+            <span class="kw">return</span> [ControlMode.VISION_AI, ControlMode.ESCALATE]
+
+        <span class="kw">if</span> task_type == TaskType.SYSTEM:
+            <span class="kw">return</span> [ControlMode.SYSTEM_CMD, ControlMode.VISION_AI, ControlMode.ESCALATE]
+
+        <span class="cm"># UNKNOWN / VISION → 直接 Vision</span>
+        <span class="kw">return</span> [ControlMode.VISION_AI, ControlMode.ESCALATE]
+
+    <span class="kw">async def</span> <span class="fn">execute_with_fallback</span>(self, task, caps, agents):
+        <span class="st">"""依序嘗試模式鏈，直到成功或全失敗"""</span>
+        modes = self.<span class="fn">select_mode</span>(self.<span class="fn">classify_task</span>(task.description), caps)
+        <span class="kw">for</span> mode <span class="kw">in</span> modes:
+            <span class="kw">if</span> mode == ControlMode.ESCALATE:
+                <span class="kw">return await</span> agents.<span class="fn">escalate</span>(task)
+            result = <span class="kw">await</span> agents[mode].<span class="fn">execute_with_retry</span>(task, max_retries=3)
+            <span class="kw">if</span> result.success:
+                <span class="kw">return</span> result
+            log.<span class="fn">warning</span>(f<span class="st">"{mode.value} failed, trying next"</span>)
+        <span class="kw">return await</span> agents.<span class="fn">escalate</span>(task)
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11.5: AGENT LOOP -->
+<!-- ============================================================ -->
+<section id="agentloop" class="sec">
+<span class="sec-label">12 — Agent Loop</span>
+<h2>AI Agent 執行循環：Observe → Decide → Execute → Verify</h2>
+<p class="sec-desc">完整的 Agent 執行循環。不是單步指令，是持續運轉的閉環 — 直到任務完成或升級人工。</p>
+
+<div class="card" style="border:2px solid var(--orange)">
+<h3>Agent Loop 完整流程圖</h3>
+<div class="code-block">
+<pre>
+<span class="or">╔══════════════════════════════════════════════════════════════════╗</span>
+<span class="or">║                    AGENT LOOP — 核心執行閉環                     ║</span>
+<span class="or">╚══════════════════════════════════════════════════════════════════╝</span>
+
+<span class="yl">任務輸入</span>: "幫客戶 A 部署 Vercel + 設定 domain"
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ <span class="gr">STEP 1: OBSERVE（觀察）</span>                                        │
+│                                                                 │
+│  → 截圖當前畫面（自動，每個 step 前都截）                           │
+│  → 讀取裝置狀態（CPU / RAM / 連線品質）                            │
+│  → 讀取 Session Context（之前的步驟結果、累積的頁面歷史）            │
+│  → 組合成 Observation：                                          │
+│    {                                                            │
+│      "screenshot_b64": "...",                                   │
+│      "page_url": "https://vercel.com/dashboard",                │
+│      "page_title": "Vercel — Dashboard",                        │
+│      "device_state": { "cpu": 23, "mem_free": 8192, ... },      │
+│      "step_history": [                                          │
+│        { "step": 1, "action": "login", "result": "success" },   │
+│        { "step": 2, "action": "navigate", "result": "success" } │
+│      ],                                                         │
+│      "remaining_steps": ["deploy", "set_domain", "verify"]      │
+│    }                                                            │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ <span class="yl">STEP 2: DECIDE（決策）</span>                                         │
+│                                                                 │
+│  → 把 Observation 丟給 Decision Engine：                          │
+│    - 任務分類（browser / system / vision）                        │
+│    - 模式選擇（Mode A / B / C）                                   │
+│    - 下一步 action 推斷                                           │
+│                                                                 │
+│  → LLM Planning（Haiku / Sonnet，看複雜度）:                      │
+│    INPUT: observation + task_description + step_history           │
+│    OUTPUT: {                                                     │
+│      "next_action": "browser.click",                             │
+│      "params": { "selector": "button[data-testid='deploy']" },   │
+│      "reasoning": "Deploy 按鈕已出現在截圖中，直接點擊",            │
+│      "confidence": 0.92,                                         │
+│      "needs_confirmation": false                                 │
+│    }                                                             │
+│                                                                 │
+│  → <span class="or">高風險判斷</span>：如果 action 在 dangerous_commands 清單               │
+│    → needs_confirmation = true → 暫停等 Rain 確認                 │
+│                                                                 │
+│  → <span class="st">信心過低</span>：confidence &lt; 0.5                                    │
+│    → 切換到 Vision 模式（截圖 + Claude Vision 分析）               │
+│    → 或 escalate 人工                                             │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ <span class="kw">STEP 3: EXECUTE（執行）</span>                                        │
+│                                                                 │
+│  → 透過 WebSocket 發送 Command 到 Client Daemon                  │
+│  → Daemon 執行，帶 timeout（預設 30s per-command）                  │
+│  → 回傳 Response（含 screenshot + result + device_state）         │
+│                                                                 │
+│  → 如果 timeout → 自動重試（最多 3 次，指數退避）                   │
+│  → 如果 mode 失敗 → Fallback Chain（A→C→escalate）               │
+│  → 如果成功 → 進入 VERIFY                                        │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ <span class="gr">STEP 4: VERIFY（驗證）</span>                                         │
+│                                                                 │
+│  → 自動截圖（執行後 1 秒）                                        │
+│  → 比對前後截圖差異（screenshot diff）                             │
+│  → 判斷 action 是否真的生效：                                     │
+│                                                                 │
+│  驗證策略（按 action 類型）:                                       │
+│  ┌───────────────────┬────────────────────────────────────────┐  │
+│  │ browser.navigate  │ URL 變了 + title 符合預期               │  │
+│  │ browser.click     │ 截圖有變化 OR 新頁面載入                 │  │
+│  │ browser.fill      │ input value 已更新                      │  │
+│  │ system.shell      │ exit_code == 0 + stdout 非空            │  │
+│  │ system.install    │ 安裝完 + which/where 可找到              │  │
+│  │ system.file_write │ file_read 驗證內容一致                   │  │
+│  │ vision.click_at   │ 截圖有變化（像素差異 &gt; 閾值）           │  │
+│  └───────────────────┴────────────────────────────────────────┘  │
+│                                                                 │
+│  → 驗證通過 → <span class="gr">標記 step success → 回到 STEP 1（下一步）</span>        │
+│  → 驗證失敗 → <span class="st">retry 同一步（最多 2 次）→ 仍失敗 → escalate</span>    │
+│  → 任務所有步驟完成 → <span class="gr">TASK COMPLETE</span>                             │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ <span class="yl">STEP 5: LOOP / EXIT（循環 / 結束）</span>                              │
+│                                                                 │
+│  <span class="gr">remaining_steps 非空</span>                                          │
+│    → 回到 STEP 1（OBSERVE），帶著更新的 step_history               │
+│                                                                 │
+│  <span class="gr">remaining_steps 空</span>                                            │
+│    → 最終截圖 → 生成執行報告 → 通知 Rain                           │
+│    → Session 狀態 → CONNECTED（等下個任務）                        │
+│                                                                 │
+│  <span class="st">ESCALATE（人工介入）</span>                                            │
+│    → 截圖 + 上下文打包 → Discord 通知 Rain                        │
+│    → Session 狀態 → ESCALATED → 等待 TeamViewer 人工接手          │
+│                                                                 │
+│  <span class="or">MAX STEPS 保護</span>                                                 │
+│    → 單任務最多 50 步 → 超過強制 escalate                          │
+│    → 防止 AI 無限循環                                             │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Agent Loop 程式碼</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/services/remote_agent_loop.py</span>
+
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">from</span> app.models.remote_models <span class="kw">import</span> (
+    ActionType, CommandStatus, SessionStatus, ErrorCode
+)
+
+MAX_STEPS_PER_TASK = 50
+MAX_VERIFY_RETRIES = 2
+SCREENSHOT_DELAY_MS = 1000
+
+<span class="or">@dataclass</span>
+<span class="kw">class</span> <span class="fn">Observation</span>:
+    screenshot_b64: Optional[str]
+    page_url: Optional[str]
+    page_title: Optional[str]
+    device_state: dict
+    step_history: list[dict]
+    remaining_steps: list[str]
+
+<span class="or">@dataclass</span>
+<span class="kw">class</span> <span class="fn">Decision</span>:
+    next_action: ActionType
+    params: dict
+    reasoning: str
+    confidence: float
+    needs_confirmation: bool = False
+
+<span class="or">@dataclass</span>
+<span class="kw">class</span> <span class="fn">VerifyResult</span>:
+    passed: bool
+    evidence: str            <span class="cm"># "URL changed to X" / "exit_code=0"</span>
+    before_screenshot: str
+    after_screenshot: str
+
+<span class="kw">class</span> <span class="fn">AgentLoop</span>:
+    <span class="st">"""AI Agent 的核心執行循環。"""</span>
+
+    <span class="kw">def</span> __init__(self, session, decision_engine, command_sender, planner, verifier):
+        self.session = session
+        self.engine = decision_engine
+        self.sender = command_sender       <span class="cm"># WebSocket command sender</span>
+        self.planner = planner             <span class="cm"># LLM planner (Haiku/Sonnet)</span>
+        self.verifier = verifier           <span class="cm"># 截圖比對 + 結果驗證</span>
+        self.step_count = 0
+        self.step_history: list[dict] = []
+
+    <span class="kw">async def</span> <span class="fn">run_task</span>(self, task_description: str) -> dict:
+        <span class="st">"""執行一個完整任務，回傳執行報告。"""</span>
+
+        <span class="cm"># 拆解任務為步驟（LLM 規劃）</span>
+        plan = <span class="kw">await</span> self.planner.<span class="fn">decompose_task</span>(task_description)
+        remaining = plan.steps[:]  <span class="cm"># ["login", "deploy", "set_domain", "verify"]</span>
+
+        <span class="kw">while</span> remaining <span class="kw">and</span> self.step_count &lt; MAX_STEPS_PER_TASK:
+
+            <span class="cm"># ═══ OBSERVE ═══</span>
+            obs = <span class="kw">await</span> self.<span class="fn">observe</span>(remaining)
+
+            <span class="cm"># ═══ DECIDE ═══</span>
+            decision = <span class="kw">await</span> self.<span class="fn">decide</span>(obs, task_description)
+
+            <span class="cm"># 高風險 → 等確認</span>
+            <span class="kw">if</span> decision.needs_confirmation:
+                <span class="kw">await</span> self.<span class="fn">request_confirmation</span>(decision)
+                <span class="kw">continue</span>
+
+            <span class="cm"># 信心太低 → escalate</span>
+            <span class="kw">if</span> decision.confidence &lt; 0.3:
+                <span class="kw">return await</span> self.<span class="fn">escalate</span>(<span class="st">"confidence too low"</span>, obs)
+
+            <span class="cm"># ═══ EXECUTE ═══</span>
+            result = <span class="kw">await</span> self.<span class="fn">execute</span>(decision)
+
+            <span class="cm"># 執行失敗 → fallback chain（在 decision_engine 裡處理）</span>
+            <span class="kw">if</span> result.status != CommandStatus.SUCCESS:
+                fallback_result = <span class="kw">await</span> self.engine.<span class="fn">execute_with_fallback</span>(
+                    task=decision, caps=obs.device_state, agents=self.sender
+                )
+                <span class="kw">if not</span> fallback_result.success:
+                    <span class="kw">return await</span> self.<span class="fn">escalate</span>(<span class="st">"all modes failed"</span>, obs)
+                result = fallback_result
+
+            <span class="cm"># ═══ VERIFY ═══</span>
+            verify = <span class="kw">await</span> self.<span class="fn">verify</span>(decision, result)
+
+            <span class="kw">if</span> verify.passed:
+                self.step_history.append({
+                    <span class="st">"step"</span>: self.step_count,
+                    <span class="st">"action"</span>: decision.next_action.value,
+                    <span class="st">"result"</span>: <span class="st">"success"</span>,
+                    <span class="st">"evidence"</span>: verify.evidence
+                })
+                remaining.pop(0)  <span class="cm"># 完成一步，移除</span>
+            <span class="kw">else</span>:
+                <span class="cm"># 驗證失敗 → retry 同一步</span>
+                self.step_history.append({
+                    <span class="st">"step"</span>: self.step_count,
+                    <span class="st">"action"</span>: decision.next_action.value,
+                    <span class="st">"result"</span>: <span class="st">"verify_failed"</span>,
+                    <span class="st">"evidence"</span>: verify.evidence
+                })
+                verify_retries = sum(
+                    1 <span class="kw">for</span> h <span class="kw">in</span> self.step_history[-3:]
+                    <span class="kw">if</span> h[<span class="st">"result"</span>] == <span class="st">"verify_failed"</span>
+                )
+                <span class="kw">if</span> verify_retries >= MAX_VERIFY_RETRIES:
+                    <span class="kw">return await</span> self.<span class="fn">escalate</span>(<span class="st">"verify failed 2x"</span>, obs)
+
+            self.step_count += 1
+
+        <span class="cm"># ═══ LOOP EXIT ═══</span>
+        <span class="kw">if not</span> remaining:
+            <span class="kw">return await</span> self.<span class="fn">complete</span>()
+        <span class="kw">else</span>:
+            <span class="kw">return await</span> self.<span class="fn">escalate</span>(<span class="st">"max steps exceeded"</span>, <span class="kw">None</span>)
+
+    <span class="kw">async def</span> <span class="fn">observe</span>(self, remaining: list[str]) -> Observation:
+        <span class="st">"""截圖 + 裝置狀態 + 歷史組合。"""</span>
+        screenshot = <span class="kw">await</span> self.sender.<span class="fn">send_command</span>(ActionType.BROWSER_SCREENSHOT, {})
+        state = <span class="kw">await</span> self.sender.<span class="fn">get_device_state</span>()
+        <span class="kw">return</span> Observation(
+            screenshot_b64=screenshot.result.screenshot_b64,
+            page_url=screenshot.result.page_url,
+            page_title=screenshot.result.page_title,
+            device_state=state,
+            step_history=self.step_history,
+            remaining_steps=remaining
+        )
+
+    <span class="kw">async def</span> <span class="fn">decide</span>(self, obs: Observation, task: str) -> Decision:
+        <span class="st">"""LLM 看 observation → 決定下一步 action。"""</span>
+        prompt = self.<span class="fn">build_decide_prompt</span>(obs, task)
+        llm_resp = <span class="kw">await</span> self.planner.<span class="fn">decide_next_action</span>(prompt)
+        <span class="cm"># 安全檢查</span>
+        <span class="kw">if</span> self.<span class="fn">is_dangerous</span>(llm_resp.next_action, llm_resp.params):
+            llm_resp.needs_confirmation = True
+        <span class="kw">return</span> llm_resp
+
+    <span class="kw">async def</span> <span class="fn">verify</span>(self, decision: Decision, result) -> VerifyResult:
+        <span class="st">"""執行後截圖 + 比對，確認 action 真的生效。"""</span>
+        <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(SCREENSHOT_DELAY_MS / 1000)
+        after = <span class="kw">await</span> self.sender.<span class="fn">send_command</span>(ActionType.BROWSER_SCREENSHOT, {})
+        <span class="kw">return await</span> self.verifier.<span class="fn">check</span>(
+            action=decision.next_action,
+            params=decision.params,
+            before=result,
+            after=after
+        )
+
+    <span class="kw">async def</span> <span class="fn">escalate</span>(self, reason: str, obs) -> dict:
+        <span class="st">"""升級人工 — 截圖 + 上下文 → Discord。"""</span>
+        self.session.status = SessionStatus.ESCALATED
+        <span class="kw">await</span> self.sender.<span class="fn">notify_discord</span>(
+            f<span class="st">"⚠️ Remote task escalated: {reason}\n"</span>
+            f<span class="st">"Steps completed: {len(self.step_history)}\n"</span>
+            f<span class="st">"Device: {self.session.device_id}"</span>
+        )
+        <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"escalated"</span>, <span class="st">"reason"</span>: reason, <span class="st">"steps"</span>: self.step_history}
+
+    <span class="kw">async def</span> <span class="fn">complete</span>(self) -> dict:
+        <span class="st">"""任務完成 — 最終截圖 + 報告。"""</span>
+        final = <span class="kw">await</span> self.sender.<span class="fn">send_command</span>(ActionType.BROWSER_SCREENSHOT, {})
+        <span class="kw">return</span> {
+            <span class="st">"status"</span>: <span class="st">"completed"</span>,
+            <span class="st">"steps_total"</span>: self.step_count,
+            <span class="st">"step_history"</span>: self.step_history,
+            <span class="st">"final_screenshot"</span>: final.result.screenshot_b64
+        }
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--purple)">
+<h3>Loop 與其他模組的關係</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 元件關係圖</span>
+
+<span class="or">Kai API</span> (POST /api/remote/task)
+    ↓
+<span class="yl">TaskQueue</span> (排隊 + 優先級)
+    ↓
+<span class="gr">AgentLoop.run_task()</span> ← <span class="kw">核心循環，本 Section 定義</span>
+    │
+    ├── <span class="fn">observe()</span>   → <span class="yl">WebSocket</span> → Client Daemon → 截圖/狀態
+    ├── <span class="fn">decide()</span>    → <span class="or">DecisionEngine</span> (Section 11) → LLM Planning
+    ├── <span class="fn">execute()</span>   → <span class="yl">WebSocket</span> → Client Daemon → 執行
+    │                  → <span class="or">DecisionEngine.execute_with_fallback()</span>
+    └── <span class="fn">verify()</span>    → <span class="yl">WebSocket</span> → 截圖 → <span class="fn">ScreenDiff</span>
+                        → 驗證策略（按 action type 分）
+    ↓
+<span class="gr">完成 / 升級人工</span>
+    ↓
+<span class="or">SessionManager</span> (Section 13) → 更新 session 狀態
+
+<span class="cm"># 關鍵原則：</span>
+<span class="cm"># 1. AgentLoop 不直接操作裝置 — 所有操作透過 WebSocket Command</span>
+<span class="cm"># 2. AgentLoop 不做模式選擇 — 交給 DecisionEngine</span>
+<span class="cm"># 3. AgentLoop 只管「循環邏輯」= observe + decide + execute + verify</span>
+<span class="cm"># 4. 一個 AgentLoop instance 對應一個 Session（不跨裝置）</span>
+<span class="cm"># 5. 多裝置 = SessionManager 管多個 AgentLoop instance</span>
+</pre>
+</div>
+</div>
+
+<div class="warn-box">
+<strong>安全限制（硬編碼）：</strong><br>
+- 單任務最多 <strong>50 步</strong>（超過強制 escalate，防 AI 無限循環）<br>
+- 同一步驟驗證失敗最多重試 <strong>2 次</strong>（第 3 次 escalate）<br>
+- <code>needs_confirmation</code> 的 action 會<strong>暫停整個 loop</strong>，直到 Rain 在 Kai UI 點確認<br>
+- LLM confidence &lt; 0.3 → 直接 escalate（不嘗試執行）
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 13: TASK QUEUE & RETRY -->
+<!-- ============================================================ -->
+<section id="queue" class="sec">
+<span class="sec-label">13 — Task Queue & Retry</span>
+<h2>任務佇列、重試、Dead Letter Queue</h2>
+<p class="sec-desc">每個遠端指令進入佇列 → 排程執行 → 失敗重試 → 超過重試次數進 DLQ。</p>
+
+<div class="card" style="border-left:4px solid var(--blue)">
+<h3>Queue 資料模型（SQLite — 不多加 Redis）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/services/remote_task_queue.py</span>
+<span class="cm"># 用 Kai 現有的 SQLite，不引入新 infra</span>
+
+<span class="kw">CREATE TABLE</span> remote_command_queue (
+    id            <span class="kw">TEXT PRIMARY KEY</span>,       <span class="cm">-- cmd-20260326-001</span>
+    session_id    <span class="kw">TEXT NOT NULL</span>,           <span class="cm">-- rs-20260326-001</span>
+    device_id     <span class="kw">TEXT NOT NULL</span>,
+    action        <span class="kw">TEXT NOT NULL</span>,           <span class="cm">-- browser.navigate</span>
+    params        <span class="kw">TEXT NOT NULL</span>,           <span class="cm">-- JSON</span>
+    priority      <span class="kw">INTEGER DEFAULT</span> 1,      <span class="cm">-- 0=urgent 1=normal 2=low</span>
+    status        <span class="kw">TEXT DEFAULT</span> <span class="st">'pending'</span>,  <span class="cm">-- pending|running|done|failed|dlq</span>
+    retry_count   <span class="kw">INTEGER DEFAULT</span> 0,
+    max_retries   <span class="kw">INTEGER DEFAULT</span> 3,
+    timeout_ms    <span class="kw">INTEGER DEFAULT</span> 30000,
+    on_failure    <span class="kw">TEXT DEFAULT</span> <span class="st">'fallback_vision'</span>,
+    created_at    <span class="kw">TEXT NOT NULL</span>,
+    started_at    <span class="kw">TEXT</span>,
+    completed_at  <span class="kw">TEXT</span>,
+    result        <span class="kw">TEXT</span>,                   <span class="cm">-- JSON response</span>
+    error         <span class="kw">TEXT</span>,
+    screenshot    <span class="kw">TEXT</span>                    <span class="cm">-- 最後一張截圖的 path</span>
+);
+
+<span class="cm">-- 索引：按裝置+狀態查詢（多機並控時常用）</span>
+<span class="kw">CREATE INDEX</span> idx_queue_device_status
+    <span class="kw">ON</span> remote_command_queue(device_id, status);
+
+<span class="cm">-- Dead Letter Queue（超過重試次數的指令）</span>
+<span class="kw">CREATE TABLE</span> remote_command_dlq (
+    id            <span class="kw">TEXT PRIMARY KEY</span>,
+    original_id   <span class="kw">TEXT NOT NULL</span>,          <span class="cm">-- 原始 command id</span>
+    session_id    <span class="kw">TEXT NOT NULL</span>,
+    device_id     <span class="kw">TEXT NOT NULL</span>,
+    action        <span class="kw">TEXT NOT NULL</span>,
+    params        <span class="kw">TEXT NOT NULL</span>,
+    error_history <span class="kw">TEXT NOT NULL</span>,          <span class="cm">-- JSON: 每次重試的錯誤</span>
+    moved_at      <span class="kw">TEXT NOT NULL</span>,
+    resolved      <span class="kw">INTEGER DEFAULT</span> 0       <span class="cm">-- 人工處理後標記</span>
+);
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Queue Worker 邏輯</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 排程器：每個裝置一個 worker，保證同裝置指令順序執行</span>
+
+<span class="kw">class</span> <span class="fn">CommandQueueWorker</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, device_id: str):
+        self.device_id = device_id
+        self.running = False
+
+    <span class="kw">async def</span> <span class="fn">process_next</span>(self):
+        <span class="cm"># 1. 從佇列取下一個 pending 指令（同裝置，按 priority + created_at 排序）</span>
+        cmd = <span class="kw">await</span> db.<span class="fn">fetch_one</span>(<span class="st">"""
+            SELECT * FROM remote_command_queue
+            WHERE device_id = ? AND status = 'pending'
+            ORDER BY priority ASC, created_at ASC
+            LIMIT 1
+        """</span>, [self.device_id])
+        <span class="kw">if not</span> cmd: <span class="kw">return</span>
+
+        <span class="cm"># 2. 標記 running</span>
+        <span class="kw">await</span> db.<span class="fn">execute</span>(<span class="st">"UPDATE ... SET status='running', started_at=?"</span>)
+
+        <span class="cm"># 3. 透過 WebSocket 發送給 Client Daemon</span>
+        response = <span class="kw">await</span> self.<span class="fn">send_to_device</span>(cmd)
+
+        <span class="cm"># 4. 處理結果</span>
+        <span class="kw">if</span> response.status == <span class="st">"success"</span>:
+            <span class="kw">await</span> self.<span class="fn">mark_done</span>(cmd, response)
+
+        <span class="kw">elif</span> cmd.retry_count &lt; cmd.max_retries:
+            <span class="cm"># 重試：指數退避</span>
+            backoff = [1, 3, 10][min(cmd.retry_count, 2)]
+            <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(backoff)
+            <span class="kw">await</span> db.<span class="fn">execute</span>(<span class="st">"""
+                UPDATE remote_command_queue
+                SET status='pending', retry_count=retry_count+1, error=?
+                WHERE id=?
+            """</span>, [response.error, cmd.id])
+
+        <span class="kw">else</span>:
+            <span class="cm"># 超過重試次數 → 進 Dead Letter Queue</span>
+            <span class="kw">await</span> self.<span class="fn">move_to_dlq</span>(cmd, response)
+            <span class="cm"># 嘗試 fallback 模式</span>
+            <span class="kw">if</span> cmd.on_failure == <span class="st">"fallback_vision"</span>:
+                <span class="kw">await</span> self.<span class="fn">enqueue_vision_fallback</span>(cmd)
+            <span class="kw">elif</span> cmd.on_failure == <span class="st">"escalate"</span>:
+                <span class="kw">await</span> self.<span class="fn">escalate_to_human</span>(cmd)
+
+    <span class="kw">async def</span> <span class="fn">move_to_dlq</span>(self, cmd, response):
+        <span class="st">"""移入 Dead Letter Queue + Discord 通知"""</span>
+        <span class="kw">await</span> db.<span class="fn">execute</span>(<span class="st">"INSERT INTO remote_command_dlq ..."</span>)
+        <span class="kw">await</span> db.<span class="fn">execute</span>(<span class="st">"UPDATE remote_command_queue SET status='dlq' WHERE id=?"</span>)
+        <span class="kw">await</span> discord.<span class="fn">notify</span>(
+            f<span class="st">"⚠️ 指令失敗 3 次進入 DLQ\n"</span>
+            f<span class="st">"裝置: {cmd.device_id}\n"</span>
+            f<span class="st">"動作: {cmd.action}\n"</span>
+            f<span class="st">"錯誤: {response.error}"</span>
+        )
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>Retry 策略對照表</h3>
+<table class="t">
+<tr><th>錯誤類型</th><th>重試？</th><th>退避時間</th><th>最終處置</th></tr>
+<tr><td>Network timeout</td><td>是，3 次</td><td>1s → 3s → 10s</td><td>fallback_vision</td></tr>
+<tr><td>Chrome CDP disconnected</td><td>是，2 次</td><td>2s → 5s</td><td>重啟 Chrome → retry</td></tr>
+<tr><td>Element not found</td><td>是，3 次</td><td>1s → 2s → 5s</td><td>fallback_vision</td></tr>
+<tr><td>Permission denied</td><td>否</td><td>—</td><td>直接 escalate</td></tr>
+<tr><td>Disk full</td><td>否</td><td>—</td><td>escalate + 通知清理</td></tr>
+<tr><td>SSH connection lost</td><td>是，5 次</td><td>1s → 3s → 10s → 30s → 60s</td><td>escalate</td></tr>
+<tr><td>Vision AI misclick</td><td>是，2 次</td><td>0s（立即重截圖）</td><td>escalate</td></tr>
+<tr><td>Auth expired/invalid</td><td>否</td><td>—</td><td>escalate（需新密碼）</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 13: MULTI-DEVICE CONCURRENT CONTROL -->
+<!-- ============================================================ -->
+<section id="multidevice" class="sec">
+<span class="sec-label">14 — Multi-Device Architecture</span>
+<h2>多機並行控制</h2>
+<p class="sec-desc">同時操控多台客戶電腦。每台獨立 session、獨立 tunnel、獨立 Agent。最多 5 台並行。</p>
+
+<div class="card" style="border-left:4px solid var(--purple)">
+<h3>SessionManager — 多機管理核心</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/services/remote_session_manager.py</span>
+
+<span class="kw">import</span> asyncio
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Dict, Optional
+
+<span class="or">MAX_CONCURRENT_SESSIONS</span> = 5
+
+@<span class="fn">dataclass</span>
+<span class="kw">class</span> <span class="fn">RemoteSession</span>:
+    session_id: str
+    device_id: str
+    status: str = <span class="st">"connecting"</span>     <span class="cm"># 狀態機（見 Section 09）</span>
+    mode: str = <span class="st">"auto"</span>
+    ws_connection: Optional[object] = <span class="kw">None</span>
+    queue_worker: Optional[object] = <span class="kw">None</span>
+    screenshot_buffer: list = field(default_factory=list)
+    created_at: str = <span class="st">""</span>
+    last_activity: str = <span class="st">""</span>
+
+<span class="kw">class</span> <span class="fn">SessionManager</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.sessions: Dict[str, RemoteSession] = {}
+        self.device_locks: Dict[str, asyncio.Lock] = {}
+
+    <span class="kw">async def</span> <span class="fn">connect</span>(self, device_id, mode, task_desc, operator) -> RemoteSession:
+        <span class="cm"># 1. 檢查並行上限</span>
+        active = [s <span class="kw">for</span> s <span class="kw">in</span> self.sessions.values()
+                  <span class="kw">if</span> s.status <span class="kw">not in</span> (<span class="st">"closed"</span>, <span class="st">"failed"</span>)]
+        <span class="kw">if</span> len(active) >= MAX_CONCURRENT_SESSIONS:
+            <span class="kw">raise</span> RuntimeError(
+                f<span class="st">"已達並行上限 {MAX_CONCURRENT_SESSIONS}。"</span>
+                f<span class="st">"活躍 sessions: {[s.device_id for s in active]}"</span>
+            )
+
+        <span class="cm"># 2. 同一裝置不能開兩個 session</span>
+        <span class="kw">for</span> s <span class="kw">in</span> active:
+            <span class="kw">if</span> s.device_id == device_id:
+                <span class="kw">raise</span> RuntimeError(f<span class="st">"裝置 {device_id} 已有活躍 session: {s.session_id}"</span>)
+
+        <span class="cm"># 3. 建立 session</span>
+        session = RemoteSession(
+            session_id=self.<span class="fn">generate_id</span>(),
+            device_id=device_id,
+            mode=mode,
+        )
+        self.sessions[session.session_id] = session
+
+        <span class="cm"># 4. 等待 Client Daemon WebSocket 連線</span>
+        <span class="kw">await</span> self.<span class="fn">wait_for_device</span>(session, timeout=30)
+
+        <span class="cm"># 5. 啟動該裝置的 Queue Worker</span>
+        session.queue_worker = CommandQueueWorker(device_id)
+        asyncio.<span class="fn">create_task</span>(session.queue_worker.<span class="fn">run</span>())
+
+        <span class="kw">return</span> session
+
+    <span class="kw">async def</span> <span class="fn">execute_parallel</span>(self, tasks: list[dict]):
+        <span class="st">"""多機並行執行：每台裝置的任務獨立排程"""</span>
+        <span class="cm"># 按 device_id 分組</span>
+        by_device = {}
+        <span class="kw">for</span> task <span class="kw">in</span> tasks:
+            by_device.setdefault(task[<span class="st">"device_id"</span>], []).append(task)
+
+        <span class="cm"># 每台裝置的任務序列，跨裝置並行</span>
+        <span class="kw">async def</span> <span class="fn">run_device_tasks</span>(device_id, device_tasks):
+            <span class="kw">for</span> task <span class="kw">in</span> device_tasks:
+                <span class="kw">await</span> self.<span class="fn">enqueue_command</span>(task)
+            <span class="kw">return await</span> self.<span class="fn">wait_all_complete</span>(device_id)
+
+        results = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(
+            *[run_device_tasks(did, dtasks)
+              <span class="kw">for</span> did, dtasks <span class="kw">in</span> by_device.items()]
+        )
+        <span class="kw">return</span> dict(zip(by_device.keys(), results))
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>多機並控架構圖</h3>
+<div class="code-block">
+<pre>
+<span class="or">╔══════════════════════════════════════════════════════════════╗</span>
+<span class="or">║                    Kai Server（中控台）                      ║</span>
+<span class="or">╠══════════════════════════════════════════════════════════════╣</span>
+<span class="or">║</span>                                                              <span class="or">║</span>
+<span class="or">║</span>  ┌─────────────────────────────────────────────────┐         <span class="or">║</span>
+<span class="or">║</span>  │          <span class="yl">SessionManager</span>（最多 5 個 Session）     │         <span class="or">║</span>
+<span class="or">║</span>  │                                                 │         <span class="or">║</span>
+<span class="or">║</span>  │  ┌─Session 1──┐ ┌─Session 2──┐ ┌─Session 3──┐  │         <span class="or">║</span>
+<span class="or">║</span>  │  │ device-a   │ │ device-b   │ │ device-c   │  │         <span class="or">║</span>
+<span class="or">║</span>  │  │ Mode A     │ │ Mode B     │ │ Mode A     │  │         <span class="or">║</span>
+<span class="or">║</span>  │  │ QueueW #1  │ │ QueueW #2  │ │ QueueW #3  │  │         <span class="or">║</span>
+<span class="or">║</span>  │  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘  │         <span class="or">║</span>
+<span class="or">║</span>  │        │             │             │          │         <span class="or">║</span>
+<span class="or">║</span>  └────────┼─────────────┼─────────────┼──────────┘         <span class="or">║</span>
+<span class="or">║</span>           │  WebSocket   │  WebSocket   │  WebSocket          <span class="or">║</span>
+<span class="or">╚═══════════╪═════════════╪═════════════╪════════════════════╝</span>
+            │             │             │
+     ┌──────▼──────┐ ┌───▼────────┐ ┌──▼───────────┐
+     │ <span class="gr">Client A</span>    │ │ <span class="gr">Client B</span>   │ │ <span class="gr">Client C</span>    │
+     │ macOS       │ │ Windows 11 │ │ macOS        │
+     │ Daemon.py   │ │ Daemon.py  │ │ Daemon.py    │
+     │ Chrome CDP  │ │ PowerShell │ │ Chrome CDP   │
+     └─────────────┘ └────────────┘ └──────────────┘
+
+<span class="cm">重點：</span>
+1. 每台裝置 <span class="gr">獨立 WebSocket</span>（互不影響）
+2. 每台裝置 <span class="gr">獨立 Queue Worker</span>（指令不混）
+3. <span class="yl">同裝置指令序列執行</span>（避免衝突）
+4. <span class="gr">跨裝置指令並行執行</span>（asyncio.gather）
+5. 任一裝置失敗 <span class="or">不影響其他裝置</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>多機批次 API</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 新增 API：POST /api/remote/batch</span>
+<span class="cm"># 一次對多台裝置下達指令</span>
+
+<span class="cm"># Request</span>
+{
+  <span class="st">"tasks"</span>: [
+    {
+      <span class="st">"device_id"</span>: <span class="st">"client-a-mac"</span>,
+      <span class="st">"steps"</span>: [
+        {<span class="st">"action"</span>: <span class="st">"browser.navigate"</span>, <span class="st">"params"</span>: {<span class="st">"url"</span>: <span class="st">"https://vercel.com"</span>}},
+        {<span class="st">"action"</span>: <span class="st">"browser.click"</span>, <span class="st">"params"</span>: {<span class="st">"selector"</span>: <span class="st">"#deploy"</span>}}
+      ]
+    },
+    {
+      <span class="st">"device_id"</span>: <span class="st">"client-b-win"</span>,
+      <span class="st">"steps"</span>: [
+        {<span class="st">"action"</span>: <span class="st">"system.install"</span>, <span class="st">"params"</span>: {<span class="st">"package"</span>: <span class="st">"nodejs"</span>}},
+        {<span class="st">"action"</span>: <span class="st">"system.shell"</span>, <span class="st">"params"</span>: {<span class="st">"command"</span>: <span class="st">"npm install -g vercel"</span>}}
+      ]
+    }
+  ]
+}
+
+<span class="cm"># Response</span>
+{
+  <span class="st">"batch_id"</span>: <span class="st">"batch-20260326-001"</span>,
+  <span class="st">"device_results"</span>: {
+    <span class="st">"client-a-mac"</span>: {<span class="st">"status"</span>: <span class="st">"running"</span>, <span class="st">"steps_completed"</span>: 0, <span class="st">"steps_total"</span>: 2},
+    <span class="st">"client-b-win"</span>: {<span class="st">"status"</span>: <span class="st">"running"</span>, <span class="st">"steps_completed"</span>: 0, <span class="st">"steps_total"</span>: 2}
+  }
+}
+
+<span class="cm"># 進度查詢：GET /api/remote/batch/{batch_id}</span>
+<span class="cm"># WebSocket 即時推送每步完成狀態</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>資源限制與隔離</h3>
+<table class="t">
+<tr><th>限制項目</th><th>預設值</th><th>可調整</th><th>說明</th></tr>
+<tr><td>最大並行 Session</td><td>5</td><td>config</td><td>Kai Server 記憶體/CPU 限制</td></tr>
+<tr><td>單裝置最大 Queue 深度</td><td>100</td><td>config</td><td>防止佇列無限增長</td></tr>
+<tr><td>單步最大執行時間</td><td>30s</td><td>per-command</td><td>安裝類可調到 300s</td></tr>
+<tr><td>Session 閒置超時</td><td>30min</td><td>per-session</td><td>無指令自動斷線</td></tr>
+<tr><td>截圖保留時間</td><td>24h</td><td>config</td><td>自動清理磁碟</td></tr>
+<tr><td>單裝置 Daemon CPU 上限</td><td>50%</td><td>client config</td><td>不影響客戶使用電腦</td></tr>
+<tr><td>單裝置 Daemon 記憶體上限</td><td>512MB</td><td>client config</td><td>含 Chrome 程序</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 14: EDGE CASES & RECOVERY -->
+<!-- ============================================================ -->
+<section id="edge" class="sec">
+<span class="sec-label">15 — Edge Cases & Recovery</span>
+<h2>異常處理 Playbook</h2>
+<p class="sec-desc">控制真實電腦不能出錯。以下是每種可能的故障場景，以及系統如何自動處理。</p>
+
+<div class="card" style="border-left:4px solid var(--red)">
+<h3>連線層故障</h3>
+<table class="t">
+<tr><th>故障場景</th><th>偵測方式</th><th>自動處理</th><th>人工通知</th></tr>
+<tr>
+<td><strong>Client 斷網</strong><br>WiFi 斷、網路線拔</td>
+<td>3 次心跳未回（90s）</td>
+<td>暫停 Queue → 標記 session "disconnected" → 保留未送指令 10 分鐘</td>
+<td>Discord: "裝置 X 離線，等待重連"</td>
+</tr>
+<tr>
+<td><strong>WebSocket 斷開</strong><br>Server 重啟、中間網路不穩</td>
+<td>WebSocket close event</td>
+<td>Client Daemon 自動重連（指數退避 1→3→10→30→60s）<br>重連後重送 capabilities</td>
+<td>超過 5 分鐘才通知</td>
+</tr>
+<tr>
+<td><strong>SSH Tunnel 中斷</strong><br>Mode A/B 的底層通道</td>
+<td>指令執行 ConnectionError</td>
+<td>重建 tunnel → 重試當前指令</td>
+<td>重建失敗才通知</td>
+</tr>
+<tr>
+<td><strong>RustDesk Server 宕機</strong></td>
+<td>健康檢查失敗（/health）</td>
+<td>Docker auto-restart（restart: always）<br>所有 session 自動重連</td>
+<td>立即 Discord 通知 Forge</td>
+</tr>
+</table>
+</div>
+
+<div class="card" style="border-left:4px solid var(--yellow)">
+<h3>執行層故障</h3>
+<table class="t">
+<tr><th>故障場景</th><th>偵測方式</th><th>自動處理</th><th>人工通知</th></tr>
+<tr>
+<td><strong>Chrome 崩潰</strong><br>Mode A 執行中 Chrome crash</td>
+<td>CDP 連線斷開</td>
+<td>重啟 Chrome + 恢復 CDP → 重新導航到最後 URL → 重試指令</td>
+<td>重啟 3 次失敗才通知</td>
+</tr>
+<tr>
+<td><strong>元素找不到</strong><br>CSS selector 失效</td>
+<td>Playwright TimeoutError</td>
+<td>截圖 → 重試 3 次（間隔 1→2→5s，頁面可能還在載入）<br>→ 降級 Mode C（Vision 找元素）</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>指令執行超時</strong></td>
+<td>asyncio.TimeoutError</td>
+<td>截圖保存現場 → 檢查是否已完成（有些操作慢但成功）<br>→ 未完成則重試</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>權限不足</strong><br>sudo 密碼、Admin 權限</td>
+<td>error message 含 "permission" 或 "denied"</td>
+<td>立即停止，不重試（重試也沒用）</td>
+<td>escalate + 要求客戶授權</td>
+</tr>
+<tr>
+<td><strong>磁碟空間不足</strong></td>
+<td>device_state.disk_free_gb &lt; 1</td>
+<td>暫停非必要操作 → 嘗試清理 temp 檔案</td>
+<td>Discord + 要求客戶清理</td>
+</tr>
+<tr>
+<td><strong>Vision AI 誤判</strong><br>點錯位置</td>
+<td>操作後截圖與預期不符</td>
+<td>Undo（Ctrl+Z）→ 重截圖 → 重分析 → 重試（最多 2 次）</td>
+<td>2 次仍錯 → escalate</td>
+</tr>
+<tr>
+<td><strong>安裝中途斷電/重啟</strong></td>
+<td>Daemon 重啟後檢查 state.json</td>
+<td>讀取最後已知狀態 → 從中斷點繼續（或重新安裝）</td>
+<td>Discord: "裝置 X 重啟，恢復任務"</td>
+</tr>
+</table>
+</div>
+
+<div class="card" style="border-left:4px solid var(--blue)">
+<h3>多機特有故障</h3>
+<table class="t">
+<tr><th>故障場景</th><th>偵測方式</th><th>自動處理</th></tr>
+<tr>
+<td><strong>批次中部分裝置失敗</strong></td>
+<td>asyncio.gather 回傳 partial results</td>
+<td>成功的裝置正常結束 → 失敗的進入各自的 retry/escalate 流程<br>不因一台失敗停止全部</td>
+</tr>
+<tr>
+<td><strong>5 台 Session 全滿 + 新請求</strong></td>
+<td>SessionManager.connect() 檢查</td>
+<td>回傳 429 + 列出活躍 sessions → 建議先斷不需要的<br>或加入等待佇列（FIFO）</td>
+</tr>
+<tr>
+<td><strong>同裝置重複連線請求</strong></td>
+<td>device_id 已在 active sessions 中</td>
+<td>拒絕第二個 → 回傳現有 session_id</td>
+</tr>
+<tr>
+<td><strong>跨裝置任務依賴</strong><br>A 完成後才能做 B</td>
+<td>batch API 的 depends_on 欄位</td>
+<td>A 完成後自動觸發 B → 失敗則 B 也標記 blocked</td>
+</tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Checkpoint & 斷線恢復</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># 每個 session 維護一個 checkpoint（state.json）</span>
+<span class="cm"># 斷線重連後從 checkpoint 繼續，不從頭開始</span>
+
+{
+  <span class="st">"session_id"</span>: <span class="st">"rs-20260326-001"</span>,
+  <span class="st">"device_id"</span>: <span class="st">"client-a-mac"</span>,
+  <span class="st">"task_description"</span>: <span class="st">"部署網站到 Vercel"</span>,
+  <span class="st">"steps_completed"</span>: [
+    {<span class="st">"step"</span>: 1, <span class="st">"action"</span>: <span class="st">"browser.navigate"</span>, <span class="st">"status"</span>: <span class="st">"success"</span>, <span class="st">"url"</span>: <span class="st">"https://vercel.com"</span>},
+    {<span class="st">"step"</span>: 2, <span class="st">"action"</span>: <span class="st">"browser.fill"</span>, <span class="st">"status"</span>: <span class="st">"success"</span>, <span class="st">"selector"</span>: <span class="st">"#email"</span>}
+  ],
+  <span class="st">"current_step"</span>: 3,
+  <span class="st">"current_url"</span>: <span class="st">"https://vercel.com/login"</span>,
+  <span class="st">"last_screenshot"</span>: <span class="st">"screenshots/step-2.png"</span>,
+  <span class="st">"updated_at"</span>: <span class="st">"2026-03-26T10:05:00Z"</span>
+}
+
+<span class="cm"># 恢復邏輯：</span>
+<span class="cm"># 1. 讀取 checkpoint</span>
+<span class="cm"># 2. 截圖確認當前狀態是否與 checkpoint 一致</span>
+<span class="cm"># 3. 一致 → 從 current_step 繼續</span>
+<span class="cm"># 4. 不一致 → 從 step 1 重新開始（保守策略）</span>
+</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 15: COMPLETE FILE STRUCTURE -->
+<!-- ============================================================ -->
+<section id="files" class="sec">
+<span class="sec-label">16 — File Structure</span>
+<h2>完整檔案結構（可直接建立）</h2>
+<p class="sec-desc">每個檔案的用途、大小預估、依賴關係。對照這份清單建檔開發。</p>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>Kai Backend（新增檔案）</h3>
+<div class="code-block">
+<pre>
+M4ControlCenter/backend/
+├── app/
+│   ├── api/
+│   │   └── <span class="or">remote.py</span>                         <span class="cm"># ~300 行</span>
+│   │       <span class="cm"># FastAPI Router，prefix=/api/remote</span>
+│   │       <span class="cm"># Endpoints:</span>
+│   │       <span class="cm">#   POST /connect          建立 session</span>
+│   │       <span class="cm">#   POST /execute           單步執行</span>
+│   │       <span class="cm">#   POST /batch             多機批次</span>
+│   │       <span class="cm">#   GET  /sessions          列出 sessions</span>
+│   │       <span class="cm">#   GET  /sessions/{id}/log 操作日誌</span>
+│   │       <span class="cm">#   GET  /sessions/{id}/screenshot 最新截圖</span>
+│   │       <span class="cm">#   POST /disconnect        斷線</span>
+│   │       <span class="cm">#   POST /escalate          升級人工</span>
+│   │       <span class="cm">#   GET  /batch/{id}        批次進度</span>
+│   │       <span class="cm">#   GET  /devices            裝置清單+狀態</span>
+│   │       <span class="cm">#   WebSocket /ws/remote/{device_id}</span>
+│   │       <span class="cm"># 依賴: remote_session_manager, remote_task_queue</span>
+│   │
+│   ├── services/
+│   │   ├── <span class="or">remote_session_manager.py</span>          <span class="cm"># ~250 行</span>
+│   │   │   <span class="cm"># SessionManager class</span>
+│   │   │   <span class="cm"># RemoteSession dataclass</span>
+│   │   │   <span class="cm"># connect / disconnect / execute_parallel</span>
+│   │   │   <span class="cm"># session 狀態機轉換</span>
+│   │   │   <span class="cm"># 最多 5 並行 session 管理</span>
+│   │   │   <span class="cm"># 依賴: remote_task_queue, remote_decision_engine</span>
+│   │   │
+│   │   ├── <span class="or">remote_task_queue.py</span>                <span class="cm"># ~200 行</span>
+│   │   │   <span class="cm"># CommandQueueWorker class</span>
+│   │   │   <span class="cm"># SQLite queue CRUD</span>
+│   │   │   <span class="cm"># retry logic + exponential backoff</span>
+│   │   │   <span class="cm"># Dead Letter Queue 管理</span>
+│   │   │   <span class="cm"># 依賴: database (Kai 現有 SQLite)</span>
+│   │   │
+│   │   ├── <span class="or">remote_decision_engine.py</span>           <span class="cm"># ~150 行</span>
+│   │   │   <span class="cm"># DecisionEngine class</span>
+│   │   │   <span class="cm"># classify_task（關鍵字 + LLM fallback）</span>
+│   │   │   <span class="cm"># select_mode（能力檢查 + fallback chain）</span>
+│   │   │   <span class="cm"># execute_with_fallback</span>
+│   │   │   <span class="cm"># 依賴: llm_service (Haiku 分類)</span>
+│   │   │
+│   │   ├── <span class="or">remote_browser_agent.py</span>             <span class="cm"># ~200 行</span>
+│   │   │   <span class="cm"># BrowserAgent class（Mode A）</span>
+│   │   │   <span class="cm"># Playwright CDP 連線管理</span>
+│   │   │   <span class="cm"># navigate / click / fill / screenshot / evaluate</span>
+│   │   │   <span class="cm"># Chrome 啟動/重啟/健康檢查</span>
+│   │   │   <span class="cm"># 依賴: playwright</span>
+│   │   │
+│   │   ├── <span class="or">remote_system_agent.py</span>              <span class="cm"># ~180 行</span>
+│   │   │   <span class="cm"># SystemAgent class（Mode B）</span>
+│   │   │   <span class="cm"># MacSystemAgent / WinSystemAgent / LinuxSystemAgent</span>
+│   │   │   <span class="cm"># shell / install / file_write / file_read</span>
+│   │   │   <span class="cm"># 危險指令黑名單檢查</span>
+│   │   │   <span class="cm"># 依賴: asyncio.subprocess</span>
+│   │   │
+│   │   ├── <span class="or">remote_vision_agent.py</span>              <span class="cm"># ~180 行</span>
+│   │   │   <span class="cm"># VisionAgent class（Mode C）</span>
+│   │   │   <span class="cm"># 截圖 → Claude Vision API → 座標解析 → 執行</span>
+│   │   │   <span class="cm"># verify_success（操作前後截圖比對）</span>
+│   │   │   <span class="cm"># 依賴: anthropic SDK</span>
+│   │   │
+│   │   ├── <span class="or">remote_agent_loop.py</span>                <span class="cm"># ~280 行</span>
+│   │   │   <span class="cm"># AgentLoop class — 核心執行閉環</span>
+│   │   │   <span class="cm"># observe → decide → execute → verify → loop</span>
+│   │   │   <span class="cm"># Observation / Decision / VerifyResult dataclass</span>
+│   │   │   <span class="cm"># 任務拆解 + LLM planning + 安全檢查</span>
+│   │   │   <span class="cm"># 依賴: remote_decision_engine, WebSocket sender</span>
+│   │   │
+│   │   └── <span class="or">remote_control_service.py</span>           <span class="cm"># ~100 行</span>
+│   │       <span class="cm"># 門面（Facade）— 統一入口</span>
+│   │       <span class="cm"># get_remote_control_service() 單例</span>
+│   │       <span class="cm"># 組裝 SessionManager + DecisionEngine + AgentLoop + Agents</span>
+│   │
+│   └── models/
+│       └── <span class="or">remote_models.py</span>                    <span class="cm"># ~80 行</span>
+│           <span class="cm"># Pydantic models:</span>
+│           <span class="cm">#   ConnectRequest / ConnectResponse</span>
+│           <span class="cm">#   ExecuteRequest / ExecuteResponse</span>
+│           <span class="cm">#   BatchRequest / BatchResponse</span>
+│           <span class="cm">#   DeviceState / SessionInfo</span>
+│           <span class="cm">#   CommandQueueItem / DLQItem</span>
+│
+└── migrations/
+    └── <span class="or">007_remote_control.sql</span>                   <span class="cm"># ~40 行</span>
+        <span class="cm"># CREATE TABLE remote_command_queue</span>
+        <span class="cm"># CREATE TABLE remote_command_dlq</span>
+        <span class="cm"># CREATE TABLE remote_sessions（歷史記錄）</span>
+        <span class="cm"># CREATE TABLE remote_screenshots（截圖索引）</span>
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--green)">
+<h3>Kai Frontend（新增檔案）</h3>
+<div class="code-block">
+<pre>
+M4ControlCenter/frontend/src/
+├── pages/
+│   └── <span class="or">RemotePage.tsx</span>                          <span class="cm"># ~400 行</span>
+│       <span class="cm"># 主頁面：裝置列表 + Session 面板 + 操作日誌</span>
+│       <span class="cm"># 路由: /remote</span>
+│       <span class="cm"># 功能:</span>
+│       <span class="cm">#   - 裝置列表（online/offline 狀態燈）</span>
+│       <span class="cm">#   - 一鍵連線按鈕</span>
+│       <span class="cm">#   - 即時操作日誌（WebSocket 推送）</span>
+│       <span class="cm">#   - 截圖即時預覽（每步更新）</span>
+│       <span class="cm">#   - 批次操作面板（多機同時）</span>
+│       <span class="cm">#   - 手動接管按鈕（→ TeamViewer）</span>
+│       <span class="cm">#   - 斷線按鈕</span>
+│
+├── components/remote/
+│   ├── <span class="or">DeviceList.tsx</span>                           <span class="cm"># ~120 行</span>
+│   │   <span class="cm"># 裝置清單：alias、OS、狀態、最後心跳</span>
+│   │   <span class="cm"># 點擊 → 連線</span>
+│   │
+│   ├── <span class="or">SessionPanel.tsx</span>                         <span class="cm"># ~150 行</span>
+│   │   <span class="cm"># 活躍 session 卡片：mode、步驟進度、耗時</span>
+│   │   <span class="cm"># 多 session 同時顯示（最多 5 張卡片）</span>
+│   │
+│   ├── <span class="or">OperationLog.tsx</span>                         <span class="cm"># ~100 行</span>
+│   │   <span class="cm"># 即時操作日誌（類 terminal 介面）</span>
+│   │   <span class="cm"># 每步 timestamp + action + status + 截圖縮圖</span>
+│   │
+│   ├── <span class="or">ScreenView.tsx</span>                           <span class="cm"># ~80 行</span>
+│   │   <span class="cm"># 截圖大圖預覽 + 歷史截圖輪播</span>
+│   │
+│   └── <span class="or">BatchPanel.tsx</span>                           <span class="cm"># ~120 行</span>
+│       <span class="cm"># 多機批次操作面板</span>
+│       <span class="cm"># 每台裝置一列，顯示進度條</span>
+│
+└── hooks/
+    └── <span class="or">useRemoteSession.ts</span>                      <span class="cm"># ~80 行</span>
+        <span class="cm"># WebSocket hook</span>
+        <span class="cm"># 連線管理 + 訊息解析 + 自動重連</span>
+        <span class="cm"># Zustand store 整合</span>
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--purple)">
+<h3>Client 端（安裝到客戶電腦）</h3>
+<div class="code-block">
+<pre>
+scripts/remote/
+├── <span class="or">remote_agent_daemon.py</span>                     <span class="cm"># ~500 行（單檔，見 Section 10）</span>
+│   <span class="cm"># 完整 Client Daemon</span>
+│   <span class="cm"># AgentDaemon class + 所有 handler</span>
+│   <span class="cm"># 唯一外部依賴: websockets (pip install websockets)</span>
+│   <span class="cm"># 內建: Chrome 管理、截圖、系統指令、心跳</span>
+│
+├── <span class="or">remote_install_macos.sh</span>                    <span class="cm"># ~80 行（見 Section 05）</span>
+│   <span class="cm"># 客戶一鍵安裝腳本</span>
+│   <span class="cm"># 安裝 RustDesk + Daemon + LaunchAgent</span>
+│   <span class="cm"># 自動設定 Server 位址 + 產生 device_id</span>
+│
+├── <span class="or">remote_install_windows.ps1</span>                 <span class="cm"># ~80 行（見 Section 05）</span>
+│   <span class="cm"># Windows 版安裝腳本</span>
+│   <span class="cm"># 安裝 RustDesk + Daemon + Task Scheduler</span>
+│
+└── <span class="or">remote_uninstall.sh</span>                        <span class="cm"># ~30 行</span>
+    <span class="cm"># 乾淨移除：停 Daemon + 刪 /opt/rain-remote + 刪 LaunchAgent</span>
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--blue)">
+<h3>CLI 工具</h3>
+<div class="code-block">
+<pre>
+~/.local/bin/
+└── <span class="or">remote-control</span>                              <span class="cm"># ~120 行 bash</span>
+    <span class="cm"># 指令:</span>
+    <span class="cm">#   remote-control connect &lt;device&gt;      連線</span>
+    <span class="cm">#   remote-control exec &lt;description&gt;    AI 自動執行</span>
+    <span class="cm">#   remote-control batch &lt;json-file&gt;     多機批次</span>
+    <span class="cm">#   remote-control screenshot             截圖</span>
+    <span class="cm">#   remote-control shell &lt;command&gt;        遠端 shell</span>
+    <span class="cm">#   remote-control sessions               列出 sessions</span>
+    <span class="cm">#   remote-control escalate               升級人工</span>
+    <span class="cm">#   remote-control disconnect              斷線</span>
+    <span class="cm">#   remote-control devices                 裝置清單</span>
+    <span class="cm"># 底層: curl → Kai API</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>main.py 註冊（必須做的修改）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># backend/app/main.py — 加入以下行</span>
+
+<span class="cm"># 1. Import router</span>
+<span class="kw">from</span> app.api.remote <span class="kw">import</span> router <span class="kw">as</span> remote_router
+
+<span class="cm"># 2. 註冊（放在 API routes 區塊，SPA catch-all 之前）</span>
+app.<span class="fn">include_router</span>(remote_router, prefix=<span class="st">"/api/remote"</span>, tags=[<span class="st">"remote"</span>])
+
+<span class="cm"># 3. WebSocket endpoint（也在 remote.py 裡定義）</span>
+<span class="cm"># app.websocket("/ws/remote/{device_id}") — 在 remote.py 中用 APIRouter</span>
+
+<span class="cm"># 4. App.tsx 加路由</span>
+<span class="cm"># &lt;Route path="/remote" element={&lt;RemotePage /&gt;} /&gt;</span>
+
+<span class="cm"># 5. RootLayout.tsx 側欄加導航</span>
+<span class="cm"># { path: '/remote', label: '遠端控制', icon: Monitor }</span>
+</pre>
+</div>
+</div>
+
+<div class="card">
+<h3>檔案數量 + 預估總行數</h3>
+<table class="t">
+<tr><th>位置</th><th>檔案數</th><th>預估行數</th><th>負責人</th></tr>
+<tr><td>Backend services</td><td>8</td><td>~1,540</td><td>Max + Rex</td></tr>
+<tr><td>Backend API</td><td>1</td><td>~300</td><td>Rex</td></tr>
+<tr><td>Backend models</td><td>1</td><td>~80</td><td>Rex</td></tr>
+<tr><td>Backend migration</td><td>1</td><td>~40</td><td>Max</td></tr>
+<tr><td>Frontend pages</td><td>1</td><td>~400</td><td>John</td></tr>
+<tr><td>Frontend components</td><td>4</td><td>~470</td><td>John + Iris</td></tr>
+<tr><td>Frontend hooks</td><td>1</td><td>~80</td><td>John</td></tr>
+<tr><td>Client daemon</td><td>1</td><td>~500</td><td>Max</td></tr>
+<tr><td>Install scripts</td><td>3</td><td>~190</td><td>Rex</td></tr>
+<tr><td>CLI tool</td><td>1</td><td>~120</td><td>Rex</td></tr>
+<tr style="background:var(--yellow-l)"><td><strong>合計</strong></td><td><strong>22 檔案</strong></td><td><strong>~3,720 行</strong></td><td></td></tr>
+</table>
+</div>
+
+<div class="warn-box">
+<strong>開發順序（嚴格依賴鏈）：</strong><br>
+1. migration SQL → 2. models → 3. services（decision_engine → agents → agent_loop → queue → session_manager → control_service）→ 4. API router → 5. main.py 註冊 → 6. frontend hooks → 7. frontend components → 8. frontend page → 9. CLI → 10. client daemon + install scripts
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+<span>Rain AI Team — AI 遠端控制系統完整工程規格書 v2.2 · 16 章 · 22 檔案 · ~3,800 行</span>
+<span>2026-03-26 · Klay (Opus 4.6)</span>
+</footer>
+
+</div><!-- .w -->
+
+<script>
+window.addEventListener('scroll',()=>{const h=document.documentElement;const p=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById('progress-bar').style.width=p+'%'});
+const sections=document.querySelectorAll('section[id]');const navLinks=document.querySelectorAll('.nav-link');
+const obs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){navLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.nav-link[href="#${en.target.id}"]`);if(a)a.classList.add('active')}})},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
