@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美國運通旅程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f5f1;
+            color: #333;
+        }
+        
+        .slide {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 60px 40px;
+            background: #f6f5f1;
+            overflow-y: auto;
+        }
+        
+        .slide.active { display: block; }
+        
+        h1 { font-size: 48px; font-weight: 700; color: #c67c4e; margin-bottom: 15px; }
+        h2 { font-size: 36px; font-weight: 700; color: #c67c4e; margin-bottom: 20px; }
+        h3 { font-size: 18px; font-weight: 600; color: #666; margin: 30px 0 15px 0; }
+        p { font-size: 15px; color: #666; line-height: 1.8; margin: 10px 0; }
+        
+        .price { color: #c67c4e; font-weight: 700; font-size: 20px; }
+        .subtitle { font-size: 22px; color: #6f6f6f; margin-bottom: 30px; }
+        
+        /* Cards */
+        .hotel-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #c67c4e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .confirmed { border-left-color: #4caf50; }
+        .suggested { border-left-color: #ff9800; }
+        
+        .hotel-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .hotel-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .hotel-label {
+            color: #999;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .hotel-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        a {
+            color: #c67c4e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        a:hover { text-decoration: underline; }
+        
+        .info-box {
+            background: white;
+            border-left: 4px solid #c67c4e;
+            padding: 18px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .summary-box {
+            background: white;
+            border-left: 4px solid #c67c4e;
+            padding: 18px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .summary-value {
+            font-size: 26px;
+            color: #c67c4e;
+            font-weight: 700;
+        }
+        
+        .summary-subtext {
+            font-size: 13px;
+            color: #999;
+            margin-top: 6px;
+        }
+        
+        /* Table for actions */
+        .action-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .action-table th {
+            background: #c67c4e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .action-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .action-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .action-table tr:hover {
+            background: #faf8f3;
+        }
+        
+        .action-confirmed {
+            background: #e8f5e9;
+        }
+        
+        .action-pending {
+            background: #fff3e0;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+        }
+        
+        button {
+            background: #c67c4e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        button:hover { background: #a1633a; }
+        
+        .slide-num {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .badge-confirmed {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .badge-suggested {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide active">
+    <h1>✈️ 美國運通旅程</h1>
+    <p class="subtitle">4月16日 - 4月24日 | 8晚行程</p>
+    
+    <div style="margin-top: 60px; font-size: 16px;">
+        <p><strong>訂位代號:</strong> <span style="color: #c67c4e; font-size: 18px;">OKYDWP</span></p>
+        <p style="margin-top: 15px;"><strong>旅客:</strong> LIN CHENGYU</p>
+        
+        <div style="margin-top: 60px; background: white; padding: 24px; border-radius: 8px; border-left: 4px solid #c67c4e;">
+            <p style="color: #999; font-size: 14px; margin-bottom: 8px;">快速預覽</p>
+            <p><span style="color: #c67c4e; font-weight: 700; font-size: 22px;">✓ 3 晚已確認</span></p>
+            <p style="margin-top: 12px; color: #666; font-size: 14px;">Four Seasons SF • Anthem LA • Ritz-Carlton LA</p>
+            <p style="margin-top: 20px;"><span style="color: #ff9800; font-weight: 700; font-size: 22px;">🔶 5 晚建議中</span></p>
+            <p style="margin-top: 12px; color: #666; font-size: 14px;">West Hollywood • Page (2晚) • Anaheim (2晚)</p>
+            <p style="margin-top: 20px; color: #c67c4e; font-weight: 700; font-size: 18px;">💰 全程 $3,911.50 ~ $4,890.50</p>
+        </div>
+        
+        <p style="margin-top: 60px; color: #999; font-size: 14px;">👉 點擊右下「下一頁」查看飯店詳情</p>
+    </div>
+</div>
+
+<!-- Slide 2: Confirmed -->
+<div class="slide">
+    <h2>✓ 已確認飯店 (3晚)</h2>
+    <p class="subtitle" style="color: #4caf50;">USD $1,786.26</p>
+    
+    <div class="hotel-card confirmed">
+        <div class="hotel-name">🏨 Four Seasons Hotel San Francisco</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/16-17 (1晚)</div></div>
+            <div><div class="hotel-label">確認號</div><div class="hotel-value">10937SF081240</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">房型</div><div class="hotel-value">Superior Skyline King</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$794.45</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">4/13 15:00前免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Four+Seasons+Embarcadero+222+Sansome+Street+San+Francisco+CA+94104" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">💎 FHR禮遇: 12pm check-in • 房型升等 • 雙人早餐 • $100消費 • 免費WiFi • 4pm退房</p>
+    </div>
+    
+    <div class="hotel-card confirmed">
+        <div class="hotel-name">🏨 The Anthem LA Stadium District</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/17-18 (1晚)</div></div>
+            <div><div class="hotel-label">確認號</div><div class="hotel-value">3436494605</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">房型</div><div class="hotel-value">King Bed Ground Floor</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$249.07</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">4/13 00:00前免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Anthem+LA+3900+W+Century+Blvd+Inglewood+CA+90303" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+    </div>
+    
+    <div class="hotel-card confirmed">
+        <div class="hotel-name">🏨 The Ritz-Carlton Los Angeles</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/18-19 (1晚)</div></div>
+            <div><div class="hotel-label">確認號</div><div class="hotel-value">84129760</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">房型</div><div class="hotel-value">Deluxe King City View</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$742.74</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">抵達前2天免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Ritz+Carlton+Los+Angeles+900+West+Olympic+Blvd+Los+Angeles+CA+90015" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">💎 FHR禮遇: 12pm check-in • 房型升等 • 雙人早餐 • $100消費 • 免費WiFi • 4pm退房</p>
+    </div>
+</div>
+
+<!-- Slide 3: Suggested -->
+<div class="slide">
+    <h2>🔶 建議飯店 (5晚)</h2>
+    <p class="subtitle" style="color: #ff9800;">USD $2,125.24 ~ $3,104.24 (未預訂)</p>
+    
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 1 Hotel West Hollywood</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/19-20 (1晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">King Boulevard View</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">洛杉磯</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$607.03</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">抵達前2天免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=1+Hotel+West+Hollywood+8490+West+Sunset+Boulevard+Los+Angeles+CA+90069" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">✓ FHR禮遇: 12pm check-in • 房型升等 • 雙人早餐 • $100 F&B消費</p>
+    </div>
+    
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 Hyatt Place Page Lake Powell (1)</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/20-21 (1晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">King Canyon View</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">佩吉, Arizona</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$548.26</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">抵達前2天免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Hyatt+Place+Page+Lake+Powell+1126+North+Navajo+Drive+Page+AZ+86040" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+    </div>
+    
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 Hyatt Place Page Lake Powell (2)</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/21-22 (1晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">King Canyon View</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">佩吉, Arizona</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$559.95</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">取消</div><div class="hotel-value">抵達前2天免費</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Hyatt+Place+Page+Lake+Powell+1126+North+Navajo+Drive+Page+AZ+86040" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+    </div>
+    
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 Hilton Anaheim - Adjacent Disneyland</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/22-24 (2晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">King Bed Pool-View</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">阿納海姆</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$1,389.00</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">夜間詳情</div><div class="hotel-value">4/22: $534 • 4/23: $855</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Hilton+Anaheim+777+Convention+Way+Anaheim+CA+92802" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">✓ 鄰近迪士尼樂園，步行可達</p>
+    </div>
+
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 Sheraton Park Hotel at the Anaheim</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/22-24 (2晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">Standard King</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">阿納海姆</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$410.00</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">夜間詳情</div><div class="hotel-value">4/22: $196 • 4/23: $214</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=Sheraton+Park+Hotel+at+the+Anaheim+1855+South+Harbor+Boulevard+Anaheim+CA+92802" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">💰 經濟選項，距迪士尼 5 分鐘車程</p>
+    </div>
+
+    <div class="hotel-card suggested">
+        <div class="hotel-name">🏨 JW Marriott, Anaheim Resort</div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">日期</div><div class="hotel-value">4/22-24 (2晚)</div></div>
+            <div><div class="hotel-label">房型</div><div class="hotel-value">Deluxe</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">城市</div><div class="hotel-value">阿納海姆</div></div>
+            <div><div class="hotel-label">價格</div><div class="hotel-value" style="color: #c67c4e; font-weight: 700;">$1,217.00</div></div>
+        </div>
+        <div class="hotel-row">
+            <div><div class="hotel-label">夜間詳情</div><div class="hotel-value">4/22: $468 • 4/23: $749</div></div>
+            <div><div class="hotel-label">位置</div><div class="hotel-value"><a href="https://maps.google.com/?q=JW+Marriott+Anaheim+Resort+1775+South+Clementine+Street+Anaheim+CA+92802" target="_blank">📍 Google Maps</a></div></div>
+        </div>
+        <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #999; font-size: 13px;">✓ 住2晚享 $100 Marriott 禮遇優惠</p>
+    </div>
+</div>
+
+<!-- Slide 4: Summary & Actions -->
+<div class="slide">
+    <h2>📊 旅程總結</h2>
+    
+    <div class="summary-grid">
+        <div class="summary-box">
+            <div class="summary-label">✓ 已確認</div>
+            <div class="summary-value">$1,786.26</div>
+            <div class="summary-subtext">3 晚</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-label">🔶 建議中</div>
+            <div class="summary-value">$2,125~$3,104</div>
+            <div class="summary-subtext">5 晚(未訂)</div>
+        </div>
+    </div>
+    
+    <div class="summary-box" style="grid-column: 1 / -1; background: #fffbf7;">
+        <div class="summary-label">全程總計（含建議選項）</div>
+        <div class="summary-value">$3,911.50 ~ $4,890.50</div>
+        <div class="summary-subtext">8晚行程（最低: Sheraton • 最高: Hilton）</div>
+    </div>
+    
+    <h3>📝 快速檢查清單</h3>
+    
+    <table class="action-table">
+        <thead>
+            <tr>
+                <th>行動</th>
+                <th>狀態</th>
+                <th>期限</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="action-confirmed">
+                <td><strong>Four Seasons SF</strong><br>確認號: 10937SF081240</td>
+                <td>✅ 已確認</td>
+                <td>-</td>
+            </tr>
+            <tr class="action-confirmed">
+                <td><strong>Anthem LA</strong><br>確認號: 3436494605</td>
+                <td>✅ 已確認</td>
+                <td>-</td>
+            </tr>
+            <tr class="action-confirmed">
+                <td><strong>Ritz-Carlton LA</strong><br>確認號: 84129760</td>
+                <td>✅ 已確認</td>
+                <td>-</td>
+            </tr>
+            <tr class="action-pending">
+                <td><strong>預訂建議飯店</strong><br>West Hollywood • Page (2晚) • Anaheim (2晚)</td>
+                <td>⏳ 待預訂</td>
+                <td>儘快</td>
+            </tr>
+            <tr class="action-pending">
+                <td><strong>選擇 Anaheim 酒店</strong><br>Hilton $1,389 • Sheraton $410 • JW Marriott $1,217</td>
+                <td>⏳ 待選擇</td>
+                <td>預訂前</td>
+            </tr>
+            <tr class="action-pending">
+                <td><strong>查看停車資訊</strong><br>原始郵件附件</td>
+                <td>⏳ 待檢查</td>
+                <td>預訂前</td>
+            </tr>
+            <tr class="action-pending">
+                <td><strong>確認 FHR 禮遇</strong><br>Four Seasons & Ritz-Carlton</td>
+                <td>⏳ 待確認</td>
+                <td>入住前</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>ℹ️ 重要提醒</h3>
+    
+    <div class="info-box">
+        <strong>🚗 停車資訊</strong><br>
+        您的原始郵件含「Hotel Parking Information.docx」附件，包含全部飯店停車費用與政策。
+    </div>
+    
+    <div class="info-box">
+        <strong>📅 關鍵截止日期</strong><br>
+        • Four Seasons: <strong>4/13 15:00</strong><br>
+        • Anthem LA: <strong>4/13 00:00</strong><br>
+        • Ritz-Carlton: 抵達前2天
+    </div>
+    
+    <div class="info-box">
+        <strong>🔗 Google Maps 導航</strong><br>
+        所有飯店都有 Google Maps 連結，點擊即可查看位置、評分、營業時間和路線規劃。
+    </div>
+</div>
+
+<div class="slide-num"><span id="cur">1</span> / 4</div>
+<div class="controls">
+    <button onclick="prev()">← 上一頁</button>
+    <button onclick="next()">下一頁 →</button>
+</div>
+
+<script>
+let idx = 0, slides = document.querySelectorAll('.slide');
+function show(n) {
+    slides[idx].classList.remove('active');
+    idx = (n + slides.length) % slides.length;
+    slides[idx].classList.add('active');
+    document.getElementById('cur').textContent = idx + 1;
+}
+function next() { show(idx + 1); }
+function prev() { show(idx - 1); }
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+});
+</script>
+
+</body>
+</html>
