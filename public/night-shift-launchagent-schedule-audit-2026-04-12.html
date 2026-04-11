@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[night-shift] LaunchAgent + 排程任務巡檢 - 2026-04-12</title>
+<style>
+:root{
+  --bg:#f6f3ee;
+  --paper:#fffdfa;
+  --ink:#171411;
+  --muted:#655d55;
+  --line:#e5ddd3;
+  --accent:#c7652e;
+  --accent-soft:#f3dfd1;
+  --green:#4d8158;
+  --green-bg:#edf5ee;
+  --amber:#a96d0c;
+  --amber-bg:#fbf2df;
+  --red:#bb4a45;
+  --red-bg:#fdeceb;
+  --blue:#3f64b8;
+  --blue-bg:#edf2ff;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --sans:"Segoe UI","Helvetica Neue","Noto Sans TC",Arial,sans-serif;
+  --shadow:0 14px 36px rgba(23,20,17,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(199,101,46,.12), transparent 22%),
+    linear-gradient(180deg,#fbf8f3 0%,#f6f3ee 100%);
+  line-height:1.7;
+}
+.shell{max-width:980px;margin:0 auto;padding:24px 18px 72px}
+.hero{
+  background:linear-gradient(180deg,#191510 0%,#231c15 100%);
+  color:#fff;
+  border-radius:28px;
+  padding:34px 30px 30px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  right:-110px;
+  top:-120px;
+  width:360px;
+  height:360px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(199,101,46,.28), transparent 62%);
+}
+.eyebrow{
+  font:800 11px/1 var(--mono);
+  letter-spacing:2.8px;
+  text-transform:uppercase;
+  color:#f5c7ab;
+}
+.hero h1{
+  margin-top:14px;
+  font-size:clamp(30px,5vw,52px);
+  line-height:1.05;
+  letter-spacing:-.04em;
+  max-width:12ch;
+}
+.hero p{
+  margin-top:14px;
+  max-width:64ch;
+  color:rgba(255,255,255,.78);
+  font-size:15px;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:22px;
+}
+.stat{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:14px 14px 12px;
+}
+.stat small{
+  display:block;
+  font:800 10px/1 var(--mono);
+  letter-spacing:1.6px;
+  text-transform:uppercase;
+  color:#f5c7ab;
+}
+.stat strong{
+  display:block;
+  margin-top:8px;
+  font-size:26px;
+  line-height:1;
+}
+.stat span{
+  display:block;
+  margin-top:6px;
+  font-size:12px;
+  color:rgba(255,255,255,.68);
+}
+.section{margin-top:18px}
+.section-grid{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:16px;
+  margin-top:18px;
+}
+.card{
+  background:rgba(255,255,255,.94);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:24px 24px 22px;
+  box-shadow:0 10px 22px rgba(23,20,17,.04);
+}
+.label{
+  font:800 10px/1 var(--mono);
+  letter-spacing:2.2px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+.card h2{
+  font-size:24px;
+  line-height:1.12;
+  letter-spacing:-.03em;
+}
+.card p{
+  color:var(--muted);
+  font-size:14px;
+  margin-top:10px;
+}
+.stack{display:grid;gap:12px;margin-top:16px}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 11px;
+  border-radius:999px;
+  font:800 10px/1 var(--mono);
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+.pill.green{background:var(--green-bg);color:var(--green)}
+.pill.amber{background:var(--amber-bg);color:var(--amber)}
+.pill.red{background:var(--red-bg);color:var(--red)}
+.pill.blue{background:var(--blue-bg);color:var(--blue)}
+.note{
+  border:1px solid var(--line);
+  border-left:4px solid var(--accent);
+  border-radius:18px;
+  padding:16px 16px 14px;
+  background:#fff;
+}
+.note h3{font-size:15px}
+.note p{margin-top:6px}
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:16px;
+  font-size:14px;
+}
+.table th,.table td{
+  text-align:left;
+  padding:12px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+.table th{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:1.4px;
+  color:var(--muted);
+  background:#fbf7f1;
+}
+.bullets{
+  display:grid;
+  gap:10px;
+  margin-top:14px;
+}
+.bullets li{
+  list-style:none;
+  position:relative;
+  padding-left:18px;
+  font-size:14px;
+}
+.bullets li::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:.7em;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--accent);
+}
+.footer{
+  margin-top:18px;
+  border-top:1px solid var(--line);
+  padding-top:22px;
+  color:var(--muted);
+  font:500 12px/1.7 var(--mono);
+}
+code{
+  font-family:var(--mono);
+  background:#f5ece3;
+  border-radius:6px;
+  padding:2px 6px;
+  font-size:12px;
+}
+@media (max-width: 840px){
+  .hero-grid,.section-grid{grid-template-columns:1fr}
+}
+@media (max-width: 640px){
+  .shell{padding:14px 12px 52px}
+  .hero{padding:28px 20px 24px;border-radius:24px}
+  .card{padding:20px 18px 18px;border-radius:20px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="eyebrow">[night-shift] audit report</div>
+    <h1>LaunchAgent + 排程任務巡檢</h1>
+    <p>夜班自動巡檢聚焦在 runtime 修復，不做大規模重啟。這輪實際處理了 1 個 broken LaunchAgent、5 個無 PID stale labels、4 個 schedule run 回填，以及 7 筆 stale backlog 的風險記錄。</p>
+    <div class="hero-grid">
+      <div class="stat"><small>Healthy</small><strong>44</strong><span>Module C agents</span></div>
+      <div class="stat"><small>Stale</small><strong>10</strong><span>其中 5 個無 PID</span></div>
+      <div class="stat"><small>Broken</small><strong>1</strong><span>watchdog path drift</span></div>
+      <div class="stat"><small>Backlog</small><strong>7</strong><span>pending &gt; 7d</span></div>
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <article class="card">
+      <div class="label">LaunchAgent</div>
+      <h2>[night-shift] 先修真故障，再碰 stale</h2>
+      <p>Module C 顯示 55 個 agents 中有 1 個 broken。根因不是單純沒載入，而是 <code>ai.rain.openclaw-watchdog</code> 的 plist 還指向 legacy script path，但磁碟上只剩 <code>.disabled</code> 版本。</p>
+      <div class="stack">
+        <div class="note">
+          <h3>Root Cause</h3>
+          <p>新增 <code>~/.claude/hooks/gateway-watchdog.sh</code> thin shim，回接到維護中的 <code>gateway-watchdog.sh.disabled</code>。reload 後 <code>launchctl print</code> 顯示 <code>last exit code = 0</code>。</p>
+        </div>
+        <div class="note">
+          <h3>Reload Scope</h3>
+          <p>只重載沒有 PID 的 stale labels：<code>stocksignal-security-monitor</code>、<code>training-orchestrator</code>、<code>habit-obsidian-sync</code>、<code>nightshift-healthcheck</code>、<code>opencode.web</code>。其中 <code>opencode.web</code> 額外 kickstart 後已回到 running。</p>
+        </div>
+      </div>
+    </article>
+
+    <aside class="card">
+      <div class="label">Result</div>
+      <h2>驗證摘要</h2>
+      <div class="stack">
+        <div><span class="pill green">PASS</span><p><code>ai.rain.openclaw-watchdog</code> runs=1 / exit=0</p></div>
+        <div><span class="pill green">PASS</span><p><code>com.rain.opencode.web</code> state=running / pid=24045</p></div>
+        <div><span class="pill amber">SKIP</span><p>有 PID 的 stale labels 未強制重啟，避免對 live bridge 造成無謂中斷</p></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-grid">
+    <article class="card">
+      <div class="label">Schedules</div>
+      <h2>Kai registry 對齊結果</h2>
+      <p>本輪不是重跑 business jobs，而是把 <code>/api/schedules</code> 的漂移狀態回填到能反映實際執行證據。判準是 active schedules 的 <code>last_run_at</code> 不超過預期間隔兩倍。</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Schedule</th>
+            <th>Action</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>market-briefing</code></td>
+            <td>backfill success run + cadence 修正</td>
+            <td><code>每日 04:00 + 08:00</code>，registry age 回到正常</td>
+          </tr>
+          <tr>
+            <td><code>nightly-optimization</code></td>
+            <td>backfill success run + cadence 修正</td>
+            <td><code>每日 03:35</code>，registry age 回到正常</td>
+          </tr>
+          <tr>
+            <td><code>weekly-governance-audit</code></td>
+            <td>backfill success run</td>
+            <td>最近一次實際成功約 <code>2026-04-11 04:00 CST</code></td>
+          </tr>
+          <tr>
+            <td><code>heartbeat-protocol</code></td>
+            <td>backfill failed run</td>
+            <td>最新證據為 <code>2026-04-12 03:55 CST</code> Kai timeout</td>
+          </tr>
+          <tr>
+            <td><code>threads-scheduler</code></td>
+            <td>registry disable</td>
+            <td>實體 plist 位於 <code>_disabled/</code>，不再算 active overdue</td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+
+    <aside class="card">
+      <div class="label">Policy</div>
+      <h2>本輪判斷邏輯</h2>
+      <ul class="bullets">
+        <li>沿用 [L-051]，reload 全程使用 <code>$(id -u)</code>，不硬編碼 UID / path。</li>
+        <li>只接受 local log 與 API run entry 當證據，不用口頭完成。</li>
+        <li>disabled schedule 先標示 disabled，再談是否恢復，不把策略性關閉誤判成故障。</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="section-grid">
+    <article class="card">
+      <div class="label">Backlog Audit</div>
+      <h2>殭屍 / stale 任務盤點</h2>
+      <p>掃描 500 筆 Kai tasks。沒有 <code>executing &gt; 24h</code> 的殭屍任務，但有 7 筆 <code>pending &gt; 7d</code> 的 backlog。這些任務多數處於 <code>REVIEW_REQUIRED / REVISION_REQUIRED</code> 或較大規模 intake，不適合夜班直接做 terminal mutation。</p>
+      <div class="stack">
+        <div class="note">
+          <h3>Zombie</h3>
+          <p><span class="pill green">0 tasks</span> 本輪不需要 force-done / delete。</p>
+        </div>
+        <div class="note">
+          <h3>Stale Pending</h3>
+          <p><span class="pill amber">7 tasks</span> 全部寫入 <code>[night-shift][stale-pending]</code> warning audit log，保留後續 reprioritization 空間。</p>
+        </div>
+      </div>
+    </article>
+
+    <aside class="card">
+      <div class="label">Residual Risk</div>
+      <h2>仍需觀察</h2>
+      <ul class="bullets">
+        <li><code>heartbeat-protocol</code> 現在是 fresh but failing，代表 registry 已修正，但服務 timeout 問題還在。</li>
+        <li>5 個有 PID 的 stale labels 可能是 log rotation 或 probe 不足，不一定是真故障。</li>
+        <li><code>night-shift</code> / <code>night-shift-comprehensive</code> 的 registry rows 仍是手動 auto-register，暫未納入 canonical SLA。</li>
+      </ul>
+    </aside>
+  </section>
+
+  <div class="footer">
+    Generated 2026-04-12 05:00 CST · Rain AI Team Night Shift · Evidence from <code>launchctl print</code>, local logs, <code>/api/schedules</code>, and <code>/api/tasks?limit=500</code>
+  </div>
+</div>
+</body>
+</html>
