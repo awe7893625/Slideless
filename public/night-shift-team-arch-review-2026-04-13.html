@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[night-shift] Rain AI Team — 團隊架構週審 2026-04-13</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #f6f5f1;
+      --paper: #ffffff;
+      --paper-soft: #fff8ee;
+      --ink: #231d18;
+      --ink-soft: #62584d;
+      --border: #dfd8cd;
+      --accent: #cf6b3e;
+      --accent-soft: #f3d9ca;
+      --gold: #b2874f;
+      --red: #bf3f33;
+      --yellow: #b87510;
+      --green: #2f7d49;
+      --blue: #3567b7;
+      --shadow: 0 14px 40px rgba(34, 26, 19, 0.08);
+    }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(207,107,62,.08), transparent 30%),
+        linear-gradient(180deg, #faf8f4 0%, var(--cream) 100%);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Noto Sans TC", sans-serif;
+      line-height: 1.7;
+    }
+    a { color: inherit; }
+    .shell { max-width: 1080px; margin: 0 auto; padding: 28px 20px 72px; }
+    .hero {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(243,217,202,.18), transparent 24%),
+        linear-gradient(180deg, #1d1916 0%, #26201b 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 28px;
+      padding: 34px 30px 30px;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font: 800 10px/1 "SFMono-Regular", ui-monospace, monospace;
+      letter-spacing: 2.6px;
+      text-transform: uppercase;
+      color: #efc2a7;
+    }
+    .hero h1 {
+      margin-top: 16px;
+      font-size: clamp(30px, 5vw, 48px);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      max-width: 12ch;
+    }
+    .hero p {
+      margin-top: 16px;
+      max-width: 68ch;
+      color: rgba(255,255,255,.74);
+      font-size: 15px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font: 700 11px/1 "SFMono-Regular", ui-monospace, monospace;
+      color: rgba(255,255,255,.82);
+    }
+    .section {
+      margin-top: 18px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+    .section-head small {
+      display: block;
+      font: 800 10px/1 "SFMono-Regular", ui-monospace, monospace;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .section-head h2 {
+      margin-top: 8px;
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+    .section-head p {
+      margin-top: 10px;
+      color: var(--ink-soft);
+      max-width: 74ch;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .kpi {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 14px 14px;
+    }
+    .kpi .label {
+      font: 800 10px/1 "SFMono-Regular", ui-monospace, monospace;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .kpi .value {
+      margin-top: 10px;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+    .kpi .note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+    .value.red { color: var(--red); }
+    .value.yellow { color: var(--yellow); }
+    .value.green { color: var(--green); }
+    .value.blue { color: var(--blue); }
+    .issues {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .issue {
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      background: var(--paper);
+    }
+    .issue.p1 { border-left-color: var(--red); }
+    .issue.p2 { border-left-color: var(--yellow); }
+    .issue.p3 { border-left-color: var(--blue); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font: 800 10px/1 "SFMono-Regular", ui-monospace, monospace;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .issue.p1 .badge { background: #feeceb; color: var(--red); }
+    .issue.p2 .badge { background: #fff3df; color: var(--yellow); }
+    .issue.p3 .badge { background: #edf3ff; color: var(--blue); }
+    .issue h3 {
+      margin-top: 12px;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+    .issue p { margin-top: 8px; color: var(--ink-soft); }
+    .issue ul { margin-top: 10px; padding-left: 18px; color: var(--ink-soft); }
+    .issue li + li { margin-top: 6px; }
+    .tbl-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      margin-top: 18px;
+      background: var(--paper);
+    }
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    thead tr { background: #f5efe6; }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #efe9df;
+      vertical-align: top;
+    }
+    th {
+      font: 800 11px/1.2 "SFMono-Regular", ui-monospace, monospace;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      background: var(--paper);
+    }
+    .panel h3 {
+      font-size: 16px;
+      line-height: 1.3;
+    }
+    .panel p, .panel li {
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .panel ul { margin-top: 10px; padding-left: 18px; }
+    .panel li + li { margin-top: 6px; }
+    .footer {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+    @media (max-width: 960px) {
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { padding: 18px 14px 44px; }
+      .hero, .section { border-radius: 20px; }
+      .hero { padding: 24px 20px 22px; }
+      .section { padding: 18px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">[night-shift] Weekly Architecture Review</div>
+      <h1>Rain AI Team 團隊架構週審 2026-04-13</h1>
+      <p>本週不是「角色沒有定義」，而是「定義已經寫出來，但 active roster、實際 dispatch 與任務板記錄沒有對齊」。核心治理角色邊界比 2026-03-23 清楚，但目前最大風險已轉成 roster inflation、未登錄 worker、以及夜班與網站 ownership 的路由漂移。</p>
+      <div class="hero-meta">
+        <div class="pill">資料窗口：2026-04-07 至 2026-04-13</div>
+        <div class="pill">Canonical：<code>.claude/team.json</code></div>
+        <div class="pill">Task Board：Kai SQLite <code>agent_tasks</code></div>
+        <div class="pill">Verdict：Revision Required</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Snapshot</small>
+        <h2>關鍵指標</h2>
+        <p>計算口徑先排除 `schedule` 與 `Terminal Session` 類紀錄，避免把 Kai 自己的排程雜訊誤當成人力活躍度。這是本輪主動套用的 canonical index / contract 檢查。</p>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="label">Active Seats</div>
+          <div class="value blue">55</div>
+          <div class="note">排除 frozen / tool 後的 canonical active roster</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Touched This Week</div>
+          <div class="value green">7</div>
+          <div class="note">有任一 completed task 的 canonical agent</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Zero Activity</div>
+          <div class="value red">48</div>
+          <div class="note">本週無 completed task 的 active seat</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Created Tasks</div>
+          <div class="value yellow">109</div>
+          <div class="note">非 schedule 任務：32 success / 34 failed / 23 pending</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Roster Drift</div>
+          <div class="value red">2</div>
+          <div class="note">`scribe`、`crane` 出現在 task board，但不在 canonical roster</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Findings First</small>
+        <h2>主要問題</h2>
+        <p>這裡先列需要處理的 finding，再談優化建議。結論偏向組織與 routing 治理，不是單一 agent 能力不足。</p>
+      </div>
+      <div class="issues">
+        <article class="issue p1">
+          <div class="badge">P1 Staffing Drift</div>
+          <h3>Active roster 明顯大於目前需求，55 個 active seat 只有 7 個本週有完成紀錄</h3>
+          <p>本週有 completed activity 的 canonical agent 只有 Klay、Forge、Quill、Ray、Nova、Orion、Badger。`48/55` 個 active seat 完全沒有 completed task，其中 investment 17 席、website 3 席、strategy 2 席、finance 3 席整週全空。</p>
+          <ul>
+            <li>這不代表全部 seat 應刪除，但表示「active」和「on-demand」沒有分層。</li>
+            <li>若持續把 dormant pool 算成 active capacity，週審會一直把未啟用角色誤判成低效。</li>
+          </ul>
+        </article>
+
+        <article class="issue p1">
+          <div class="badge">P1 Canonical Drift</div>
+          <h3>Task board 已經出現 canonical roster 之外的 worker：`scribe` 成功執行、`crane` 持續失敗</h3>
+          <p>`scribe` 這週有 2 筆成功的 Beaver writeback 任務；`crane` 有 4 筆 Beaver 報告任務失敗。兩者都沒有在 `.claude/team.json` 內佔位，代表真實運作拓樸已經超出公開 roster。</p>
+          <ul>
+            <li>`scribe` 在既有記憶中確實被當成 Beaver 的 knowledge sync worker，但沒有同步進 canonical roster。</li>
+            <li>`crane` 沒有找到同級 canonical 定義，屬於更高風險的未登錄執行者。</li>
+          </ul>
+        </article>
+
+        <article class="issue p2">
+          <div class="badge">P2 Ownership Gap</div>
+          <h3>夜班與網站維運的任務 ownership 有漂移：名義 owner 與實際執行 pod 不一致</h3>
+          <p>Noel 是夜班 lead，但本週成功輸出主要來自 Forge / Quill / Orion / Nova；Noel 自身只有 1 筆修復任務且失敗。網站部門的 Webb / Silo / Keeper 本週 0 完成，但 TheOrder 維護任務落到 Forge，Silo 的 SEO alert 則連續失敗。</p>
+          <ul>
+            <li>這比較像 routing 與 KPI 定義問題，不是 Noel 或網站部門角色文字不清楚。</li>
+            <li>如果不修 ownership chain，團隊會繼續用最可靠的人補洞，而不是走既定責任鏈。</li>
+          </ul>
+        </article>
+
+        <article class="issue p3">
+          <div class="badge">P3 External Pool</div>
+          <h3>Beaver / External worker 配置過度細分，但目前只有 Badger 真正被 dispatch，且 3 次全取消</h3>
+          <p>目前 external roster 內含 Badger / Otter / Shutter / Ferret 四席 Beaver worker，但這週只有 Badger 被叫用，且 3 筆都取消；Spider / Lynx / Nautilus / Probe / Echo / Buzz 也全數 0 completed task。</p>
+          <ul>
+            <li>這代表外部 worker 池的擴張速度快於穩定 dispatch 能力。</li>
+            <li>在 routing 成熟前，應把它們視為 experimental pool，而不是等同 core active staffing。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Role Clarity</small>
+        <h2>職責定義清晰度</h2>
+        <p>從角色文字來看，核心治理線已經比 2026-03-23 清楚；真正需要收斂的是 activation path、KPI 和 canonical sync。</p>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>分類</th>
+              <th>Agent / Pod</th>
+              <th>判定</th>
+              <th>依據</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Core Review</td>
+              <td>Klay / Ray / Quill / Forge</td>
+              <td>清晰</td>
+              <td>CEO、架構審查、code review、CI gate 的邊界已明確，而且本週 task title 也大致符合職責文字。</td>
+            </tr>
+            <tr>
+              <td>Research + Docs</td>
+              <td>Orion / Nova</td>
+              <td>清晰</td>
+              <td>Orion 聚焦知識升級與錯誤研究；Nova 聚焦晨間報告。定義與實際任務吻合。</td>
+            </tr>
+            <tr>
+              <td>Night Shift</td>
+              <td>Noel + Forge / Quill / Orion / Nova</td>
+              <td>部分清晰</td>
+              <td>Noel 的 lead 定義清楚，但成功產出主要由 pod 其他成員完成，Noel 個人 KPI 口徑不清。</td>
+            </tr>
+            <tr>
+              <td>Website Dept</td>
+              <td>Webb / Silo / Keeper</td>
+              <td>部分清晰</td>
+              <td>角色文字完整，但本週實際維運落到 Forge，Silo 只留下失敗警報，顯示 ownership 未真正落地。</td>
+            </tr>
+            <tr>
+              <td>Investment Dept</td>
+              <td>17-seat analyst lattice</td>
+              <td>定義過細</td>
+              <td>Phase B/B+ 的分析師矩陣文件完整，但這週 17 席全部 0 activity，顯示目前是 latent design，不是 active staffing。</td>
+            </tr>
+            <tr>
+              <td>HQ Command</td>
+              <td>Operations Manager</td>
+              <td>待落地</td>
+              <td>角色描述有，但本週 0 任務、0 KPI，仍像 placeholder seat。</td>
+            </tr>
+            <tr>
+              <td>Canonical Drift</td>
+              <td>Scribe / Crane</td>
+              <td>不清晰</td>
+              <td>任務板已有實際執行紀錄，但 canonical roster 沒有同名 seat，造成外顯組織圖與 runtime 拓樸不一致。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Utilization</small>
+        <h2>本週活躍度與低效席位</h2>
+        <p>這裡看的是「實際完成紀錄」，不是理論上可被使用的 seat。低效不等於角色該刪，但代表 routing 或 phase-state 需要調整。</p>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Section</th>
+              <th>Seats</th>
+              <th>Touched This Week</th>
+              <th>Successful Tasks</th>
+              <th>判讀</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Core</td>
+              <td>10</td>
+              <td>4</td>
+              <td>19</td>
+              <td>活躍度集中在 Klay / Forge / Quill / Ray；其餘 6 席本週零活躍。</td>
+            </tr>
+            <tr>
+              <td>Docs</td>
+              <td>1</td>
+              <td>1</td>
+              <td>1</td>
+              <td>Nova 仍有單點產出，但晨間報告 lane 仍帶 failed / claimed 噪音。</td>
+            </tr>
+            <tr>
+              <td>Research</td>
+              <td>3</td>
+              <td>1</td>
+              <td>2</td>
+              <td>只有 Orion 真正啟動，Lab / Lens 仍是待觸發角色。</td>
+            </tr>
+            <tr>
+              <td>External</td>
+              <td>14</td>
+              <td>1</td>
+              <td>0</td>
+              <td>Badger 3 次取消；其餘 13 席 0 completed task，外部池明顯大於實際吞吐。</td>
+            </tr>
+            <tr>
+              <td>Website</td>
+              <td>3</td>
+              <td>0</td>
+              <td>0</td>
+              <td>與這週實際 TheOrder 維運不一致，代表 ownership 被旁路。</td>
+            </tr>
+            <tr>
+              <td>Finance / Strategy / Security</td>
+              <td>6</td>
+              <td>0</td>
+              <td>0</td>
+              <td>本週無 demand 可以接受，但不應與 always-on seats 混在同一活躍口徑。</td>
+            </tr>
+            <tr>
+              <td>Investment</td>
+              <td>17</td>
+              <td>0</td>
+              <td>0</td>
+              <td>Phase B/B+ 仍屬待啟用架構，建議移出 active roster 視角。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h3>本週偏低效或有明顯噪音的席位</h3>
+          <ul>
+            <li><strong>Quill</strong>：3 success / 7 cancelled。問題較像夜班 cleanup 與任務穩定性，不像 review 定位錯誤。</li>
+            <li><strong>Orion</strong>：2 success / 3 cancelled / 多筆 pending。知識線有 backlog，缺的是節流與完結率，不是職責文字。</li>
+            <li><strong>Silo</strong>：這週 4 failed + 1 executing 的系統警報，代表 SEO lane 有真實需求，但執行品質不足。</li>
+            <li><strong>Noel</strong>：lead seat 本週 0 success，只有 1 failed fix task。若 Noel 的真正責任是 orchestration，就不能只看 direct completion。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>這週最值得注意的使用集中</h3>
+          <ul>
+            <li><strong>Klay + Forge</strong> 合計 14 筆成功任務，占 canonical successful tasks 的 63.6%。</li>
+            <li><strong>實際成功輸出</strong> 主要集中在 core ops / governance pod，而不是跨部門分散執行。</li>
+            <li><strong>`scribe`</strong> 成功做了 2 次 writeback，表示 knowledge-sync 需求是真實存在的，只是還沒 canonical 化。</li>
+            <li><strong>整體 created-state</strong>：本週非 schedule 任務共 109 筆，只有 32 筆 success，失敗與待處理仍偏高。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Recommendations</small>
+        <h2>具體改善建議</h2>
+        <p>建議只做結構性收斂，不做過度重設。目標是讓 roster、runtime 與任務板回到同一張圖上。</p>
+      </div>
+      <div class="issues">
+        <article class="issue p1">
+          <div class="badge">Rec 1</div>
+          <h3>把 roster 改成三層：always-on / on-demand / experimental</h3>
+          <p>保留 core 10 席與 night-shift pod 為 always-on；Investment B/B+、Strategy、Finance specialist、多數 external worker 改標 on-demand 或 experimental，避免每週都被當成 active idle headcount。</p>
+        </article>
+        <article class="issue p1">
+          <div class="badge">Rec 2</div>
+          <h3>把 `scribe`、`crane` 的 canonical 身份補齊，否則停止 dispatch</h3>
+          <p>`scribe` 已經有成功紀錄，應正式掛回 roster（建議歸在 docs 或 Beaver external team）；`crane` 若只是舊 alias 或失敗實驗，應從 dispatch surface 移除，避免黑箱 worker 繼續出現在任務板。</p>
+        </article>
+        <article class="issue p2">
+          <div class="badge">Rec 3</div>
+          <h3>夜班改成「Noel orchestrates, pod executes」的明確口徑</h3>
+          <p>讓 Noel 的 KPI 看 dispatch success、reroute latency、backlog burn-down；Forge / Quill / Orion / Nova 分別承擔 ops / quality / knowledge / morning report。這樣角色就不會再名義與實際分離。</p>
+        </article>
+        <article class="issue p2">
+          <div class="badge">Rec 4</div>
+          <h3>恢復網站部門 ownership chain</h3>
+          <p>Webb 應成為網站維運與專案維護的 intake owner；Keeper 追回 post-launch 維護；Silo 僅負責 SEO 結構與 alert triage；Forge 回到 gate 與 fallback，而不是直接吞下 website maintenance。</p>
+        </article>
+        <article class="issue p3">
+          <div class="badge">Rec 5</div>
+          <h3>Beaver 先收斂成一條 pilot lane 再擴 seat</h3>
+          <p>在 Otter / Shutter / Ferret 具備成功 dispatch 之前，建議把 Beaver worker 視為一個 experimental pool，由 Badger 當單一公開入口；成功後再逐席打開。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <small>Evidence</small>
+        <h2>資料來源與查詢口徑</h2>
+        <p>本輪刻意先查 canonical 與本地資料層，避免直接拿舊報告或 in-thread 記憶做判斷。</p>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h3>Sources Used</h3>
+          <ul>
+            <li><code>/Users/rain/.claude/team.json</code></li>
+            <li><code>/Users/rain/.claude/rules/team-roster.txt</code></li>
+            <li><code>/Users/rain/.claude/session-reviews/ray-arch-review-2026-03-23.md</code></li>
+            <li><code>/Users/rain/Projects/Agents/M4_AutoAgent/中控台/M4ControlCenter/.m4_data/m4.db</code></li>
+            <li><code>/Users/rain/Projects/Agents/M4_AutoAgent/中控台/M4ControlCenter/.m4_data/long_running_tasks/177a0a46-e18a-4480-ae3d-11275e869778</code></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Residual Uncertainty</h3>
+          <ul>
+            <li>本週 0 completed task 不等於角色永久閒置；對 specialist/on-demand seat 仍需看更長週期。</li>
+            <li>`scribe` 在記憶中可找到，但 `crane` 目前只在 task board 留下失敗任務，canonical 定義仍不足。</li>
+            <li>localhost API 的單 task endpoint 在本輪 timeout，故這份報告以 SQLite 為主資料源。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      [night-shift] Ray 團隊架構週審 · report date 2026-04-13 · data window 2026-04-07 to 2026-04-13
+    </div>
+  </div>
+  <script src="/nav.js"></script>
+</body>
+</html>
