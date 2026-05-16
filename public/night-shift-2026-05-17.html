@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夜班晨間報告 — 2026-05-17</title>
+<style>
+:root{--bg:#f6f5f1;--paper:#fffefb;--ink:#1f1f1d;--muted:#6f6b63;--line:#ddd8cf;--accent:#c56f2d;--accent-soft:#f8eadb;--ok:#2f7d4f;--warn:#b45f06;--danger:#b42318;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;line-height:1.62;}
+.page{max-width:940px;margin:0 auto;padding:40px 22px 56px;}
+.header{border-bottom:2px solid var(--line);padding-bottom:22px;margin-bottom:24px;}
+.kicker{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+h1{margin:8px 0 8px;font-size:clamp(30px,6vw,48px);line-height:1.12;letter-spacing:-0.03em;}
+.subtitle{color:var(--muted);margin:0;}
+.summary{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;padding:18px 20px;margin:22px 0;}
+.summary strong{color:var(--accent);}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 30px;}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;}
+.stat .n{font-size:30px;font-weight:800;line-height:1;}
+.stat .l{color:var(--muted);font-size:13px;margin-top:5px;}
+.section{margin:30px 0;}
+.section h2{margin:0 0 12px;font-size:22px;}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;}
+.card h3{margin:0 0 8px;font-size:17px;}
+.card p{margin:0;color:#393632;}
+.meta{color:var(--muted);font-size:12px;margin-bottom:6px;font-weight:700;}
+.callout{background:var(--accent-soft);border:1px solid #edc49e;border-radius:10px;padding:16px 18px;}
+ul{margin:0;padding-left:20px;}
+li{margin:6px 0;}
+table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+td{border-bottom:1px solid var(--line);padding:10px 12px;vertical-align:top;}
+tr:last-child td{border-bottom:0;}
+td:first-child{width:200px;color:var(--muted);font-weight:700;}
+.tag-ok{color:var(--ok);font-weight:700;}
+.tag-warn{color:var(--warn);font-weight:700;}
+.tag-danger{color:var(--danger);font-weight:700;}
+.footer{color:var(--muted);font-size:12px;margin-top:34px;border-top:1px solid var(--line);padding-top:16px;}
+@media (max-width:720px){.stats,.grid{grid-template-columns:1fr;}.page{padding:28px 16px 44px;}td:first-child{width:130px;}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="header">
+    <div class="kicker">Rain AI Team · Internal Morning Brief</div>
+    <h1>夜班晨間報告</h1>
+    <p class="subtitle">2026-05-17 · 2026-05-16 19:00 ~ 2026-05-17 03:15 CST · 給 Rain 看的摘要版</p>
+  </header>
+  <section class="summary">
+    <strong>先講結論：</strong>
+    夜班跑了 2 件巡檢類任務。把背景服務修了一輪 —— 6 個睡死的排程 job 重新踢醒，5 個復活、1 個確認壞掉（OAuth token 要白天查）。工具鏈（Kai 寄信、瀏覽器）實測都通。沒有殭屍任務、沒有 broken。需要你白天決定的有 3 件：OAuth token、10 筆放超過 30 天的舊任務、2 個沒註冊進排程器的 job。
+  </section>
+  <div class="stats">
+    <div class="stat"><div class="n">2</div><div class="l">完成任務</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">已確認修復</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">仍有風險</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">需要決策</div></div>
+  </div>
+  <section class="section">
+    <h2>需要你先看的事</h2>
+    <div class="callout">
+      <ul>
+        <li><strong>OAuth token 壞了</strong>：<code>ai.rain.workspace-oauth-keepalive</code> 踢醒後仍 exit 1，程式本身故障，需要白天查 Google Workspace OAuth token 是否過期。</li>
+        <li><strong>10 筆舊任務待裁決</strong>：pending 超過 30 天的規劃/feature 任務（最舊 43 天），都已被後續 sprint 取代或降優先，建議批次 close 或重排。</li>
+        <li><strong>2 個 job 沒進排程器</strong>：<code>ai.rain.aibutler</code>、<code>ai.rain.noel-module-n</code> 是 LaunchAgent 但沒註冊進 Kai scheduler，需確認是否要納入追蹤。</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section">
+    <h2>夜班完成了什麼</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="meta">完成 · klay（巡檢）</div>
+        <h3>LaunchAgent + 排程任務巡檢</h3>
+        <p>65 個 LaunchAgent：54 healthy、0 broken、11 stale。11 個 stale 中 6 個是真的睡死、3 個是長駐 daemon 誤報（正常）、2 個是週期排程在 2x 間隔內（正常）。0 殭屍任務。</p>
+      </article>
+      <article class="card">
+        <div class="meta">完成 · klay（健康檢查）</div>
+        <h3>Noel &amp; Jarvis 工具鏈健康檢查</h3>
+        <p>Kai healthy（v0.3.0，worker 在跑）、Email configured + SMTP fallback 通、openclaw browser 實測 navigate+snapshot 成功。最穩路徑仍是 openclaw browser，建議淘汰裸 Playwright 舊版。</p>
+      </article>
+    </div>
+  </section>
+  <section class="section">
+    <h2>已修復（6 個 stale job 踢醒）</h2>
+    <table>
+      <tbody>
+        <tr><td>chain-research-fulfillment</td><td><span class="tag-ok">✅ 復活</span>（999h 無 log → exit 0, PID 17548）</td></tr>
+        <tr><td>happy-codex</td><td><span class="tag-ok">✅ 復活</span>（857h 無 log → exit 0, PID 17550）</td></tr>
+        <tr><td>workspace-oauth-healthcheck</td><td><span class="tag-ok">✅ 復活</span>（157h → reloaded）</td></tr>
+        <tr><td>klay-mobile-session</td><td><span class="tag-ok">✅ 復活</span>（100h → reloaded）</td></tr>
+        <tr><td>nightshift-healthcheck</td><td><span class="tag-ok">✅ 復活</span>（906h → reloaded）</td></tr>
+        <tr><td>workspace-oauth-keepalive</td><td><span class="tag-danger">⚠️ 仍故障</span>（exit 1 持續，程式本身問題，待人工查 OAuth token）</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="section">
+    <h2>還沒完全好的地方</h2>
+    <div class="card">
+      <ul>
+        <li><span class="tag-danger">⚠️</span> <code>workspace-oauth-keepalive</code> exit 1 持續 —— OAuth token 疑似過期。</li>
+        <li><span class="tag-warn">⚠️</span> Telegram default 通道（@awe_m4_dev_bot）能收發但 <strong>audit failed</strong>，稽核未過。</li>
+        <li><span class="tag-warn">⚠️</span> OpenClaw gateway <strong>event loop degraded</strong>（utilization=1），高負載/阻塞徵兆，需觀察是否影響 channel 延遲。</li>
+        <li>10 筆 stale pending 任務（30+ 天）尚未裁決 —— <code>/api/tasks</code> 端點不穩，無法自動標記，清單已留存供人工處理。</li>
+        <li>安全掃描仍有 2 筆 high finding（沿用 2026-05-16 audit），請 Knox/Max 白天判斷暴露面。</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section">
+    <h2>下一步</h2>
+    <div class="card">
+      <ul>
+        <li>查 <code>workspace-oauth-keepalive</code> 的 Google Workspace OAuth token，過期就 re-auth。</li>
+        <li>批次裁決 10 筆 stale pending 任務（close 或重排優先級）。</li>
+        <li>決定 <code>aibutler</code> / <code>noel-module-n</code> 是否註冊進 Kai scheduler，或確認為純 LaunchAgent 不需追蹤。</li>
+        <li>觀察 OpenClaw gateway event loop 與 Telegram audit failed，若影響派工再升級處理。</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section">
+    <h2>驗證附錄</h2>
+    <table>
+      <tbody>
+        <tr><td>完成任務</td><td>2（LaunchAgent 巡檢、Noel/Jarvis 健康檢查）</td></tr>
+        <tr><td>已確認修復</td><td>5（5 個 stale job 復活）</td></tr>
+        <tr><td>LaunchAgent 狀態</td><td>54 healthy / 0 broken / 11 stale（6 真 stale 已處理）</td></tr>
+        <tr><td>殭屍 / 任務清理</td><td>0 zombie executing；10 stale pending 已記錄</td></tr>
+        <tr><td>工具鏈</td><td>Kai healthy；Email + SMTP fallback OK；openclaw browser 實測通</td></tr>
+        <tr><td>待人工跟進</td><td>OAuth token、10 筆舊任務、2 個未註冊 scheduler job</td></tr>
+        <tr><td>資料來源</td><td>night-shift-comprehensive-latest.json (2026-05-16) + schedule-patrol + noel-jarvis-health cache</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <p class="footer">
+    這份晨報保留機器證據但主文走摘要。技術細節在 <code>~/.claude/cache/night-shift-*-2026-05-16.md</code>、Kai task 8a2f0059 / 081eeae5 與 git commit e315f72cb 可追。
+  </p>
+</main>
+</body>
+</html>
