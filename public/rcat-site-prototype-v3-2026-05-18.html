@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCAT — AI Research Notes · Site Prototype v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE v3 ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f2;
+  --c-border: #e0e0e4;
+  --c-border2: #d0d0d5;
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #F5A623;
+  --c-gold-dim: rgba(245,166,35,.10);
+  --c-gold-border: rgba(245,166,35,.30);
+  --c-blue: #7CB9E8;
+  --c-blue-dim: rgba(124,185,232,.10);
+  --c-green: #2a9d4a;
+  --c-red: #d93025;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;overflow-x:hidden;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(124,185,232,.3);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(42,157,74,.10);color:#1e7a38;border:1px solid rgba(42,157,74,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#b87b00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(217,48,37,.09);color:#b02419;border:1px solid rgba(217,48,37,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#3a7fb5;border:1px solid rgba(124,185,232,.30)}
+.pill-gray{background:rgba(110,110,115,.09);color:var(--c-muted);border:1px solid rgba(110,110,115,.22)}
+/* keep old names as aliases */
+.pill-amber{background:var(--c-gold-dim);color:#b87b00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES — v3 fix: fully visible, compact ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:rgba(245,166,35,.04)}
+td.num,th.num{text-align:right;font-family:var(--font-mono);white-space:nowrap;}
+td.pos{color:var(--c-green);font-weight:600}
+td.neg{color:var(--c-red);font-weight:600}
+/* scrollable tables get min-width set inline */
+
+/* ─── CHART CONTAINERS ─── */
+.chart-container{position:relative;width:100%;height:200px;overflow:hidden;}
+.chart-container canvas{max-width:100% !important;height:200px !important;}
+
+/* ─── FIN GRID ─── */
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.fin-grid{grid-template-columns:1fr;}}
+.fin-grid .card{min-width:0;overflow:hidden;}
+
+/* ─── DIVIDERS + TEXT ─── */
+.sec-div{height:1px;background:var(--c-border);margin:36px 0;}
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+.block-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.block-lead{font-size:13px;color:var(--c-muted);line-height:1.65;margin-bottom:20px;max-width:680px;}
+.stat-num{font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--c-gold);display:block;line-height:1;}
+.stat-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+@media(max-width:640px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{border-radius:8px;padding:20px;border:1px solid}
+.s-bear{background:rgba(217,48,37,.05);border-color:rgba(217,48,37,.20)}
+.s-base{background:var(--c-gold-dim);border-color:var(--c-gold-border)}
+.s-bull{background:rgba(42,157,74,.05);border-color:rgba(42,157,74,.20)}
+.s-label{font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.s-pt{font-family:var(--font-display);font-size:32px;font-weight:800;line-height:1;margin-bottom:3px}
+.s-prob{font-size:11px;color:var(--c-muted);margin-bottom:10px}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.55}
+
+/* ─── TIMELINE ─── */
+.timeline{padding-left:20px;position:relative;margin-top:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--c-border)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-dot{position:absolute;left:-18px;top:3px;width:9px;height:9px;border-radius:50%;border:2px solid var(--c-gold);background:var(--c-bg)}
+.tl-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);font-weight:700;margin-bottom:2px}
+.tl-title{font-size:13px;font-weight:600;color:var(--c-text);margin-bottom:2px}
+.tl-body{font-size:12px;color:var(--c-muted);line-height:1.5}
+
+/* ─── QUOTES ─── */
+.qblock{background:var(--c-surface2);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 16px;margin-bottom:12px;}
+.q-text{font-size:13px;color:var(--c-text);line-height:1.65;font-style:italic;margin-bottom:5px}
+.q-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:10px}
+.score-hd{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.score-hd span:last-child{font-family:var(--font-mono);color:var(--c-text)}
+.score-track{height:5px;background:var(--c-surface2);border-radius:3px;overflow:hidden;border:1px solid var(--c-border);}
+.score-fill{height:100%;border-radius:3px;background:var(--c-gold);transition:width 1s var(--ease-out)}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;margin:24px 0;box-shadow:var(--shadow-md);}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;border-bottom:1px solid var(--c-gold-border);padding-bottom:10px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:640px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:10px 12px;border:1px solid var(--c-border);}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.db-cell-value{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--c-text)}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:14px;}
+.ev-val{font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--c-gold);line-height:1;}
+.ev-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px}
+.ev-math{font-size:12px;color:var(--c-muted);line-height:1.6}
+
+/* ─── SVG WRAP ─── */
+.svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px 20px;overflow:hidden;box-shadow:var(--shadow-sm);}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0;}
+@media(max-width:800px){.product-image-grid{grid-template-columns:1fr;}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface2);cursor:zoom-in;position:relative;box-shadow:var(--shadow-sm);}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:420px;transition:transform .3s var(--ease-out);}
+.product-img-block:hover img{transform:scale(1.02);}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border-top:1px solid var(--c-border);line-height:1.4;}
+.product-img-caption strong{color:var(--c-gold);}
+.product-hero-single{border:1px solid var(--c-gold-border);border-radius:8px;overflow:hidden;background:var(--c-surface2);cursor:zoom-in;margin:24px 0;box-shadow:var(--shadow-md);}
+.product-hero-single img{width:100%;display:block;object-fit:contain;max-height:520px;}
+.product-hero-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border-top:1px solid var(--c-gold-border);line-height:1.4;}
+.product-hero-caption strong{color:var(--c-green);}
+.teardown-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:zoom-in;margin:24px 0;box-shadow:var(--shadow-sm);}
+.teardown-block img{width:100%;display:block;object-fit:contain;max-height:600px;}
+.teardown-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface2);border-top:1px solid var(--c-border);line-height:1.4;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:6px;}
+#lb-close{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer;font-family:monospace;background:none;border:none;line-height:1;}
+#lb-caption{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:11px;color:rgba(255,255,255,.6);text-align:center;}
+
+/* ─── PT CALC ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:28px;margin-bottom:24px;box-shadow:var(--shadow-sm);}
+.pt-calc label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1px;text-transform:uppercase;}
+.pt-calc input[type=range]{width:100%;margin:8px 0;accent-color:var(--c-gold);}
+.pt-result-grid{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;background:var(--c-surface2);border-radius:6px;padding:16px;border:1px solid var(--c-border);}
+.pt-result-item .pt-r-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.pt-result-item .pt-r-val{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--c-text);line-height:1;}
+
+/* ─── WATCH LIST ─── */
+.watch-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--c-border);}
+.watch-item:last-child{border-bottom:none}
+.watch-n{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-gold);min-width:20px;}
+.watch-body .wt{font-size:13px;font-weight:600;color:var(--c-text)}
+.watch-body .ws{font-size:12px;color:var(--c-muted);margin-top:2px;line-height:1.5}
+
+/* ─── TABS ─── */
+.tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--c-border);margin-bottom:24px;overflow-x:auto;}
+.tab-btn{font-family:var(--font-mono);font-size:11px;padding:8px 16px;cursor:pointer;border:none;background:none;color:var(--c-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .2s,border-color .2s;}
+.tab-btn:hover{color:var(--c-text)}
+.tab-btn.active{color:var(--c-gold);border-bottom-color:var(--c-gold)}
+.tab-pane{display:none;animation:fadeIn .2s var(--ease-out)}
+.tab-pane.active{display:block}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;box-shadow:var(--shadow-sm);}
+.persona-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.persona-name{font-weight:700;font-size:13px;color:var(--c-text)}
+.persona-score{font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--c-text);white-space:nowrap;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease-out),transform .5s var(--ease-out);}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ─── RISK MATRIX ─── */
+.risk-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+
+/* ─── DISCLAIMER FOOTER ─── */
+.disclaimer-footer{background:var(--c-surface2);border-top:1px solid var(--c-border);padding:36px 48px;font-size:12px;color:var(--c-muted);line-height:1.8;border-radius:8px;}
+.disclaimer-footer strong{color:var(--c-text)}
+
+/* ─── UTILITY ─── */
+.amber-txt{color:var(--c-gold)}
+.green-txt{color:var(--c-green)}
+.red-txt{color:var(--c-red)}
+.blue-txt{color:var(--c-blue)}
+.muted-txt{color:var(--c-muted)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--c-gold)}
+th.sort-asc::after{content:' ↑'}
+th.sort-desc::after{content:' ↓'}
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--c-text);color:#fff;font-size:11px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:50;font-family:var(--font-mono);}
+[data-tip]:hover::after{opacity:1}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+  #main{margin-left:0}
+  #hamburger{display:block}
+  .ph-title{font-size:24px}
+  .stat-num{font-size:28px}
+  .db-grid{grid-template-columns:repeat(2,1fr)}
+  .disclaimer-footer{padding:24px}
+  .ev-spot{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">RCAT</div>
+    <div class="sidebar-name">Red Cat Holdings</div>
+    <div class="sidebar-badge"><span class="sidebar-badge-dot"></span><span class="sidebar-badge-text">AI RESEARCH NOTES</span></div>
+    <div class="sidebar-v3-tag">v3 · 2026-05-18</div>
+  </div>
+  <nav class="nav-section">
+    <div class="nav-label">Overview</div>
+    <a class="nav-item active" onclick="showPage('p-cover',this)"><span class="nav-num">00</span>決策首頁</a>
+    <a class="nav-item" onclick="showPage('p-thesis',this)"><span class="nav-num">01</span>投資論點 SCQA</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Research</div>
+    <a class="nav-item" onclick="showPage('p-market',this)"><span class="nav-num">02</span>產業 / TAM</a>
+    <a class="nav-item" onclick="showPage('p-company',this)"><span class="nav-num">03</span>公司概況</a>
+    <a class="nav-item" onclick="showPage('p-product',this)"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p-earnings',this)"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Financials</div>
+    <a class="nav-item" onclick="showPage('p-financials',this)"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p-supply',this)"><span class="nav-num">07</span>供應鏈</a>
+    <a class="nav-item" onclick="showPage('p-valuation',this)"><span class="nav-num">08</span>估值模型</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Risk &amp; Catalysts</div>
+    <a class="nav-item" onclick="showPage('p-risks',this)"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p-catalysts',this)"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p-personas',this)"><span class="nav-num">11</span>5 大師視角</a>
+    <a class="nav-item" onclick="showPage('p-disclaimer',this)"><span class="nav-num">12</span>方法論 / 免責</a>
+  </nav>
+  <div class="sidebar-meta">
+    <div style="margin-bottom:4px">現價參考</div>
+    <div class="sidebar-price">$9.49 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT <span class="sidebar-pt">$14.00</span> · EV <span class="sidebar-pt">$13.85</span></div>
+    <div style="margin-top:6px;font-size:9px;color:var(--c-muted)">2026-05-18 · 非投資建議</div>
+  </div>
+</aside>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-caption"></div>
+</div>
+
+<div id="main">
+
+<!-- ═══ PAGE 00 — COVER ═══ -->
+<div id="p-cover" class="page active">
+  <div class="page-header" style="background:linear-gradient(135deg,#fffbf0 0%,#ffffff 100%);border-bottom:3px solid var(--c-gold);">
+    <div class="ph-eyebrow">AI Research Notes v3 · NASDAQ: RCAT · 2026-05-18</div>
+    <h1 class="ph-title">Red Cat Holdings — <span style="color:var(--c-gold)">美軍無人機唯一標案勝選者</span></h1>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);letter-spacing:1px;margin-bottom:10px">
+      Aerospace &amp; Defense · Military sUAS · Blue UAS · 現價約 $9.49 USD
+    </div>
+    <p class="ph-lead">Army SRR Program of Record 唯一勝選 + 5,880 系統採購目標 + Q1 2026 營收 +849% YoY，市場尚未充分反映規模化路徑；但毛利率仍低且持續稀釋是核心風險。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px">
+      <div class="card" style="text-align:center"><span class="stat-num" data-count="15.5" data-suffix="M">$0M</span><span class="stat-label">Q1 2026 Revenue</span></div>
+      <div class="card" style="text-align:center"><span class="stat-num" data-count="849" data-suffix="%" data-prefix="+">0%</span><span class="stat-label">Revenue YoY</span></div>
+      <div class="card" style="text-align:center"><span class="stat-num" data-count="5880" data-suffix="">0</span><span class="stat-label">SRR Target Systems</span></div>
+      <div class="card" style="text-align:center"><span class="stat-num" data-count="131.9" data-suffix="M">$0M</span><span class="stat-label">Cash (Mar 2026)</span></div>
+    </div>
+    <div class="decision-box reveal">
+      <div class="db-title">Decision Box · 個人研究立場</div>
+      <div class="db-grid">
+        <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">偏多觀察</div></div>
+        <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$7.50–$9.50</div></div>
+        <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">$5.50</div></div>
+        <div class="db-cell"><div class="db-cell-label">Base PT (50%)</div><div class="db-cell-value amber">$14.00</div></div>
+        <div class="db-cell"><div class="db-cell-label">Bull PT (30%)</div><div class="db-cell-value green">$22.00</div></div>
+        <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q2 2026 法說</div></div>
+        <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">SRR 暫停或 GM&lt;10%</div></div>
+        <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">高</div></div>
+      </div>
+      <div class="ev-spot">
+        <div>
+          <div class="ev-label">期望價格 EV（機率加權）</div>
+          <div class="ev-val">$13.85</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 $9.49 → <strong>+45.9%</strong></div>
+        </div>
+        <div class="ev-math">
+          EV = $5.50×20% + $14.00×50% + $22.00×30%<br>
+          = $1.10 + $7.00 + $6.60 = <strong>$14.70</strong><br>
+          <span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span>
+        </div>
+      </div>
+    </div>
+    <div class="eyebrow reveal">三情境結論先行</div>
+    <div class="scenario-wrap reveal">
+      <div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">$5.50</div><div class="s-prob">個人估算 · vs -42.0%</div><div class="s-desc">SRR 合約延遲或縮規模 / 毛利率負值持續<br><strong>Rev &lt;$40M · GM &lt;5%</strong></div></div>
+      <div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">★ Base (50%)</div><div class="s-pt" style="color:var(--c-gold)">$14.00</div><div class="s-prob">個人估算 · vs +47.5%</div><div class="s-desc">SRR 按計畫交付 / 毛利率 H2 回升 15–20%<br><strong>Rev $60–80M · GM 12–18%</strong></div></div>
+      <div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (30%)</div><div class="s-pt" style="color:var(--c-green)">$22.00</div><div class="s-prob">個人估算 · vs +131.8%</div><div class="s-desc">國際盟國訂單大爆發 / USV 商業化<br><strong>Rev $100M+ · GM 20%+</strong></div></div>
+    </div>
+    <div class="sec-div reveal"></div>
+    <div class="g2 reveal">
+      <div class="card">
+        <div class="card-label" style="color:var(--c-green)">多方理由</div>
+        <ul style="list-style:none;margin-top:8px">
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Army SRR 唯一勝選，5 年合約可見度高</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Q1 2026 Revenue +849% YoY，成長斜坡確立</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>毛利率由 -52% 反轉至 12.7%，方向明確</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>NATO + 亞太新訂單，客戶多元化起步</li>
+          <li style="display:flex;gap:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>$131.9M Cash，資金充裕不缺流動性</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label" style="color:var(--c-red)">空方理由</div>
+        <ul style="list-style:none;margin-top:8px">
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>May 2026 $200M 增資，潛在稀釋至 140–150M 股</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>毛利率 12.7% 距目標 20%+ 仍遠</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>FY2025 OpEx $67.9M，G&amp;A 占比過高</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>P/S ~16× FY2026E，估值拉伸</li>
+          <li style="display:flex;gap:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>SRR 單客戶依賴，政府預算風險</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+      <span class="sidebar-badge-dot"></span>
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">KEY MONITOR · 毛利率回升至 20%+ 為規模化確認信號</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 01 — THESIS ═══ -->
+<div id="p-thesis" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — 為什麼市場現在可能低估 RCAT？</h2>
+    <p class="ph-lead">Army SRR 唯一勝選 + Q1 2026 爆發 +849% YoY，基準情境下 FY2026 目標年化 $60M+，Base PT $14.00 vs 現價 +47.5%</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal">
+      <div class="card"><div class="card-label">S · Situation（現況）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">美國國防部持續縮減對中國製無人機（DJI/Autel）的採購，Blue UAS 認證計畫成為唯一採購通道。RCAT 旗下 Teal Drones 是少數擁有 Blue UAS 認證且獲 Army 大規模採購合約的純美製廠商。</p></div>
+      <div class="card"><div class="card-label">C · Complication（問題）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">市場聚焦於毛利率極低（FY2025 僅 3.1%）及持續淨虧損（FY2025 -$72M），股價反映悲觀預期。然而，這是 Teal 2→Black Widow 產線切換期的暫時性摩擦，非結構性問題。</p></div>
+      <div class="card"><div class="card-label">Q · Question（關鍵問題）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">在毛利率重新達到 20%+（FY2024 水準）之前，市場應給予多少 Revenue Multiple 的溢價，以及 Army SRR 合約全量交付後的年化 Revenue 到底有多大？</p></div>
+      <div class="card"><div class="card-label">A · Answer（我們的答案）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base：FY2026 Revenue $60–80M，毛利率 Q2-Q3 持續回升，EV/Revenue 2.5× 計隱含市值 $150–200M；目前市值 ~$1.14B 反映偏高，但 2027 SRR 全速交付後估值重新定價空間顯著。</p></div>
+    </div>
+    <div class="sec-div reveal"></div>
+    <div class="reveal">
+      <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+          <tbody>
+            <tr><td class="num amber-txt" style="font-weight:700">1</td><td><strong>Army SRR 交付斜坡</strong> — Black Widow 量產剛起步，5,880 系統合約未來 5 年交付，毛利率跟隨量上升</td><td style="font-family:var(--font-mono);font-size:11px">2026–2028</td><td><span class="pill pill-red">關鍵</span></td></tr>
+            <tr><td class="num amber-txt" style="font-weight:700">2</td><td><strong>$200M 新融資完成後擴產</strong> — May 2026 公告 $200M 公開增資，資本充裕後 UT 製造廠達設計產能</td><td style="font-family:var(--font-mono);font-size:11px">H2 2026</td><td><span class="pill pill-gold">重要</span></td></tr>
+            <tr><td class="num amber-txt" style="font-weight:700">3</td><td><strong>DoD FY2027 $74B UAV/USV 預算信號</strong> — Hegseth 指明方向，RCAT 提前佈局 USV（Blue Ops）+ Swarm（Apium）</td><td style="font-family:var(--font-mono);font-size:11px">2026–2027</td><td><span class="pill pill-gold">重要</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 02 — MARKET ═══ -->
+<div id="p-market" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">軍用小型無人機 — Blue UAS → Replicator → 全域制空</h2>
+    <p class="ph-lead">全球軍用 sUAS 市場 2025 年估 $14B，CAGR 15–18%。美國 DoD Blue UAS + Replicator 計畫是核心推力，RCAT 是少數完整受益者。</p>
+  </div>
+  <div class="page-body">
+    <!-- v3: enlarged SVG, light-palette colors -->
+    <div class="svg-wrap reveal" style="margin-bottom:32px">
+      <div class="eyebrow">美國軍用無人機產業結構 — 7 層堆疊</div>
+      <svg viewBox="0 0 800 370" style="width:100%;display:block;min-height:300px">
+        <rect x="10" y="10" width="780" height="46" rx="6" fill="#1B3A5E"/>
+        <text x="400" y="38" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">終端用戶 · U.S. Army / Navy / USAF / NATO Allies / CBP</text>
+        <rect x="10" y="63" width="780" height="46" rx="6" fill="#2D5A8E"/>
+        <text x="400" y="91" text-anchor="middle" fill="white" font-family="monospace" font-size="12">DoD 採購計畫 · SRR Program · Blue UAS · Replicator · TACFI</text>
+        <rect x="10" y="116" width="384" height="46" rx="6" fill="#F5A623"/>
+        <text x="202" y="144" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ RCAT / Teal · 系統整合商</text>
+        <rect x="406" y="116" width="384" height="46" rx="6" fill="#6B7280"/>
+        <text x="598" y="144" text-anchor="middle" fill="white" font-family="monospace" font-size="12">AeroVironment / Skydio / 其他競品</text>
+        <rect x="10" y="169" width="384" height="46" rx="6" fill="#1F7A5C"/>
+        <text x="202" y="197" text-anchor="middle" fill="white" font-family="monospace" font-size="11">★ Palantir VNav · ATAK 整合 · 自主導航</text>
+        <rect x="406" y="169" width="384" height="46" rx="6" fill="#4B5563"/>
+        <text x="598" y="197" text-anchor="middle" fill="white" font-family="monospace" font-size="11">第三方 AI / EW 軟體廠商</text>
+        <rect x="10" y="222" width="780" height="46" rx="6" fill="#374151"/>
+        <text x="400" y="250" text-anchor="middle" fill="#F5A623" font-family="monospace" font-size="12" font-weight="700">★ sUAS 硬體平台 · Black Widow / Edge 130 / VARIANT 7 USV</text>
+        <rect x="10" y="275" width="780" height="46" rx="6" fill="#4B5563"/>
+        <text x="400" y="303" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="monospace" font-size="11">零組件供應 · 馬達 / 電池 / 感測器 / 電子戰模組（美製 ITAR 合規）</text>
+        <rect x="10" y="328" width="780" height="36" rx="6" fill="#6B7280"/>
+        <text x="400" y="351" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="11">研發 / IP · EW 韌性 / MOSA / 群飛（Apium）/ 無線充電（Quaze）</text>
+      </svg>
+    </div>
+    <!-- v3 TAM table: all cols visible, no clip -->
+    <div class="reveal">
+      <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+      <div class="tbl-wrap">
+        <table style="min-width:640px">
+          <thead><tr>
+            <th>市場 / 計畫</th>
+            <th class="num">TAM 估算</th>
+            <th class="num">CAGR</th>
+            <th>RCAT 角色</th>
+            <th>直接 / 唯一 / 間接</th>
+            <th>說明</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>全球軍用 sUAS</td><td class="num">$14B (2025)</td><td class="num">15–18%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>主要市場，Blue UAS 過濾中國競品</td></tr>
+            <tr><td>Army SRR 計畫</td><td class="num">~$500M (5yr 估)</td><td class="num">N/A</td><td><span class="pill pill-red">唯一勝選</span></td><td><span class="pill pill-red">唯一</span></td><td>5,880 系統 × 估均價 $80–85K = ~$490M</td></tr>
+            <tr><td>DoD Replicator</td><td class="num">$1B+ (Phase)</td><td class="num">加速</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-gold">間接</span></td><td>低成本可消耗型 UAS 大規模採購</td></tr>
+            <tr><td>軍用 USV（海面）</td><td class="num">$2–3B (2027e)</td><td class="num">20%+</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-blue">間接</span></td><td>Blue Ops VARIANT 7，烏克蘭實戰驗證</td></tr>
+            <tr><td>盟國出口（NATO/亞太）</td><td class="num">擴張中</td><td class="num">高</td><td><span class="pill pill-blue">新開</span></td><td><span class="pill pill-blue">直接</span></td><td>Q1 2026 已拿 NATO + 亞太 2 筆訂單</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 03 — COMPANY ═══ -->
+<div id="p-company" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Red Cat Holdings — 純美製全域無人機平台</h2>
+    <p class="ph-lead">總部猶他州鹽湖城，旗下 Teal Drones（sUAS）+ FlightWave（VTOL）+ Blue Ops（USV）三大事業體，FY2025 已完成消費段剝離，純聚焦國防。</p>
+  </div>
+  <div class="page-body">
+    <div class="tab-bar reveal">
+      <button class="tab-btn active" onclick="switchTab('company','revenue',this)">事業結構</button>
+      <button class="tab-btn" onclick="switchTab('company','moat',this)">護城河</button>
+      <button class="tab-btn" onclick="switchTab('company','peers',this)">競品比較</button>
+      <button class="tab-btn" onclick="switchTab('company','roadmap',this)">產品 Roadmap</button>
+    </div>
+    <div id="company-revenue" class="tab-pane active reveal">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Teal Drones</strong></td><td>Black Widow / Teal 2</td><td class="num pos">~80%</td><td><span class="pill pill-green">快增</span></td></tr>
+            <tr><td><strong>FlightWave</strong></td><td>Edge 130 Blue</td><td class="num">~15%</td><td><span class="pill pill-gold">穩增</span></td></tr>
+            <tr><td><strong>Blue Ops</strong></td><td>VARIANT 7 USV</td><td class="num">~5%</td><td><span class="pill pill-blue">新起步</span></td></tr>
+            <tr><td><strong>Consumer（剝離）</strong></td><td>Rotor Riot / Fat Shark</td><td class="num">0%</td><td><span class="pill pill-gray">已出售</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="company-moat" class="tab-pane">
+      <div class="g2">
+        <div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Army SRR 獨佔地位</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Blue UAS 認證（進入壁壘）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Palantir AI 技術整合</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="75%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">美國製造（ITAR 合規）</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div>
+        </div>
+        <div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利率可持續性</span><span>4.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">資本結構穩定性</span><span>3.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="35%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">管理層執行力</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶多元化</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="company-peers" class="tab-pane">
+      <div class="tbl-wrap">
+        <table id="peer-table" style="min-width:600px">
+          <thead><tr>
+            <th class="sortable" onclick="sortTable('peer-table',0)">公司</th>
+            <th class="num sortable" onclick="sortTable('peer-table',1)">市值（估）</th>
+            <th class="num sortable" onclick="sortTable('peer-table',2)">Revenue YoY</th>
+            <th class="num sortable" onclick="sortTable('peer-table',3)">Gross Margin</th>
+            <th>Blue UAS</th><th>Army SRR</th><th>特點</th>
+          </tr></thead>
+          <tbody>
+            <tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">RCAT</strong></td><td class="num">~$1.1B</td><td class="num pos">+849%</td><td class="num">3.1%</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-red">唯一</span></td><td>Army 獨佔 sUAS</td></tr>
+            <tr><td>AeroVironment (AVAV)</td><td class="num">~$3.5B</td><td class="num">+22%</td><td class="num">30%+</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gray">未選</span></td><td>中大型 UAS 強</td></tr>
+            <tr><td>Skydio（私有）</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gold">競爭</span></td><td>AI 自主飛行</td></tr>
+            <tr><td>Shield AI（私有）</td><td class="num">~$2.8B</td><td class="num">—</td><td class="num">—</td><td><span class="pill pill-gray">N/A</span></td><td><span class="pill pill-gray">N/A</span></td><td>Hivemind AI 軟體</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="company-roadmap" class="tab-pane">
+      <div class="tbl-wrap">
+        <table style="min-width:560px">
+          <thead><tr><th>產品</th><th>2025 現狀</th><th>2026 目標</th><th>2027 展望</th><th>戰略意義</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Black Widow</strong></td><td>SRR 量產交付中</td><td>月產量翻倍</td><td>全速 5,880 系統</td><td><span class="pill pill-red">核心</span></td></tr>
+            <tr><td><strong>Edge 130 Blue</strong></td><td>小批量交付</td><td>更多政府客戶</td><td>穩定貢獻</td><td><span class="pill pill-gold">重要</span></td></tr>
+            <tr><td><strong>VARIANT 7 USV</strong></td><td>Ukraine STE 合作</td><td>出口認證</td><td>規模化</td><td><span class="pill pill-blue">新興</span></td></tr>
+            <tr><td><strong>Apium Swarm</strong></td><td>研發中</td><td>Demo</td><td>Replicator 機會</td><td><span class="pill pill-blue">新興</span></td></tr>
+            <tr><td><strong>Quaze 無線充電</strong></td><td>Investment Canada 待批</td><td>整合 BW</td><td>任務延長</td><td><span class="pill pill-gray">待定</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 04 — PRODUCT ═══ -->
+<div id="p-product" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">Black Widow — 撐股價的那條產品線</h2>
+    <p class="ph-lead">Black Widow 是 Army SRR Program of Record 唯一勝選，是 RCAT 當前與未來 3 年的核心 Revenue Driver。以下包含 AI 生成高畫質產品渲染圖 + AI 技術拆解示意圖（均已明確標示）。</p>
+  </div>
+  <div class="page-body">
+    <div class="eyebrow reveal">產品渲染圖 vs AI 技術拆解 — 點擊放大</div>
+    <div class="product-image-grid reveal">
+      <div class="product-img-block" onclick="openLightbox(this.querySelector('img'))">
+        <img src="rcat-bw-render-v2.png" alt="Black Widow AI 生成渲染圖 — 非真實照片" style="background:#e8e8ea;">
+        <div class="product-img-caption"><strong>AI 生成示意圖</strong> · Gemini 2.5 Flash Image · 非真實照片 · 僅供視覺參考</div>
+      </div>
+      <div class="product-img-block" onclick="openLightbox(this.querySelector('img'))">
+        <img src="rcat-bw-teardown-v2.png" alt="Black Widow AI 技術拆解示意圖" style="background:#ffffff;">
+        <div class="product-img-caption"><strong>AI 技術拆解示意圖</strong> · Gemini 2.5 Flash Image · 標注依據 10-K/8-K 公開資料 · 非真實拆解照</div>
+      </div>
+    </div>
+    <div class="sec-div reveal"></div>
+    <!-- 5-col product deep dive table -->
+    <div class="reveal">
+      <div class="eyebrow">Black Widow 核心產品深拆 — 5 欄分析</div>
+      <div class="tbl-wrap">
+        <table style="min-width:700px">
+          <thead><tr>
+            <th>維度</th>
+            <th>規格 / 現況</th>
+            <th>競品對比</th>
+            <th>護城河</th>
+            <th>研究員評估</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><strong>平台類型</strong></td><td>四旋翼 sUAS，軍用 SUAS-4</td><td>AVAV Puma vs 固定翼</td><td>SRR 合約獨佔</td><td><span class="pill pill-red">關鍵優勢</span></td></tr>
+            <tr><td><strong>Blue UAS 認證</strong></td><td>已通過，唯一 SRR 勝選</td><td>Skydio 亦通過但未中 SRR</td><td>認證壁壘 + 合約</td><td><span class="pill pill-green">強護城河</span></td></tr>
+            <tr><td><strong>AI 整合</strong></td><td>Palantir VNav 自主導航</td><td>多數競品無 Palantir 整合</td><td>深度技術整合</td><td><span class="pill pill-green">差異化</span></td></tr>
+            <tr><td><strong>EW 韌性</strong></td><td>抗 GPS 干擾，MOSA 架構</td><td>中國製品無 ITAR 合規</td><td>法規壁壘</td><td><span class="pill pill-green">強護城河</span></td></tr>
+            <tr><td><strong>製造地</strong></td><td>美國猶他州，ITAR 合規</td><td>中國製品被 NDAA 禁用</td><td>法規排他</td><td><span class="pill pill-red">關鍵優勢</span></td></tr>
+            <tr><td><strong>毛利率（產線）</strong></td><td>估 15–25%（產能滿載後）</td><td>AVAV ~30%</td><td>固定成本攤薄空間</td><td><span class="pill pill-gold">待確認</span></td></tr>
+            <tr><td><strong>SRR 採購目標</strong></td><td>5,880 系統 / 5 年</td><td>無其他合格供應商</td><td>合約期內壟斷</td><td><span class="pill pill-red">核心驅動</span></td></tr>
+            <tr><td><strong>均價估算</strong></td><td>$80–85K / 系統</td><td>AVAV Puma ~$200K+</td><td>性價比 + 量產</td><td><span class="pill pill-gold">驗證中</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sec-div reveal"></div>
+    <div class="reveal">
+      <div class="eyebrow">技術能力對比矩陣</div>
+      <div class="g2" style="gap:12px">
+        <div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Blue UAS 合規認證</span><span>Black Widow: 9/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI 自主導航能力</span><span>Black Widow: 8/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">電子戰 (EW) 韌性</span><span>Black Widow: 8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">群飛 Swarm 能力</span><span>開發中: 5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div>
+        </div>
+        <div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">量產成熟度</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">ITAR / NDAA 合規</span><span>10/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="100%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利率成熟度</span><span>4/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div>
+          <div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">多平台延伸性</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="75%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 05 — EARNINGS ═══ -->
+<div id="p-earnings" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · Q1 2026 法說重點（2026-05-07）</div>
+    <h2 class="ph-title">Q1 2026 Revenue +849% YoY — 毛利率轉正且持續改善</h2>
+    <p class="ph-lead">Q1 2026 是 RCAT 歷史性轉折季：SRR 量產交付帶動 Revenue 爆發，毛利率首次明顯轉正，管理層首次公開全年指引。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px">
+      <div class="card"><div class="card-label">Revenue YoY</div><div class="card-value" style="color:var(--c-green)">+849%</div><div class="card-sub">$15.5M vs $1.6M 去年同期</div></div>
+      <div class="card"><div class="card-label">Gross Margin</div><div class="card-value" style="color:var(--c-green)">12.7%</div><div class="card-sub">vs (52.1%) 去年同期 +64.8pp</div></div>
+      <div class="card"><div class="card-label">環比改善</div><div class="card-value" style="color:var(--c-green)">+199%</div><div class="card-sub">vs Q4 2025 大幅改善</div></div>
+      <div class="card"><div class="card-label">Cash Mar 2026</div><div class="card-value">$131.9M</div><div class="card-sub">vs $167.9M Dec，Inventory ↑$32M</div></div>
+    </div>
+    <div class="reveal">
+      <div class="eyebrow">CEO 法說 Quotes — 來源 SEC 8-K 2026-05-07</div>
+      <div class="qblock"><div class="q-text">"We are projecting an exciting year, with increasing revenues (our target annual revenues in the short-medium term in between $150 million to $180 million), strong backlog, improving margins, and greater product diversity."</div><div class="q-attr">— CEO · Q1 2026 Earnings Call 2026-05-07 · Source: SEC 8-K Ex-99.1</div></div>
+      <div class="qblock"><div class="q-text">"Secured new orders for Black Widow drones from a NATO ally... second Asia-Pacific ally to recently order Black Widow systems for military use."</div><div class="q-attr">— Q1 2026 Business Highlights · Source: SEC 8-K 2026-05-07</div></div>
+      <div class="qblock"><div class="q-text">"With 2027 on the horizon, Secretary of War Hegseth has signaled budget allocations of up to $74 billion for UAV and USV procurement. We are ready to scale, because in this arena, the Factory is the Weapon."</div><div class="q-attr">— CEO · Q1 2026 Earnings · Source: SEC 8-K 2026-05-07</div></div>
+    </div>
+    <div class="sec-div reveal"></div>
+    <div class="reveal">
+      <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+          <tbody>
+            <tr><td>毛利率何時回到 20%+？</td><td>隨量產斜坡 + 固定成本攤薄，Q2-Q3 持續改善</td><td><span class="pill pill-gold">待觀察</span> FY2024 曾達 21%，技術上可行</td></tr>
+            <tr><td>$200M 新融資稀釋壓力？</td><td>資金用於擴產 / 收購 / R&amp;D，加速規模化</td><td><span class="pill pill-red">高風險</span> 股數可能衝至 140–150M</td></tr>
+            <tr><td>SRR 合約實際交付節奏？</td><td>5,880 系統 / 5 年，按計畫推進</td><td><span class="pill pill-green">正面</span> 對應年均 ~1,176 系統</td></tr>
+            <tr><td>USV / Swarm 何時貢獻 Revenue？</td><td>2026H2 / 2027 開始規模化</td><td><span class="pill pill-blue">期待</span> 多元化降低 SRR 單一依賴</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+      <div class="card-label">市場反應</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 2026 業績公告後（2026-05-07），股價近期在 $9.49 附近整理。同日宣布 $200M 公開增資（2026-05-12），市場對稀釋壓力反應謹慎。整體情緒：業績超預期但融資需求持續令多頭猶豫。<br><span style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted)">Note: 股價 $9.49 USD 為研究啟動基準；Source: SEC 8-K 2026-05-07</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 06 — FINANCIALS ═══ -->
+<div id="p-financials" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">毛利率路徑：(28%) → 3.1% → 12.7% — 規模化才是關鍵</h2>
+    <p class="ph-lead">FY2025 毛利率 3.1%（Teal 2→Black Widow 產線切換期），Q1 2026 回升至 12.7%，方向正確但距目標 20%+ 仍有距離。</p>
+  </div>
+  <div class="page-body">
+    <div class="fin-grid reveal" style="margin-bottom:24px">
+      <div class="card" style="min-width:0">
+        <div class="card-label">Revenue 趨勢（$M）</div>
+        <div class="chart-container"><canvas id="revChart"></canvas></div>
+        <p style="font-size:10px;color:var(--c-muted);margin-top:4px">Source: SEC 10-K / 10-KT / 8-K</p>
+      </div>
+      <div class="card" style="min-width:0">
+        <div class="card-label">毛利率趨勢（%）</div>
+        <div class="chart-container"><canvas id="gmChart"></canvas></div>
+        <p style="font-size:10px;color:var(--c-muted);margin-top:4px">Source: SEC 10-K / 10-KT / 8-K</p>
+      </div>
+    </div>
+
+    <!-- Historical financials -->
+    <div class="reveal">
+      <div class="eyebrow">歷史財務儀表板</div>
+      <div class="tbl-wrap">
+        <table style="min-width:620px">
+          <thead><tr><th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th><th class="num">Gross Margin</th><th class="num">OpEx ($M)</th><th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th></tr></thead>
+          <tbody>
+            <tr><td>FY2023 (Apr)</td><td class="num">$4.6</td><td class="num neg">$(0.8)</td><td class="num neg">-18%</td><td class="num">$25.5</td><td class="num neg">$(26.3)</td><td class="num">—</td></tr>
+            <tr><td>FY2024 (Apr)</td><td class="num pos">$17.8</td><td class="num pos">$3.7</td><td class="num pos">21%</td><td class="num">$23.0</td><td class="num neg">$(19.3)</td><td class="num">—</td></tr>
+            <tr><td>Trans. 8m (Dec'24)</td><td class="num">$4.9</td><td class="num neg">$(1.4)</td><td class="num neg">-28%</td><td class="num">$24.5</td><td class="num neg">$(25.8)</td><td class="num">$5.5e</td></tr>
+            <tr><td><strong>FY2025 (Dec'25)</strong></td><td class="num pos">$40.7</td><td class="num pos">$1.3</td><td class="num">3.1%</td><td class="num">$67.9</td><td class="num neg">$(66.6)</td><td class="num pos">$167.9</td></tr>
+            <tr style="background:rgba(42,157,74,0.04)"><td><strong>Q1 2026</strong></td><td class="num pos">$15.5</td><td class="num pos">$2.0</td><td class="num pos">12.7%</td><td class="num">—</td><td class="num">—</td><td class="num">$131.9</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- v3 FIX: Balance sheet — FULL columns with all values -->
+    <div class="fin-grid reveal" style="margin-top:24px">
+      <div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+        <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+        <div class="tbl-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+            <tbody>
+              <tr><td>Apr 2025</td><td class="num">+4.7M</td><td class="num">$30M</td><td class="num">$6.35</td></tr>
+              <tr><td>Jun 2025</td><td class="num">+6.4M</td><td class="num">$46.8M</td><td class="num">$7.25</td></tr>
+              <tr><td>Sep 2025</td><td class="num">+17.9M</td><td class="num">$172.5M</td><td class="num">$9.60</td></tr>
+              <tr><td style="color:var(--c-red)">May 2026（計畫）</td><td class="num neg">+? 股</td><td class="num">$200M</td><td class="num">TBD</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: SEC 10-K FY2025 · 8-K 2026-05-12</p>
+      </div>
+      <!-- v3 FIX: Balance sheet — all value columns fully visible -->
+      <div class="card" style="min-width:0">
+        <div class="card-label">資產負債表快照（Dec 2025）</div>
+        <div class="tbl-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr>
+              <th>項目</th>
+              <th class="num">金額（實際，$M）</th>
+              <th class="num">備註</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>Cash &amp; Equivalents</td><td class="num pos">$167.9</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Inventory + Prepaid Inv.</td><td class="num">$30.4</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Current Assets（合計）</td><td class="num pos">$226.9</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Current Liabilities</td><td class="num">$14.8</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Working Capital</td><td class="num pos">$212.1</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Total Assets</td><td class="num">$273.7</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Accumulated Deficit</td><td class="num neg">$(196.8)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+              <tr><td>Total Equity</td><td class="num pos">$245.8</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: SEC 10-K FY2025 Consolidated Balance Sheets（全部為實際數字）</p>
+      </div>
+    </div>
+
+    <!-- OpEx breakdown -->
+    <div class="reveal" style="margin-top:24px">
+      <div class="eyebrow">FY2025 OpEx 拆解（$67.9M）</div>
+      <div class="tbl-wrap">
+        <table style="min-width:580px">
+          <thead><tr><th>項目</th><th class="num">FY2025 ($M)</th><th class="num">Trans. 8m ($M)</th><th class="num">FY2024 ($M)</th><th class="num">YoY vs Trans.</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>R&amp;D</td><td class="num">$17.9</td><td class="num">$6.6</td><td class="num">$6.3</td><td class="num pos">+171%</td><td>新平台研發（Black Widow / USV / Swarm）</td></tr>
+            <tr><td>Sales &amp; Marketing</td><td class="num">$13.1</td><td class="num">$6.3</td><td class="num">$5.1</td><td class="num">+107%</td><td>擴充業務開發 / 國際市場</td></tr>
+            <tr><td>G&amp;A</td><td class="num">$36.9</td><td class="num">$11.5</td><td class="num">$11.2</td><td class="num neg">+222%</td><td>含大量股票薪酬；上市合規成本高</td></tr>
+            <tr><td><strong>Total OpEx</strong></td><td class="num">$67.9</td><td class="num">$24.5</td><td class="num">$23.0</td><td class="num neg">+177%</td><td>主因增員 + 股票薪酬</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: SEC 10-K FY2025 (filed 2026-03-19, CIK 748268)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 07 — SUPPLY CHAIN ═══ -->
+<div id="p-supply" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">美製國防採購鏈 — RCAT 位居系統整合核心</h2>
+    <p class="ph-lead">RCAT 是完整系統整合商，掌控硬體平台 + 軟體 + DoD 採購關係；上游依賴美製 ITAR 合規零組件，下游直連美軍各指揮層。</p>
+  </div>
+  <div class="page-body">
+    <!-- v3: enlarged SVG supply chain with light palette -->
+    <div class="svg-wrap reveal" style="margin-bottom:32px">
+      <div class="eyebrow">國防無人機採購鏈 — 4 層結構</div>
+      <svg viewBox="0 0 860 320" style="width:100%;display:block;min-height:260px">
+        <!-- 上游 row -->
+        <text x="8" y="54" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">上游</text>
+        <rect x="45" y="20" width="148" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/>
+        <text x="119" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">馬達 / 電池</text>
+        <text x="119" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">美製 ITAR 合規</text>
+        <rect x="205" y="20" width="148" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/>
+        <text x="279" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">感測器 / EO/IR</text>
+        <text x="279" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">Teledyne 等美廠</text>
+        <rect x="365" y="20" width="148" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/>
+        <text x="439" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">EW 模組</text>
+        <text x="439" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">國防電子專用</text>
+        <rect x="525" y="20" width="148" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/>
+        <text x="599" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">AI 軟體</text>
+        <text x="599" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">Palantir VNav</text>
+        <rect x="685" y="20" width="132" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/>
+        <text x="751" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">無線充電</text>
+        <text x="751" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">Quaze（待核准）</text>
+        <!-- arrows down to RCAT -->
+        <defs>
+          <marker id="arr-light" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#9ca3af"/></marker>
+          <marker id="arr-gold" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#F5A623"/></marker>
+        </defs>
+        <line x1="119" y1="72" x2="330" y2="105" stroke="#c8d4e0" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="279" y1="72" x2="360" y2="105" stroke="#c8d4e0" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="439" y1="72" x2="430" y2="105" stroke="#c8d4e0" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="599" y1="72" x2="500" y2="105" stroke="#2a9d4a" stroke-width="2" marker-end="url(#arr-light)"/>
+        <line x1="751" y1="72" x2="520" y2="105" stroke="#c8d4e0" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <!-- RCAT core box -->
+        <text x="8" y="138" fill="#F5A623" font-family="monospace" font-size="10" font-weight="700">★ 核心</text>
+        <rect x="260" y="100" width="340" height="60" rx="8" fill="#F5A623" stroke="#d4880a" stroke-width="2"/>
+        <text x="430" y="126" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">★ RED CAT HOLDINGS (RCAT)</text>
+        <text x="430" y="148" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="monospace" font-size="10">Teal Drones + FlightWave + Blue Ops · 系統整合商</text>
+        <!-- arrows to distribution -->
+        <text x="8" y="205" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">分銷</text>
+        <line x1="330" y1="160" x2="210" y2="183" stroke="#F5A623" stroke-width="2" marker-end="url(#arr-gold)"/>
+        <line x1="430" y1="160" x2="430" y2="183" stroke="#F5A623" stroke-width="2" marker-end="url(#arr-gold)"/>
+        <line x1="530" y1="160" x2="640" y2="183" stroke="#F5A623" stroke-width="2" marker-end="url(#arr-gold)"/>
+        <rect x="120" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/>
+        <text x="200" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">DLA / Darley</text>
+        <text x="200" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">政府採購分銷商</text>
+        <rect x="350" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/>
+        <text x="430" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">直接合約</text>
+        <text x="430" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">Army PM UAS Office</text>
+        <rect x="580" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/>
+        <text x="660" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">NSPA / 盟國</text>
+        <text x="660" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">NATO + 亞太採購</text>
+        <!-- terminal row -->
+        <text x="8" y="288" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">終端</text>
+        <line x1="200" y1="229" x2="160" y2="258" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="430" y1="229" x2="390" y2="258" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="430" y1="229" x2="520" y2="258" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <line x1="660" y1="229" x2="710" y2="258" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr-light)"/>
+        <rect x="75" y="258" width="120" height="38" rx="5" fill="#7CB9E8" opacity="0.2" stroke="#7CB9E8" stroke-width="1.2"/>
+        <text x="135" y="281" text-anchor="middle" fill="#3a7fb5" font-family="monospace" font-size="10" font-weight="700">U.S. Army</text>
+        <rect x="318" y="258" width="120" height="38" rx="5" fill="#7CB9E8" opacity="0.2" stroke="#7CB9E8" stroke-width="1.2"/>
+        <text x="378" y="281" text-anchor="middle" fill="#3a7fb5" font-family="monospace" font-size="10" font-weight="700">CBP / CECOM</text>
+        <rect x="460" y="258" width="120" height="38" rx="5" fill="#7CB9E8" opacity="0.2" stroke="#7CB9E8" stroke-width="1.2"/>
+        <text x="520" y="281" text-anchor="middle" fill="#3a7fb5" font-family="monospace" font-size="10" font-weight="700">USAF / USMC</text>
+        <rect x="638" y="258" width="130" height="38" rx="5" fill="#7CB9E8" opacity="0.2" stroke="#7CB9E8" stroke-width="1.2"/>
+        <text x="703" y="281" text-anchor="middle" fill="#3a7fb5" font-family="monospace" font-size="10" font-weight="700">NATO / AU Navy</text>
+      </svg>
+    </div>
+    <!-- v3: supply chain table — all cols visible -->
+    <div class="reveal">
+      <div class="eyebrow">供應鏈節點分析</div>
+      <div class="tbl-wrap">
+        <table style="min-width:620px">
+          <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+          <tbody>
+            <tr><td>零組件採購</td><td>美製 ITAR 合規廠商</td><td>法規壁壘</td><td><span class="pill pill-gold">中 — 零件可替代</span></td><td><span class="pill pill-gold">中風險</span></td></tr>
+            <tr><td>製造（UT 工廠）</td><td>現低於設計產能，FY2025 GM 僅 3%</td><td>美國本土製造</td><td><span class="pill pill-red">高 — 單廠風險</span></td><td><span class="pill pill-red">高風險</span></td></tr>
+            <tr><td>軟體 (Palantir)</td><td>VNav 完成飛行測試（2026）</td><td>AI 差異化</td><td><span class="pill pill-gold">中 — 依賴 PLTR</span></td><td><span class="pill pill-gold">中風險</span></td></tr>
+            <tr><td>客戶（U.S. Army）</td><td>SRR 唯一供應商</td><td>5 年合約</td><td><span class="pill pill-red">高 — 單客戶依賴</span></td><td><span class="pill pill-red">高風險</span></td></tr>
+            <tr><td>分銷（DLA / Darley）</td><td>已建立採購管道</td><td>政府認可</td><td><span class="pill pill-green">低 — 可替代</span></td><td><span class="pill pill-green">低風險</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 08 — VALUATION ═══ -->
+<div id="p-valuation" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 Revenue × EV/Revenue → 個人估算區間</h2>
+    <p class="ph-lead">以 EV/Revenue（成長期無獲利公司適用）為主要估值框架；參照 AeroVironment（成熟期）為上限，以現金 $131.9M 為下限支撐。</p>
+  </div>
+  <div class="page-body">
+    <div class="pt-calc reveal">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">FY2026 Revenue × EV/Revenue = EV → 個人估算 PT</div>
+      <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">調整滑桿查看不同情境 — 假設 FY2026 末股數 ~140M（含 $200M 融資稀釋）</div>
+      <div class="g2">
+        <div><label>FY2026 Revenue 假設 ($M)</label><input type="range" id="revSlider" min="30" max="200" value="70"><div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$70M</div></div>
+        <div><label>EV/Revenue Multiple</label><input type="range" id="multSlider" min="1" max="6" step="0.5" value="2.5"><div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">2.5×</div></div>
+      </div>
+      <div class="pt-result-grid">
+        <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$175M</div></div>
+        <div class="pt-result-item"><div class="pt-r-label">+現金 $131.9M</div><div class="pt-r-val" id="mvDisplay">$307M</div></div>
+        <div class="pt-result-item"><div class="pt-r-label">估算 PT（÷140M 股）</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$2.19</div></div>
+        <div class="pt-result-item"><div class="pt-r-label">vs 現價 $9.49</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+      </div>
+      <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 Mar 2026 $131.9M 計</p>
+    </div>
+    <div class="reveal">
+      <div class="eyebrow">敏感度分析 — Revenue × Multiple → PT（個人估算）</div>
+      <div class="tbl-wrap">
+        <table style="min-width:640px">
+          <thead><tr><th>情境</th><th class="num">FY2026 Rev($M)</th><th class="num">EV/Rev.</th><th class="num">EV ($M)</th><th class="num">+Cash $131.9M</th><th class="num">÷140M 股</th><th class="num">個人估算 PT</th><th class="num">vs $9.49</th></tr></thead>
+          <tbody>
+            <tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$35–$40M</td><td class="num">1.5×</td><td class="num">$53–$60M</td><td class="num">$185–$192M</td><td class="num">140M</td><td class="num neg"><strong>$5.50</strong></td><td class="num neg">-42%</td></tr>
+            <tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (50%)</strong></td><td class="num">$60–$80M</td><td class="num">2.5×</td><td class="num">$150–$200M</td><td class="num">$282–$332M</td><td class="num">140M</td><td class="num"><strong>$14.00</strong></td><td class="num pos">+47.5%</td></tr>
+            <tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (30%)</strong></td><td class="num">$120–$150M</td><td class="num">4.0×</td><td class="num">$480–$600M</td><td class="num">$612–$732M</td><td class="num">140M</td><td class="num pos"><strong>$22.00</strong></td><td class="num pos">+132%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 09 — RISKS ═══ -->
+<div id="p-risks" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">5 大核心風險 — 影響 × 機率 2D 矩陣</h2>
+    <p class="ph-lead">RCAT 的核心風險圍繞三個軸：SRR 合約執行、毛利率轉正時間軸、持續股本稀釋。</p>
+  </div>
+  <div class="page-body">
+    <!-- v3: risk matrix SVG — light palette -->
+    <div class="svg-wrap reveal" style="margin-bottom:32px">
+      <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+      <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+        <rect width="700" height="420" fill="#f8f8fa" rx="4"/>
+        <!-- grid lines -->
+        <line x1="80" y1="370" x2="670" y2="370" stroke="#e0e0e4" stroke-width="2"/>
+        <line x1="80" y1="370" x2="80" y2="30" stroke="#e0e0e4" stroke-width="2"/>
+        <!-- dashed grid -->
+        <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+        <!-- high-risk zone -->
+        <rect x="375" y="30" width="295" height="210" fill="rgba(217,48,37,0.04)" rx="4"/>
+        <text x="522" y="55" text-anchor="middle" fill="rgba(217,48,37,0.4)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+        <!-- risk circles -->
+        <circle cx="520" cy="88" r="24" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/>
+        <text x="520" y="93" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text>
+        <circle cx="570" cy="205" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/>
+        <text x="570" y="210" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text>
+        <circle cx="410" cy="68" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/>
+        <text x="410" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text>
+        <circle cx="200" cy="52" r="20" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/>
+        <text x="200" y="57" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text>
+        <circle cx="440" cy="285" r="20" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/>
+        <text x="440" y="290" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+        <!-- axis labels -->
+        <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+        <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+        <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+        <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+        <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+        <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+        <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+        <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+      </svg>
+    </div>
+    <div class="tbl-wrap reveal">
+      <table style="min-width:580px">
+        <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>SRR 合約延遲 / 縮規模</strong><br><span style="font-size:12px;color:var(--c-muted)">政府關機、預算繼續決議、需求變更</span></td><td class="num neg">極高</td><td class="num">中高</td><td>隨時</td><td>多合約分散（NATO / 亞太）</td></tr>
+          <tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>持續股本稀釋</strong><br><span style="font-size:12px;color:var(--c-muted)">May 2026 $200M → 股數可能達 140–160M</span></td><td class="num">高</td><td class="num neg">高（已計畫）</td><td>Q2 2026</td><td>Revenue 增速超過稀釋速度可中和</td></tr>
+          <tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>毛利率無法回升</strong><br><span style="font-size:12px;color:var(--c-muted)">製造效率未改善，固定成本持續高企</span></td><td class="num neg">高</td><td class="num">中</td><td>FY2026</td><td>Q1 2026 已從 -52% 改善至 12.7%</td></tr>
+          <tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>DoD 預算大幅削減</strong><br><span style="font-size:12px;color:var(--c-muted)">DOGE 預算削減影響 sUAS 採購</span></td><td class="num neg">極高</td><td class="num pos">低</td><td>FY2027</td><td>Hegseth $74B 信號正面；NDAA 多年授權</td></tr>
+          <tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>競品突破 Blue UAS 壁壘</strong><br><span style="font-size:12px;color:var(--c-muted)">AeroVironment / Skydio 搶佔份額</span></td><td class="num">中</td><td class="num">中</td><td>1–2 年</td><td>SRR 唯一勝選地位是強力壁壘</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 10 — CATALYSTS ═══ -->
+<div id="p-catalysts" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑 &amp; 觀察清單</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">多個可觀測催化劑在 2026–2027 集中爆發；逐一監控以決定倉位調整。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2">
+      <div class="reveal">
+        <div class="eyebrow">催化劑時間軸</div>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q2（進行中）</div><div class="tl-title">$200M 公開增資完成</div><div class="tl-body">Evercore + BofA 承銷，資金到位後 UT 工廠擴產；若定價高於現價則正面信號。</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q2</div><div class="tl-title">Quaze Technologies 收購完成</div><div class="tl-body">Investment Canada 核准；無線充電整合 Black Widow，延長任務時間。</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q2–Q3</div><div class="tl-title">Q2 2026 法說 — 毛利率確認</div><div class="tl-body">若 Q2 毛利率持續回升至 15%+，即為量產斜坡確認信號，預計觸發重新定價。</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 H2</div><div class="tl-title">SRR 量產全速 → 毛利率 20% 里程碑</div><div class="tl-body">UT 工廠達到設計產能後，固定成本攤薄，毛利率有望重回 FY2024 的 21% 水準。</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026–2027</div><div class="tl-title">USV VARIANT 7 商業化</div><div class="tl-body">Ukraine STE 合作展開，若 USV 進入實戰驗證並出口，將打開全新 Revenue 流。</div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2027</div><div class="tl-title">DoD FY2027 $74B UAV/USV 預算落地</div><div class="tl-body">若 Hegseth 信號兌現，RCAT 作為 Blue UAS + SRR 雙認證廠商將最直接受益。</div></div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="eyebrow">下次法說 5 個必看指標</div>
+        <div class="card">
+          <div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Q2 2026 Gross Margin ≥ 15%</div><div class="ws">確認量產斜坡有效，固定成本攤薄中 → 偏多強化。若 &lt;10% → Bear 警示</div></div></div>
+          <div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">SRR 季度交付數量（vs Q1）</div><div class="ws">期望逐季增加；若出現交付停滯或延遲 → 合約風險升高</div></div></div>
+          <div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">$200M 融資定價 vs 現價</div><div class="ws">定價高於 $9.49 = 機構信心強；折讓 &gt;10% = 市場承壓信號</div></div></div>
+          <div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">國際訂單新增（NATO + 亞太 + 中東）</div><div class="ws">非美市場訂單量化披露 → 客戶集中度是否降低</div></div></div>
+          <div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">FY2026 全年 Revenue 指引更新</div><div class="ws">管理層是否上調 $150–180M 中期目標至更具體的 FY2026 數字</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 11 — PERSONAS ═══ -->
+<div id="p-personas" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 5 大師 Personas 共識</div>
+    <h2 class="ph-title">不同投資風格對 RCAT 的解讀</h2>
+    <p class="ph-lead">從 Buffett 護城河到 Burry 逆向思維，五種視角給出截然不同的判斷——分歧點是 RCAT 最值得監控的核心變數。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal">
+      <div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-gray" style="margin-top:4px">中立偏空</span></div><div class="persona-score">5.5</div></div><div class="persona-body">Army SRR 合約是可見的競爭護城河，但公司持續虧損、無股息、依賴政府合約更新，不符合「確定性現金流」標準。估值依賴增長故事而非盈利，歷來迴避此類股。</div></div>
+      <div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green" style="margin-top:4px">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">Q1 2026 Revenue +849% YoY，成長顯而易見；故事清晰。關鍵問題是 P/S 是否合理：目前市值 $1.1B ÷ FY2026 估 $70M = 約 16× Revenue，偏高。GARP 視角會等毛利率確認轉正再進場。</div></div>
+      <div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green" style="margin-top:4px">偏多（短期）</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">國防無人機是市場最熱門主題，情緒強化基本面的正向循環。$200M 融資計畫打破循環，稀釋觸發反身性反轉，需監控市場情緒轉折點。</div></div>
+      <div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-gray" style="margin-top:4px">觀望</span></div><div class="persona-score">5.0</div></div><div class="persona-body">管理層能力待驗證（歷次不同業務轉型），持續稀釋股本令長期複利受損，G&amp;A / 股票薪酬佔比過高（FY2025 $36.9M G&amp;A）。需等待管理層展示執行力後再評估。</div></div>
+    </div>
+    <div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-red" style="margin-top:4px">謹慎</span></div><div class="persona-score" style="color:var(--c-red)">4.0</div></div><div class="persona-body">目前市值 $1.1B 對應 FY2025 Revenue $40.7M = P/S 約 27×。即使 FY2026 達 $80M，仍達 P/S 14×。無盈利、持續稀釋、採購節奏不確定性高。如果 SRR 合約縮規模或政府關機，股價有 50% 下行空間。<br><br><strong style="color:var(--c-text)">逆向視角不會在這個位置建倉，但會持續追蹤 SRR 交付節奏作為關鍵變數。</strong></div></div>
+    <div class="card reveal" style="margin-top:16px;background:var(--c-gold-dim);border-color:var(--c-gold-border)">
+      <div class="card-label">5 視角共識摘要</div>
+      <p style="font-size:13px;margin-top:8px;line-height:1.65">多：Lynch（成長故事清晰）+ Soros（短期情緒順風）— <strong>偏多觀察，但進場條件苛刻</strong>。<br>空：Munger（質量疑慮）+ Burry（估值過高 + 風險集中）— 等待毛利率確認。<br><strong>分歧點</strong>：毛利率回升速度 + $200M 稀釋影響 + SRR 交付節奏。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 12 — DISCLAIMER ═══ -->
+<div id="p-disclaimer" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">研究方法 &amp; 資料來源</h2>
+    <p class="ph-lead">所有財務數字均源自 SEC 官方 EDGAR 申報文件；標注「推估」之數字為個人估算，不保證準確性。</p>
+  </div>
+  <div class="page-body">
+    <div class="tbl-wrap reveal" style="margin-bottom:24px">
+      <table>
+        <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+        <tbody>
+          <tr><td>FY2025 年度財報</td><td>SEC 10-K (CIK 748268) 2026-03-19</td><td>2026-05-18</td><td><span class="pill pill-green">官方申報</span></td></tr>
+          <tr><td>Transition Period 財報</td><td>SEC 10-KT (CIK 748268) 2025-03-28</td><td>2026-05-18</td><td><span class="pill pill-green">官方申報</span></td></tr>
+          <tr><td>Q1 2026 業績 PR</td><td>SEC 8-K Ex-99.1 (2026-05-07)</td><td>2026-05-18</td><td><span class="pill pill-green">官方申報</span></td></tr>
+          <tr><td>$200M 增資公告</td><td>SEC 8-K (2026-05-12)</td><td>2026-05-18</td><td><span class="pill pill-green">官方申報</span></td></tr>
+          <tr><td>現價 $9.49</td><td>研究啟動基準（市場報價參考）</td><td>2026-05-17</td><td><span class="pill pill-gold">參考值</span></td></tr>
+          <tr><td>產品渲染示意圖</td><td>Gemini 2.5 Flash Image 生成 · AI 生成示意圖，非真實照片</td><td>2026-05-18</td><td><span class="pill pill-blue">AI 生成示意</span></td></tr>
+          <tr><td>技術拆解示意圖</td><td>Gemini 2.5 Flash Image 生成 · 標注依據 10-K/8-K 公開資料</td><td>2026-05-18</td><td><span class="pill pill-blue">AI 生成示意</span></td></tr>
+          <tr><td>估值 PT / 情境分析</td><td>個人研究模型</td><td>2026-05-18</td><td><span class="pill pill-red">個人推估，非投資建議</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="disclaimer-footer reveal">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">重要免責聲明 — 請務必閱讀</div>
+      <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途。</p>
+      <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。</p>
+      <p style="margin-bottom:10px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。</p>
+      <p style="margin-bottom:10px">v3 說明：全站改為淺色顧問風格（Rain 永久偏好：#f5f5f7 底 + 白卡片 + 金 #F5A623 + 藍 #7CB9E8）。所有表格已修正欄位裁切問題，資產負債表完整呈現所有數值欄位。SVG 圖表放大並採光色調配色。產品頁保留 Gemini 2.5 Flash 生成圖（渲染圖 + 技術拆解），均已明確標示。</p>
+      <p style="margin-bottom:16px">過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+      <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>AI Research Notes · RCAT · Site Prototype v3 · 2026-05-18</span>
+        <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000748268" target="_blank" style="color:var(--c-gold)">0000748268</a></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById(id);
+  if (pg) {
+    pg.classList.add('active');
+    setTimeout(() => triggerReveals(pg), 50);
+    setTimeout(() => animateBars(pg), 100);
+    setTimeout(() => triggerCountUps(pg), 80);
+  }
+  if (navEl) navEl.classList.add('active');
+  if (window.innerWidth <= 768) closeSidebar();
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+function switchTab(group, pane, btn) {
+  const pg = btn.closest('.page-body');
+  pg.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  pg.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(group + '-' + pane);
+  if (el) { el.classList.add('active'); animateBars(el); }
+  btn.classList.add('active');
+}
+function triggerReveals(root) {
+  (root || document).querySelectorAll('.reveal:not(.visible)').forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), i * 80);
+  });
+}
+function animateBars(root) {
+  (root || document).querySelectorAll('.score-fill[data-w]').forEach(f => {
+    requestAnimationFrame(() => { f.style.width = f.dataset.w; });
+  });
+}
+function triggerCountUps(root) {
+  (root || document).querySelectorAll('[data-count]').forEach(el => {
+    const target = parseFloat(el.dataset.count);
+    const prefix = el.dataset.prefix || (target >= 100 ? '' : '$');
+    const suffix = el.dataset.suffix || '';
+    const duration = 1200;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const val = target * ease;
+      el.textContent = prefix + (target >= 100 ? Math.round(val).toLocaleString() : val.toFixed(1)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+function updateCalc() {
+  const rev = parseInt(document.getElementById('revSlider').value);
+  const mult = parseFloat(document.getElementById('multSlider').value);
+  document.getElementById('revDisplay').textContent = '$' + rev + 'M';
+  document.getElementById('multDisplay').textContent = mult + '×';
+  const ev = rev * mult;
+  const mv = ev + 131.9;
+  const pt = mv / 140;
+  const up = ((pt / 9.49) - 1) * 100;
+  document.getElementById('evDisplay').textContent = '$' + Math.round(ev) + 'M';
+  document.getElementById('mvDisplay').textContent = '$' + Math.round(mv) + 'M';
+  document.getElementById('ptDisplay').textContent = '$' + pt.toFixed(2);
+  const upEl = document.getElementById('upDisplay');
+  upEl.textContent = (up >= 0 ? '+' : '') + up.toFixed(1) + '%';
+  upEl.style.color = up >= 0 ? '#2a9d4a' : '#d93025';
+}
+function sortTable(id, col) {
+  const tbl = document.getElementById(id);
+  if (!tbl) return;
+  const th = tbl.querySelectorAll('th')[col];
+  const asc = !th.classList.contains('sort-asc');
+  tbl.querySelectorAll('th').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
+  th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+  const tbody = tbl.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    const av = a.querySelectorAll('td')[col]?.textContent.replace(/[^0-9.\-]/g,'') || '';
+    const bv = b.querySelectorAll('td')[col]?.textContent.replace(/[^0-9.\-]/g,'') || '';
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+    return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lb-caption').textContent = img.alt;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+function initCharts() {
+  const revCtx = document.getElementById('revChart');
+  const gmCtx = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['FY2023', 'FY2024', 'Trans.', 'FY2025', 'Q1 2026'],
+      datasets: [{
+        data: [4.6, 17.8, 4.9, 40.7, 15.5],
+        backgroundColor: ['#c8d4e0','#F5A623','#c8d4e0','#F5A623','#2a9d4a'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['FY2023', 'FY2024', 'Trans.', 'FY2025', 'Q1 2026'],
+      datasets: [{
+        data: [-18, 20.7, -28, 3.1, 12.7],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ['#d93025','#2a9d4a','#d93025','#2a9d4a','#2a9d4a'],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  triggerReveals(document.getElementById('p-cover'));
+  triggerCountUps(document.getElementById('p-cover'));
+  updateCalc();
+  const rs = document.getElementById('revSlider');
+  const ms = document.getElementById('multSlider');
+  if (rs) rs.addEventListener('input', updateCalc);
+  if (ms) ms.addEventListener('input', updateCalc);
+  setTimeout(initCharts, 200);
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        if (entry.target.querySelector('.score-fill[data-w]')) animateBars(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+});
+</script>
+</body>
+</html>

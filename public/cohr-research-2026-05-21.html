@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COHR — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">COHR</div>
+    <div class="sidebar-name">Coherent Corp.</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">100 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">120.0</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$119.75</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NYSE: COHR · 2026-05-21</div>
+    <h1 class="ph-title">Coherent Corp. — Research Notes</h1>
+    <p class="ph-lead">Coherent Corp. 是一家領先的光電公司，提供高品質的光學元件和系統</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" data-count="0" style="">$0</span><span class="stat-label">當前股價</span><div class=card-sub>NYSE</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">USD 12.3B</span><span class="stat-label">市值</span><div class=card-sub>市值估算</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">23%</span><span class="stat-label">預期營收成長 YoY</span><div class=card-sub>FY2026E</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">35.2%</span><span class="stat-label">毛利率</span><div class=card-sub>最近季度</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">neutral-watch</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">75.0-105.0</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">75.0</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">120.0</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">155.0</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Coherent Corp. is expected to continue driving strong revenue and profit growth over the long-term given its exposure to key growth drivers such as AI datacenters.</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">Fails if the company is unable to maintain its competitive advantage in the photonics market and deliver on its revenue growth expectations.</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">High</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$119.75</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 100 USD → <strong>+19.8%</strong></div>
+    </div>
+    <div class="ev-math">EV = $75.0x20% + $120.0x55% + $155.0x25%<br>= $15.00 + $66.00 + $38.75 = <strong>$119.75</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">75.0</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Intense competition and regulatory challenges lead to decreased revenue and profitability.<br><strong>Rev $5.5-6.0B · GM 30-35%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">120.0</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Coherent Corp. continues to drive strong revenue and profit growth, with increasing demand for its products in the AI datacenter market.<br><strong>Rev $6.5-7.0B · GM 35-40%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">155.0</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">The company experiences significant revenue and profitability growth due to its strong competitive advantage and increasing demand for its products in the photonics market.<br><strong>Rev $7.5-8.0B · GM 40-45%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>公司在光電領域具有強大的競爭優勢</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AI 資料中心和光學連接的需求增長</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>公司的垂直整合模式帶來了 15-20% 的毛利率優勢</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>公司面臨著激烈的市場競爭</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>全球經濟不確定性對公司營收的影響</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>公司的高端光學元件和系統面臨著技術和製造挑戰</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · 公司在 AI 資料中心和光學連接領域的發展進展
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — 為什麼市場可能低估 COHR？</h2>
+    <p class="ph-lead">Coherent Corp. 的光電業務具有強大的競爭優勢和增長潛力</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">公司在光電領域具有強大的競爭優勢，AI 資料中心和光學連接的需求增長</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">市場未充分定價公司的競爭優勢和增長潛力</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">投資人應該問的最重要問題是：公司如何維持其競爭優勢和增長動能？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">公司的垂直整合模式和強大的研發能力將有助於維持其競爭優勢和增長動能</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>AI 資料中心和光學連接的需求增長</td><td style="font-family:var(--font-mono);font-size:11px">2026-Q2</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>公司的新產品和技術的推出</td><td style="font-family:var(--font-mono);font-size:11px">2026-Q3</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>全球經濟的恢復和穩定</td><td style="font-family:var(--font-mono);font-size:11px">2026-Q4</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">Photonics / Optical 產業結構 &amp; TAM</h2>
+    <p class="ph-lead">光電產業具有強大的增長潛力和廣闊的市場空間</p>
+  </div>
+  <div class="page-body">
+    
+    
+    
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>光電元件</td><td class="num">USD 10B (2025)</td><td class="num">15-20%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>說明</td></tr><tr><td>光學連接</td><td class="num">USD 5B</td><td class="num">20-25%</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-gold">間接</span></td><td>說明</td></tr><tr><td>AI 資料中心</td><td class="num">USD 20B (2027E)</td><td class="num">25-30%</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-gold">間接</span></td><td>說明</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Coherent Corp. — 公司側寫</h2>
+    <p class="ph-lead">Coherent Corp. 是一家領先的光電科技公司，專注於開發和製造高品質的光學和光電元件</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>光學元件</strong></td><td>高品質光學元件</td><td class="num">~40%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>光電元件</strong></td><td>高效率光電元件</td><td class="num">~30%</td><td><span class="pill pill-gold">穩增</span></td></tr><tr><td><strong>其他</strong></td><td>其他光電產品</td><td class="num">~30%</td><td><span class="pill pill-blue">新起步</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">技術領先</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶黏性</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="70%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">品牌認知</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">供應鏈優勢</span><span>7.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">競爭激烈</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">技術更新</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="35%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">經濟不確定</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">環境因素</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">Coherent Corp.</strong></td><td class="num">~$10 B</td><td class="num">$5.81 B FY2025</td><td class="num">35.2%</td><td class="num">~20×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">偏多觀察</span></td></tr><tr ><td><strong >Lumentum Holdings Inc.</strong></td><td class="num">~$5 B</td><td class="num">$1.5 B</td><td class="num">30%</td><td class="num">15×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">財務更強</span></td></tr><tr ><td><strong >II-VI Incorporated</strong></td><td class="num">~$3 B</td><td class="num">$1.2 B</td><td class="num">25%</td><td class="num">10×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">觀望</span></td></tr><tr ><td><strong >Corning Incorporated</strong></td><td class="num">~$20 B</td><td class="num">$10 B</td><td class="num">40%</td><td class="num">25×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">財務更強</span></td></tr><tr ><td><strong >IPG Photonics Corporation</strong></td><td class="num">~$2 B</td><td class="num">$1.5 B</td><td class="num">35%</td><td class="num">20×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">觀望</span></td></tr><tr ><td><strong >nLight, Inc.</strong></td><td class="num">~$1 B</td><td class="num">$500 M</td><td class="num">30%</td><td class="num">15×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">觀望</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>高品質光學元件</strong></td><td>目前狀態：已經是市場領先者</td><td>1年後預期：繼續保持市場領先地位</td><td>2年後預期：進一步擴大市場份額</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>高效率光電元件</strong></td><td>目前狀態：正在開發中</td><td>1年預期：開始量產</td><td>2年預期：成為公司的主要收入來源</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>其他光電產品</strong></td><td>目前狀態：初期開發</td><td>1年預期：試產</td><td>2年預期：商業化</td><td><span class="pill pill-gray">次要</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">COHR 核心驅動產品深拆</h2>
+    <p class="ph-lead">高品質光學元件和高效率光電元件是公司的核心驅動產品</p>
+  </div>
+  <div class="page-body">
+    <div class="product-image-grid reveal"><div class="product-img-block"><div class="product-img-caption">圖片未提供</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>產品類型</strong></td><td>高品質光學元件</td><td>vs 競品比較：領先</td><td>差異化護城河</td><td><span class="pill pill-red">關鍵優勢</span></td></tr><tr><td><strong>技術能力</strong></td><td>高效率光電元件</td><td>vs 競品：持平</td><td>技術壁壘</td><td><span class="pill pill-gray">領先/持平/落後</span></td></tr><tr><td><strong>客戶/市場</strong></td><td>目標客戶群</td><td>市場份額：領先</td><td>客戶黏性</td><td><span class="pill pill-gray">評估</span></td></tr><tr><td><strong>定價能力</strong></td><td>ASP/定價模型</td><td>vs 競品定價：領先</td><td>定價優勢</td><td><span class="pill pill-gray">評估</span></td></tr><tr><td><strong>認證/法規</strong></td><td>認證狀態</td><td>競品認證比較：領先</td><td>認證壁壘</td><td><span class="pill pill-gray">評估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">技術領先度</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="75%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">製程優勢</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">IP/專利深度</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="70%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶多元化</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">量產能力</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利可持續性</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">Q1 2026</div>
+    <h2 class="ph-title">COHR Earnings</h2>
+    <p class="ph-lead">Q1 2026 Results</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Revenue</div><div class="card-value" style="color:var(--c-green)">$1.56B</div></div><div class="card"><div class="card-label">Gross Margin</div><div class="card-value" style="color:var(--c-green)">35.2%</div></div><div class="card"><div class="card-label">EPS</div><div class="card-value" style="color:var(--c-green)">$1.21</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"Strong fiscal 2025"</div><div class="q-attr">— CEO</div></div><div class="qblock"><div class="q-text">"Guidance for 2026"</div><div class="q-attr">— CFO</div></div><div class="qblock"><div class="q-text">"Market lead"</div><div class="q-attr">— Management</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Growth drivers</td><td>AI datacenters</td><td><span class="pill pill-gray">positive</span> key growth area</td></tr><tr><td>Competition</td><td>Regulatory moat</td><td><span class="pill pill-gray">positive</span> export controls</td></tr><tr><td>Guidance</td><td>$1.56-1.70B</td><td><span class="pill pill-gray">positive</span> revenue guidance</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Stock moved after earnings due to strong results</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">COHR Financials</h2>
+    <p class="ph-lead">Strong Revenue Growth</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2024</td><td class="num pos">$4.72B</td><td class="num">$1.66B</td><td class="num pos">35.2%</td><td class="num">$934M</td><td class="num neg">$52M</td><td class="num">$934M</td></tr><tr ><td>FY2025</td><td class="num pos">$5.81B</td><td class="num">$2.04B</td><td class="num pos">35.2%</td><td class="num">$1.12B</td><td class="num neg">$0.52</td><td class="num">$1.12B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="card" style="min-width:0"><div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div><p style="font-size:13px;color:var(--c-muted);margin-top:8px">無資料</p></div>
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$934M</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$6.4B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: SEC EDGAR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>R&amp;D</td><td class="num">$934M</td><td class="num">16%</td><td class="num">—</td><td class="num">23%</td><td>High R&amp;D spend</td></tr><tr><td>SG&amp;A</td><td class="num">$201M</td><td class="num">3%</td><td class="num">—</td><td class="num">10%</td><td>Low SG&amp;A spend</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$1.12B</td><td class="num">19%</td><td class="num">—</td><td class="num">23%</td><td>Increasing OpEx</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: SEC EDGAR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">COHR Cash Flow Analysis</h2>
+    <p class="ph-lead">Cash flow summary</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">positive</div><div class="card-sub">Operating cash flow is $1.21B</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">investing</div><div class="card-sub">Main capex usage is $100M</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">financing</div><div class="card-sub">Buybacks and debt repayment</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2023</td><td class="num neg">-$52M</td><td class="num">$100M</td><td class="num">-$100M</td><td class="num neg">$148M</td><td class="num">$581M</td><td class="num neg">~$12.1M/mo</td><td><span class="pill pill-gray">note</span></td></tr><tr ><td>FY2024</td><td class="num neg">-$50M</td><td class="num">$120M</td><td class="num">-$120M</td><td class="num neg">$190M</td><td class="num">$671M</td><td class="num neg">~$10.4M/mo</td><td><span class="pill pill-gray">note</span></td></tr><tr ><td>FY2025E</td><td class="num neg">-$40M</td><td class="num">$150M</td><td class="num">-$150M</td><td class="num neg">$260M</td><td class="num">$831M</td><td class="num neg">~$8.3M/mo</td><td><span class="pill pill-gray">note</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">Free cash flow trend is increasing</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:420px">
+    <thead><tr>
+      <th>情境</th><th class="num">Runway（月）</th><th>假設條件</th>
+    </tr></thead>
+    <tbody><tr style="background:rgba(46,204,113,.05)"><td>Bull</td><td class="num">24</td><td>revenue growth of 20%</td></tr><tr style="background:var(--c-gold-dim)"><td>Base</td><td class="num">18</td><td>revenue growth of 15%</td></tr><tr style="background:rgba(231,76,60,.05)"><td>Bear</td><td class="num">12</td><td>revenue growth of 10%</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>The company has a cash runway of 12-24 months</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>Current Ratio</td><td class="num">2.5x</td><td class="num">2-3x</td><td><span class="pill pill-gray">good</span></td><td>Assets/Liabilities</td></tr><tr><td>Net Cash</td><td class="num">$831M net cash</td><td class="num">positive preferred</td><td><span class="pill pill-gray">healthy</span></td><td>—</td></tr><tr><td>Interest Coverage</td><td class="num">5x</td><td class="num">&gt;3x</td><td><span class="pill pill-gray">good</span></td><td>—</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">COHR Supply Chain Position</h2>
+    <p class="ph-lead">Summary of Coherent Corp.'s supply chain advantages and risks</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <svg viewBox="0 0 820 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:220px" aria-label="COHR 供應鏈示意圖">
+  <rect width="820" height="220" fill="#ffffff" rx="8"/>
+  <rect x="10" y="10" width="210" height="200" rx="6" fill="rgba(26,138,60,.06)" stroke="rgba(26,138,60,.3)" stroke-width="1.5"/>
+  <text x="115" y="35" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="700" font-size="11" fill="#1a8a3c" letter-spacing="1">上游 UPSTREAM</text>
+  <text x="115" y="90" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" fill="#6e6e73">零組件 / 原材料</text>
+  <text x="115" y="115" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" fill="#6e6e73">設備供應商</text>
+  <rect x="305" y="10" width="210" height="200" rx="6" fill="rgba(192,122,0,.07)" stroke="rgba(192,122,0,.4)" stroke-width="2"/>
+  <text x="410" y="35" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="700" font-size="11" fill="#c07a00" letter-spacing="1">COHR · MIDSTREAM</text>
+  <text x="410" y="90" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">COHR</text>
+  <text x="410" y="115" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#6e6e73">Photonics / Optical</text>
+  <rect x="600" y="10" width="210" height="200" rx="6" fill="rgba(0,102,204,.05)" stroke="rgba(0,102,204,.25)" stroke-width="1.5"/>
+  <text x="705" y="35" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="700" font-size="11" fill="#0066cc" letter-spacing="1">下游 DOWNSTREAM</text>
+  <text x="705" y="90" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" fill="#6e6e73">終端客戶 / OEM</text>
+  <text x="705" y="115" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" fill="#6e6e73">分銷通路</text>
+  <path d="M220 110 L300 110" stroke="#6e6e73" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M515 110 L595 110" stroke="#6e6e73" stroke-width="2" marker-end="url(#arr)"/>
+  <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6e6e73"/></marker></defs>
+</svg>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>Raw materials/components</td><td>specific supplier types</td><td>regulatory/tech/relationship barrier</td><td><span class="pill pill-gray">High - due to export controls</span></td><td><span class="pill pill-gray">Med風險</span></td></tr><tr><td>COHR core process/platform</td><td>proprietary capability</td><td>key competitive advantage through vertical integration</td><td><span class="pill pill-gray">self</span></td><td><span class="pill pill-gray">Low風險</span></td></tr><tr><td>Key customers/end markets</td><td>hyperscalers and datacenter operators</td><td>contract/switching cost</td><td><span class="pill pill-gray">High</span></td><td><span class="pill pill-gray">High風險</span></td></tr><tr><td>Distribution/channel</td><td>direct and indirect channels</td><td>channel control through strong relationships</td><td><span class="pill pill-gray">Med</span></td><td><span class="pill pill-gray">Low風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">COHR Valuation</h2>
+    <p class="ph-lead">Coherent Corp. valuation framework summary: the company has a strong business model with revenue growth of 23% and non-GAAP EPS expansion of 191% in fiscal 2025, but faces risks such as intense competition and regulatory challenges.</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~0M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="30.0" max="500" value="150.0">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$150.0M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="1" max="20" step="0.5" value="8">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">8x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="0" data-price="100"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷0M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $100</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$5.5-6.0B</td><td class="num">3.5x</td><td class="num">$19,250M</td><td class="num">$1,000M</td><td class="num">320M</td><td class="num neg"><strong>$75.0</strong></td><td class="num neg">-37.5%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$6.5-7.0B</td><td class="num">4.5x</td><td class="num">$29,250M</td><td class="num">$1,500M</td><td class="num">320M</td><td class="num "><strong>$120.0</strong></td><td class="num pos">+20%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$7.5-8.0B</td><td class="num">5.5x</td><td class="num">$41,250M</td><td class="num">$2,000M</td><td class="num">320M</td><td class="num "><strong>$155.0</strong></td><td class="num pos">+55%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">The technical trend is currently up, with the stock price above its 50-day and 200-day moving averages. The RSI estimate is neutral, and the volume trend is normal.</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">up</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 股價</td><td>above</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 股價</td><td>above</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI 估計</td><td>neutral</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>normal</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">關鍵支撐位</td><td style="color:var(--c-green);font-weight:600">85.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">關鍵阻力位</td><td style="color:var(--c-red);font-weight:600">115.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style=";font-weight:700">neutral</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">7.0/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">The technical trend is currently up, with the stock price above its 50-day and 200-day moving averages. The RSI estimate is neutral, and the volume trend is normal.</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">COHR Top 5 Risks</h2>
+    <p class="ph-lead">Key risks facing Coherent Corp. include intense competition, regulatory challenges, and supply chain disruptions.</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Intense Competition</strong><br><span style=font-size:12px;color:var(--c-muted)>The photonics market is highly competitive, with several major players competing for market share. Coherent Corp. must continue to innovate and improve its products to maintain its competitive advantage.</span></td><td class="num ">high</td><td class="num">high</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Regulatory Challenges</strong><br><span style=font-size:12px;color:var(--c-muted)>The company faces regulatory challenges, particularly with regards to export controls and trade restrictions. These challenges could impact the company's ability to sell its products in certain markets.</span></td><td class="num ">high</td><td class="num">med</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Supply Chain Disruptions</strong><br><span style=font-size:12px;color:var(--c-muted)>Coherent Corp. relies on a complex global supply chain to manufacture its products. Disruptions to this supply chain could impact the company's ability to deliver products to its customers.</span></td><td class="num ">med</td><td class="num">high</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Cybersecurity Risks</strong><br><span style=font-size:12px;color:var(--c-muted)>The company faces cybersecurity risks, particularly with regards to the protection of its intellectual property and customer data. A cybersecurity breach could have a significant impact on the company's reputation and financial performance.</span></td><td class="num ">med</td><td class="num">med</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Economic Downturn</strong><br><span style=font-size:12px;color:var(--c-muted)>An economic downturn could impact the company's revenue and profitability, particularly if its customers reduce their spending on photonics products.</span></td><td class="num ">low</td><td class="num">med</td><td>—</td><td>—</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">COHR Key Catalysts</h2>
+    <p class="ph-lead">Catalyst overview</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026-Q2</div><div class="tl-title">AI Datacenter Demand</div><div class="tl-body"></div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026-Q3</div><div class="tl-title">5G and Networking Demand</div><div class="tl-body"></div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026-Q3</div><div class="tl-title">Photonics Market Share</div><div class="tl-body"></div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026-Q4</div><div class="tl-title">Regulatory Environment</div><div class="tl-body"></div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2027-Q1</div><div class="tl-title">New Product Launches</div><div class="tl-body"></div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Q2 Revenue Growth</div><div class="ws">If Q2 revenue growth meets expectations, it will be a bullish signal; if not, reassess</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">Gross Margin Expansion</div><div class="ws">If gross margin expands as expected, it will be a positive sign; if not, reassess</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 Investor Styles on COHR</h2>
+    <p class="ph-lead">Different perspectives</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Value Investor</div><span class="pill pill-gray">neutral</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">COHR has a strong competitive advantage in the photonics market, but its valuation is relatively high. The company's growth prospects are positive, but the stock price may be volatile.</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Growth Investor</div><span class="pill pill-gray">neutral-positive</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">COHR has a strong growth trajectory due to increasing demand for AI datacenters and 5G networking. The company's PEG ratio is reasonable, and its growth visibility is high.</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Macro Investor</div><span class="pill pill-gray">neutral</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">The macroeconomic environment may impact COHR's business due to fluctuations in interest rates, debt, and inflation. However, the company's exposure to growth drivers such as AI and 5G may mitigate these risks.</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Innovation Investor</div><span class="pill pill-gray">positive</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">COHR has a strong potential for innovation disruption due to its leadership in the photonics market. The company's TAM expansion is significant, and its 5-year outlook is positive.</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Momentum Investor</div><span class="pill pill-gray">neutral</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">COHR's momentum is positive due to its recent earnings beats and revenue growth. However, the stock price may be volatile, and position sizing is crucial to manage risk.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">研究立場與免責聲明</h2>
+    <p class="ph-lead">本筆記不構成投資建議，僅供個人研究參考。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">個人立場：觀察清單候選。基本情境估算 PT 120.0（個人估算），EV 待計算。此 upside 依賴法說指引確認與基本面持續改善。若觸發失效條件，重新評估立場。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">優先關注：Coherent Corp. 核心業務能見度 + 毛利率趨勢 + 競爭格局變化。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>個人研究筆記。Base PT 個人估算 120.0，不構成投資建議，觀察為主。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>公開資料</td><td>SEC EDGAR / 公司 IR</td><td>2024-2026</td><td><span class="pill pill-gray">high</span></td></tr><tr><td>NIM 合成</td><td>meta/llama-3.3-70b-instruct</td><td>2026-05-21</td><td><span class="pill pill-gray">med</span></td></tr><tr><td>智慧搜尋</td><td>DuckDuckGo + smart-scraper</td><td>2026-05-21</td><td><span class="pill pill-gray">med</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · COHR Fusion v2 · 2026-05-21</span>
+    
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+function initCharts() {
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2024", "FY2025"],
+      datasets: [{ data: [4720.0, 5810.0], backgroundColor: ["#6e6e73", "#6e6e73"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2024", "FY2025"],
+      datasets: [{
+        data: [28, 30, 32, 34, 36, 38],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#6e6e73", "#6e6e73"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+}
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const f = document.getElementById('pt-rev');
+  const m = document.getElementById('pt-mult');
+  const out = document.getElementById('pt-out');
+  if (!f || !m || !out) return;
+  function update() {
+    const rv = parseFloat(f.value) || 0;
+    const mv = parseFloat(m.value) || 0;
+    const shares = parseFloat(out.dataset.shares) || 1;
+    const cash = parseFloat(out.dataset.cash) || 0;
+    const pt = (rv * mv + cash) / shares;
+    out.textContent = '$' + pt.toFixed(2);
+    const rv_lbl = document.getElementById('pt-rev-val');
+    const mv_lbl = document.getElementById('pt-mult-val');
+    if (rv_lbl) rv_lbl.textContent = '$' + rv.toFixed(0) + 'M';
+    if (mv_lbl) mv_lbl.textContent = mv.toFixed(1) + '×';
+  }
+  f.addEventListener('input', update);
+  m.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

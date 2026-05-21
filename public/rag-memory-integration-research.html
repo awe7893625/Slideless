@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG / 記憶系統整合研究報告 — Rain AI Team</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text2: #555;
+    --accent: #2563eb;
+    --accent2: #f59e0b;
+    --green: #16a34a;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --border: #e5e5e5;
+    --tag-bg: #f0f0f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container { max-width: 920px; margin: 0 auto; padding: 32px 20px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 48px 20px 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: var(--text2);
+  }
+  .header .date {
+    font-size: 13px;
+    color: #999;
+    margin-top: 8px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+  }
+  .section-num {
+    color: var(--accent);
+    margin-right: 8px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: #f8f8f6;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: #fafaf8; }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-green { background: #dcfce7; color: var(--green); }
+  .tag-red { background: #fee2e2; color: var(--red); }
+  .tag-orange { background: #fff7ed; color: var(--orange); }
+  .tag-blue { background: #dbeafe; color: var(--accent); }
+  .tag-gray { background: var(--tag-bg); color: var(--text2); }
+
+  /* Verdict box */
+  .verdict {
+    background: #eff6ff;
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .verdict h3 {
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: #fafaf8;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 16px 0;
+  }
+
+  /* Recommendation highlight */
+  .rec-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 2px solid var(--accent);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px 0;
+    font-size: 12px;
+    color: #999;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Phase timeline */
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .phase-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .phase-badge {
+    min-width: 80px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pb-0 { background: #dbeafe; color: var(--accent); }
+  .pb-1 { background: #dcfce7; color: var(--green); }
+  .pb-2 { background: #fff7ed; color: var(--orange); }
+  .pb-3 { background: #fae8ff; color: #9333ea; }
+
+  @media (max-width: 640px) {
+    .container { padding: 16px 12px; }
+    .header h1 { font-size: 22px; }
+    .card { padding: 16px; }
+    th, td { padding: 8px; font-size: 12px; }
+    .phase-item { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>RAG / 記憶系統整合研究報告</h1>
+  <div class="subtitle">現況盤點 → 差異分析 → 技術比較 → 架構提案</div>
+  <div class="date">2026-03-30 | Rain AI Team | Klay 主導研究</div>
+</div>
+
+<div class="container">
+
+<!-- ============ 1. 執行摘要 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">01</span>執行摘要</h2>
+
+  <div class="verdict">
+    <h3>核心結論</h3>
+    <p style="font-size:15px; line-height:1.8;">
+      <strong>我們已經擁有 80% 的記憶基礎設施</strong>，包括 vector DB（SQLite + OpenAI embeddings）、
+      對話記憶、摘要壓縮、RAG 索引、Obsidian 同步、task reflections 等。
+      <strong>不需要重做</strong>，只需要：
+    </p>
+    <ul style="margin-top:12px; font-size:14px; line-height:2;">
+      <li><strong>補缺口</strong>：記憶分層（user/project/task/system/knowledge）的 metadata schema</li>
+      <li><strong>接管線</strong>：把分散的記憶源統一到一條 retrieval pipeline</li>
+      <li><strong>治理規則</strong>：什麼值得存、誰能寫、何時淘汰</li>
+      <li><strong>整合 Obsidian</strong>：從「鏡像層」升級為「可檢索的知識層」</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 2. 現況盤點 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">02</span>現況盤點 — 已有的記憶能力</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>能力</th>
+          <th>位置</th>
+          <th>技術</th>
+          <th>使用者</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude Code 自動記憶</strong></td>
+          <td><code>~/.claude/projects/-Users-rain/memory/</code></td>
+          <td>89 個 .md 檔（880KB），YAML frontmatter</td>
+          <td>Claude Code（session 啟動自動載入 MEMORY.md）</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>向量語意搜尋</strong></td>
+          <td><code>.m4_data/memory/vectorstore/vectors.db</code></td>
+          <td>SQLite + OpenAI text-embedding-3-small（1536維）</td>
+          <td>Kai backend（memory_service + rag_service）</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>對話記憶（371 筆）</strong></td>
+          <td><code>vectors.db → conversations</code></td>
+          <td>每輪對話自動儲存 embedding</td>
+          <td>Kai ConsoleAgent</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>筆記記憶（53 筆）</strong></td>
+          <td><code>vectors.db → notes</code></td>
+          <td>手動保存的重要資訊</td>
+          <td>Kai memory_save 工具</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>RAG 文件索引</strong></td>
+          <td><code>rag_service.py</code></td>
+          <td>LangChain text splitter + LightVectorStore</td>
+          <td>Kai（專案文件索引 + 查詢）</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>對話摘要壓縮</strong></td>
+          <td><code>memory_summarizer.py</code></td>
+          <td>超過 20 條訊息自動壓縮，保留最近 8 條</td>
+          <td>Kai ConsoleAgent</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>CLAUDE.md 三層管理</strong></td>
+          <td><code>claude_memory_service.py</code></td>
+          <td>掃描 + 讀寫 + 版本歷史 + 還原</td>
+          <td>Kai Web UI</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>Session 交接</strong></td>
+          <td><code>~/.claude/handoffs/{name}/latest.md</code></td>
+          <td>Markdown 交接筆記（113 個 agent 目錄）</td>
+          <td>Claude Code stop hook</td>
+          <td><span class="tag tag-orange">部分</span></td>
+        </tr>
+        <tr>
+          <td><strong>Session Checkpoint</strong></td>
+          <td><code>~/.ai-session-memory/</code></td>
+          <td>JSON checkpoint（最新意圖 + 工作記憶）</td>
+          <td>Claude Code hooks</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>Obsidian 同步</strong></td>
+          <td><code>~/Documents/ObsidianTeamVault/</code></td>
+          <td>obsidian-team sync（Python）+ governance hook</td>
+          <td>所有 agent（via cloud.md routing）</td>
+          <td><span class="tag tag-orange">部分</span></td>
+        </tr>
+        <tr>
+          <td><strong>Obsidian 路由</strong></td>
+          <td><code>obsidian_network.py</code></td>
+          <td>關鍵字路由 → 對應 Context/Resources/Intelligence 筆記</td>
+          <td>Agent session start</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>Error Log 寫回</strong></td>
+          <td><code>Intelligence/Error_Logs.md</code></td>
+          <td>retry-success 結構化寫入</td>
+          <td>Task evaluator</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>記憶路由協議</strong></td>
+          <td><code>memory/memory-routing-protocol.md</code></td>
+          <td>「記住 X」→ 路由到正確 memory 檔案</td>
+          <td>所有 Agent</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>Task Reflections</strong></td>
+          <td><code>app/api/task_reflections.py</code> + ORM model</td>
+          <td>FTS5 + BM25 搜尋（API + SQLAlchemy model 已實裝）</td>
+          <td>Klay Phase 1 planning</td>
+          <td><span class="tag tag-green">活躍</span></td>
+        </tr>
+        <tr>
+          <td><strong>Tax RAG</strong></td>
+          <td><code>tax_rag_service.py</code></td>
+          <td>財稅專用 RAG（獨立 collection）</td>
+          <td>Tax agent</td>
+          <td><span class="tag tag-orange">部分</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ 3. 差異分析 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">03</span>差異分析 — Rain 5 層記憶 vs 現有能力</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rain 要求的記憶層</th>
+          <th>已有</th>
+          <th>缺口</th>
+          <th>優先級</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>User Memory</strong><br><span style="font-size:12px;color:#999">偏好、習慣、工具、風格</span></td>
+          <td>
+            <span class="tag tag-green">有</span> Claude Code memory（feedback_ 系列）<br>
+            <span class="tag tag-green">有</span> memory-routing-protocol
+          </td>
+          <td>
+            無跨平台統一 schema<br>
+            Kai / Cursor 無法直接讀 Claude memory
+          </td>
+          <td><span class="tag tag-blue">P2</span></td>
+        </tr>
+        <tr>
+          <td><strong>Project Memory</strong><br><span style="font-size:12px;color:#999">背景、技術選型、API 規格、決策</span></td>
+          <td>
+            <span class="tag tag-green">有</span> Claude memory（project_ 系列）<br>
+            <span class="tag tag-green">有</span> Obsidian Projects/Links/（writeback skill）<br>
+            <span class="tag tag-green">有</span> projects-registry.md
+          </td>
+          <td>
+            Claude memory 與 Obsidian 重複但不同步<br>
+            無統一 project ID 跨系統追蹤
+          </td>
+          <td><span class="tag tag-blue">P1</span></td>
+        </tr>
+        <tr>
+          <td><strong>Task Memory</strong><br><span style="font-size:12px;color:#999">做了什麼、改了哪些檔案、接手須知</span></td>
+          <td>
+            <span class="tag tag-green">有</span> Handoff 系統（113 個目錄）<br>
+            <span class="tag tag-green">有</span> Session checkpoints<br>
+            <span class="tag tag-orange">規格有</span> Task Reflections（FTS5）
+          </td>
+          <td>
+            Task Reflections 已有 API + ORM（需驗證 FTS5 table 是否正常運作）<br>
+            Handoff 品質參差不齊（auto-generated 多為空殼）
+          </td>
+          <td><span class="tag tag-red">P0</span></td>
+        </tr>
+        <tr>
+          <td><strong>System Memory</strong><br><span style="font-size:12px;color:#999">agent 規則、routing、prompt、coding 標準</span></td>
+          <td>
+            <span class="tag tag-green">有</span> CLAUDE.md 三層架構<br>
+            <span class="tag tag-green">有</span> .claude/rules/ 規則檔<br>
+            <span class="tag tag-green">有</span> .claude/agents/ SKILL.md<br>
+            <span class="tag tag-green">有</span> Obsidian System/ 鏡像
+          </td>
+          <td>
+            基本完備，僅 Obsidian 同步偶有延遲
+          </td>
+          <td><span class="tag tag-gray">P3</span></td>
+        </tr>
+        <tr>
+          <td><strong>Knowledge Memory</strong><br><span style="font-size:12px;color:#999">研究資料、FAQ、技術知識卡、SOP</span></td>
+          <td>
+            <span class="tag tag-green">有</span> RAG 文件索引（rag_service）<br>
+            <span class="tag tag-green">有</span> 語意搜尋（vector DB）<br>
+            <span class="tag tag-green">有</span> Obsidian Context/ + Resources/
+          </td>
+          <td>
+            Claude memory .md 檔沒有進 vector DB<br>
+            Obsidian 筆記沒有進 vector DB<br>
+            <strong>各層記憶彼此不可跨層語意搜尋</strong>
+          </td>
+          <td><span class="tag tag-red">P0</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>重複與浪費分析</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>重複項目</th><th>出現位置</th><th>建議</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>專案背景資訊</td>
+            <td>Claude memory + Obsidian Projects/Links/ + CLAUDE.md</td>
+            <td>Obsidian 為主，Claude memory 做索引指針</td>
+          </tr>
+          <tr>
+            <td>API 密鑰</td>
+            <td>MEMORY.md + credentials.md + .env</td>
+            <td>Knox 統一管，其他指向 Knox</td>
+          </tr>
+          <tr>
+            <td>團隊規則</td>
+            <td>CLAUDE.md + .claude/rules/ + Obsidian System/</td>
+            <td>現有設計合理（.claude = 執行源，Obsidian = 人讀鏡像）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 4. 技術比較 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">04</span>技術比較 — Mem0 vs 自建 vs 混合</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>評估維度</th>
+          <th>Mem0 Platform</th>
+          <th>Mem0 OSS</th>
+          <th>自建（ChromaDB）</th>
+          <th style="background:#eff6ff">混合式（推薦）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>月費</strong></td>
+          <td>$19-249</td>
+          <td>$0 + infra</td>
+          <td>$0（本機）</td>
+          <td style="background:#f0fdf4"><strong>$0</strong>（本機）</td>
+        </tr>
+        <tr>
+          <td><strong>整合工時</strong></td>
+          <td>1 天</td>
+          <td>2-3 天</td>
+          <td>2-3 天</td>
+          <td style="background:#f0fdf4"><strong>3-4 天</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Kai 相容性</strong></td>
+          <td><span class="tag tag-red">差</span> 另一套系統</td>
+          <td><span class="tag tag-orange">中</span></td>
+          <td><span class="tag tag-green">好</span></td>
+          <td style="background:#f0fdf4"><span class="tag tag-green">最佳</span> 直接擴展</td>
+        </tr>
+        <tr>
+          <td><strong>Claude Code 相容</strong></td>
+          <td><span class="tag tag-red">無</span></td>
+          <td><span class="tag tag-red">無</span></td>
+          <td><span class="tag tag-orange">可索引</span></td>
+          <td style="background:#f0fdf4"><span class="tag tag-green">最佳</span> 索引全部</td>
+        </tr>
+        <tr>
+          <td><strong>Obsidian 整合</strong></td>
+          <td><span class="tag tag-red">無原生</span></td>
+          <td><span class="tag tag-red">無原生</span></td>
+          <td><span class="tag tag-orange">需自建</span></td>
+          <td style="background:#f0fdf4"><span class="tag tag-green">自然整合</span></td>
+        </tr>
+        <tr>
+          <td><strong>現有系統破壞度</strong></td>
+          <td><span class="tag tag-red">高</span></td>
+          <td><span class="tag tag-red">高</span></td>
+          <td><span class="tag tag-orange">低</span></td>
+          <td style="background:#f0fdf4"><span class="tag tag-green">最低</span></td>
+        </tr>
+        <tr>
+          <td><strong>Token 節省</strong></td>
+          <td>80-90%（宣稱）</td>
+          <td>80-90%（宣稱）</td>
+          <td>40-60%</td>
+          <td style="background:#f0fdf4">40-60%</td>
+        </tr>
+        <tr>
+          <td><strong>人類可讀性</strong></td>
+          <td><span class="tag tag-red">差</span> API only</td>
+          <td><span class="tag tag-red">差</span></td>
+          <td><span class="tag tag-orange">中</span></td>
+          <td style="background:#f0fdf4"><span class="tag tag-green">最佳</span> Obsidian</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="verdict">
+    <h3>為什麼不用 Mem0？</h3>
+    <ul style="font-size:14px; line-height:2;">
+      <li><strong>我們已經有 vector DB</strong>（LightVectorStore + OpenAI embeddings），Mem0 會成為第 5 套平行系統</li>
+      <li><strong>無 Obsidian 整合</strong>，Rain 的知識庫會脫節</li>
+      <li><strong>Graph Memory 要 $249/月</strong>，而我們的 FTS5 + 語意搜尋已夠用</li>
+      <li><strong>Mem0 的核心價值</strong>（LLM 自動事實提取）在我們場景不關鍵——記憶已是結構化 markdown</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 5. 三套方案 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">05</span>三套架構方案</h2>
+
+  <!-- 方案 A -->
+  <div class="card">
+    <h3>方案 A：最小改動版 <span class="tag tag-green">推薦先做</span></h3>
+    <p><strong>原則</strong>：不新增任何基礎設施，只補缺口</p>
+    <div class="table-wrap">
+      <table>
+        <tr><td style="width:120px"><strong>做什麼</strong></td>
+        <td>
+          1. 驗證 task_reflections FTS5 運作 + 補齊缺漏欄位<br>
+          2. 統一 memory metadata schema（type / project / source / created_at）<br>
+          3. 把 Claude memory .md 檔加入現有 LightVectorStore 索引<br>
+          4. 建立 <code>/api/memory/unified-search</code> — 同時搜 vector DB + FTS5 + Claude memory
+        </td></tr>
+        <tr><td><strong>不做什麼</strong></td><td>不新增 ChromaDB，不動 Obsidian，不改現有架構</td></tr>
+        <tr><td><strong>工時</strong></td><td>2 天（Max 後端）</td></tr>
+        <tr><td><strong>成本</strong></td><td>$0（用現有 OpenAI embedding）</td></tr>
+        <tr><td><strong>Token 節省</strong></td><td>20-30%（統一搜尋減少重複載入）</td></tr>
+        <tr><td><strong>破壞度</strong></td><td>極低（只新增 API + 表）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 方案 B -->
+  <div class="card rec-card">
+    <h3>方案 B：平衡版 <span class="tag tag-blue">最終目標</span></h3>
+    <p><strong>原則</strong>：方案 A + Obsidian 語意檢索 + 記憶治理</p>
+
+    <div class="arch-diagram">┌─────────────────────────────────────────────────┐
+│              Unified Memory API                   │
+│         /api/memory/unified-search                │
+│    query → [vector search + FTS5 + keyword]       │
+└──────────┬──────────┬──────────┬─────────────────┘
+           │          │          │
+     ┌─────▼────┐ ┌──▼───┐ ┌───▼──────────────┐
+     │Vector DB │ │FTS5  │ │Claude Code Memory│
+     │(existing)│ │(new) │ │(.md files, 89個) │
+     │371 convs │ │task  │ │                  │
+     │53 notes  │ │reflec│ │ 直接檔案讀取     │
+     │+NEW: .md │ │tions │ │                  │
+     │+NEW: obs │ │      │ │                  │
+     └──────────┘ └──────┘ └──────────────────┘
+           │                        │
+     ┌─────▼────────────────────────▼──┐
+     │   Nightly Indexer (cron)         │
+     │   1. Scan Claude memory .md     │
+     │   2. Scan Obsidian vault .md    │
+     │   3. Generate embeddings        │
+     │   4. Upsert to LightVectorStore │
+     │   5. Dedup + TTL cleanup        │
+     └─────────────────────────────────┘
+           │
+     ┌─────▼───────────────────────┐
+     │ Obsidian Vault (人類可讀層)   │
+     │ Context/ Resources/ Projects/│
+     │ Intelligence/ Operations/    │
+     │ ← 已有 obsidian-team sync   │
+     │ ← NEW: 反向寫回 summary     │
+     └─────────────────────────────┘</div>
+
+    <div class="table-wrap">
+      <table>
+        <tr><td style="width:120px"><strong>額外做什麼</strong></td>
+        <td>
+          1. Nightly indexer：掃描 Claude memory + Obsidian → 產生 embedding → 寫入 vector DB<br>
+          2. Memory write policy：定義什麼值得存（規則表見下方）<br>
+          3. Memory decay：90 天未存取 → archive<br>
+          4. Obsidian metadata 標準化（YAML frontmatter）<br>
+          5. Obsidian 反向寫回：重要任務結果 → 自動產生 Obsidian summary note
+        </td></tr>
+        <tr><td><strong>工時</strong></td><td>5-7 天（Max 後端 + Forge cron + Orion 治理）</td></tr>
+        <tr><td><strong>成本</strong></td><td>~$1-2/月（OpenAI embedding API，量小）</td></tr>
+        <tr><td><strong>Token 節省</strong></td><td>40-60%</td></tr>
+        <tr><td><strong>破壞度</strong></td><td>低（純加法，不改現有）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 方案 C -->
+  <div class="card">
+    <h3>方案 C：完整版 <span class="tag tag-gray">長期願景</span></h3>
+    <p><strong>原則</strong>：方案 B + 本機 embedding + 多 agent 記憶隔離 + observability</p>
+    <div class="table-wrap">
+      <table>
+        <tr><td style="width:120px"><strong>額外做什麼</strong></td>
+        <td>
+          1. 本機 embedding（Ollama + nomic-embed-text）→ 消除 OpenAI 依賴<br>
+          2. Agent 記憶隔離：per-agent namespace + 讀寫權限矩陣<br>
+          3. Memory quality scoring + contradiction detection<br>
+          4. Kai dashboard：記憶使用量、命中率、token 節省統計<br>
+          5. 多專案 / 多客戶記憶隔離（未來擴展）<br>
+          6. Memory compression pipeline（定期壓縮舊記憶為 summary）
+        </td></tr>
+        <tr><td><strong>工時</strong></td><td>2-3 週</td></tr>
+        <tr><td><strong>成本</strong></td><td>$0/月（全本機）</td></tr>
+        <tr><td><strong>Token 節省</strong></td><td>50-70%</td></tr>
+        <tr><td><strong>破壞度</strong></td><td>低-中（需要 Ollama 環境設定）</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 6. Obsidian 整合規格 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">06</span>Obsidian 整合規格</h2>
+
+  <div class="card">
+    <h3>Obsidian 的角色定位</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>適合放</th><th>不適合放</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>
+              SOP / 規格書 / 決策紀錄<br>
+              專案總覽 + 架構摘要<br>
+              研究結論 + 競品分析<br>
+              任務結案摘要<br>
+              會議結論 / 討論摘要<br>
+              Agent 協作規則（鏡像）
+            </td>
+            <td>
+              毫秒級高頻查詢記憶<br>
+              每輪對話的細碎上下文<br>
+              大量 machine-only event log<br>
+              臨時 scratchpad<br>
+              原始對話紀錄（→ vector DB）<br>
+              密鑰 / credentials（→ Knox）
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>建議的 Vault 結構（增量調整）</h3>
+    <div class="arch-diagram">ObsidianTeamVault/
+├── cloud.md                    ← 路由入口（已有）
+├── Context/                    ← 運維約束（已有，保留）
+├── Resources/                  ← 共用參考（已有，保留）
+├── Intelligence/               ← Error logs（已有，保留）
+├── Operations/                 ← SOPs + 治理（已有，保留）
+├── System/                     ← .claude 鏡像（已有，保留）
+├── Projects/
+│   ├── Links/                  ← 專案 context overlay（已有）
+│   └── Registry/               ← 專案總覽（已有）
+├── Tasks/                      ← NEW: 任務結案摘要（自動產生）
+├── Knowledge/                  ← NEW: 研究卡 + 技術知識
+├── Logs/                       ← 執行日誌（已有，保留）
+└── Templates/                  ← 筆記模板（已有，保留）</div>
+    <p style="font-size:14px; color:var(--text2); margin-top:12px;">
+      只新增 2 個目錄：<code>Tasks/</code>（任務結案自動寫入）和 <code>Knowledge/</code>（研究知識卡）。
+      其他全部保留不動。
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>YAML Frontmatter 標準（建議統一）</h3>
+    <div class="arch-diagram">---
+type: project | task | knowledge | sop | decision | context
+project: StockSignal | TheOrder | M4ControlCenter | ...
+owner: klay | max | john | ...
+source: claude_code | kai | manual | obsidian-writeback
+created_at: 2026-03-30
+updated_at: 2026-03-30
+importance: high | medium | low
+sync_status: synced | pending | stale
+---</div>
+  </div>
+
+  <div class="card">
+    <h3>同步策略</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>方向</th><th>觸發時機</th><th>工具</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>.claude → Obsidian</td>
+            <td>治理檔案變更（已有 hook）</td>
+            <td>obsidian-team sync</td>
+          </tr>
+          <tr>
+            <td>任務結案 → Obsidian</td>
+            <td>Major+ task /done 時（已有 skill，但未自動化）</td>
+            <td>/obsidian-writeback → 改為 hook 自動觸發</td>
+          </tr>
+          <tr>
+            <td>Obsidian → Vector DB</td>
+            <td><strong>NEW：</strong>Nightly cron（凌晨 3 點）</td>
+            <td>indexer script</td>
+          </tr>
+          <tr>
+            <td>Claude memory → Vector DB</td>
+            <td><strong>NEW：</strong>Nightly cron（凌晨 3 點）</td>
+            <td>indexer script</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 7. 記憶治理規則 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">07</span>記憶治理規則</h2>
+
+  <div class="card">
+    <h3>什麼值得存 vs 不值得存</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>值得存</th><th>不值得存</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>
+              已決策事項（含原因）<br>
+              長期偏好（驗證過的）<br>
+              專案關鍵背景<br>
+              重複使用的研究結論<br>
+              Agent handoff 必要資訊<br>
+              錯誤教訓 + 修正紀錄<br>
+              API / 服務 credential 位置
+            </td>
+            <td>
+              無意義寒暄<br>
+              一次性指令噪音<br>
+              程式碼可直接推導的重複內容<br>
+              git log 可查的歷史<br>
+              超過 180 天未存取的暫時記錄<br>
+              主觀推測（未標註 confidence）<br>
+              debug log 原始輸出
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>寫入規則</h3>
+    <ul>
+      <li><strong>誰寫：</strong>統一由 Kai memory service 寫入 vector DB；Claude Code 寫自己的 .md；Obsidian 由 obsidian-team 管理</li>
+      <li><strong>何時寫：</strong>任務結束時（非中途）+ 中途 checkpoint + 人工審核後</li>
+      <li><strong>品質門檻：</strong>必須有 source trace + confidence（若為推論）+ &gt;100 字內容</li>
+      <li><strong>防污染：</strong>hash dedup → 同內容不重複存；confidence &lt; 0.5 不進 vector DB</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>檢索規則</h3>
+    <ul>
+      <li><strong>Top-K：</strong>預設 5 條，Major+ 任務 10 條</li>
+      <li><strong>分層檢索：</strong>先 project scope → 再 global scope</li>
+      <li><strong>加權：</strong>最近 30 天 ×1.5 權重；importance=high ×2.0</li>
+      <li><strong>Agent 權限：</strong>所有 agent 可讀全部；credential 類只有 Knox 可讀</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>淘汰規則</h3>
+    <ul>
+      <li><strong>90 天</strong>未被檢索命中 → 標記 stale</li>
+      <li><strong>180 天</strong>仍 stale → archive（從 vector DB 移除，Obsidian 保留）</li>
+      <li><strong>月度清理：</strong>Orion 每月掃描 → 報告重複 / 過期 / 低品質記憶</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 8. 落地計畫 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">08</span>落地計畫</h2>
+
+  <div class="phase-list">
+    <div class="phase-item">
+      <div class="phase-badge pb-0">Phase 0<br>1 天</div>
+      <div class="card" style="flex:1; margin:0;">
+        <h3>盤點確認</h3>
+        <ul>
+          <li>確認 vectors.db 健康狀態（現有 371 convs + 53 notes）</li>
+          <li>確認 OpenAI API key 有效 + embedding 服務正常</li>
+          <li>確認 Obsidian vault 可存取</li>
+          <li>產出最終 gap list → Rain 確認</li>
+        </ul>
+        <p><strong>Owner：</strong>Klay（10 分鐘自動化檢查）</p>
+      </div>
+    </div>
+
+    <div class="phase-item">
+      <div class="phase-badge pb-1">Phase 1<br>2 天</div>
+      <div class="card" style="flex:1; margin:0;">
+        <h3>最小可用版（方案 A）</h3>
+        <ul>
+          <li>驗證 <code>task_reflections</code> FTS5 運作 + 補齊缺漏（Max，2h）</li>
+          <li>Claude memory .md 索引進 LightVectorStore（Max，2h）</li>
+          <li><code>/api/memory/unified-search</code>：同時查 vector + FTS5（Rex，3h）</li>
+          <li>Klay Phase 1 planning 自動注入 top-3 lessons（Klay，1h）</li>
+        </ul>
+        <p><strong>驗證：</strong>查「ECPay integration」能同時搜到 vector DB 對話 + Claude memory .md + task reflections</p>
+      </div>
+    </div>
+
+    <div class="phase-item">
+      <div class="phase-badge pb-2">Phase 2<br>5 天</div>
+      <div class="card" style="flex:1; margin:0;">
+        <h3>擴充版（方案 B）</h3>
+        <ul>
+          <li>Nightly indexer：掃 Obsidian vault → embedding → vector DB（Max，4h）</li>
+          <li>Obsidian YAML frontmatter 標準化腳本（Forge，2h）</li>
+          <li>/obsidian-writeback 自動化（改 hook 觸發，Forge，2h）</li>
+          <li>Memory decay + dedup 機制（Orion，4h）</li>
+          <li>Unified search 加入 Obsidian 結果（Rex，2h）</li>
+        </ul>
+        <p><strong>驗證：</strong>token 使用量月報顯示記憶相關 token 下降 &gt;30%</p>
+      </div>
+    </div>
+
+    <div class="phase-item">
+      <div class="phase-badge pb-3">Phase 3<br>2 週</div>
+      <div class="card" style="flex:1; margin:0;">
+        <h3>治理版（方案 C）</h3>
+        <ul>
+          <li>本機 embedding（Ollama + nomic-embed-text）取代 OpenAI</li>
+          <li>Memory quality dashboard（Kai frontend）</li>
+          <li>Contradiction detection 升級</li>
+          <li>Agent 記憶隔離 + 權限矩陣</li>
+          <li>月度記憶清理自動化</li>
+        </ul>
+        <p><strong>觸發條件：</strong>Phase 2 穩定運行 1 個月後再啟動</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 9. 成效指標 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">09</span>成效衡量指標</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>指標</th><th>當前基線</th><th>Phase 1 目標</th><th>Phase 2 目標</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>平均 session memory token</td>
+          <td>~50-150K / session</td>
+          <td>下降 20%</td>
+          <td>下降 40-60%</td>
+        </tr>
+        <tr>
+          <td>Agent handoff 遺漏率</td>
+          <td>未量測</td>
+          <td>建立 baseline</td>
+          <td>下降 50%</td>
+        </tr>
+        <tr>
+          <td>重複問同樣問題</td>
+          <td>未量測</td>
+          <td>建立 baseline</td>
+          <td>下降 30%</td>
+        </tr>
+        <tr>
+          <td>Obsidian 筆記可用性</td>
+          <td>手動查找</td>
+          <td>語意搜尋可用</td>
+          <td>自動推薦 top-3</td>
+        </tr>
+        <tr>
+          <td>記憶檢索命中率</td>
+          <td>N/A</td>
+          <td>建立 baseline</td>
+          <td>&gt;70% relevant</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ 10. 審查 Checklist ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">10</span>審查 Checklist</h2>
+
+  <div class="card">
+    <h3>現況盤點</h3>
+    <ul>
+      <li>✅ 列出所有現有記憶相關模組（14 項）</li>
+      <li>✅ 指出每個模組解決什麼問題</li>
+      <li>✅ 指出功能重複項（3 項）</li>
+      <li>✅ 指出可沿用的功能（vector DB、RAG、memory service、summarizer、Obsidian sync）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>架構設計</h3>
+    <ul>
+      <li>✅ 有 user/project/task/system/knowledge 分層</li>
+      <li>✅ 有寫入規則（誰寫、何時寫、品質門檻）</li>
+      <li>✅ 有檢索規則（top-K、分層、加權）</li>
+      <li>✅ 有淘汰規則（90 天 stale、180 天 archive）</li>
+      <li>✅ 有防污染設計（dedup、confidence gate、source trace）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Obsidian 整合</h3>
+    <ul>
+      <li>✅ 明確定義 Obsidian 角色（人類可讀知識層，非唯一資料庫）</li>
+      <li>✅ 明確定義適合 / 不適合放入的內容</li>
+      <li>✅ 有 YAML frontmatter metadata 規範</li>
+      <li>✅ 有同步策略（已有 hook + 新增 nightly indexer）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>技術比較</h3>
+    <ul>
+      <li>✅ 比較 Mem0 / 自建 / 混合式（8 維度）</li>
+      <li>✅ 有成本與維護性分析</li>
+      <li>✅ 有與現有系統相容性分析</li>
+      <li>✅ 有推薦方案（混合式）+ 具體理由</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>落地性</h3>
+    <ul>
+      <li>✅ 有 Phase 0/1/2/3 規劃</li>
+      <li>✅ 有最小可用版本（Phase 1，2 天）</li>
+      <li>✅ 可直接進入實作（API endpoint + DB schema 已定義）</li>
+      <li>✅ 有成效指標（5 項可量測 KPI）</li>
+      <li>✅ 說明如何驗證 token 下降</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 11. 董事會審議結果 ============ -->
+<div class="section">
+  <h2 class="section-title"><span class="section-num">11</span>董事會審議結果</h2>
+
+  <div class="card" style="border-left: 4px solid var(--orange);">
+    <h3>Vick（Grok 交叉驗證）: ⚠️ CONDITIONAL</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><td style="width:160px">盤點完整性</td><td><span class="tag tag-orange">⚠️</span> 基本完整，漏掉多 agent 記憶共享與衝突解決機制</td></tr>
+        <tr><td>技術比較公平性</td><td><span class="tag tag-orange">⚠️</span> Mem0 否決理由成立，但未評估 Qdrant 等更適合多 agent 場景的替代</td></tr>
+        <tr><td>風險分析充分性</td><td><span class="tag tag-red">❌</span> SQLite 併發無壓測設計；OpenAI 依賴風險過輕；缺備份/DR 計畫</td></tr>
+        <tr><td>成本估算</td><td><span class="tag tag-orange">⚠️</span> 40-60% token 節省缺計算依據；$1-2/月 embedding 成本可能偏低</td></tr>
+        <tr><td>落地可行性</td><td><span class="tag tag-red">❌</span> Phase 1 兩天估時過於樂觀（建議 4-6 天）</td></tr>
+      </table>
+    </div>
+    <p style="font-size:13px; color:var(--text2); margin-top:12px;"><strong>條件：</strong>補充 SQLite 併發壓測計畫 + Phase 1 OpenAI fallback + 估時修正 + 備份/DR 策略</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--accent);">
+    <h3>Ray（設計審查）: ⚠️ CONDITIONAL（4 項修改）</h3>
+    <p style="font-size:14px; margin-bottom:12px;"><strong>核心洞見：</strong>「團隊擁有的記憶基礎設施遠超實際使用量。優先應該是<strong>採用率執行</strong>和<strong>資料完整性</strong>，不是新架構。」</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>必要修改</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>M1</td><td><strong>先驗證 LightVectorStore 資料狀態</strong></td><td>確認 371 convs + 53 notes 確實存在且可查詢（已驗證 ✅）</td></tr>
+          <tr><td>M2</td><td><strong>加 SQLite 併發保護</strong></td><td>加 <code>PRAGMA busy_timeout=5000</code> + write retry backoff</td></tr>
+          <tr><td>M3</td><td><strong>定義 unified-search merge 策略</strong></td><td>FTS5 BM25 和 vector cosine 分數不可比，需定義融合方法</td></tr>
+          <tr><td>M4</td><td><strong>記憶淘汰必須 soft-delete</strong></td><td>前 90 天只歸檔不刪除；credentials/SOP 類豁免淘汰</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px; color:var(--text2); margin-top:12px;">
+      <strong>Plan B/C：REJECTED（premature）</strong>— 等 Plan A 證明價值後再啟動。<br>
+      <strong>Skeptic 補充：</strong>task_reflections 已有 API + ORM + FTS5，問題是 0 筆資料（採用率問題非架構問題）。
+      建議先用 hook 強制 Major+ task 寫入 reflections，成本 0 天。
+    </p>
+  </div>
+
+  <div class="verdict">
+    <h3>Klay 裁決（整合 Vick + Ray 意見）</h3>
+    <ol style="font-size:14px; line-height:2.2;">
+      <li><strong>Plan A：有條件通過</strong>，估時修正為 <strong>4-5 天</strong>，必須先完成 M1-M4 四項前置修改</li>
+      <li><strong>Plan B/C：暫緩</strong>，Plan A 穩定運行 1 個月後再評估</li>
+      <li><strong>立即可做（0 天）</strong>：
+        <ul>
+          <li>Hook 強制 Major+ task 寫入 task_reflections（採用率問題，非架構問題）</li>
+          <li>加 <code>PRAGMA busy_timeout=5000</code> 到 LightVectorStore</li>
+        </ul>
+      </li>
+      <li><strong>採納 Vick 建議</strong>：Phase 1 同時測試 Ollama nomic-embed-text，不等 Phase 3</li>
+      <li><strong>採納 Ray 建議</strong>：unified-search 必須先定義 merge 策略（Scout 出規格）再實作</li>
+      <li><strong>Token 節省估算</strong>：降為「20-30%（Phase 1 保守目標）」，不再宣稱 40-60%</li>
+    </ol>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>Rain AI Team — RAG / Memory Integration Research Report</p>
+  <p>2026-03-30 | Klay(Research Lead) + Scout(Explore) + General-Purpose(Tech Research)</p>
+  <p style="margin-top:8px">Confidential — Internal Use Only</p>
+</div>
+
+<script src="/nav.js"></script></body>
+</html>

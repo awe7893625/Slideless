@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海外客戶開發 — 研究成果報告 | Blank Space Studio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#121212;--white:#ffffff;--cream:#f6f5f1;
+  --grey-01:#f0eee6;--grey-02:#8b877c;--grey-03:#6c6a62;
+  --accent:#a8cde8;--warm:#eb8054;--green:#85a268;--red:#d94f4f;--purple:#a07cc5;--blue:#5a9cc5;
+  --font-main:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-main);color:var(--black);background:var(--cream);line-height:1.6}
+
+/* Nav */
+.nav{position:fixed;top:0;left:0;right:0;background:rgba(246,245,241,0.96);backdrop-filter:blur(12px);z-index:100;border-bottom:1px solid var(--grey-01);padding:12px 40px;display:flex;align-items:center;gap:24px}
+.nav-brand{font-weight:700;font-size:13px;color:var(--warm);font-family:var(--font-mono);white-space:nowrap}
+.nav-links{display:flex;gap:14px;overflow-x:auto}
+.nav-links a{font-size:11px;color:var(--grey-02);text-decoration:none;font-weight:500;white-space:nowrap;transition:color .2s}
+.nav-links a:hover{color:var(--black)}
+
+section{padding:80px 120px 60px;max-width:1200px;margin:0 auto}
+.cover{background:var(--black);color:var(--white);text-align:center;padding:80px 40px 60px;max-width:none}
+.cover .eyebrow{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--warm);margin-bottom:20px;font-family:var(--font-mono)}
+.cover h1{font-size:clamp(28px,4vw,48px);font-weight:800;margin-bottom:16px;letter-spacing:-0.5px;line-height:1.15}
+.cover h1 span{color:var(--warm)}
+.cover .subtitle{font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:600px;margin-left:auto;margin-right:auto}
+.cover-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap}
+.cover-stat .num{font-size:40px;font-weight:800;color:var(--warm);font-family:var(--font-mono);display:block}
+.cover-stat .label{font-size:12px;color:rgba(255,255,255,0.5)}
+
+.section-eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--warm);margin-bottom:8px;font-family:var(--font-mono)}
+.section-title{font-size:28px;font-weight:700;margin-bottom:8px}
+.section-title span{color:var(--warm)}
+.section-desc{font-size:14px;color:var(--grey-02);margin-bottom:32px;max-width:640px}
+
+.card{background:var(--white);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border:1px solid var(--grey-01)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:10px}
+.card p{font-size:13px;color:var(--grey-03);line-height:1.7}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-bottom:40px}
+.stat{background:var(--white);border-radius:12px;padding:24px 20px;text-align:center;border:1px solid var(--grey-01)}
+.stat .num{font-size:32px;font-weight:800;font-family:var(--font-mono)}
+.stat .label{font-size:12px;color:var(--grey-02);margin-top:4px;font-weight:500}
+.stat.warm .num{color:var(--warm)}
+.stat.blue .num{color:var(--blue)}
+.stat.green .num{color:var(--green)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--grey-01);font-weight:600;font-size:12px;color:var(--grey-03)}
+td{padding:10px 14px;border-bottom:1px solid var(--grey-01);line-height:1.5}
+tr:hover td{background:rgba(168,205,232,0.04)}
+
+.highlight{background:#FFF8E7;border-left:4px solid var(--warm);padding:18px 22px;border-radius:0 10px 10px 0;margin:20px 0}
+.highlight p{margin:0;font-size:14px;color:var(--grey-03);line-height:1.7}
+.highlight strong{color:var(--black)}
+
+.cta-section{background:var(--black);color:var(--white);border-radius:16px;padding:48px;text-align:center;margin-top:40px}
+.cta-section h2{font-size:24px;font-weight:700;margin-bottom:12px}
+.cta-section p{color:rgba(255,255,255,0.6);font-size:15px;margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-btn{display:inline-block;background:var(--warm);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;transition:opacity .2s}
+.cta-btn:hover{opacity:0.9}
+
+.footer{background:var(--black);color:rgba(255,255,255,0.3);text-align:center;padding:40px;font-size:13px;font-family:var(--font-mono);line-height:1.9;margin-top:60px}
+.footer a{color:var(--accent);text-decoration:none}
+
+@media(max-width:900px){section{padding:72px 32px 48px}.two-col,.three-col{grid-template-columns:1fr}.cover{padding:72px 24px 48px}.cover-stats{gap:24px}.cover-stat .num{font-size:32px}}
+@media(max-width:600px){section{padding:64px 20px 40px}.card{padding:20px}.stats{grid-template-columns:repeat(2,1fr)}.cover{padding:64px 20px 40px}.nav{padding:10px 16px;gap:12px}table{display:block;overflow-x:auto}th,td{white-space:nowrap;padding:8px 10px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Blank Space</div>
+  <div class="nav-links">
+    <a href="#method">研究方法</a>
+    <a href="#results">研究成果</a>
+    <a href="#preview">名單預覽</a>
+    <a href="#services">服務方案</a>
+  </div>
+</nav>
+
+<!-- Cover -->
+<section class="cover" style="max-width:none;padding-top:100px;">
+  <div class="eyebrow">Research Report</div>
+  <h1>海外客戶開發<br><span>研究成果報告</span></h1>
+  <p class="subtitle">針對舞台燈光設備產業，從全球 6 大類資料來源交叉比對，找出真正有採購能力的潛在買家。</p>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="num">100+</span><span class="label">潛在客戶</span></div>
+    <div class="cover-stat"><span class="num">15+</span><span class="label">覆蓋國家</span></div>
+    <div class="cover-stat"><span class="num">6</span><span class="label">資料來源</span></div>
+  </div>
+</section>
+
+<!-- 研究方法 -->
+<section id="method">
+  <div class="section-eyebrow">How We Work</div>
+  <div class="section-title">我們怎麼找到<span>這些客戶</span></div>
+  <p class="section-desc">我們從六大類資料來源交叉比對，確保找到的是「真正有採購能力的買家」，而不只是一份名單。</p>
+
+  <div class="three-col">
+    <div class="card" style="border-left:3px solid var(--warm)">
+      <h3>國際展覽名錄</h3>
+      <p>從 Prolight+Sound、LDI、ISE、PALM Expo、NAMM 等主要展會的參展商名錄中，篩選舞台燈光類別公司。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <h3>品牌經銷商網絡</h3>
+      <p>從 Robe、ETC、Claypaky、Ayrton、MA Lighting 等品牌的全球授權經銷商名錄中，找出各地區代理商。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green)">
+      <h3>B2B 產業資料庫</h3>
+      <p>透過 Kompass、Europages 等國際企業資料庫，取得結構化的公司資訊與聯絡方式。</p>
+    </div>
+  </div>
+
+  <div class="three-col" style="margin-top:0">
+    <div class="card" style="border-left:3px solid var(--purple)">
+      <h3>公司官網深度研究</h3>
+      <p>逐間確認倉儲規模、代理品牌數量、據點覆蓋範圍、過往專案實績。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--warm)">
+      <h3>AI 評分與分級</h3>
+      <p>依公司規模、展會出席頻率、地理覆蓋範圍，自動計算採購能力評級。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <h3>社群帳號驗證</h3>
+      <p>確認每間公司的 Instagram、Facebook、LinkedIn 帳號，確保聯絡管道有效。</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p><strong>多源交叉比對的價值：</strong>出現在 2 個以上來源的公司（展覽 + 品牌經銷商 + B2B 資料庫），表示該公司在產業中活躍度高，開發成功率更高。</p>
+  </div>
+</section>
+
+<!-- 研究成果 -->
+<section id="results">
+  <div class="section-eyebrow">Research Results</div>
+  <div class="section-title">研究成果<span>分布</span></div>
+  <p class="section-desc">目前已找到 100+ 間潛在客戶，覆蓋全球主要舞台燈光市場。</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>地區分布</h3>
+      <div style="position:relative;height:300px;"><canvas id="chartRegion"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>客戶類型</h3>
+      <div style="position:relative;height:300px;"><canvas id="chartType"></canvas></div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:0">
+    <div class="card">
+      <h3>評級分布</h3>
+      <div style="position:relative;height:300px;"><canvas id="chartGrade"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>資料來源貢獻</h3>
+      <div style="position:relative;height:300px;"><canvas id="chartSource"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- 名單預覽 -->
+<section id="preview">
+  <div class="section-eyebrow">Preview</div>
+  <div class="section-title">部分精選<span>名單預覽</span></div>
+  <p class="section-desc">以下列出幾間我們從研究中找到、符合您需求方向的代表性公司。</p>
+
+  <div style="overflow-x:auto;border-radius:12px;border:1px solid var(--grey-01);">
+    <table>
+      <tr><th>公司</th><th>地區</th><th>類型</th><th>說明</th></tr>
+      <tr><td><strong>Highlite International</strong></td><td>荷蘭</td><td>經銷商</td><td>歐洲領先舞台設備經銷商，自有品牌 Showtec，80+ 國經銷網絡</td></tr>
+      <tr><td><strong>ACT Entertainment</strong></td><td>美國</td><td>經銷商</td><td>北美多品牌燈光經銷商</td></tr>
+      <tr><td><strong>Ambersphere Solutions</strong></td><td>英國</td><td>經銷商</td><td>英國專業燈光市場龍頭</td></tr>
+      <tr><td><strong>TSM</strong></td><td>新加坡</td><td>經銷商</td><td>東南亞舞台燈光經銷 25 年</td></tr>
+      <tr><td><strong>DWR Distribution</strong></td><td>南非</td><td>經銷商</td><td>非洲最大專業燈光經銷商</td></tr>
+    </table>
+  </div>
+
+  <p style="font-size:13px;color:var(--grey-02);margin-top:16px;">完整名單包含每間公司的官網、聯絡 Email、採購決策者、社群帳號、評級與推薦理由。</p>
+</section>
+
+<!-- 服務方案 -->
+<section id="services">
+  <div class="section-eyebrow">Our Services</div>
+  <div class="section-title">我們能提供的<span>服務</span></div>
+  <p class="section-desc">不需要等展覽，全年都有新的開發機會。</p>
+
+  <div class="three-col">
+    <div class="card" style="border-top:3px solid var(--warm)">
+      <h3>潛在客戶名單研究</h3>
+      <p>定期為您研究並交付新的海外潛在買家，持續擴充您的客戶開發管線。</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <h3>指定方向客製研究</h3>
+      <p>有特定想開發的市場、地區、或客戶類型？我們依照您的方向精準找出符合條件的買家。</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green)">
+      <h3>英文開發信撰寫與發送</h3>
+      <p>針對每間目標公司的產品線與背景，量身撰寫客製化英文開發信，並協助發送與追蹤回覆。</p>
+    </div>
+  </div>
+
+  <div class="cta-section">
+    <h2>有興趣進一步了解？</h2>
+    <p>歡迎直接回覆信件，我們可以提供完整名單樣本與報價供您評估。</p>
+    <a href="mailto:hello@blankspaces.uk" class="cta-btn">聯繫我們</a>
+  </div>
+</section>
+
+<div class="footer">
+  Blank Space 留白工作室<br>
+  <a href="mailto:hello@blankspaces.uk">hello@blankspaces.uk</a> · <a href="https://blankspaces.uk">blankspaces.uk</a>
+</div>
+
+<script>
+Chart.defaults.font.family = "'Inter','Noto Sans TC',sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6c6a62';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+Chart.defaults.plugins.legend.labels.padding = 14;
+
+const c = {blue:'#5a9cc5',warm:'#eb8054',green:'#85a268',purple:'#a07cc5',red:'#d94f4f',grey:'#8b877c',light:'#a8cde8'};
+
+new Chart(document.getElementById('chartRegion'),{
+  type:'bar',
+  data:{labels:['歐洲','北美','亞太','中東','大洋洲','拉美','非洲'],datasets:[{data:[47,26,14,6,4,4,1],backgroundColor:[c.blue,c.warm,c.green,c.purple,c.light,c.warm,c.grey],borderRadius:6,borderSkipped:false}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0eee6'},ticks:{stepSize:10}},y:{grid:{display:false}}}}
+});
+
+new Chart(document.getElementById('chartType'),{
+  type:'doughnut',
+  data:{labels:['製造商 (48)','品牌經銷商 (36)','區域代理 (10)','通路巨頭 (8)'],datasets:[{data:[48,36,10,8],backgroundColor:[c.blue,c.warm,c.green,c.red],borderWidth:2,borderColor:'#fff'}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+});
+
+new Chart(document.getElementById('chartGrade'),{
+  type:'bar',
+  data:{labels:['S','A+','A','B','New'],datasets:[{data:[8,10,28,38,18],backgroundColor:[c.red,c.warm,'#f0a860',c.blue,c.green],borderRadius:6,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0eee6'},beginAtZero:true}}}
+});
+
+new Chart(document.getElementById('chartSource'),{
+  type:'doughnut',
+  data:{labels:['展覽參展商 (35)','品牌經銷商 (32)','B2B 資料庫 (11)','多源交叉 (10)','原有名單 (14)'],datasets:[{data:[35,32,11,10,14],backgroundColor:[c.warm,c.blue,c.green,c.purple,c.grey],borderWidth:2,borderColor:'#fff'}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+});
+</script>
+<script src="/nav.js"></script></body>
+</html>

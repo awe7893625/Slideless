@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 自我訓練研究 + 員工訓練 Step 0 — Rain AI Team</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #1a1a1a;
+  --bg-cover-card: #252525;
+  --cover-border: #3a3a3a;
+  --orange: #f97316;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --accent: #f97316;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg-page);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+
+/* NAV */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: #f6f5f1; border-bottom: 1px solid #e5e3de;
+  padding: 12px 32px;
+  display: flex; align-items: center; gap: 24px;
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  overflow-x: auto; white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.top-nav::-webkit-scrollbar { height: 0; }
+.nav-brand { font-weight: 700; color: var(--orange); font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+.nav-link { color: #666; font-size: 13px; flex-shrink: 0; transition: color .2s; }
+.nav-link:hover { color: var(--orange); }
+
+/* COVER */
+.cover {
+  margin-top: 48px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  padding: 72px 48px 56px;
+}
+.cover-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 16px;
+}
+.cover-title { font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.cover-title .accent { color: var(--orange); }
+.cover-subtitle { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.cover-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 40px; }
+.stats-bar { display: flex; gap: 48px; flex-wrap: wrap; }
+.stat-item .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 700; color: var(--orange); }
+.stat-item .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+/* SECTIONS */
+.section { max-width: 1000px; margin: 0 auto; padding: 56px 48px; }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 8px;
+}
+.section-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.section-title .accent { color: var(--orange); }
+.section-desc { font-size: 14px; color: var(--text-muted); max-width: 640px; margin-bottom: 32px; }
+
+/* CARDS */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+/* STATUS CARD */
+.status-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; border-left: 4px solid var(--border);
+}
+.status-card.green { border-left-color: var(--green); }
+.status-card.red { border-left-color: var(--red); }
+.status-card.orange { border-left-color: var(--orange); }
+.status-card .status-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
+.status-card .status-value { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.status-card .status-detail { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+/* KEY FINDING */
+.key-finding {
+  background: #fff; border: 2px solid var(--orange); border-radius: 12px;
+  padding: 24px; margin-top: 24px;
+}
+.key-finding h4 { font-size: 15px; font-weight: 700; color: var(--orange); margin-bottom: 12px; }
+.key-finding p, .key-finding li { font-size: 13px; color: #555; line-height: 1.8; }
+.key-finding ul { padding-left: 18px; margin-top: 8px; }
+.key-finding code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #f6f5f1; padding: 2px 6px; border-radius: 4px; }
+
+/* CONCEPT CARDS */
+.concept-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; border-left: 4px solid var(--border);
+}
+.concept-card.blue { border-left-color: var(--blue); }
+.concept-card.green { border-left-color: var(--green); }
+.concept-card.orange { border-left-color: var(--orange); }
+.concept-card.purple { border-left-color: var(--purple); }
+.concept-card h5 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.concept-card p { font-size: 13px; color: #555; line-height: 1.7; }
+.concept-card .tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; margin-bottom: 8px; display: inline-block; padding: 2px 8px; border-radius: 8px; }
+.concept-card.blue .tag { background: rgba(59,130,246,0.12); color: var(--blue); }
+.concept-card.green .tag { background: rgba(34,197,94,0.12); color: var(--green); }
+.concept-card.orange .tag { background: rgba(249,115,22,0.12); color: var(--orange); }
+.concept-card.purple .tag { background: rgba(168,85,247,0.12); color: var(--purple); }
+
+/* MERMAID */
+.mermaid-container {
+  background: #1a1a1a; border-radius: 12px; padding: 32px; margin-bottom: 24px;
+}
+.mermaid-label { font-size: 14px; font-weight: 600; color: #f0f0f0; margin-bottom: 16px; }
+
+/* COMPARE COLUMNS */
+.compare-col h4 { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.compare-col .items { display: flex; flex-direction: column; gap: 12px; }
+.compare-item {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; border-left: 4px solid var(--border);
+}
+.compare-item.green { border-left-color: var(--green); }
+.compare-item.orange { border-left-color: var(--orange); }
+.compare-item h5 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.compare-item p { font-size: 13px; color: #555; line-height: 1.6; }
+
+/* PILLS */
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+}
+.pill-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.pill-orange { background: rgba(249,115,22,0.15); color: var(--orange); }
+.pill-gray { background: rgba(136,136,136,0.15); color: #888; }
+
+/* TIMELINE */
+.timeline-scroll {
+  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.timeline-scroll::-webkit-scrollbar { height: 4px; }
+.timeline-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.timeline-card {
+  min-width: 260px; flex-shrink: 0;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.timeline-card h5 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.timeline-card li { font-size: 13px; color: #888; padding: 4px 0; }
+.timeline-card ul { padding-left: 16px; }
+
+/* REF CARDS */
+.ref-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; transition: border-color .2s;
+}
+.ref-card:hover { border-color: var(--orange); }
+.ref-card h5 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.ref-card p { font-size: 13px; color: #555; line-height: 1.6; }
+.ref-card .ref-url { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--orange); margin-top: 8px; display: block; word-break: break-all; }
+
+/* FOOTER */
+.footer {
+  text-align: center; padding: 40px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .cover { padding: 56px 20px 40px; }
+  .cover-title { font-size: 28px; }
+  .stat-item .stat-num { font-size: 28px; }
+  .stats-bar { gap: 24px; }
+  .section { padding: 40px 20px; }
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .top-nav { padding: 12px 16px; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <span class="nav-brand">RAIN AI TEAM</span>
+  <a href="#step0" class="nav-link">Step 0 結果</a>
+  <a href="#patterns" class="nav-link">業界模式</a>
+  <a href="#compare" class="nav-link">對照分析</a>
+  <a href="#roadmap" class="nav-link">路線圖</a>
+  <a href="#resources" class="nav-link">關鍵資源</a>
+</nav>
+
+<!-- COVER -->
+<section class="cover">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="cover-eyebrow">Research Report</div>
+    <h1 class="cover-title">AI Agent <span class="accent">自我訓練</span>研究<br>+ 員工訓練 Step 0 結果</h1>
+    <p class="cover-subtitle">從手動 Cycle 到自動化 Reflexion — 業界最佳實踐與我們的升級路徑</p>
+    <p class="cover-meta">2026-04-06 · Nova / Klay · Rain AI Team</p>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-num">7</div>
+        <div class="stat-label">Papers</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">15</div>
+        <div class="stat-label">GitHub Repos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Frameworks</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">6</div>
+        <div class="stat-label">建議</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 01: STEP 0 -->
+<section class="section" id="step0">
+  <div class="section-eyebrow">Section 01</div>
+  <h2 class="section-title">Step 0 <span class="accent">手動 Cycle</span> 結果</h2>
+  <p class="section-desc">W14 手動執行完整的 Intel → Board → Training 循環，驗證管線可行性與瓶頸。</p>
+
+  <div class="grid-4">
+    <div class="status-card green">
+      <div class="status-label">Intel 可用</div>
+      <div class="status-value" style="color:var(--green);">W14 10 files</div>
+      <div class="status-detail">intel_results/ 目錄 10 份 JSON，涵蓋 AI 趨勢、工具更新、競品動態</div>
+    </div>
+    <div class="status-card green">
+      <div class="status-label">訓練教材產出</div>
+      <div class="status-value" style="color:var(--green);">1 份 112 行</div>
+      <div class="status-detail">training_update_W14.md 成功產出，覆蓋 Board 決策全部 approve 項目</div>
+    </div>
+    <div class="status-card red">
+      <div class="status-label">Scout 狀態</div>
+      <div class="status-value" style="color:var(--red);">全部失敗</div>
+      <div class="status-detail">X token 過期 + DNS 不通，無法取得即時社群資料</div>
+    </div>
+    <div class="status-card red">
+      <div class="status-label">教學筆記品質</div>
+      <div class="status-value" style="color:var(--red);">差</div>
+      <div class="status-detail">機械複製貼上 intel 原文，缺乏教學設計與情境化轉換</div>
+    </div>
+  </div>
+
+  <div class="key-finding">
+    <h4>Key Finding: 轉換邏輯</h4>
+    <p>Board Decision 是 single source of truth，所有訓練內容按 <code>verdict</code> 欄位分級：</p>
+    <ul>
+      <li><code>approve</code> — 全員訓練（必讀，納入週訓練更新）</li>
+      <li><code>design only</code> — 認知層（了解概念，不需實作）</li>
+      <li><code>spike only</code> — 選讀（有興趣者深入研究）</li>
+      <li><code>monitored</code> — 不進訓練（持續觀察，暫不行動）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 02: PATTERNS -->
+<section class="section" id="patterns">
+  <div class="section-eyebrow">Section 02</div>
+  <h2 class="section-title">業界<span class="accent">自我訓練</span>模式</h2>
+  <p class="section-desc">四個核心框架：從語言反思到自動技能演化，Agent 如何從錯誤中自我改進。</p>
+
+  <div class="mermaid-container">
+    <div class="mermaid-label">Agent Self-Training Loop</div>
+    <div class="mermaid">
+flowchart TD
+    A[Agent 執行任務] --> B{成功?}
+    B -->|Yes| C[存入 Skill Library]
+    B -->|No| D[Self-Reflection]
+    D --> E[語言化反思存入 Memory]
+    E --> F[下次任務檢索反思]
+    F --> A
+    C --> G[技能可複用]
+    classDef success fill:#22c55e,stroke:#16a34a,color:#fff
+    classDef fail fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef process fill:#6366f1,stroke:#4f46e5,color:#fff
+    class C success
+    class G success
+    class D fail
+    class A process
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="concept-card blue">
+      <span class="tag">Reflexion</span>
+      <h5>語言強化學習</h5>
+      <p>Agent 用自然語言反思失敗原因，存入「經驗記憶」。下次嘗試時注入反思文字作為額外 context。GPT-4 在 HumanEval 上從 80% 提升至 <strong>91%</strong>，僅靠語言反思而非參數更新。</p>
+    </div>
+    <div class="concept-card green">
+      <span class="tag">SICA</span>
+      <h5>自我改進程式碼 Agent</h5>
+      <p>Agent 修改自身的程式碼（工具定義、策略函數）。在 SWE-Bench 上從 17% 提升至 <strong>53%</strong>。關鍵：Agent 不只改產出物，還改自己的推理流程。</p>
+    </div>
+    <div class="concept-card orange">
+      <span class="tag">Voyager</span>
+      <h5>技能庫模式</h5>
+      <p>Minecraft 裡的終身學習 Agent。自動課程（自動設定目標）+ 技能庫（成功的程式碼段存入可複用庫）+ 技能檢索（新任務時找最相關的舊技能）。我們的 skills/ 目錄就是簡化版 Skill Library。</p>
+    </div>
+    <div class="concept-card purple">
+      <span class="tag">EvoSkill</span>
+      <h5>從失敗軌跡自動發現技能</h5>
+      <p>分析大量任務執行軌跡，自動識別重複出現的成功模式，將其抽象為「可演化的技能」。技能本身也會隨時間演化、合併、淘汰。最接近「AI 自動寫 SOP」的框架。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03: COMPARE -->
+<section class="section" id="compare">
+  <div class="section-eyebrow">Section 03</div>
+  <h2 class="section-title">我們<span class="accent">已做對的</span> vs 可升級的</h2>
+  <p class="section-desc">Rain AI Team 現有機制與業界最佳實踐的對照，找出差距與升級點。</p>
+
+  <div class="grid-2">
+    <div class="compare-col">
+      <h4><span style="color:var(--green);">&#9679;</span> 已做對</h4>
+      <div class="items">
+        <div class="compare-item green">
+          <h5>Session Review 五問 = Reflexion 人工版</h5>
+          <p>每次 session 結束強制反思「遇到什麼問題、如何解決、下次如何改善」，本質上就是 Reflexion 的語言化反思迴圈。</p>
+        </div>
+        <div class="compare-item green">
+          <h5>lessons.md FTS5 = 簡易 RAG</h5>
+          <p>錯誤記錄寫入 lessons.md，下次任務前用 FTS5 全文搜尋檢索相關教訓。等同 Reflexion 的「經驗記憶檢索」。</p>
+        </div>
+        <div class="compare-item green">
+          <h5>Scope Card + 3-Phase = 品質閘門</h5>
+          <p>R-00 強制 Scope Card + Phase 1/2/3 規劃協議，確保任務經過商業/架構/風險三層審查才進入實作。</p>
+        </div>
+        <div class="compare-item green">
+          <h5>Error Registry E001-E008 = 結構化失敗分類</h5>
+          <p>8 種錯誤代碼（未查證推測、自行降標、假完成...），累積 3 次自動升級為 rule/skill/hook。這是 EvoSkill 模式的人工版。</p>
+        </div>
+      </div>
+    </div>
+    <div class="compare-col">
+      <h4><span style="color:var(--orange);">&#9679;</span> 可升級</h4>
+      <div class="items">
+        <div class="compare-item orange">
+          <h5>自動化 Reflexion 迴圈</h5>
+          <p>目前反思靠 session review 手動觸發。升級為結構化 JSON 反思 API，每次任務結束自動提交、自動檢索。</p>
+        </div>
+        <div class="compare-item orange">
+          <h5>技能演化管線（EvoSkill 模式）</h5>
+          <p>目前 skills/ 手動新增。可分析任務軌跡，自動發現重複成功模式，提案新 skill 或合併/淘汰舊 skill。</p>
+        </div>
+        <div class="compare-item orange">
+          <h5>Agent 效能儀表板</h5>
+          <p>per-agent metrics（成功率、平均耗時、token 效率、常見錯誤類型）。目前只有粗顆粒度的 task board 資料。</p>
+        </div>
+        <div class="compare-item orange">
+          <h5>Prompt 自動優化（DSPy）</h5>
+          <p>Stanford DSPy 框架可自動優化 prompt，用少量標註資料找到更好的 prompt 寫法。可用於 Agent system prompt 調優。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 04: ROADMAP -->
+<section class="section" id="roadmap">
+  <div class="section-eyebrow">Section 04</div>
+  <h2 class="section-title">具體建議<span class="accent">路線圖</span></h2>
+  <p class="section-desc">分四階段推進，從已完成的基礎設施到長期的自動優化實驗。</p>
+
+  <div class="timeline-scroll">
+    <div class="timeline-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="pill pill-green">DONE</span>
+        <h5>Phase 1 — Week 1-2</h5>
+      </div>
+      <ul>
+        <li>training-intel-bridge.py 建置</li>
+        <li>Board Decision 轉換邏輯</li>
+        <li>verdict 分級對應訓練層級</li>
+        <li>W14 手動 Cycle 完整執行</li>
+      </ul>
+    </div>
+    <div class="timeline-card" style="border-color:var(--orange);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="pill pill-orange">ACTIVE</span>
+        <h5>Phase 2 — Week 3-4</h5>
+      </div>
+      <ul>
+        <li>自動化 Reflexion（結構化 JSON 反思 API）</li>
+        <li>Agent 效能 metrics 到 Kai dashboard</li>
+        <li>Scout token 修復 + DNS 排錯</li>
+        <li>教學筆記品質模板設計</li>
+      </ul>
+    </div>
+    <div class="timeline-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="pill pill-gray">PLANNED</span>
+        <h5>Phase 3 — Month 2</h5>
+      </div>
+      <ul>
+        <li>技能演化管線（EvoSkill 模式）</li>
+        <li>Obsidian + Email bridge 自動化</li>
+        <li>訓練內容品質自動評分</li>
+        <li>Agent 反思記憶 RAG 升級</li>
+      </ul>
+    </div>
+    <div class="timeline-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="pill pill-gray">PLANNED</span>
+        <h5>Phase 4 — Month 3+</h5>
+      </div>
+      <ul>
+        <li>DSPy prompt 優化實驗</li>
+        <li>Agent performance Deck 週報</li>
+        <li>跨 Agent 技能共享機制</li>
+        <li>自動課程生成（Voyager 模式）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 05: RESOURCES -->
+<section class="section" id="resources">
+  <div class="section-eyebrow">Section 05</div>
+  <h2 class="section-title">關鍵<span class="accent">資源</span></h2>
+  <p class="section-desc">研究過程中參考的核心論文、開源專案與框架。</p>
+
+  <div class="grid-3">
+    <div class="ref-card">
+      <h5>Reflexion</h5>
+      <p>語言強化學習框架。Agent 用自然語言反思錯誤，無需梯度更新即可持續改進。GPT-4 HumanEval 91%。</p>
+      <span class="ref-url">arxiv.org/abs/2303.11366</span>
+    </div>
+    <div class="ref-card">
+      <h5>Voyager</h5>
+      <p>Minecraft 終身學習 Agent。自動課程 + 技能庫 + 技能檢索，持續探索與能力擴展的典範。</p>
+      <span class="ref-url">github.com/MineDojo/Voyager</span>
+    </div>
+    <div class="ref-card">
+      <h5>EvoSkill</h5>
+      <p>從失敗軌跡自動發現、演化技能的框架。技能隨時間合併與淘汰，最接近 AI 自動寫 SOP。</p>
+      <span class="ref-url">github.com/sentient-agi/EvoSkill</span>
+    </div>
+    <div class="ref-card">
+      <h5>SICA</h5>
+      <p>Self-Improving Coding Agent。Agent 修改自身程式碼，SWE-Bench 17% 到 53%。</p>
+      <span class="ref-url">github.com/MaximeRobeyns/self_improving_coding_agent</span>
+    </div>
+    <div class="ref-card">
+      <h5>DSPy</h5>
+      <p>Stanford 的 prompt 自動優化框架。用程式設計取代手動 prompt 工程，支援自動搜尋最佳 prompt。</p>
+      <span class="ref-url">github.com/stanfordnlp/dspy</span>
+    </div>
+    <div class="ref-card">
+      <h5>skills.sh</h5>
+      <p>70 萬+ 社群貢獻的 Agent 技能庫。可搜尋、複用、組合的 skill marketplace。</p>
+      <span class="ref-url">skills.sh</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  Rain AI Team &middot; Klay CEO &middot; 2026-04-06 &middot; Nova Deck Generator
+</footer>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true, theme: 'dark',
+  themeVariables: {
+    primaryColor:'#6366f1', primaryBorderColor:'#4f46e5', primaryTextColor:'#f0f0f0',
+    lineColor:'#555', secondaryColor:'#252525', tertiaryColor:'#1a1a1a', fontSize:'14px'
+  },
+  flowchart: { htmlLabels:true, curve:'basis', nodeSpacing:50, rankSpacing:60, padding:15 }
+});
+</script>
+
+<script src="/nav.js"></script></body>
+</html>

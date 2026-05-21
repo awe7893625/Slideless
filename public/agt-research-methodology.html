@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGT Lighting — B2B 客戶研究流程</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #f6f5f1;
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf9f6;
+  --bg-section: #f0eee6;
+  --border: #e8e5df;
+  --text-primary: #121212;
+  --text-muted: #8b877c;
+  --text-grey: #6c6a62;
+  --blue: #a8cde8;
+  --blue-strong: #5a9cc5;
+  --green: #85a268;
+  --red: #d94f4f;
+  --orange: #eb8054;
+  --purple: #a07cc5;
+  --accent: #a8cde8;
+  --dark: #121212;
+  --dark-card: rgba(255,255,255,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Nav */
+.nav-sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+  background: rgba(246,245,241,0.96); backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px; z-index: 50; overflow-y: auto;
+}
+.nav-sidebar .brand { font-size: 14px; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
+.nav-sidebar .version { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 24px; }
+.nav-sidebar a {
+  display: block; padding: 10px 12px; border-radius: 8px; font-size: 13px;
+  color: var(--text-muted); text-decoration: none; margin-bottom: 4px; transition: all 0.2s;
+}
+.nav-sidebar a:hover { background: var(--bg-card); color: var(--text-primary); }
+.nav-sidebar a.active { background: var(--dark); color: #fff; }
+.nav-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+
+.main-content { margin-left: 220px; padding: 0; }
+
+/* Cover — dark section */
+.cover {
+  background: var(--dark);
+  padding: 72px 48px 56px; border-bottom: 1px solid var(--border);
+  color: #fff;
+}
+.cover .eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 3px; color: var(--orange); margin-bottom: 16px;
+}
+.cover h1 { font-size: 36px; font-weight: 700; line-height: 1.2; margin-bottom: 12px; color: #fff; }
+.cover h1 span { color: var(--orange); }
+.cover .subtitle { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+.cover-meta { font-size: 12px; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; }
+.cover-stats { display: flex; gap: 32px; margin-top: 32px; }
+.cover-stat { text-align: center; }
+.cover-stat .num { font-size: 36px; font-weight: 700; color: var(--orange); display: block; }
+.cover-stat .label { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+/* Sections */
+.section { padding: 56px 48px; border-bottom: 1px solid var(--border); }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 3px; color: var(--orange); margin-bottom: 8px;
+}
+.section-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.section-title span { color: var(--orange); }
+.section-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; max-width: 640px; }
+
+/* Cards */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.card:hover { background: var(--bg-card-hover); border-color: #d5d2cc; }
+
+/* Concept cards */
+.concept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.concept-card.color-blue { border-left: 3px solid var(--blue-strong); }
+.concept-card.color-green { border-left: 3px solid var(--green); }
+.concept-card.color-red { border-left: 3px solid var(--red); }
+.concept-card.color-orange { border-left: 3px solid var(--orange); }
+.concept-card.color-purple { border-left: 3px solid var(--purple); }
+.concept-label { font-size: 16px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.concept-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+/* Flow / Mermaid */
+.mermaid-container {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 32px; overflow-x: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* Decision tree */
+.decision-item { margin-bottom: 16px; }
+.decision-q {
+  font-size: 15px; font-weight: 600; padding: 16px 20px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px 12px 0 0;
+}
+.decision-branches { display: grid; grid-template-columns: 1fr 1fr; }
+.decision-branch {
+  padding: 14px 20px; font-size: 13px;
+  background: var(--bg-card); border: 1px solid var(--border);
+}
+.decision-branch.yes { border-left: 3px solid var(--green); border-radius: 0 0 0 12px; }
+.decision-branch.no { border-left: 3px solid var(--red); border-radius: 0 0 12px 0; }
+.branch-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+.branch-label.yes { color: var(--green); }
+.branch-label.no { color: var(--red); }
+
+/* Stats bar */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { text-align: center; padding: 20px; }
+.stat-card .num { font-size: 32px; font-weight: 700; color: var(--orange); display: block; }
+.stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* Stats grid (observability style) */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 40px; }
+.stat { background: var(--bg-card); border-radius: 12px; padding: 24px 20px; text-align: center; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.stat .num { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.stat .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+.stat.warm .num { color: var(--orange); }
+.stat.blue .num { color: var(--blue-strong); }
+.stat.green .num { color: var(--green); }
+.stat.red .num { color: var(--red); }
+
+/* Score bars (observability style) */
+.score-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.score-label { font-size: 13px; font-weight: 500; min-width: 100px; color: var(--text-grey); }
+.score-track { flex: 1; height: 8px; background: var(--bg-section); border-radius: 4px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 4px; background: var(--orange); }
+.score-val { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; min-width: 40px; text-align: right; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th { background: var(--bg-section); padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-grey); border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-grey); }
+tr:hover { background: rgba(168,205,232,0.04); }
+
+/* Tags */
+.tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+.tag-s { background: rgba(217,79,79,0.12); color: var(--red); }
+.tag-a { background: rgba(235,128,84,0.12); color: var(--orange); }
+.tag-b { background: rgba(168,205,232,0.15); color: var(--blue-strong); }
+.tag-new { background: rgba(133,162,104,0.12); color: var(--green); }
+
+/* Footer */
+.footer {
+  padding: 32px 48px; text-align: center;
+  font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .nav-sidebar {
+    position: fixed; left: 0; right: 0; top: 0; bottom: auto;
+    width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border);
+    padding: 12px 16px; display: flex; gap: 8px; overflow-x: auto; flex-wrap: nowrap; align-items: center;
+  }
+  .nav-sidebar .brand { margin-bottom: 0; margin-right: 12px; white-space: nowrap; }
+  .nav-sidebar .version { display: none; }
+  .nav-sidebar a { white-space: nowrap; padding: 6px 12px; margin-bottom: 0; font-size: 12px; }
+  .main-content { margin-left: 0; margin-top: 52px; }
+  .cover { padding: 40px 20px 32px; }
+  .cover h1 { font-size: 24px; }
+  .cover-stats { flex-wrap: wrap; gap: 16px; }
+  .section { padding: 32px 16px; }
+  .concept-grid { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .decision-branches { grid-template-columns: 1fr; }
+  .mermaid-container { padding: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .card { padding: 20px; }
+  table { font-size: 12px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  th, td { padding: 8px 10px; white-space: nowrap; }
+  [style*="--two-col"] { grid-template-columns: 1fr !important; }
+  .decision-branch.yes { border-radius: 0; }
+  .decision-branch.no { border-radius: 0 0 12px 12px; }
+  .footer { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav-sidebar">
+  <div class="brand">AGT Research</div>
+  <div class="version">v1.0</div>
+  <a href="#overview" class="active"><span class="nav-dot" style="background:var(--orange)"></span>Overview</a>
+  <a href="#flow"><span class="nav-dot" style="background:var(--blue-strong)"></span>Flow</a>
+  <a href="#sources"><span class="nav-dot" style="background:var(--green)"></span>Sources</a>
+  <a href="#distribution"><span class="nav-dot" style="background:var(--purple)"></span>Distribution</a>
+  <a href="#tech"><span class="nav-dot" style="background:var(--orange)"></span>Tech Stack</a>
+</nav>
+
+<main class="main-content">
+
+<!-- Cover -->
+<section class="cover">
+  <div class="eyebrow">Internal Research Report</div>
+  <h1>AGT Lighting <span>B2B 客戶研究</span></h1>
+  <p class="subtitle">研究方法、技術流程與成果概覽 — 從 29 間擴展到 102 間潛在客戶的完整路徑</p>
+  <div class="cover-meta">Generated 2026-04-06 &middot; Blank Space Studio &middot; For Internal Use</div>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="num">102</span><span class="label">潛在客戶</span></div>
+    <div class="cover-stat"><span class="num">15+</span><span class="label">覆蓋國家</span></div>
+    <div class="cover-stat"><span class="num">6</span><span class="label">資料來源</span></div>
+    <div class="cover-stat"><span class="num">88</span><span class="label">新發現</span></div>
+  </div>
+</section>
+
+<!-- Section 1: Overview -->
+<section class="section" id="overview">
+  <div class="section-eyebrow">Section 01</div>
+  <div class="section-title">Research <span>Overview</span></div>
+  <p class="section-desc">從客戶提供的初始方向出發，透過多源交叉比對擴展名單。核心原則：只找「真正有採購能力的買家」。</p>
+
+  <div class="concept-grid">
+    <div class="card concept-card color-orange">
+      <div class="concept-label">客戶需求</div>
+      <div class="concept-desc">優先市場：美國 → 亞洲 → 中東 → 歐洲<br>目標類型：區域代理商 + 品牌經銷商<br>訂單規模：20 尺櫃以上</div>
+    </div>
+    <div class="card concept-card color-blue">
+      <div class="concept-label">研究範圍</div>
+      <div class="concept-desc">舞台燈光設備（Stage Lighting）產業<br>全球 15+ 國家覆蓋<br>6 大類資料來源交叉驗證</div>
+    </div>
+    <div class="card concept-card color-green">
+      <div class="concept-label">最終成果</div>
+      <div class="concept-desc">102 間去重後潛在客戶<br>原有 14 間 + 新發現 88 間<br>2 間已是 AGT 客戶（已標記）</div>
+    </div>
+    <div class="card concept-card color-purple">
+      <div class="concept-label">交付格式</div>
+      <div class="concept-desc">CSV 15 欄位結構化資料<br>含官網、Email、聯絡人、社群<br>AI 評級 + 推薦理由</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Flow Diagram -->
+<section class="section" id="flow">
+  <div class="section-eyebrow">Section 02</div>
+  <div class="section-title">Research <span>Pipeline</span></div>
+  <p class="section-desc">End-to-end research flow with data collection, processing, and delivery stages.</p>
+
+  <div class="mermaid-container">
+    <pre class="mermaid">
+flowchart TD
+    A([客戶需求確認]) --> B[定義搜尋條件]
+    B --> C{多源並行蒐集}
+
+    C --> D[展覽參展商名錄]
+    C --> E[品牌經銷商網絡]
+    C --> F[B2B 產業資料庫]
+
+    D --> G[原始資料池]
+    E --> G
+    F --> G
+
+    G --> H[公司深度研究]
+    H --> I{資料完整？}
+
+    I -- Yes --> J[AI 評分與分級]
+    I -- No --> K[補充研究 / 標記 New]
+    K --> J
+
+    J --> L[去重 + 交叉驗證]
+    L --> M{已是 AGT 客戶？}
+
+    M -- Yes --> N[標記 existing_client]
+    M -- No --> O[納入最終名單]
+    N --> O
+
+    O --> P[社群帳號驗證]
+    P --> Q([CSV 名單交付])
+
+    style A fill:#eb8054,stroke:#eb8054,color:#fff
+    style Q fill:#eb8054,stroke:#eb8054,color:#fff
+    style C fill:#a8cde8,stroke:#5a9cc5,color:#121212
+    style I fill:#a8cde8,stroke:#5a9cc5,color:#121212
+    style M fill:#a8cde8,stroke:#5a9cc5,color:#121212
+    style D fill:#fff,stroke:#e8e5df,color:#121212
+    style E fill:#fff,stroke:#e8e5df,color:#121212
+    style F fill:#fff,stroke:#e8e5df,color:#121212
+    style G fill:#f6f5f1,stroke:#e8e5df,color:#121212
+    style H fill:#fff,stroke:#e8e5df,color:#121212
+    style J fill:#fff,stroke:#e8e5df,color:#121212
+    style K fill:#fff,stroke:#e8e5df,color:#121212
+    style L fill:#fff,stroke:#e8e5df,color:#121212
+    style N fill:#85a268,stroke:#85a268,color:#fff
+    style O fill:#fff,stroke:#e8e5df,color:#121212
+    style P fill:#fff,stroke:#e8e5df,color:#121212
+    style B fill:#fff,stroke:#e8e5df,color:#121212
+    </pre>
+  </div>
+
+  <!-- Decision points -->
+  <div style="margin-top: 32px;">
+    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Decision Points</h3>
+
+    <div class="decision-item">
+      <div class="decision-q">資料完整度判斷 — 公司是否有足夠資訊進行評級？</div>
+      <div class="decision-branches">
+        <div class="decision-branch yes">
+          <div class="branch-label yes">YES — 資料完整</div>
+          官網可用、Email 已確認、至少 1 個社群帳號 → 進入 AI 評分
+        </div>
+        <div class="decision-branch no">
+          <div class="branch-label no">NO — 資料不足</div>
+          缺少關鍵欄位 → 補充研究或標記為 New 等級（待驗證）
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-item">
+      <div class="decision-q">客戶重複判斷 — 是否已是 AGT 現有客戶？</div>
+      <div class="decision-branches">
+        <div class="decision-branch yes">
+          <div class="branch-label yes">YES — 已是客戶</div>
+          標記 already_agt_client = Yes（如 Thomann、Sound House），仍保留在名單供參考
+        </div>
+        <div class="decision-branch no">
+          <div class="branch-label no">NO — 新潛在客戶</div>
+          直接納入最終名單，進入社群驗證階段
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Data Sources -->
+<section class="section" id="sources">
+  <div class="section-eyebrow">Section 03</div>
+  <div class="section-title">Data <span>Sources</span></div>
+  <p class="section-desc">六大類資料來源交叉比對，確保覆蓋面與可信度。多源出現的公司 = 產業活躍度高。</p>
+
+  <table>
+    <tr><th>來源</th><th>具體平台</th><th>貢獻</th><th>特點</th></tr>
+    <tr><td><strong>展覽參展商</strong></td><td>Prolight+Sound / LDI / ISE / PALM Expo / NAMM</td><td><span class="tag tag-a">35 間</span></td><td>最直接的產業參與者</td></tr>
+    <tr><td><strong>品牌經銷商</strong></td><td>Robe / ETC / Claypaky / Ayrton / MA Lighting</td><td><span class="tag tag-a">32 間</span></td><td>已驗證採購能力</td></tr>
+    <tr><td><strong>B2B 資料庫</strong></td><td>Kompass / Europages</td><td><span class="tag tag-b">11 間</span></td><td>結構化企業資料</td></tr>
+    <tr><td><strong>多源交叉</strong></td><td>展覽 + 品牌 + B2B 重疊</td><td><span class="tag tag-b">10 間</span></td><td>最高可信度</td></tr>
+    <tr><td><strong>原有名單</strong></td><td>Kent 初始提供 29 間</td><td><span class="tag tag-new">14 間</span></td><td>客戶已知目標</td></tr>
+  </table>
+
+  <div class="card" style="margin-top: 16px; border-left: 3px solid var(--orange);">
+    <div class="concept-label">多源交叉比對的價值</div>
+    <div class="concept-desc">出現在 2 個以上來源的公司（展覽 + 品牌經銷商 + B2B 資料庫），表示該公司在產業中活躍度高，開發成功率更高。這些公司在名單中被標記為更高評級。</div>
+  </div>
+</section>
+
+<!-- Section 4: Distribution -->
+<section class="section" id="distribution">
+  <div class="section-eyebrow">Section 04</div>
+  <div class="section-title">Data <span>Distribution</span></div>
+  <p class="section-desc">102 間客戶的地區、評級、類型分布。</p>
+
+  <div class="stats">
+    <div class="stat warm"><div class="num">102</div><div class="label">潛在客戶</div></div>
+    <div class="stat blue"><div class="num">88</div><div class="label">新發現</div></div>
+    <div class="stat green"><div class="num">15+</div><div class="label">覆蓋國家</div></div>
+    <div class="stat red"><div class="num">6</div><div class="label">資料來源</div></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; --two-col: 1;">
+    <div class="card">
+      <h3>地區分布</h3>
+      <div style="position:relative;height:320px;"><canvas id="chartRegion"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>評級分布</h3>
+      <div style="position:relative;height:320px;"><canvas id="chartGrade"></canvas></div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; --two-col: 1; margin-top: 20px;">
+    <div class="card">
+      <h3>客戶類型</h3>
+      <div style="position:relative;height:280px;"><canvas id="chartType"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>名單組成</h3>
+      <div style="position:relative;height:280px;"><canvas id="chartComposition"></canvas></div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.7;">原有 29 間中 15 間因資料不足未納入。2 間已是 AGT 客戶（Thomann、Sound House）已標記。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Section 5: Tech Stack -->
+<section class="section" id="tech">
+  <div class="section-eyebrow">Section 05</div>
+  <div class="section-title">Tech <span>Stack</span></div>
+  <p class="section-desc">研究過程使用的工具與技術。</p>
+
+  <div class="concept-grid">
+    <div class="card concept-card color-blue">
+      <div class="concept-label">資料蒐集</div>
+      <div class="concept-desc">
+        <strong>Firecrawl API</strong> — 展覽官網、品牌經銷商頁面爬取<br>
+        <strong>Smart Scraper</strong> — 分層路由（免費優先→付費 fallback）<br>
+        <strong>B2B API</strong> — Kompass / Europages 結構化查詢
+      </div>
+    </div>
+    <div class="card concept-card color-orange">
+      <div class="concept-label">資料處理</div>
+      <div class="concept-desc">
+        <strong>Python Pipeline</strong> — 自動化清洗、去重、欄位標準化<br>
+        <strong>LLM 評分</strong> — 分析公司背景，計算採購能力評級<br>
+        <strong>交叉比對</strong> — 多源出現次數加權
+      </div>
+    </div>
+    <div class="card concept-card color-green">
+      <div class="concept-label">驗證與交付</div>
+      <div class="concept-desc">
+        <strong>社群驗證</strong> — 逐間確認 IG / FB / LinkedIn<br>
+        <strong>Email 驗證</strong> — 確認信箱格式與域名有效<br>
+        <strong>CSV 輸出</strong> — 15 欄位，可直接匯入 CRM
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px;">
+    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">CSV 欄位說明</h3>
+    <table>
+      <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+      <tr><td><code>company_name</code></td><td>公司名稱</td><td>Highlite International</td></tr>
+      <tr><td><code>country</code> / <code>region</code></td><td>國家 / 區域</td><td>Netherlands / Europe</td></tr>
+      <tr><td><code>type</code></td><td>公司類型</td><td>品牌經銷商</td></tr>
+      <tr><td><code>grade</code></td><td>評級</td><td><span class="tag tag-a">A+</span></td></tr>
+      <tr><td><code>website</code> / <code>email</code></td><td>官網 / 聯絡信箱</td><td>highlite.com / info@...</td></tr>
+      <tr><td><code>contact_person</code></td><td>關鍵聯絡人</td><td>Purchasing Manager</td></tr>
+      <tr><td><code>instagram</code> / <code>facebook</code> / <code>linkedin</code></td><td>社群帳號</td><td>完整 URL</td></tr>
+      <tr><td><code>brands_distributed</code></td><td>代理品牌</td><td>Showtec, Infinity, DAP</td></tr>
+      <tr><td><code>source</code></td><td>資料來源</td><td>展覽參展商/品牌經銷商</td></tr>
+      <tr><td><code>why_recommended</code></td><td>推薦理由</td><td>歐洲 #1 經銷商...</td></tr>
+      <tr><td><code>already_agt_client</code></td><td>是否已是 AGT 客戶</td><td>No</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<div class="footer" style="margin-left: 220px;">
+  Blank Space Studio &middot; Internal Research Report &middot; 2026-04-06
+</div>
+
+<script>
+// Chart.js defaults
+Chart.defaults.font.family = "'Inter', 'Noto Sans TC', sans-serif";
+Chart.defaults.font.size = 13;
+Chart.defaults.color = '#6c6a62';
+Chart.defaults.plugins.legend.position = 'bottom';
+Chart.defaults.plugins.legend.labels.padding = 16;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+
+const palette = {
+  blue: '#5a9cc5', orange: '#eb8054', green: '#85a268',
+  purple: '#a07cc5', red: '#d94f4f', grey: '#8b877c',
+  lightBlue: '#a8cde8'
+};
+
+// 地區分布 — 橫向長條圖
+new Chart(document.getElementById('chartRegion'), {
+  type: 'bar',
+  data: {
+    labels: ['歐洲', '北美', '亞太', '中東', '大洋洲', '拉美', '非洲'],
+    datasets: [{
+      data: [47, 26, 14, 6, 4, 4, 1],
+      backgroundColor: [palette.blue, palette.orange, palette.green, palette.purple, palette.lightBlue, palette.orange, palette.grey],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#f0eee6' }, ticks: { stepSize: 10 } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// 評級分布 — 圓餅圖
+new Chart(document.getElementById('chartGrade'), {
+  type: 'doughnut',
+  data: {
+    labels: ['S 通路巨頭', 'A+ 頂級經銷', 'A 優質目標', 'B 潛力目標', 'New 待驗證'],
+    datasets: [{
+      data: [8, 10, 28, 38, 18],
+      backgroundColor: [palette.red, palette.orange, '#f0a860', palette.blue, palette.green],
+      borderWidth: 2,
+      borderColor: '#ffffff',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '55%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+    }
+  }
+});
+
+// 客戶類型 — 長條圖
+new Chart(document.getElementById('chartType'), {
+  type: 'bar',
+  data: {
+    labels: ['製造商', '品牌經銷商', '區域代理', '通路巨頭'],
+    datasets: [{
+      data: [48, 36, 10, 8],
+      backgroundColor: [palette.blue, palette.orange, palette.green, palette.red],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#f0eee6' }, beginAtZero: true }
+    }
+  }
+});
+
+// 名單組成 — 圓餅圖
+new Chart(document.getElementById('chartComposition'), {
+  type: 'doughnut',
+  data: {
+    labels: ['新發現（88 間）', '原有名單（14 間）'],
+    datasets: [{
+      data: [88, 14],
+      backgroundColor: [palette.orange, '#e0ddd6'],
+      borderWidth: 2,
+      borderColor: '#ffffff',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 16 } }
+    }
+  }
+});
+
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#fff',
+    primaryTextColor: '#121212',
+    primaryBorderColor: '#e8e5df',
+    lineColor: '#8b877c',
+    secondaryColor: '#f6f5f1',
+    tertiaryColor: '#f0eee6',
+    fontFamily: 'Inter, Noto Sans TC, sans-serif',
+    fontSize: '13px'
+  },
+  flowchart: { curve: 'basis', padding: 16 }
+});
+
+// Nav active state
+document.querySelectorAll('.nav-sidebar a').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-sidebar a').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+
+// Scroll spy
+const sections = document.querySelectorAll('.section, .cover');
+const navLinks = document.querySelectorAll('.nav-sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.offsetTop - 100;
+    if (scrollY >= top) current = section.id;
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+  });
+});
+</script>
+<script src="/nav.js"></script></body>
+</html>

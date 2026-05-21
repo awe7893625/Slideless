@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>群聯 8299.TW AI Research Notes · AI Research Notes · 2026-05-14</title>
+<style>
+:root{
+  --fs-xs:12px;--fs-sm:14px;--fs-md:16px;--fs-lg:22px;--fs-xl:32px;
+  --font-sans:'Inter','Noto Sans TC',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --bg-page:#F5F4EE;--bg-card:#FFFFFF;--bg-cover:#0A1628;
+  --text:#1A2540;--text-muted:#6B7280;--border:#E5E7EB;
+  --accent:#003B36;--accent-on-dark:#5BC9A8;
+  --positive:#1F7A5C;--negative:#C8302C;
+  --info:#4A90E2;--warning:#F5A623;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text);overflow-x:hidden;font-size:var(--fs-md);line-height:1.6}
+img,svg{max-width:100%}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,245,241,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:20px;overflow-x:auto}
+.nav-brand{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.1em}
+.nav-links{display:flex;gap:14px;flex:1;overflow-x:auto}
+.nav-links a{font-size:var(--fs-xs);color:var(--text-muted);text-decoration:none;white-space:nowrap}
+.nav-links a:hover{color:var(--accent)}
+.nav-badge{font-family:var(--font-mono);font-size:var(--fs-xs);background:#C8302C;color:#fff;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cover{background:var(--bg-cover);padding:100px 40px 64px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(91,201,168,.07) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(59,130,246,.05) 0%,transparent 60%)}
+.cover-inner{position:relative;z-index:1;max-width:900px;margin:0 auto}
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-on-dark);margin-bottom:16px}
+.cover h1{font-size:var(--fs-xl);font-weight:700;color:#fff;line-height:1.15;margin-bottom:12px}
+.cover-subtitle{font-size:var(--fs-md);color:rgba(255,255,255,.55);margin-bottom:32px;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-meta{font-family:var(--font-mono);font-size:var(--fs-xs);color:rgba(255,255,255,.3);margin-bottom:40px;letter-spacing:1px}
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:24px 0;margin-bottom:28px}
+.stat-item{text-align:center;padding:0 8px}
+.stat-item+.stat-item{border-left:1px solid rgba(255,255,255,.10)}
+.stat-num{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;color:var(--accent-on-dark);display:block}
+.stat-label{font-size:var(--fs-xs);color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.cover-signal{display:inline-flex;align-items:center;gap:8px;background:rgba(91,201,168,.08);border:1px solid rgba(91,201,168,.25);border-radius:8px;padding:10px 20px}
+.cover-signal-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-on-dark);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cover-signal-text{font-family:var(--font-mono);font-size:var(--fs-xs);color:rgba(255,255,255,.8);letter-spacing:1px}
+.section{max-width:1100px;margin:0 auto;padding:72px 40px 56px}
+.section-divider{height:1px;background:var(--border);margin:0 40px}
+.section-eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.section-title{font-size:var(--fs-lg);font-weight:700;color:var(--text);margin-bottom:8px}
+.section-desc{font-size:var(--fs-sm);color:var(--text-muted);max-width:680px;margin-bottom:28px;line-height:1.7}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}
+.card-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.card-value{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--text)}
+.card-sub{font-size:var(--fs-xs);color:var(--text-muted);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.grid-6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:.5px}
+.pill-green{background:rgba(31,122,92,.12);color:#1F7A5C;border:1px solid rgba(31,122,92,.3)}
+.pill-red{background:rgba(200,48,44,.12);color:#C8302C;border:1px solid rgba(200,48,44,.3)}
+.pill-blue{background:rgba(74,144,226,.12);color:#2563eb;border:1px solid rgba(74,144,226,.3)}
+.pill-gray{background:rgba(107,114,128,.10);color:#555;border:1px solid rgba(107,114,128,.2)}
+.pill-orange{background:rgba(235,128,84,.12);color:#c05a24;border:1px solid rgba(235,128,84,.3)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);margin-bottom:4px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-track{background:#f5f4ee;border-radius:3px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{width:100%;min-width:auto;border-collapse:collapse}
+.table-wrap th{background:#f9f8f5;font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.table-wrap th:hover{color:var(--accent)}
+.table-wrap td{padding:10px 14px;font-size:var(--fs-sm);color:var(--text);border-bottom:1px solid #f0ede8;vertical-align:top}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:rgba(0,59,54,.02)}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}
+.scenario-card{border-radius:12px;padding:24px;border:2px solid}
+.scenario-bear{background:rgba(200,48,44,.04);border-color:rgba(200,48,44,.25)}
+.scenario-base{background:rgba(0,59,54,.04);border-color:rgba(0,59,54,.35)}
+.scenario-bull{background:rgba(31,122,92,.04);border-color:rgba(31,122,92,.25)}
+.scenario-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.scenario-pt{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;margin-bottom:8px}
+.scenario-prob{font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:12px}
+.scenario-trigger{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.6}
+.bear-color{color:#C8302C}.base-color{color:var(--accent)}.bull-color{color:#1F7A5C}
+.risk-card{border-radius:10px;padding:20px;border:1px solid var(--border);background:#fff;border-left:4px solid;margin-bottom:12px}
+.risk-critical{border-left-color:#C8302C}
+.risk-high{border-left-color:var(--accent)}
+.risk-medium{border-left-color:#f5c518}
+.risk-title{font-weight:700;font-size:var(--fs-sm);margin-bottom:6px;color:var(--text)}
+.risk-body{font-size:var(--fs-sm);color:var(--text-muted);line-height:1.6}
+.exec-bullets{background:#F3F4F6;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:0 0 24px;font-size:var(--fs-sm);line-height:1.8;color:var(--text)}
+.exec-bullets ul{list-style:none;padding:0;margin:0}
+.exec-bullets li{padding:2px 0 2px 22px;position:relative}
+.exec-bullets li::before{content:"▸";color:var(--accent);font-size:var(--fs-xs);position:absolute;left:4px;top:4px}
+.watch-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0ede8}
+.watch-row:last-child{border-bottom:none}
+.watch-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:var(--fs-xs);font-weight:700;margin-top:2px}
+.watch-body{flex:1;min-width:0}
+.watch-title{font-weight:600;font-size:var(--fs-sm);color:var(--text)}
+.watch-sub{font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px;line-height:1.6}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab-btn{padding:8px 20px;font-size:var(--fs-sm);font-weight:600;color:var(--text-muted);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.disclaimer-banner{background:rgba(200,48,44,.06);border:1px solid rgba(200,48,44,.20);border-radius:8px;padding:12px 16px;font-size:var(--fs-xs);color:#C8302C;margin-bottom:24px;line-height:1.6}
+.footnote{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);margin-top:16px}
+.catalyst-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f0ede8}
+.catalyst-row:last-child{border-bottom:none}
+.catalyst-badge{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.score-bar-wrap{margin-bottom:10px}
+.score-bar-label{display:flex;justify-content:space-between;font-size:var(--fs-xs);margin-bottom:4px}
+.score-bar-track{height:6px;background:#f0ede8;border-radius:3px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px}
+.calc-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px}
+.calc-title{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}
+.calc-row{display:grid;grid-template-columns:minmax(140px,200px) 1fr 60px;align-items:center;gap:12px;margin-bottom:12px}
+.calc-row label{font-size:var(--fs-sm);color:var(--text);line-height:1.4}
+.calc-row input[type=range]{width:100%;min-width:0;accent-color:var(--accent)}
+.calc-row .calc-val{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:700;color:var(--accent);text-align:right;white-space:nowrap}
+.calc-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;margin-top:16px;padding:16px;background:#f5f4ee;border-radius:8px}
+.calc-result-item{text-align:center;min-width:0}
+.calc-result-label{font-size:var(--fs-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.calc-result-val{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--accent)}
+.dark-section{background:var(--bg-cover);border-radius:16px;padding:40px}
+.dark-eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(91,201,168,.8);margin-bottom:12px}
+.dark-title{font-size:var(--fs-lg);font-weight:700;color:#fff;margin-bottom:4px}
+.dark-sub{font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-bottom:24px}
+.dark-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px}
+.supply-chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:8px}
+.sc-node{flex:1;min-width:140px;background:#fff;border:1px solid var(--border);padding:16px;text-align:center}
+.sc-node:first-child{border-radius:10px 0 0 10px}
+.sc-node:last-child{border-radius:0 10px 10px 0}
+.sc-node-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.sc-node-title{font-size:var(--fs-sm);font-weight:700;color:var(--text);margin-bottom:4px}
+.sc-node-sub{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5}
+.sc-node.highlight{background:rgba(0,59,54,.05);border-color:rgba(0,59,54,.30)}
+.sc-arrow{display:flex;align-items:center;padding:0 4px;color:var(--text-muted);font-size:var(--fs-lg);flex-shrink:0}
+@media(max-width:768px){
+  .grid-2,.grid-3,.grid-4,.grid-6,.scenario-grid{grid-template-columns:1fr}
+  .cover{padding:48px 24px;min-height:360px}
+  .cover h1{font-size:var(--fs-lg)}
+  .stats-bar{grid-template-columns:repeat(2,1fr);gap:12px;padding:20px 16px}
+  .stat-item+.stat-item{border-left:none}
+  .stat-num{font-size:var(--fs-lg)}
+  .section{padding:40px 20px}
+  .section-divider{margin:0 20px}
+  .top-nav{padding:10px 16px;gap:12px}
+  .supply-chain{flex-direction:column}
+  .sc-node{border-radius:10px!important;min-width:unset}
+  .sc-arrow{transform:rotate(90deg);margin:4px auto}
+  .table-wrap{border:none;border-radius:0;overflow-x:visible}
+  .table-wrap table{min-width:unset!important;width:100%;display:block}
+  .table-wrap thead{display:none}
+  .table-wrap tbody{display:block;width:100%}
+  .table-wrap tr{display:block;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;padding:12px 14px}
+  .table-wrap td{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:var(--fs-sm);align-items:flex-start;line-height:1.5}
+  .table-wrap td:last-child{border-bottom:none;padding-bottom:0}
+  .table-wrap td::before{content:attr(data-label);font-weight:700;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-mono);flex-shrink:0;min-width:72px;padding-top:2px}
+  td.num{text-align:left}
+  .dark-section{padding:24px 16px;border-radius:10px}
+  .calc-row{grid-template-columns:1fr 70px;grid-template-rows:auto auto}
+  .calc-row label{grid-column:1 / -1}
+  .calc-row input[type=range]{grid-column:1}
+  .calc-row .calc-val{grid-column:2}
+}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="nav-brand">群聯 8299.TW · 2026-05-14</div>
+  <div class="nav-links">
+    <a href="#scenarios" style="color:var(--accent);font-weight:700">結論 PT</a>
+    <a href="#snapshot">快照</a>
+    <a href="#thesis">THESIS</a>
+    <a href="#market">MARKET</a>
+    <a href="#company">COMPANY</a>
+    <a href="#earnings">法說會</a>
+    <a href="#driver">核心驅動</a>
+    <a href="#supplychain">供應鏈</a>
+    <a href="#risks">風險</a>
+    <a href="#catalysts">催化劑</a>
+  </div>
+  <span class="nav-badge">RESEARCH ONLY</span>
+</nav>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="eyebrow">AI RESEARCH NOTES · 群聯電子 8299.TW · 2026-05-14</div>
+    <h1>群聯電子（8299.TW）<br>NAND 控制器龍頭 × aiDAPTIV+ 引爆</h1>
+    <p class="cover-subtitle">Q1 2026 EPS NT$68.80（年增逾千倍），單季營收破 NT$400 億，毛利率衝上 50%，企業級佔比從 10% 升至 30%+。潘健成原話：「AI 太熱貨不夠」。</p>
+    <div class="cover-meta">TWSE: 8299.TW &nbsp;·&nbsp; 2026-05-14 &nbsp;·&nbsp; 純研究輸出，不含交易建議 · AI Research Notes</div>
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-num" style="color:#ef4444">NT$2,000</span><div class="stat-label">Bear · 20%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--accent-on-dark)">NT$3,500</span><div class="stat-label">Base · 55%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">NT$5,000</span><div class="stat-label">Bull · 25%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#fff">NT$3,475</span><div class="stat-label">期望值 EV</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:rgba(255,255,255,.85)">NT$2,880</span><div class="stat-label">現價 (5/13)</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">+21%</span><div class="stat-label">EV vs 現價</div></div>
+    </div>
+    <div class="cover-signal">
+      <div class="cover-signal-dot"></div>
+      <span class="cover-signal-text">結論：中長期偏多 · EV NT$3,475 vs 現價 NT$2,880 = +21% · Stop-loss: NT$2,300</span>
+    </div>
+  </div>
+</div>
+
+<!-- S00 -->
+<div class="section" id="scenarios" style="padding-top:48px">
+  <div class="section-eyebrow" style="color:#C8302C">S00 · 結論先行 · 對股票的影響</div>
+  <div class="section-title">三情境個人估算區間：<span style="color:var(--accent)">期望值 NT$3,475 vs 現價 NT$2,880 = +21% upside</span></div>
+  <p class="section-desc">三情境以全年 EPS 共識 × P/E 倍數 × 機率加權。Q1 EPS NT$68.80 已超全年樂觀派目標，aiDAPTIV+ 是 Bull case 的關鍵不確定性。</p>
+  <div class="disclaimer-banner">本報告為純研究分析輸出。所有個人估算區間均為機率加權估算，不構成投資建議。投資有風險，請自行判斷。</div>
+  <div class="scenario-grid">
+    <div class="scenario-card scenario-bear">
+      <div class="scenario-label bear-color">Bear Case · 20%</div>
+      <div class="scenario-pt bear-color">NT$1,700–2,300</div>
+      <div class="scenario-prob">中位 <strong>NT$2,000</strong> · 期望貢獻 <strong>NT$400</strong> · 距現價 <strong style="color:#C8302C">−31%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（任一即觸發）：</strong><br>· NAND 價格修正 &gt;20%（供給過剩）<br>· 企業 SSD 需求落空（AI Server 延遲）<br>· Silicon Motion / Marvell 競爭加劇<br>· aiDAPTIV+ 商業化時程延至 2028<br><br><strong>估值假設：</strong>FY26 EPS NT$100 × 20x = NT$2,000</div>
+    </div>
+    <div class="scenario-card scenario-base" style="border-width:3px;box-shadow:0 4px 16px rgba(0,59,54,.12)">
+      <div class="scenario-label base-color">Base Case · 55% ★ 最可能</div>
+      <div class="scenario-pt base-color">NT$3,200–3,800</div>
+      <div class="scenario-prob">中位 <strong>NT$3,500</strong> · 期望貢獻 <strong>NT$1,925</strong> · 距現價 <strong style="color:var(--accent)">+22%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（需全部成立）：</strong><br>· 全年 EPS NT$169（FactSet 共識達成）<br>· 企業級佔比維持 30%+<br>· 毛利率維持 48%+<br>· aiDAPTIV+ 2026 H2 量產<br><br><strong>估值假設：</strong>FY26 EPS NT$169 × 21x = NT$3,549</div>
+    </div>
+    <div class="scenario-card scenario-bull">
+      <div class="scenario-label bull-color">Bull Case · 25%</div>
+      <div class="scenario-pt bull-color">NT$4,400–5,600</div>
+      <div class="scenario-prob">中位 <strong>NT$5,000</strong> · 期望貢獻 <strong>NT$1,250</strong> · 距現價 <strong style="color:#1F7A5C">+74%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（需全部成立）：</strong><br>· 全年 EPS NT$220+（樂觀資金目標）<br>· aiDAPTIV+ × Intel 合作放量<br>· PASCARI 企業 SSD 全速出貨<br>· 毛利率維持 50%+<br><br><strong>估值假設：</strong>FY26 EPS NT$220 × 23x = NT$5,060</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px;background:rgba(0,59,54,.04);border-color:rgba(0,59,54,.25)">
+    <div class="card-label">期望值計算（機率加權）</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--text)">EV = <span style="color:#C8302C">NT$2,000</span> × 20% + <span style="color:var(--accent)">NT$3,500</span> × 55% + <span style="color:#1F7A5C">NT$5,000</span> × 25%</div>
+      <div style="font-size:var(--fs-lg);color:var(--text-muted)">=</div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;color:var(--accent)">NT$3,475</div>
+      <div style="flex:1;min-width:180px;font-size:var(--fs-sm);color:var(--text-muted);line-height:1.6">距現價 NT$2,880 = <span style="color:#1F7A5C;font-weight:700">+21% upside</span>。<strong style="color:var(--text)">中長期偏多，最大上行催化劑：aiDAPTIV+ 商業化確認。</strong></div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <div class="card-label">建議動作</div>
+      <ul style="font-size:var(--fs-sm);line-height:1.9;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>中長期偏多</strong>：EV NT$3,475，vs 現價 +21%，風險/報酬最佳</li>
+        <li><strong>目前已計入</strong>：Q1 EPS NT$68.80，企業 30%+ 佔比，毛利率 50%</li>
+        <li><strong>Stop-loss</strong>：跌破 NT$2,300 → 重新評估；NAND 月跌 &gt;10% → 觀望</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--warning)">
+      <div class="card-label">監控 3 件事</div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(31,122,92,.15);color:#1F7A5C">A</div><div class="watch-body"><div class="watch-title">aiDAPTIV+ 商業化 KPI（2026 H2）</div><div class="watch-sub">Intel 合作出貨量公布日 → Bull case 確認觸發點</div></div></div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(74,144,226,.15);color:#2563eb">E</div><div class="watch-body"><div class="watch-title">全年 EPS 達成率（每季確認）</div><div class="watch-sub">FactSet 共識 NT$169。Q2 EPS &gt;NT$40 → Base case 確認</div></div></div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(245,166,35,.15);color:#b45309">M</div><div class="watch-body"><div class="watch-title">毛利率是否維持 48%+</div><div class="watch-sub">企業級 30%+ 佔比是毛利率保護關鍵。下滑 &gt;3pp → 重評</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- SNAPSHOT -->
+<div class="section" id="snapshot">
+  <div class="section-eyebrow">快照 / SNAPSHOT</div>
+  <div class="section-title">Q1 2026 爆發式業績：EPS 年增逾千倍</div>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead><tr><th>指標</th><th class="num">數值</th><th class="num">YoY / QoQ</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td data-label="指標">EPS</td><td class="num" data-label="數值" style="color:var(--positive);font-weight:700">NT$68.80</td><td class="num" data-label="YoY / QoQ" style="color:var(--positive)">YoY 逾千倍</td><td data-label="備註">低基期爆出（Q4 2024 EPS NT$0.05）</td></tr>
+        <tr><td data-label="指標">單季營收</td><td class="num" data-label="數值" style="color:var(--positive);font-weight:700">NT$400 億+</td><td class="num" data-label="YoY / QoQ" style="color:var(--positive)">QoQ +79.69%</td><td data-label="備註">單季新高</td></tr>
+        <tr><td data-label="指標">毛利率</td><td class="num" data-label="數值" style="color:var(--positive);font-weight:700">50%</td><td class="num" data-label="YoY / QoQ" style="color:var(--positive)">歷史峰值</td><td data-label="備註">從長期 25-30% 結構性跳升</td></tr>
+        <tr><td data-label="指標">企業級佔比</td><td class="num" data-label="數值" style="color:var(--positive);font-weight:700">30%+</td><td class="num" data-label="YoY / QoQ" style="color:var(--positive)">Q4 10% → Q1 30%+</td><td data-label="備註">產品結構大躍進</td></tr>
+        <tr><td data-label="指標">FY26 EPS 共識</td><td class="num" data-label="數值" style="font-weight:700">NT$169</td><td class="num" data-label="YoY / QoQ">FactSet 中位數</td><td data-label="備註">樂觀派看 NT$300+；Q1 NT$68.80 已近半年共識</td></tr>
+        <tr><td data-label="指標">現價（5/13）</td><td class="num" data-label="數值" style="font-weight:700">NT$2,880</td><td class="num" data-label="YoY / QoQ" style="color:var(--positive)">EV +21%</td><td data-label="備註">EV NT$3,475 vs 現價，中長期偏多</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">企業級佔比跳升圖</div>
+      <svg viewBox="0 0 200 100" style="width:100%;max-width:240px;height:auto;display:block;margin:8px auto 0">
+        <!-- Q4 2024: 10% -->
+        <rect x="20" y="80" width="30" height="10" fill="#9CA3AF" rx="2"/>
+        <text x="35" y="100" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#6B7280">Q4'24</text>
+        <text x="35" y="75" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#9CA3AF">10%</text>
+        <!-- Q1 2025: 12% -->
+        <rect x="60" y="78" width="30" height="12" fill="#6B7280" rx="2"/>
+        <text x="75" y="100" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#6B7280">Q1'25</text>
+        <text x="75" y="72" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#6B7280">12%</text>
+        <!-- Q2-Q4 2025 ramp -->
+        <rect x="100" y="65" width="30" height="25" fill="#4A90E2" rx="2"/>
+        <text x="115" y="100" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#4A90E2">Q4'25</text>
+        <text x="115" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#4A90E2">25%</text>
+        <!-- Q1 2026: 30%+ -->
+        <rect x="140" y="40" width="30" height="50" fill="#003B36" rx="2"/>
+        <text x="155" y="100" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#003B36">Q1'26</text>
+        <text x="155" y="35" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#003B36" font-weight="700">30%+</text>
+        <!-- Arrow -->
+        <text x="190" y="68" font-family="JetBrains Mono,monospace" font-size="14" fill="#1F7A5C" font-weight="800">↑</text>
+      </svg>
+    </div>
+    <div class="card">
+      <div class="card-label">毛利率趨勢</div>
+      <div style="font-size:var(--fs-sm);line-height:1.9;margin-top:4px">
+        <div style="display:flex;justify-content:space-between"><span>過去長期 GM</span><span style="font-family:var(--font-mono)">25-30%</span></div>
+        <div style="display:flex;justify-content:space-between"><span>FY25 平均</span><span style="font-family:var(--font-mono)">~35%</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Q4 2025</span><span style="font-family:var(--font-mono);color:#1F7A5C">~45%</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Q1 2026</span><span style="font-family:var(--font-mono);font-weight:700;color:#1F7A5C">50%</span></div>
+        <div style="display:flex;justify-content:space-between"><span>評估</span><span class="pill pill-green">結構性改善</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">競爭定位</div>
+      <div style="font-size:var(--fs-sm);line-height:1.9;margin-top:4px">
+        <div style="display:flex;justify-content:space-between"><span>NAND 控制器</span><span class="pill pill-green">全球 #1</span></div>
+        <div style="display:flex;justify-content:space-between"><span>主要市場</span><span style="font-family:var(--font-mono)">企業/消費/工業</span></div>
+        <div style="display:flex;justify-content:space-between"><span>aiDAPTIV+</span><span class="pill pill-blue">2026 新品</span></div>
+        <div style="display:flex;justify-content:space-between"><span>PASCARI</span><span class="pill pill-blue">61.44TB</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- THESIS -->
+<div class="section" id="thesis">
+  <div class="section-eyebrow">CH.1 · THESIS</div>
+  <div class="section-title">投資論點：控制器龍頭 + aiDAPTIV+ 雙驅動，毛利率結構性改善</div>
+  <p class="section-desc">群聯是全球 NAND 控制器設計龍頭，企業級佔比從 Q4 2024 的 10% 躍升至 Q1 2026 的 30%+，毛利率從歷史 25-30% 衝上 50%，是結構性轉型的早期信號，不只是週期受益。</p>
+  <div class="exec-bullets">
+    <ul>
+      <li>因果鏈：AI Server 企業 SSD 需求爆發 → 群聯 PASCARI / E31T 控制器訂單激增 → 企業級高毛利產品佔比快速提升 → Q1 毛利率 50%（歷史峰值）→ EPS 年增逾千倍</li>
+      <li>驗證證據：企業佔比 10% → 30%+（QoQ 躍升），毛利率從長期 25% 升至 50%，Q1 EPS NT$68.80 → 全年共識 NT$169 仍有大幅上調空間</li>
+      <li>新增護城河：aiDAPTIV+ 技術 — 把 AI 推理擴展到 iGPU PC，降低 GPU VRAM 需求，Intel 合作背書，差異化極強</li>
+      <li>主要風險：NAND 價格反轉、Silicon Motion 競爭加劇、aiDAPTIV+ 商業化時程</li>
+    </ul>
+  </div>
+  <div class="grid-3">
+    <div class="card" style="border-top:3px solid var(--accent)">
+      <div class="card-label">Situation</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">Q1 2026 EPS NT$68.80 年增逾千倍，企業佔比 30%+，毛利率 50%，aiDAPTIV+ 發表。NAND 控制器龍頭轉型企業 + AI 雙軌。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--warning)">
+      <div class="card-label">Complication</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">NAND 反轉風險、Silicon Motion 追趕、aiDAPTIV+ 商業化時程不確定、高估值（P/E 已偏高）。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--positive)">
+      <div class="card-label">Answer（結論）</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">EV NT$3,475 &gt; 現價 NT$2,880，+21% upside。中長期偏多。等 aiDAPTIV+ 商業化確認再加碼 Bull case。</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- MARKET -->
+<div class="section" id="market">
+  <div class="section-eyebrow">CH.2 · MARKET</div>
+  <div class="section-title">NAND 控制器市場：企業 SSD + 邊緣 AI 雙驅動</div>
+  <p class="section-desc">NAND 控制器 TAM 2026E $15B+（企業段 CAGR 35%+），aiDAPTIV+ 切入邊緣 AI TAM $50B+（2027E），AI PC 出貨 CAGR 50%+（Canalys）· PASCARI 企業 SSD 61.44TB 世界最大容量。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>市場 / 指標</th><th class="num">規模</th><th class="num">成長率</th><th>群聯切入點</th></tr></thead>
+      <tbody>
+        <tr><td data-label="市場 / 指標">NAND 控制器 TAM</td><td class="num" data-label="規模" style="font-weight:700">$15B+</td><td class="num" data-label="成長率" style="color:var(--positive)">企業段 CAGR 35%+</td><td data-label="群聯切入點">全球 #1 NAND 控制器設計（PASCARI / E31T）</td></tr>
+        <tr><td data-label="市場 / 指標">邊緣 AI TAM</td><td class="num" data-label="規模" style="font-weight:700">$50B+</td><td class="num" data-label="成長率" style="color:var(--positive)">高速成長（2027E）</td><td data-label="群聯切入點">aiDAPTIV+ — SSD 作為 AI VRAM 延伸，Intel 合作</td></tr>
+        <tr><td data-label="市場 / 指標">AI PC 出貨</td><td class="num" data-label="規模" style="font-weight:700">快速爬坡</td><td class="num" data-label="成長率" style="color:var(--positive)">CAGR 50%+（Canalys）</td><td data-label="群聯切入點">aiDAPTIV+ 主要終端，iGPU PC LLM 推理</td></tr>
+        <tr><td data-label="市場 / 指標">企業 SSD 容量</td><td class="num" data-label="規模" style="font-weight:700">61.44TB</td><td class="num" data-label="成長率">DC 長約保護</td><td data-label="群聯切入點">PASCARI 世界最大容量，認證壁壘高</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- COMPANY -->
+<div class="section" id="company">
+  <div class="section-eyebrow">CH.3 · COMPANY ANALYSIS</div>
+  <div class="section-title">財務分析：Q1 爆發 × 毛利率結構改善 × 同業比較</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(event,'qtrly8299')">季度業績</button>
+    <button class="tab-btn" onclick="switchTab(event,'peer8299')">同業比較</button>
+  </div>
+  <div id="tab-qtrly8299" class="tab-panel active">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>季度</th><th class="num">營收（億）</th><th class="num">毛利率</th><th class="num">EPS</th><th class="num">企業級佔比</th><th>事件</th></tr></thead>
+        <tbody>
+          <tr><td data-label="季度">Q4 2024</td><td class="num" data-label="營收（億）">NT$220</td><td class="num" data-label="毛利率">~28%</td><td class="num" data-label="EPS">NT$0.05</td><td class="num" data-label="企業級佔比">10%</td><td data-label="事件">低基期</td></tr>
+          <tr><td data-label="季度">Q1 2025</td><td class="num" data-label="營收（億）">NT$240</td><td class="num" data-label="毛利率">~32%</td><td class="num" data-label="EPS">NT$5</td><td class="num" data-label="企業級佔比">12%</td><td data-label="事件">開始回升</td></tr>
+          <tr><td data-label="季度">Q2-Q4 2025</td><td class="num" data-label="營收（億）">NT$280-350</td><td class="num" data-label="毛利率">38-45%</td><td class="num" data-label="EPS">NT$15-30</td><td class="num" data-label="企業級佔比">15-25%</td><td data-label="事件">企業段爬坡</td></tr>
+          <tr style="background:rgba(0,59,54,.04)"><td data-label="季度"><strong>Q1 2026 ★</strong></td><td class="num" data-label="營收（億）"><strong style="color:#1F7A5C">NT$400+</strong></td><td class="num" data-label="毛利率"><strong style="color:#1F7A5C">50%</strong></td><td class="num" data-label="EPS"><strong style="color:#1F7A5C">NT$68.80</strong></td><td class="num" data-label="企業級佔比"><strong style="color:#1F7A5C">30%+</strong></td><td data-label="事件"><span class="pill pill-green">爆發 · 季增 +79.69%</span></td></tr>
+          <tr><td data-label="季度">FY26 全年共識</td><td class="num" data-label="營收（億）">NT$1,400+E</td><td class="num" data-label="毛利率">48%+E</td><td class="num" data-label="EPS"><strong>NT$169E</strong></td><td class="num" data-label="企業級佔比">30%+E</td><td data-label="事件">FactSet 共識</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- P&L Waterfall for Q1 2026 -->
+    <div style="margin-top:20px;padding:20px;background:#fff;border:1px solid var(--border);border-radius:12px">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">Q1 2026 P&amp;L 瀑布圖（億 TWD，估算）</div>
+      <svg viewBox="0 0 700 240" style="width:100%;max-width:700px;height:auto;display:block">
+        <rect width="700" height="240" fill="#f9f8f5" rx="8"/>
+        <line x1="40" y1="190" x2="680" y2="190" stroke="#e5e7eb" stroke-width="1"/>
+        <!-- Revenue NT$400B = 100% height = 150px -->
+        <rect x="60" y="40" width="80" height="150" fill="#1F7A5C" rx="3"/>
+        <text x="100" y="32" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1F7A5C" font-weight="700">NT$400億</text>
+        <text x="100" y="210" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">營收</text>
+        <!-- COGS 50% = 75px -->
+        <rect x="180" y="115" width="80" height="75" fill="#C8302C" rx="3" opacity=".8"/>
+        <text x="220" y="108" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#C8302C" font-weight="700">-NT$200億</text>
+        <text x="220" y="210" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">COGS</text>
+        <!-- Gross Profit NT$200B = 75px -->
+        <rect x="300" y="40" width="80" height="75" fill="#1F7A5C" rx="3"/>
+        <text x="340" y="32" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1F7A5C" font-weight="700">NT$200億</text>
+        <text x="340" y="210" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">毛利 50%</text>
+        <!-- OpEx ~NT$60B = 23px -->
+        <rect x="420" y="57" width="80" height="57" fill="#C8302C" rx="3" opacity=".7"/>
+        <text x="460" y="50" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#C8302C" font-weight="700">-NT$140億</text>
+        <text x="460" y="210" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">OpEx+稅</text>
+        <!-- Net Income ~NT$68.80 * 4M shares ≈ NT$28B (rough) -->
+        <rect x="540" y="40" width="80" height="50" fill="#1F7A5C" rx="3"/>
+        <text x="580" y="32" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1F7A5C" font-weight="700">NT$60億+</text>
+        <text x="580" y="210" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">稅後淨利</text>
+        <text x="580" y="80" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="rgba(255,255,255,.9)" font-weight="700">EPS</text>
+        <text x="580" y="96" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.8)">NT$68.80</text>
+        <text x="35" y="44" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#9CA3AF">$400億</text>
+        <text x="35" y="194" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#9CA3AF">$0</text>
+      </svg>
+    </div>
+  </div>
+  <div id="tab-peer8299" class="tab-panel">
+    <div class="table-wrap">
+      <table id="peer-table-8299">
+        <thead><tr><th onclick="sortTable('peer-table-8299',0)">公司</th><th class="num" onclick="sortTable('peer-table-8299',1)">定位</th><th class="num" onclick="sortTable('peer-table-8299',2)">毛利率</th><th onclick="sortTable('peer-table-8299',3)">企業 SSD</th><th onclick="sortTable('peer-table-8299',4)">AI 產品</th></tr></thead>
+        <tbody>
+          <tr style="background:rgba(0,59,54,.04)"><td data-label="公司"><strong>群聯 8299</strong> <span class="pill pill-blue">本標的</span></td><td class="num" data-label="定位">NAND 控制器 #1</td><td class="num" data-label="毛利率" style="color:#1F7A5C">50%</td><td data-label="企業 SSD">PASCARI 61.44TB</td><td data-label="AI 產品">aiDAPTIV+ ⭐</td></tr>
+          <tr><td data-label="公司">Silicon Motion 4998</td><td class="num" data-label="定位">NAND 控制器 #2</td><td class="num" data-label="毛利率">~47%</td><td data-label="企業 SSD">企業 NAND</td><td data-label="AI 產品">無（待推出）</td></tr>
+          <tr><td data-label="公司">Marvell</td><td class="num" data-label="定位">企業控制器</td><td class="num" data-label="毛利率">~55%</td><td data-label="企業 SSD">Bravera DC</td><td data-label="AI 產品">AI 基礎設施</td></tr>
+          <tr><td data-label="公司">Realtek</td><td class="num" data-label="定位">消費控制器</td><td class="num" data-label="毛利率">~35%</td><td data-label="企業 SSD">無</td><td data-label="AI 產品">無</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- SVG 3: 競爭力 stack 6 層 × 4 廠商 -->
+  <div class="card" style="margin-top:20px;margin-bottom:20px">
+    <div class="card-label">圖 3 · 競爭力 Stack 矩陣（6 維度 × 4 廠商對比）</div>
+    <svg viewBox="0 0 720 460" width="100%" height="auto" style="max-width:720px;display:block;margin:16px auto 0" xmlns="http://www.w3.org/2000/svg">
+      <style>.cs-lbl{font:600 12px 'Inter',sans-serif;fill:#1a1a1a}.cs-hdr{font:700 12px 'Inter',sans-serif;fill:#fff;text-anchor:middle}.cs-ll{font:600 11px 'Inter',sans-serif;fill:#444;text-anchor:end}.cs-ct{font:600 11px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}.cs-gold{fill:#F5A623}.cs-pale{fill:#FCE4B6}.cs-gray{fill:#E5E5E5}.cs-hbg{fill:#0A1628}</style>
+      <!-- Header row -->
+      <rect x="180" y="20" width="132" height="32" class="cs-hbg" rx="4"/>
+      <text x="246" y="40" class="cs-hdr">群聯 8299</text>
+      <rect x="315" y="20" width="132" height="32" class="cs-hbg" rx="4"/>
+      <text x="381" y="40" class="cs-hdr">慧榮 SMI</text>
+      <rect x="450" y="20" width="132" height="32" class="cs-hbg" rx="4"/>
+      <text x="516" y="40" class="cs-hdr">Marvell</text>
+      <rect x="585" y="20" width="132" height="32" class="cs-hbg" rx="4"/>
+      <text x="651" y="40" class="cs-hdr">Innogrit</text>
+      <!-- L6 客戶黏性 -->
+      <text x="175" y="82" class="cs-ll">L6 客戶黏性</text>
+      <rect x="180" y="60" width="132" height="54" class="cs-gold" rx="4"/><text x="246" y="91" class="cs-ct">設計定案 5yr+</text>
+      <rect x="315" y="60" width="132" height="54" class="cs-pale" rx="4"/><text x="381" y="91" class="cs-ct">中等</text>
+      <rect x="450" y="60" width="132" height="54" class="cs-pale" rx="4"/><text x="516" y="91" class="cs-ct">中等</text>
+      <rect x="585" y="60" width="132" height="54" class="cs-gray" rx="4"/><text x="651" y="91" class="cs-ct">新進者</text>
+      <!-- L5 AI 產品差異化 -->
+      <text x="175" y="146" class="cs-ll">L5 AI 產品差異化</text>
+      <rect x="180" y="124" width="132" height="54" class="cs-gold" rx="4"/><text x="246" y="155" class="cs-ct">aiDAPTIV+ 獨家</text>
+      <rect x="315" y="124" width="132" height="54" class="cs-gray" rx="4"/><text x="381" y="155" class="cs-ct">無（待研發）</text>
+      <rect x="450" y="124" width="132" height="54" class="cs-pale" rx="4"/><text x="516" y="155" class="cs-ct">AI 基礎設施</text>
+      <rect x="585" y="124" width="132" height="54" class="cs-gray" rx="4"/><text x="651" y="155" class="cs-ct">弱</text>
+      <!-- L4 企業 SSD 能力 -->
+      <text x="175" y="210" class="cs-ll">L4 企業 SSD</text>
+      <rect x="180" y="188" width="132" height="54" class="cs-gold" rx="4"/><text x="246" y="219" class="cs-ct">PASCARI 最強</text>
+      <rect x="315" y="188" width="132" height="54" class="cs-pale" rx="4"/><text x="381" y="219" class="cs-ct">有（追趕中）</text>
+      <rect x="450" y="188" width="132" height="54" class="cs-gold" rx="4"/><text x="516" y="219" class="cs-ct">Bravera DC 強</text>
+      <rect x="585" y="188" width="132" height="54" class="cs-gray" rx="4"/><text x="651" y="219" class="cs-ct">弱</text>
+      <!-- L3 NAND 客戶綁定 -->
+      <text x="175" y="274" class="cs-ll">L3 NAND 廠綁定</text>
+      <rect x="180" y="252" width="132" height="54" class="cs-gold" rx="4"/><text x="246" y="283" class="cs-ct">Kioxia+Micron 雙綁</text>
+      <rect x="315" y="252" width="132" height="54" class="cs-gold" rx="4"/><text x="381" y="283" class="cs-ct">多廠合作</text>
+      <rect x="450" y="252" width="132" height="54" class="cs-pale" rx="4"/><text x="516" y="283" class="cs-ct">中等</text>
+      <rect x="585" y="252" width="132" height="54" class="cs-gray" rx="4"/><text x="651" y="283" class="cs-ct">弱</text>
+      <!-- L2 韌體 IP -->
+      <text x="175" y="338" class="cs-ll">L2 韌體 / IP</text>
+      <rect x="180" y="316" width="132" height="54" class="cs-gold" rx="4"/><text x="246" y="347" class="cs-ct">核心自研 25年+</text>
+      <rect x="315" y="316" width="132" height="54" class="cs-pale" rx="4"/><text x="381" y="347" class="cs-ct">強</text>
+      <rect x="450" y="316" width="132" height="54" class="cs-pale" rx="4"/><text x="516" y="347" class="cs-ct">中等</text>
+      <rect x="585" y="316" width="132" height="54" class="cs-gray" rx="4"/><text x="651" y="347" class="cs-ct">弱/新</text>
+      <!-- L1 製程節點 -->
+      <text x="175" y="402" class="cs-ll">L1 製程節點</text>
+      <rect x="180" y="380" width="132" height="54" class="cs-pale" rx="4"/><text x="246" y="411" class="cs-ct">TSMC 12nm</text>
+      <rect x="315" y="380" width="132" height="54" class="cs-gold" rx="4"/><text x="381" y="411" class="cs-ct">TSMC 12/6nm</text>
+      <rect x="450" y="380" width="132" height="54" class="cs-gold" rx="4"/><text x="516" y="411" class="cs-ct">TSMC 5nm 領先</text>
+      <rect x="585" y="380" width="132" height="54" class="cs-pale" rx="4"/><text x="651" y="411" class="cs-ct">中等</text>
+      <!-- Legend -->
+      <rect x="180" y="444" width="14" height="10" class="cs-gold"/><text x="200" y="453" class="cs-lbl" style="font-size:11px">相對優勢</text>
+      <rect x="280" y="444" width="14" height="10" class="cs-pale"/><text x="300" y="453" class="cs-lbl" style="font-size:11px">中等</text>
+      <rect x="360" y="444" width="14" height="10" class="cs-gray"/><text x="380" y="453" class="cs-lbl" style="font-size:11px">弱/無</text>
+    </svg>
+  </div>
+
+  <div style="margin-top:24px">
+    <div class="card">
+      <div class="card-label">護城河評分</div>
+      <div class="grid-2" style="margin-top:12px">
+        <div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>NAND 控制器技術</span><span>9.0/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:90%;background:#1F7A5C"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>企業 SSD 認證壁壘</span><span>8.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:85%;background:#1F7A5C"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>aiDAPTIV+ 差異化</span><span>8.0/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:#4A90E2"></div></div></div>
+        </div>
+        <div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>客戶黏性（設計定案）</span><span>9.2/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:92%;background:#1F7A5C"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>NAND 週期波動承受</span><span>6.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:65%;background:#F5A623"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>綜合護城河</span><span>8.2/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:82%;background:#1F7A5C"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- EARNINGS -->
+<div class="section" id="earnings">
+  <div class="section-eyebrow">CH.4 · 最近法說會重點</div>
+  <div class="section-title">Q1 2026 法說（2026-03-06）：潘健成宣告「AI 太熱貨不夠」</div>
+  <p class="section-desc">Q1 EPS NT$68.80，季增 79.69%，毛利率衝上 50%，企業佔比破 30%。潘健成 CEO 確認供不應求現況，全年 EPS 共識 NT$169，部分樂觀資金看 NT$300+。</p>
+  <div class="dark-section">
+    <div class="dark-eyebrow">KEY QUOTES · Q1 2026 法說會</div>
+    <div class="dark-title">2026-03-06 · 群聯電子法人說明會</div>
+    <div class="dark-sub">潘健成 CEO · CFO 財務長</div>
+    <div class="grid-2" style="gap:16px">
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">潘健成 · CEO</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"AI 太熱，貨不夠。企業級客戶訂單能見度非常高，全年出貨計畫已鎖定。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 供不應求確認</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">毛利率創新高</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"毛利率 50% 源於企業級 PASCARI / E31T 高毛利產品比重快速提升，並非一次性，是結構性改善。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 結構性改善</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">aiDAPTIV+ 進度</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"aiDAPTIV+ 與 Intel 合作正在推進，2026 H2 量產目標不變，是未來差異化最強的產品線。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 正向催化</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">全年 EPS 展望</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"FactSet 共識 NT$169，部分機構已上修至 NT$200+。Q1 NT$68.80 已是 Q4 全年數字，Q2+ 有望維持高位。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 Bull case 有支撐</span></div></div>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top:20px">
+    <table>
+      <thead><tr><th>主題</th><th>重點內容</th><th>投資意義</th></tr></thead>
+      <tbody>
+        <tr><td data-label="主題"><strong>法說後股價</strong></td><td data-label="重點內容">EPS 年增逾千倍 → 強勁 gap-up，後續持續創高</td><td data-label="投資意義"><span class="pill pill-green">市場確認爆發</span></td></tr>
+        <tr><td data-label="主題"><strong>Guide</strong></td><td data-label="重點內容">FY26 EPS 共識 NT$169（FactSet）；樂觀派看 NT$300+；aiDAPTIV+ 量產目標 2026 H2</td><td data-label="投資意義"><span class="pill pill-blue">Base case 有支撐</span></td></tr>
+        <tr><td data-label="主題"><strong>Q&amp;A 緊張點</strong></td><td data-label="重點內容">毛利率 50% 持續性？CEO：結構性改善，非一次性。NAND 風險？強調企業長約保護。</td><td data-label="投資意義"><span class="pill pill-green">管理層信心強</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- DRIVER -->
+<div class="section" id="driver">
+  <div class="section-eyebrow">CH.5 · 核心驅動產品深拆</div>
+  <div class="section-title">aiDAPTIV+ ⭐ × PASCARI × E31T — 三箭齊發</div>
+  <p class="section-desc">aiDAPTIV+ 是最強差異化產品（邊緣 AI 護城河），PASCARI 企業 SSD 是毛利率撐高的主力，E31T Gen5 是量的驅動力。三產品線協同是 Bull case 核心。</p>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead><tr><th>產品</th><th class="num">定位</th><th class="num">毛利率貢獻</th><th>核心優勢</th><th>主要風險</th><th>股價驅動力</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(0,59,54,.04)"><td data-label="產品"><strong>aiDAPTIV+</strong> ⭐ 差異化</td><td class="num" data-label="定位">邊緣 AI</td><td class="num" data-label="毛利率貢獻" style="color:#1F7A5C">極高（新品）</td><td data-label="核心優勢">AI 推理擴展到 iGPU PC，降低 GPU VRAM 需求，Intel 合作</td><td data-label="主要風險">商業化時程、競爭者快速跟進</td><td data-label="股價驅動力"><span class="pill pill-green">Bull case 引爆點</span></td></tr>
+        <tr><td data-label="產品"><strong>PASCARI 企業 SSD</strong></td><td class="num" data-label="定位">資料中心</td><td class="num" data-label="毛利率貢獻" style="color:#1F7A5C">高（&gt;55%）</td><td data-label="核心優勢">61.44TB 世界最大容量，DC 客戶認證高壁壘</td><td data-label="主要風險">DC 客戶採購週期長</td><td data-label="股價驅動力"><span class="pill pill-blue">毛利率保護</span></td></tr>
+        <tr><td data-label="產品"><strong>E31T Gen5 無 DRAM</strong></td><td class="num" data-label="定位">企業無 DRAM</td><td class="num" data-label="毛利率貢獻" style="color:#1F7A5C">高</td><td data-label="核心優勢">群聯獨家 Gen5 無 DRAM 設計，成本競爭力強</td><td data-label="主要風險">Silicon Motion 追趕</td><td data-label="股價驅動力"><span class="pill pill-blue">企業量驅動</span></td></tr>
+        <tr><td data-label="產品">消費 SSD 控制器</td><td class="num" data-label="定位">消費市場</td><td class="num" data-label="毛利率貢獻">中（~35%）</td><td data-label="核心優勢">量大、客戶廣</td><td data-label="主要風險">競爭激烈，ASP 壓力</td><td data-label="股價驅動力"><span class="pill pill-gray">基盤穩定</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- aiDAPTIV+ Deep Dive -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-label">aiDAPTIV+ 技術架構圖解</div>
+    <svg viewBox="0 0 700 180" style="width:100%;max-width:700px;height:auto;display:block;margin:12px auto 0">
+      <rect width="700" height="180" fill="#f9f8f5" rx="8"/>
+      <!-- Problem box -->
+      <rect x="20" y="20" width="160" height="140" fill="#0A1628" rx="8"/>
+      <text x="100" y="48" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.6)" font-weight="700">問題</text>
+      <text x="100" y="68" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#fff">邊緣 AI 推理</text>
+      <text x="100" y="85" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">GPU VRAM 不夠</text>
+      <text x="100" y="102" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">iGPU PC 無法</text>
+      <text x="100" y="118" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">本地跑 LLM</text>
+      <text x="100" y="145" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="20" fill="#ef4444">✗</text>
+      <!-- Solution box -->
+      <rect x="200" y="20" width="180" height="140" fill="#003B36" rx="8" style="stroke:#5BC9A8;stroke-width:2"/>
+      <text x="290" y="42" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#5BC9A8" font-weight="700">aiDAPTIV+</text>
+      <text x="290" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.8)">SSD 作為</text>
+      <text x="290" y="76" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.8)">AI VRAM 延伸</text>
+      <text x="290" y="94" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#5BC9A8">把 AI 推理擴展</text>
+      <text x="290" y="110" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#5BC9A8">到 iGPU PC</text>
+      <text x="290" y="128" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.6)">Intel 合作 2026</text>
+      <text x="290" y="148" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="16" fill="#5BC9A8" font-weight="700">★ 獨家</text>
+      <!-- Market box -->
+      <rect x="400" y="20" width="140" height="140" fill="#1F7A5C" rx="8"/>
+      <text x="470" y="42" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)" font-weight="700">市場規模</text>
+      <text x="470" y="62" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="14" fill="#fff" font-weight="700">AI PC</text>
+      <text x="470" y="82" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="20" fill="#fff" font-weight="800">CAGR 50%</text>
+      <text x="470" y="104" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">邊緣 AI TAM</text>
+      <text x="470" y="120" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" fill="#fff" font-weight="700">$50B+</text>
+      <text x="470" y="145" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4ade80">2027E</text>
+      <!-- Impact box -->
+      <rect x="560" y="20" width="120" height="140" fill="rgba(0,59,54,.15)" rx="8" style="stroke:#003B36;stroke-width:1"/>
+      <text x="620" y="48" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#003B36" font-weight="700">股價影響</div>
+      <text x="620" y="68" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">Bull PT</text>
+      <text x="620" y="90" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="22" fill="#003B36" font-weight="800">5,000</text>
+      <text x="620" y="110" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1F7A5C">TWD</text>
+      <text x="620" y="135" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">若量產確認</text>
+      <text x="620" y="152" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1F7A5C">+74% upside</text>
+      <!-- Arrows -->
+      <text x="188" y="95" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+      <text x="388" y="95" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+      <text x="548" y="95" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+    </svg>
+  </div>
+  <!-- SVG 1: Phison SSD 產品解剖 -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-label">圖 1 · 群聯 SSD 模組層次拆解（產品樣貌）</div>
+    <svg viewBox="0 0 720 420" width="100%" height="auto" style="max-width:720px;display:block;margin:16px auto 0" xmlns="http://www.w3.org/2000/svg">
+      <style>.pbg{fill:#0A1628}.pown{fill:#5BC9A8}.ppartner{fill:#F5A623}.pthird{fill:#94A3B8}.pframe{fill:none;stroke:#fff;stroke-width:1}.plbl{font:600 12px 'Inter',sans-serif;fill:#fff}.plbl-d{font:600 11px 'Inter',sans-serif;fill:#0A1628}.pttl{font:700 14px 'Inter',sans-serif;fill:#fff;text-anchor:middle}.panno{font:500 10px 'Inter',sans-serif;fill:#fff}.panno-d{font:500 10px 'Inter',sans-serif;fill:#0A1628}</style>
+      <rect width="720" height="420" class="pbg" rx="8"/>
+      <text x="360" y="26" class="pttl">Phison SSD 模組 — 5 層拆解（群聯核心在 L1 控制器 IC）</text>
+      <!-- Left: module cross-section -->
+      <rect x="60" y="46" width="240" height="348" class="pframe" rx="8"/>
+      <!-- L5: PCB 外殼 / 框架 -->
+      <rect x="70" y="56" width="220" height="36" class="pthird" rx="3"/>
+      <text x="80" y="73" class="plbl-d">L5 PCB 框架 / 外殼（第三方廠商）</text>
+      <text x="80" y="86" class="panno-d">鋼/塑膠外框，散熱片</text>
+      <!-- L4: DRAM Cache -->
+      <rect x="70" y="98" width="220" height="44" class="pthird" rx="3"/>
+      <text x="80" y="115" class="plbl-d">L4 DRAM Cache（Micron / Samsung）</text>
+      <text x="80" y="131" class="panno-d">DDR4/LPDDR4，Phison 合作採購</text>
+      <!-- L3: NAND Flash die -->
+      <rect x="70" y="148" width="220" height="70" class="ppartner" rx="3"/>
+      <text x="80" y="168" class="plbl-d">L3 NAND Flash（Kioxia / Micron / Samsung）</text>
+      <text x="80" y="184" class="panno-d">TLC / QLC，112-layer+</text>
+      <text x="80" y="200" class="panno-d">AI Server 用 SLC 快取配置</text>
+      <!-- L2: Firmware / Software -->
+      <rect x="70" y="224" width="220" height="50" class="pown" rx="3"/>
+      <text x="80" y="244" class="plbl-d">L2 韌體 / 軟體（群聯自研 ★）</text>
+      <text x="80" y="260" class="panno-d">ECC 演算法、磨損平衡、TRIM</text>
+      <!-- L1: Phison Controller IC = core -->
+      <rect x="70" y="280" width="220" height="104" class="pown" rx="3" style="stroke:#5BC9A8;stroke-width:2"/>
+      <text x="80" y="300" class="plbl-d" style="font-size:14px;font-weight:700">L1 Phison 控制器 IC（核心護城河）</text>
+      <text x="80" y="320" class="panno-d">E31T Gen5 / PASCARI / aiDAPTIV+ IC</text>
+      <text x="80" y="338" class="panno-d">TSMC 12nm 製程，自家 RTL 設計</text>
+      <text x="80" y="356" class="panno-d">AI VRAM 擴展架構（全球唯一）</text>
+      <text x="80" y="372" class="panno-d">毛利率 &gt;55% 的主要來源</text>
+      <!-- Right: customer/application annotations -->
+      <text x="680" y="80" font-family="Inter,sans-serif" font-size="11" fill="#fff" text-anchor="end" font-weight="700">終端市場</text>
+      <rect x="320" y="98" width="300" height="46" rx="4" fill="rgba(91,201,168,.15)" style="stroke:#5BC9A8"/>
+      <text x="330" y="116" class="plbl">企業 / AI Server（PASCARI 61.44TB）</text>
+      <text x="330" y="132" class="panno">營收佔比 ~30%，毛利率 &gt;55%，季增最快</text>
+      <rect x="320" y="152" width="300" height="46" rx="4" fill="rgba(245,166,35,.15)" style="stroke:#F5A623"/>
+      <text x="330" y="170" class="plbl">邊緣 AI PC（aiDAPTIV+ 授權）</text>
+      <text x="330" y="186" class="panno">2026H2 量產目標，Intel 合作，Bull Case 引爆點</text>
+      <rect x="320" y="206" width="300" height="46" rx="4" fill="rgba(148,163,184,.15)" style="stroke:#94A3B8"/>
+      <text x="330" y="224" class="plbl">消費 SSD（E31T Gen5 量大）</text>
+      <text x="330" y="240" class="panno">佔比 ~50%，毛利率 ~35%，基盤穩定</text>
+      <!-- BOM bar -->
+      <text x="320" y="280" font-family="Inter,sans-serif" font-size="11" fill="#5BC9A8" font-weight="700">BOM 成本結構估算</text>
+      <rect x="320" y="290" width="150" height="14" class="ppartner"/>
+      <rect x="470" y="290" width="90" height="14" class="pown"/>
+      <rect x="560" y="290" width="60" height="14" class="pthird"/>
+      <text x="320" y="318" class="panno">NAND 60% | Phison IC+FW 25% | 其他 15%</text>
+      <!-- Legend -->
+      <rect x="320" y="350" width="12" height="10" class="pown"/>
+      <text x="338" y="359" class="panno">群聯自研核心</text>
+      <rect x="440" y="350" width="12" height="10" class="ppartner"/>
+      <text x="458" y="359" class="panno">主要夥伴(NAND 供應商)</text>
+      <rect x="600" y="350" width="12" height="10" class="pthird"/>
+      <text x="618" y="359" class="panno">第三方</text>
+      <text x="320" y="395" class="panno" style="opacity:.7">示意結構；各層厚度比例非按真實尺寸。群聯毛利率護城河來自 L1+L2 的 IC+韌體垂直整合。</text>
+    </svg>
+  </div>
+
+  <!-- Interactive Calculator -->
+  <div class="calc-wrap">
+    <div class="calc-title">三情境個人估算區間計算機（互動）</div>
+    <div class="calc-row"><label>FY26 全年 EPS 估算 (NT$)</label><input type="range" min="100" max="300" value="169" step="1" id="eps-8299" oninput="calcPT8299()"><span class="calc-val" id="eps-8299-val">NT$169</span></div>
+    <div class="calc-row"><label>P/E 倍數 (x)</label><input type="range" min="15" max="30" value="21" step="0.5" id="pe-8299" oninput="calcPT8299()"><span class="calc-val" id="pe-8299-val">21x</span></div>
+    <div class="calc-row"><label>aiDAPTIV+ 商業化溢價 (%)</label><input type="range" min="0" max="30" value="0" step="1" id="ai-prem" oninput="calcPT8299()"><span class="calc-val" id="ai-prem-val">0%</span></div>
+    <div class="calc-result">
+      <div class="calc-result-item"><div class="calc-result-label">FY26 EPS</div><div class="calc-result-val" id="res-eps8299">NT$169</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">基本 PT</div><div class="calc-result-val" id="res-base8299">NT$3,549</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">含 AI 溢價 PT</div><div class="calc-result-val" id="res-pt8299">NT$3,549</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">vs 現價</div><div class="calc-result-val" id="res-up8299">+23%</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- SUPPLY CHAIN -->
+<div class="section" id="supplychain">
+  <div class="section-eyebrow">CH.6 · SUPPLY CHAIN</div>
+  <div class="section-title">供應鏈位置：控制器設計 + SSD 方案整合</div>
+  <p class="section-desc">群聯在 NAND 供應鏈中處於「控制器設計 + SSD 整合方案」的核心節點，技術護城河高，但上游 NAND 晶圓依賴大廠供給。</p>
+  <div class="supply-chain">
+    <div class="sc-node"><div class="sc-node-label">上游</div><div class="sc-node-title">NAND 晶圓</div><div class="sc-node-sub">Micron<br>Samsung<br>SK Hynix<br>Kioxia</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node highlight"><div class="sc-node-label">本品 ★</div><div class="sc-node-title">群聯 控制器</div><div class="sc-node-sub">NAND 控制器設計<br>PASCARI SSD<br>aiDAPTIV+ IC</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node"><div class="sc-node-label">下游</div><div class="sc-node-title">SSD 模組廠 / OEM</div><div class="sc-node-sub">SSD 品牌廠<br>OEM PC 廠<br>企業伺服器廠</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node"><div class="sc-node-label">終端</div><div class="sc-node-title">雲端 / PC / AI</div><div class="sc-node-sub">AI Server DC<br>AI PC 使用者<br>企業 IT</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node"><div class="sc-node-label">替代品</div><div class="sc-node-title">Silicon Motion</div><div class="sc-node-sub">SM NAND 控制器<br>Marvell 企業<br>Realtek 消費</div></div>
+  </div>
+  <!-- SVG 2: 群聯上下游供應鏈 -->
+  <div class="card" style="margin-top:20px;margin-bottom:20px">
+    <div class="card-label">圖 2 · 群聯 NAND 供應鏈全圖（上游 → 核心 → 下游 → 終端）</div>
+    <svg viewBox="0 0 720 360" width="100%" height="auto" style="max-width:720px;display:block;margin:16px auto 0" xmlns="http://www.w3.org/2000/svg">
+      <style>.sc-own{fill:rgba(91,201,168,.1);stroke:#5BC9A8;stroke-width:2}.sc-up{fill:rgba(245,166,35,.12);stroke:#F5A623;stroke-width:1.5}.sc-dn{fill:rgba(74,144,226,.12);stroke:#4A90E2;stroke-width:1.5}.sc-em{fill:rgba(148,163,184,.12);stroke:#94A3B8;stroke-width:1.5}.sc-nt{font:700 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}.sc-sub{font:500 10px 'Inter',sans-serif;fill:#444;text-anchor:middle}.sc-stg{font:700 11px 'Inter',sans-serif;fill:#888;text-transform:uppercase;letter-spacing:1px;text-anchor:middle}.sc-arr{fill:#1a1a1a}.sc-moat{font:600 10px 'Inter',sans-serif;fill:#5BC9A8;text-anchor:middle}.sc-ann{font:500 10px 'Inter',sans-serif;fill:#666;text-anchor:middle}</style>
+      <text x="90" y="30" class="sc-stg">上游材料</text>
+      <text x="270" y="30" class="sc-stg">群聯核心</text>
+      <text x="450" y="30" class="sc-stg">下游客戶</text>
+      <text x="625" y="30" class="sc-stg">終端市場</text>
+      <!-- 上游 3 nodes -->
+      <rect x="20" y="48" width="140" height="48" rx="6" class="sc-up"/>
+      <text x="90" y="68" class="sc-nt" style="font-size:11px">NAND 晶圓供應商</text>
+      <text x="90" y="84" class="sc-sub">Kioxia / Micron / Samsung</text>
+      <rect x="20" y="104" width="140" height="48" rx="6" class="sc-up"/>
+      <text x="90" y="124" class="sc-nt" style="font-size:11px">TSMC（控制器代工）</text>
+      <text x="90" y="140" class="sc-sub">12nm FinFET 製程</text>
+      <rect x="20" y="160" width="140" height="48" rx="6" class="sc-up"/>
+      <text x="90" y="180" class="sc-nt" style="font-size:11px">DRAM 供應商</text>
+      <text x="90" y="196" class="sc-sub">Micron / Samsung</text>
+      <!-- Arrows 上游→群聯 -->
+      <polygon points="168,72 198,72 198,67 213,77 198,87 198,82 168,82" class="sc-arr"/>
+      <polygon points="168,128 198,128 198,123 213,133 198,143 198,138 168,138" class="sc-arr"/>
+      <polygon points="168,184 198,184 198,179 213,189 198,199 198,194 168,194" class="sc-arr"/>
+      <!-- 群聯核心 big node -->
+      <rect x="218" y="64" width="140" height="152" rx="8" class="sc-own"/>
+      <text x="288" y="94" class="sc-nt" style="font-size:14px">群聯電子</text>
+      <text x="288" y="110" class="sc-sub" style="font-size:11px">8299.TW</text>
+      <text x="288" y="132" class="sc-sub">核心加值:</text>
+      <text x="288" y="148" class="sc-sub" style="font-weight:700">— 控制器 IC 設計</text>
+      <text x="288" y="164" class="sc-sub" style="font-weight:700">— 韌體 + ECC 演算</text>
+      <text x="288" y="180" class="sc-sub" style="font-weight:700">— SSD 整合方案</text>
+      <text x="288" y="206" class="sc-moat">護城河: 設計定案 3-5yr</text>
+      <!-- Arrows 群聯→下游 -->
+      <polygon points="362,108 392,108 392,103 407,113 392,123 392,118 362,118" class="sc-arr"/>
+      <polygon points="362,158 392,158 392,153 407,163 392,173 392,168 362,168" class="sc-arr"/>
+      <polygon points="362,196 392,196 392,191 407,201 392,211 392,206 362,206" class="sc-arr"/>
+      <!-- 下游 3 nodes -->
+      <rect x="412" y="82" width="140" height="52" rx="6" class="sc-dn"/>
+      <text x="482" y="102" class="sc-nt" style="font-size:11px">SSD 品牌 / OEM</text>
+      <text x="482" y="118" class="sc-sub">Western Digital / Seagate</text>
+      <text x="482" y="130" class="sc-sub" style="font-size:9px">消費 SSD 主力通路</text>
+      <rect x="412" y="142" width="140" height="52" rx="6" class="sc-dn"/>
+      <text x="482" y="162" class="sc-nt" style="font-size:11px">企業伺服器廠</text>
+      <text x="482" y="178" class="sc-sub">Dell / HPE / Lenovo</text>
+      <text x="482" y="190" class="sc-sub" style="font-size:9px">PASCARI 企業 SSD 主要客戶</text>
+      <rect x="412" y="202" width="140" height="52" rx="6" class="sc-dn"/>
+      <text x="482" y="222" class="sc-nt" style="font-size:11px">AI PC OEM</text>
+      <text x="482" y="238" class="sc-sub">Intel 合作 aiDAPTIV+</text>
+      <text x="482" y="250" class="sc-sub" style="font-size:9px">2026H2 目標市場</text>
+      <!-- Arrows 下游→終端 -->
+      <polygon points="556,108 586,108 586,103 601,113 586,123 586,118 556,118" class="sc-arr"/>
+      <polygon points="556,168 586,168 586,163 601,173 586,183 586,178 556,178" class="sc-arr"/>
+      <polygon points="556,228 586,228 586,223 601,233 586,243 586,238 556,238" class="sc-arr"/>
+      <!-- 終端 3 nodes -->
+      <rect x="606" y="88" width="110" height="46" rx="6" class="sc-em"/>
+      <text x="661" y="108" class="sc-nt" style="font-size:11px">消費 / PC 使用者</text>
+      <text x="661" y="124" class="sc-sub">SSD 替換需求</text>
+      <rect x="606" y="148" width="110" height="46" rx="6" class="sc-em"/>
+      <text x="661" y="168" class="sc-nt" style="font-size:11px">AI 資料中心</text>
+      <text x="661" y="184" class="sc-sub">Hyperscaler DC</text>
+      <rect x="606" y="208" width="110" height="46" rx="6" class="sc-em"/>
+      <text x="661" y="228" class="sc-nt" style="font-size:11px">邊緣 AI</text>
+      <text x="661" y="244" class="sc-sub">iGPU PC 推理</text>
+      <!-- Bottom annotation -->
+      <text x="360" y="296" class="sc-ann">關鍵假設：上游 NAND 供給集中（3 大廠），原料成本占 BOM 60%，週期風險高。下游企業客戶認證壁壘高，3-5 年鎖定是最強護城河。</text>
+      <text x="360" y="314" class="sc-ann" style="opacity:.7">aiDAPTIV+ 把 SSD 重新定位為 AI 計算元件，有機會脫離純 NAND 周期束縛。</text>
+      <!-- Legend -->
+      <rect x="80" y="332" width="14" height="10" rx="2" class="sc-up"/><text x="100" y="341" class="sc-ann" style="text-anchor:start">上游供應商</text>
+      <rect x="210" y="332" width="14" height="10" rx="2" class="sc-own"/><text x="230" y="341" class="sc-ann" style="text-anchor:start">群聯（核心）</text>
+      <rect x="330" y="332" width="14" height="10" rx="2" class="sc-dn"/><text x="350" y="341" class="sc-ann" style="text-anchor:start">下游客戶</text>
+      <rect x="440" y="332" width="14" height="10" rx="2" class="sc-em"/><text x="460" y="341" class="sc-ann" style="text-anchor:start">終端市場</text>
+    </svg>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-label">供應鏈關鍵優勢 vs 風險</div>
+    <div class="grid-3" style="margin-top:12px;gap:12px">
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid #1F7A5C">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">設計定案黏性（強護城河）</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">一旦 OEM 廠商採用群聯控制器設計定案，換換成本極高，3-5 年合作週期鎖定</div>
+      </div>
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid var(--warning)">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">NAND 晶圓週期依賴（中度）</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">NAND 反轉時，控制器需求也下降。但企業 SSD 長約保護程度高於消費段</div>
+      </div>
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid #1F7A5C">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">aiDAPTIV+ 開拓新市場</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">把 SSD 定位從存儲元件升級為 AI 計算加速元件，脫離 NAND cycle 束縛</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- RISKS + CATALYSTS -->
+<div class="section" id="risks">
+  <div class="section-eyebrow">CH.7 · RISKS + CATALYSTS</div>
+  <div class="section-title">三大風險 × 五大催化劑</div>
+  <div class="grid-2">
+    <div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#C8302C;margin-bottom:12px">▼ 下行風險</div>
+      <div class="risk-card risk-critical"><div class="risk-title">R1 · NAND 價格反轉（6-12 個月）</div><div class="risk-body">若 NAND 供給過剩、價格月跌 &gt;10%，企業 SSD 訂單可能暫緩，毛利率壓縮，EPS 修正。Stop-loss NT$2,300 為 Bear 中位。</div></div>
+      <div class="risk-card risk-high"><div class="risk-title">R2 · Silicon Motion 競爭加劇（持續）</div><div class="risk-body">SM 是最直接競爭者，企業控制器段正追趕。若 SM Gen5 搶佔群聯份額，企業佔比 30%+ 難維持。</div></div>
+      <div class="risk-card risk-medium"><div class="risk-title">R3 · aiDAPTIV+ 商業化延遲（2027+）</div><div class="risk-body">若 Intel 合作推遲或 AI PC 採用率不如預期，Bull case 的溢價需重新定價。Base case 仍成立，但 EV 下修至 ~NT$3,000。</div></div>
+    </div>
+    <div id="catalysts">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A5C;margin-bottom:12px">▲ 上行催化劑</div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(31,122,92,.15);color:#1F7A5C">2026 H2</span><div><div style="font-weight:700;font-size:var(--fs-sm)">aiDAPTIV+ × Intel 量產確認</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">最大 Bull case 觸發點，PT → NT$5,000 以上</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(31,122,92,.15);color:#1F7A5C">Q2 2026</span><div><div style="font-weight:700;font-size:var(--fs-sm)">Q2 EPS ≥ NT$40 持續高位</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">確認 Q1 非一次性，FY26 共識 NT$169 可信</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(74,144,226,.15);color:#2563eb">FY27</span><div><div style="font-weight:700;font-size:var(--fs-sm)">企業佔比提升至 40%+</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">毛利率有望穩定在 50%+，PE 重評合理</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(245,166,35,.15);color:#b45309">持續</span><div><div style="font-weight:700;font-size:var(--fs-sm)">PASCARI 大訂單確認（DC 客戶）</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">61.44TB 世界最大容量，大型 DC 採購確認 → 多年合約鎖定</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(235,128,84,.15);color:#c05a24">FY26</span><div><div style="font-weight:700;font-size:var(--fs-sm)">EPS 共識上修至 NT$200+</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">若 Q2 EPS 再次爆表，法人上修 EPS 估算 → PE 重評</div></div></div>
+    </div>
+  </div>
+  <!-- SVG 4: 營收 mix 演進 2025-2028 -->
+  <div class="card" style="margin-top:24px;margin-bottom:16px">
+    <div class="card-label">圖 4 · 群聯營收結構演進：消費 SSD → AI Server + 邊緣 AI（2025-2028F）</div>
+    <svg viewBox="0 0 720 380" width="100%" height="auto" style="max-width:720px;display:block;margin:16px auto 0" xmlns="http://www.w3.org/2000/svg">
+      <style>.rv-ax{stroke:#1a1a1a;stroke-width:1.5}.rv-gd{stroke:#E5E5E5;stroke-width:.5;stroke-dasharray:2,2}.rv-lb{font:600 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}.rv-yr{font:700 13px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}.rv-ya{font:500 10px 'Inter',sans-serif;fill:#666;text-anchor:end}.rv-pct{font:700 11px 'Inter',sans-serif;fill:#fff;text-anchor:middle}.rv-tot{font:700 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}.rv-leg{font:500 11px 'Inter',sans-serif;fill:#1a1a1a}.rv-s1{fill:#5BC9A8}.rv-s2{fill:#4A90E2}.rv-s3{fill:#F5A623}.rv-s4{fill:#94A3B8}</style>
+      <text x="360" y="22" class="rv-lb" style="font-size:14px">群聯產品組合演進 2025-2028F（佔比 %）</text>
+      <line x1="80" y1="50" x2="80" y2="300" class="rv-ax"/>
+      <text x="75" y="55" class="rv-ya">100%</text>
+      <text x="75" y="115" class="rv-ya">75%</text>
+      <text x="75" y="180" class="rv-ya">50%</text>
+      <text x="75" y="240" class="rv-ya">25%</text>
+      <text x="75" y="302" class="rv-ya">0</text>
+      <line x1="80" y1="50" x2="640" y2="50" class="rv-gd"/>
+      <line x1="80" y1="115" x2="640" y2="115" class="rv-gd"/>
+      <line x1="80" y1="180" x2="640" y2="180" class="rv-gd"/>
+      <line x1="80" y1="240" x2="640" y2="240" class="rv-gd"/>
+      <line x1="80" y1="300" x2="640" y2="300" class="rv-ax"/>
+      <!-- 2025: 消費SSD 50% / 工業 20% / 模組 20% / 其他 10% -->
+      <!-- Total height = 250px (50-300). Seg ratios: 50/20/20/10 -->
+      <rect x="115" y="175" width="100" height="125" class="rv-s1"/><text x="165" y="244" class="rv-pct">消費 SSD 50%</text>
+      <rect x="115" y="125" width="100" height="50" class="rv-s2"/><text x="165" y="154" class="rv-pct">工業 20%</text>
+      <rect x="115" y="75" width="100" height="50" class="rv-s3"/><text x="165" y="104" class="rv-pct">模組 20%</text>
+      <rect x="115" y="50" width="100" height="25" class="rv-s4"/><text x="165" y="67" class="rv-pct">其他10%</text>
+      <text x="165" y="320" class="rv-yr">2025</text>
+      <text x="165" y="335" class="rv-tot">NT$~460B</text>
+      <!-- 2026F: 消費45% / 工業 18% / AI Server 25% / 其他 12% -->
+      <rect x="245" y="187.5" width="100" height="112.5" class="rv-s1"/><text x="295" y="248" class="rv-pct">消費 45%</text>
+      <rect x="245" y="142.5" width="100" height="45" class="rv-s2"/><text x="295" y="169" class="rv-pct">工業 18%</text>
+      <rect x="245" y="80" width="100" height="62.5" class="rv-s3"/><text x="295" y="114" class="rv-pct">AI Svr 25%</text>
+      <rect x="245" y="50" width="100" height="30" class="rv-s4"/><text x="295" y="69" class="rv-pct">其他12%</text>
+      <text x="295" y="320" class="rv-yr">2026F</text>
+      <text x="295" y="335" class="rv-tot">NT$~560B</text>
+      <!-- 2027F: 消費40% / 工業 15% / AI Server 35% / 邊緣AI 10% -->
+      <rect x="375" y="200" width="100" height="100" class="rv-s1"/><text x="425" y="253" class="rv-pct">消費 40%</text>
+      <rect x="375" y="162.5" width="100" height="37.5" class="rv-s2"/><text x="425" y="185" class="rv-pct">工業 15%</text>
+      <rect x="375" y="75" width="100" height="87.5" class="rv-s3"/><text x="425" y"=122" class="rv-pct">AI Svr 35%</text>
+      <rect x="375" y="50" width="100" height="25" class="rv-s4"/><text x="425" y="67" class="rv-pct">邊緣 10%</text>
+      <text x="425" y="320" class="rv-yr">2027F</text>
+      <text x="425" y="335" class="rv-tot">NT$~680B</text>
+      <!-- 2028F: 消費40% / 工業 20% / AI Server 25% / 邊緣AI aiDAPTIV+ 15% -->
+      <rect x="505" y="200" width="100" height="100" class="rv-s1"/><text x="555" y="253" class="rv-pct">消費 40%</text>
+      <rect x="505" y="150" width="100" height="50" class="rv-s2"/><text x="555" y="179" class="rv-pct">工業 20%</text>
+      <rect x="505" y="88" width="100" height="62" class="rv-s3"/><text x="555" y="122" class="rv-pct">AI Svr 25%</text>
+      <rect x="505" y="50" width="100" height="38" class="rv-s4"/><text x="555" y="73" class="rv-pct">邊緣 15%</text>
+      <text x="555" y="320" class="rv-yr">2028F</text>
+      <text x="555" y="335" class="rv-tot">NT$~820B</text>
+      <!-- Legend -->
+      <rect x="80" y="356" width="12" height="10" class="rv-s1"/><text x="97" y="365" class="rv-leg">消費 SSD（基底）</text>
+      <rect x="220" y="356" width="12" height="10" class="rv-s2"/><text x="237" y="365" class="rv-leg">工業 / 嵌入式</text>
+      <rect x="360" y="356" width="12" height="10" class="rv-s3"/><text x="377" y="365" class="rv-leg">AI Server SSD（成長驅動）</text>
+      <rect x="530" y="356" width="12" height="10" class="rv-s4"/><text x="547" y="365" class="rv-leg">邊緣 AI / aiDAPTIV+</text>
+    </svg>
+  </div>
+  <div class="footnote" style="margin-top:24px">本報告由AI Research Notes編製，純研究分析用途。所有個人估算區間為機率加權估算，不構成投資建議。市場有風險，請自行判斷。資料截止 2026-05-14。</div>
+</div>
+
+<script>
+function switchTab(e,id){
+  const section=e.target.closest('.section');
+  section.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  section.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  e.target.classList.add('active');
+}
+let sortDir={};
+function sortTable(tblId,col){
+  const tbl=document.getElementById(tblId);
+  if(!tbl)return;
+  const tbody=tbl.querySelector('tbody');
+  const rows=Array.from(tbody.querySelectorAll('tr'));
+  const key=tblId+'_'+col;
+  sortDir[key]=(sortDir[key]||1)*-1;
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.innerText?.trim()||'';
+    const bv=b.cells[col]?.innerText?.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.-]/g,''));
+    const bn=parseFloat(bv.replace(/[^0-9.-]/g,''));
+    if(!isNaN(an)&&!isNaN(bn)) return (an-bn)*sortDir[key];
+    return av.localeCompare(bv)*sortDir[key];
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+function calcPT8299(){
+  const eps=parseFloat(document.getElementById('eps-8299').value);
+  const pe=parseFloat(document.getElementById('pe-8299').value);
+  const prem=parseFloat(document.getElementById('ai-prem').value)/100;
+  document.getElementById('eps-8299-val').textContent='NT$'+eps;
+  document.getElementById('pe-8299-val').textContent=pe+'x';
+  document.getElementById('ai-prem-val').textContent=Math.round(prem*100)+'%';
+  const basePt=Math.round(eps*pe);
+  const premPt=Math.round(basePt*(1+prem));
+  const upside=((premPt/2880-1)*100).toFixed(1);
+  document.getElementById('res-eps8299').textContent='NT$'+eps;
+  document.getElementById('res-base8299').textContent='NT$'+basePt.toLocaleString();
+  document.getElementById('res-pt8299').textContent='NT$'+premPt.toLocaleString();
+  const upEl=document.getElementById('res-up8299');
+  upEl.textContent=(upside>0?'+':'')+upside+'%';
+  upEl.style.color=upside>0?'#1F7A5C':'#C8302C';
+}
+calcPT8299();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MOBILE RWD ROOT FIX v2 — injected 2026-05-14
+     Overrides all min-width that cause horizontal scroll on 390px viewports
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+@media (max-width: 768px) {
+  /* ── Prevent body from overflowing ── */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* ── Zero out min-width on all class-based elements ── */
+  .card, .panel, .scenario-card, .tech-col, .persona-badge,
+  .stack-col, .kpi-tile, .stat-item, .chain-node, .sc-node,
+  .watch-item, .sm-card, .sm-section, .deal-card, .cat-card,
+  .exec-card, .flow-node, .calc-result-item, .cover-stat,
+  [class*="col"], [class*="card"], [class*="item"], [class*="node"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ── Flow & supply chain: vertical on mobile ── */
+  .flow-wrap, .supply-chain, .sc-wrap, .chain {
+    flex-direction: column !important;
+    overflow-x: visible !important;
+    align-items: stretch !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ── Stacked table for files that don't have .table-wrap ── */
+  /* Only targets bare tables NOT inside .table-wrap */
+  table:not(.table-wrap table) {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    display: block !important;
+  }
+  table:not(.table-wrap table) thead { display: none !important; }
+  table:not(.table-wrap table) tbody { display: block !important; width: 100% !important; }
+  table:not(.table-wrap table) tr {
+    display: block !important;
+    background: #fff;
+    border: 1px solid var(--border, #e5e7eb) !important;
+    border-radius: 8px !important;
+    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+    overflow: hidden !important;
+  }
+  table:not(.table-wrap table) td {
+    display: flex !important;
+    gap: 8px !important;
+    padding: 5px 0 !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+    font-size: 14px !important;
+    align-items: flex-start !important;
+    line-height: 1.5 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+  }
+  table:not(.table-wrap table) td:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  table:not(.table-wrap table) td::before {
+    content: attr(data-label) !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    color: #6b7280 !important;
+    flex-shrink: 0 !important;
+    min-width: 72px !important;
+    padding-top: 2px !important;
+  }
+
+  /* ── Nav: horizontal scroll, hide scrollbar ── */
+  .top-nav, nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .top-nav::-webkit-scrollbar, nav::-webkit-scrollbar { display: none !important; }
+
+  /* ── calc-row stacking ── */
+  .calc-row { flex-direction: column !important; gap: 8px !important; }
+  .calc-row label, .calc-row input, .calc-row .calc-val { min-width: 0 !important; }
+
+  /* ── Cover/hero padding ── */
+  .cover, .hero { padding: 48px 20px !important; min-height: auto !important; }
+  .section, .sm-section { padding: 40px 16px !important; }
+
+  /* ── Cover stats: 2-col on mobile ── */
+  .cover-stats, .stats-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+}
+</style>
+
+<script>
+/* ── Mobile RWD root fix v2 — runtime: strip inline min-width on SVG/flex elements ── */
+(function() {
+  if (window.innerWidth > 768) return;
+
+  /* 1. Large flow SVGs with inline min-width: strip it, keep width:100% */
+  document.querySelectorAll('svg[style*="min-width"]').forEach(function(el) {
+    var s = el.getAttribute('style') || '';
+    s = s.replace(/;?\s*min-width\s*:\s*[^;]+/g, '');
+    el.setAttribute('style', s);
+    el.style.setProperty('width', '100%', 'important');
+    el.style.setProperty('height', 'auto', 'important');
+    el.style.setProperty('max-width', '100%', 'important');
+  });
+
+  /* 2. Flex div containers with large inline min-width (>=100px) */
+  document.querySelectorAll('div[style*="min-width"]').forEach(function(el) {
+    var s = el.getAttribute('style') || '';
+    var newStyle = s.replace(/min-width\s*:\s*(\d+)px/g, function(match, px) {
+      return parseInt(px) >= 100 ? 'min-width:0' : match;
+    });
+    if (newStyle !== s) {
+      el.setAttribute('style', newStyle);
+      el.style.setProperty('flex-shrink', '1', 'important');
+      el.style.setProperty('max-width', '100%', 'important');
+      el.style.setProperty('box-sizing', 'border-box', 'important');
+    }
+  });
+
+  /* 3. Tables with inline min-width (not inside .table-wrap — those already handled) */
+  document.querySelectorAll('table[style*="min-width"]').forEach(function(el) {
+    if (el.closest('.table-wrap')) return; /* already handled */
+    el.style.removeProperty('min-width');
+    el.style.setProperty('width', '100%', 'important');
+  });
+  /* th cells with inline min-width */
+  document.querySelectorAll('th[style*="min-width"]').forEach(function(el) {
+    el.style.removeProperty('min-width');
+  });
+
+  /* 4. Auto-inject data-label on tables that don't have it yet */
+  document.querySelectorAll('table').forEach(function(table) {
+    var headerRow = table.querySelector('thead tr') || table.querySelector('tr');
+    if (!headerRow) return;
+    var ths = Array.from(headerRow.querySelectorAll('th')).map(function(th) {
+      return th.textContent.trim();
+    });
+    if (ths.length === 0) return;
+    var tbody = table.querySelector('tbody');
+    var rows = tbody
+      ? Array.from(tbody.querySelectorAll('tr'))
+      : Array.from(table.querySelectorAll('tr')).slice(1);
+    rows.forEach(function(tr) {
+      tr.querySelectorAll('td').forEach(function(td, i) {
+        if (ths[i] && !td.getAttribute('data-label')) {
+          td.setAttribute('data-label', ths[i]);
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

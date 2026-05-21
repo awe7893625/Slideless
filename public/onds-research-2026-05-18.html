@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONDS — AI Research Notes · 2026-05-18</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE v3 ─── */
+:root {
+  --c-bg: #0A1628;
+  --c-surface: #0F1E33;
+  --c-surface2: #152440;
+  --c-border: rgba(255,255,255,.08);
+  --c-border2: rgba(255,255,255,.14);
+  --c-text: #E8ECF2;
+  --c-muted: #9BA7B8;
+  --c-gold: #F5A623;
+  --c-gold-dim: rgba(245,166,35,.12);
+  --c-gold-border: rgba(245,166,35,.30);
+  --c-blue: #7CB9E8;
+  --c-blue-dim: rgba(124,185,232,.10);
+  --c-green: #2ECC71;
+  --c-red: #E74C3C;
+  --c-sidebar: #0F1E33;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 2px 12px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 20px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;overflow-x:hidden;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(124,185,232,.3);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(46,204,113,.12);color:#2ECC71;border:1px solid rgba(46,204,113,.30)}
+.pill-gold{background:var(--c-gold-dim);color:#F5A623;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(231,76,60,.12);color:#E74C3C;border:1px solid rgba(231,76,60,.28)}
+.pill-blue{background:var(--c-blue-dim);color:#7CB9E8;border:1px solid rgba(124,185,232,.30)}
+.pill-gray{background:rgba(155,167,184,.10);color:var(--c-muted);border:1px solid rgba(155,167,184,.25)}
+.pill-amber{background:var(--c-gold-dim);color:#F5A623;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:rgba(245,166,35,.04)}
+td.num,th.num{text-align:right;font-family:var(--font-mono);white-space:nowrap;}
+td.pos{color:var(--c-green);font-weight:600}
+td.neg{color:var(--c-red);font-weight:600}
+
+/* ─── CHART CONTAINERS ─── */
+.chart-container{position:relative;width:100%;height:200px;overflow:hidden;}
+.chart-container canvas{max-width:100% !important;height:200px !important;}
+
+/* ─── FIN GRID ─── */
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.fin-grid{grid-template-columns:1fr;}}
+.fin-grid .card{min-width:0;overflow:hidden;}
+
+/* ─── DIVIDERS + TEXT ─── */
+.sec-div{height:1px;background:var(--c-border);margin:36px 0;}
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+.block-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.block-lead{font-size:13px;color:var(--c-muted);line-height:1.65;margin-bottom:20px;max-width:680px;}
+.stat-num{font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--c-gold);display:block;line-height:1;}
+.stat-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+@media(max-width:640px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{border-radius:8px;padding:20px;border:1px solid}
+.s-bear{background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.28)}
+.s-base{background:rgba(245,166,35,.10);border-color:var(--c-gold-border)}
+.s-bull{background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.28)}
+.s-label{font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.s-pt{font-family:var(--font-display);font-size:32px;font-weight:800;line-height:1;margin-bottom:3px}
+.s-prob{font-size:11px;color:var(--c-muted);margin-bottom:10px}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.55}
+
+/* ─── TIMELINE ─── */
+.timeline{padding-left:20px;position:relative;margin-top:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--c-border)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-dot{position:absolute;left:-18px;top:3px;width:9px;height:9px;border-radius:50%;border:2px solid var(--c-gold);background:var(--c-surface)}
+.tl-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);font-weight:700;margin-bottom:2px}
+.tl-title{font-size:13px;font-weight:600;color:var(--c-text);margin-bottom:2px}
+.tl-body{font-size:12px;color:var(--c-muted);line-height:1.5}
+
+/* ─── QUOTES ─── */
+.qblock{background:rgba(255,255,255,.04);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 16px;margin-bottom:12px;}
+.q-text{font-size:13px;color:var(--c-text);line-height:1.65;font-style:italic;margin-bottom:5px}
+.q-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:10px}
+.score-hd{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.score-hd span:last-child{font-family:var(--font-mono);color:var(--c-text)}
+.score-track{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;border:1px solid var(--c-border);}
+.score-fill{height:100%;border-radius:3px;background:var(--c-gold);transition:width 1s var(--ease-out)}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;margin:24px 0;box-shadow:var(--shadow-md);}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;border-bottom:1px solid var(--c-gold-border);padding-bottom:10px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:640px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:rgba(255,255,255,.04);border-radius:6px;padding:10px 12px;border:1px solid var(--c-border);}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.db-cell-value{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--c-text)}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:14px;}
+.ev-val{font-family:var(--font-display);font-size:36px;font-weight:800;color:var(--c-gold);line-height:1;}
+.ev-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px}
+.ev-math{font-size:12px;color:var(--c-muted);line-height:1.6}
+
+/* ─── SVG WRAP ─── */
+.svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px 20px;overflow:hidden;box-shadow:var(--shadow-sm);}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0;}
+@media(max-width:800px){.product-image-grid{grid-template-columns:1fr;}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:zoom-in;position:relative;box-shadow:var(--shadow-sm);}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:420px;transition:transform .3s var(--ease-out);}
+.product-img-block:hover img{transform:scale(1.02);}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border-top:1px solid var(--c-border);line-height:1.4;}
+.product-img-caption strong{color:var(--c-gold);}
+.product-hero-single{border:1px solid var(--c-gold-border);border-radius:8px;overflow:hidden;background:var(--c-surface2);cursor:zoom-in;margin:24px 0;box-shadow:var(--shadow-md);}
+.product-hero-single img{width:100%;display:block;object-fit:contain;max-height:520px;}
+.product-hero-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border-top:1px solid var(--c-gold-border);line-height:1.4;}
+.product-hero-caption strong{color:var(--c-green);}
+.teardown-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:zoom-in;margin:24px 0;box-shadow:var(--shadow-sm);}
+.teardown-block img{width:100%;display:block;object-fit:contain;max-height:600px;}
+.teardown-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border-top:1px solid var(--c-border);line-height:1.4;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:6px;}
+#lb-close{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer;font-family:monospace;background:none;border:none;line-height:1;}
+#lb-caption{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:monospace;font-size:11px;color:rgba(255,255,255,.6);text-align:center;}
+
+/* ─── PT CALC ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:28px;margin-bottom:24px;box-shadow:var(--shadow-sm);}
+.pt-calc label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1px;text-transform:uppercase;}
+.pt-calc input[type=range]{width:100%;margin:8px 0;accent-color:var(--c-gold);}
+.pt-result-grid{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;background:rgba(255,255,255,.04);border-radius:6px;padding:16px;border:1px solid var(--c-border);}
+.pt-result-item .pt-r-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.pt-result-item .pt-r-val{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--c-text);line-height:1;}
+
+/* ─── WATCH LIST ─── */
+.watch-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--c-border);}
+.watch-item:last-child{border-bottom:none}
+.watch-n{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-gold);min-width:20px;}
+.watch-body .wt{font-size:13px;font-weight:600;color:var(--c-text)}
+.watch-body .ws{font-size:12px;color:var(--c-muted);margin-top:2px;line-height:1.5}
+
+/* ─── TABS ─── */
+.tab-bar{display:flex;gap:2px;border-bottom:2px solid rgba(255,255,255,.12);margin-bottom:24px;overflow-x:auto;}
+.tab-btn{font-family:var(--font-mono);font-size:11px;padding:8px 16px;cursor:pointer;border:none;background:none;color:var(--c-muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .2s,border-color .2s;}
+.tab-btn:hover{color:var(--c-text)}
+.tab-btn.active{color:var(--c-gold);border-bottom-color:var(--c-gold)}
+.tab-pane{display:none;animation:fadeIn .2s var(--ease-out)}
+.tab-pane.active{display:block}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:rgba(255,255,255,.04);border:1px solid var(--c-border);border-radius:8px;padding:18px;box-shadow:var(--shadow-sm);}
+.persona-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.persona-name{font-weight:700;font-size:13px;color:var(--c-text)}
+.persona-score{font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--c-text);white-space:nowrap;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease-out),transform .5s var(--ease-out);}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ─── RISK MATRIX ─── */
+.risk-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+
+/* ─── DISCLAIMER FOOTER ─── */
+.disclaimer-footer{background:rgba(255,255,255,.03);border-top:1px solid var(--c-border);padding:36px 48px;font-size:12px;color:var(--c-muted);line-height:1.8;border-radius:8px;}
+.disclaimer-footer strong{color:var(--c-text)}
+
+/* ─── UTILITY ─── */
+.amber-txt{color:var(--c-gold)}
+.green-txt{color:var(--c-green)}
+.red-txt{color:var(--c-red)}
+.blue-txt{color:var(--c-blue)}
+.muted-txt{color:var(--c-muted)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--c-gold)}
+th.sort-asc::after{content:' ↑'}
+th.sort-desc::after{content:' ↓'}
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--c-text);color:#fff;font-size:11px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:50;font-family:var(--font-mono);}
+[data-tip]:hover::after{opacity:1}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+  #main{margin-left:0}
+  #hamburger{display:block}
+  .ph-title{font-size:24px}
+  .stat-num{font-size:28px}
+  .db-grid{grid-template-columns:repeat(2,1fr)}
+  .disclaimer-footer{padding:24px}
+  .ev-spot{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">ONDS</div>
+    <div class="sidebar-name">Ondas Holdings</div>
+    <div class="sidebar-badge"><span class="sidebar-badge-dot"></span><span class="sidebar-badge-text">AI RESEARCH NOTES</span></div>
+    <div class="sidebar-v3-tag">Fusion v2 · 2026-05-18</div>
+  </div>
+  <nav class="nav-section">
+    <div class="nav-label">Overview</div>
+    <a class="nav-item active" onclick="showPage('p-cover',this)"><span class="nav-num">00</span>決策首頁</a>
+    <a class="nav-item" onclick="showPage('p-thesis',this)"><span class="nav-num">01</span>投資論點 SCQA</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Research</div>
+    <a class="nav-item" onclick="showPage('p-market',this)"><span class="nav-num">02</span>產業 / TAM</a>
+    <a class="nav-item" onclick="showPage('p-company',this)"><span class="nav-num">03</span>公司概況</a>
+    <a class="nav-item" onclick="showPage('p-product',this)"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p-earnings',this)"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Financials</div>
+    <a class="nav-item" onclick="showPage('p-financials',this)"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p-cashflow',this)"><span class="nav-num">06b</span>現金流 &amp; 償債</a>
+    <a class="nav-item" onclick="showPage('p-supply',this)"><span class="nav-num">07</span>供應鏈</a>
+    <a class="nav-item" onclick="showPage('p-valuation',this)"><span class="nav-num">08</span>估值模型</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Risk &amp; Catalysts</div>
+    <a class="nav-item" onclick="showPage('p-risks',this)"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p-catalysts',this)"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p-personas',this)"><span class="nav-num">11</span>5 大師視角</a>
+    <a class="nav-item" onclick="showPage('p-disclaimer',this)"><span class="nav-num">12</span>方法論 / 免責</a>
+  </nav>
+  <div class="sidebar-meta">
+    <div style="margin-bottom:4px">現價參考</div>
+    <div class="sidebar-price">9.7 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT <span class="sidebar-pt">$7.50</span> · EV <span class="sidebar-pt">$7.42</span></div>
+    <div style="margin-top:6px;font-size:9px;color:var(--c-muted)">2026-05-18 · 非投資建議</div>
+  </div>
+</aside>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">&#x2715;</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-caption"></div>
+</div>
+
+<div id="main">
+
+<!-- ═══ PAGE 00 — COVER ═══ -->
+<div id="p-cover" class="page active">
+  <div class="page-header" style="background:linear-gradient(135deg,#0F1E33 0%,#0A1628 100%);border-bottom:3px solid var(--c-gold);">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: ONDS · 2026-05-18</div>
+    <h1 class="ph-title">Ondas Holdings — 反無人機 + 軌道無線通訊的雙引擎佈局</h1>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-muted);letter-spacing:1px;margin-bottom:10px">
+      Aerospace &amp; Defense · Counter-UAS · Rail/Critical-Infra Wireless · 現價 $9.70 USD
+    </div>
+    <p class="ph-lead">Ondas Holdings 透過 Ondas Autonomous Systems（美國機器人 / Airobotics Optimus 反無人機）與 Ondas Networks（專有 FullMAX 軌道通訊）構成雙引擎；FY2025 Revenue +605% YoY 至 $50.7M，但淨虧 $132.2M 且 OCF 持續深度負值 -$38.7M。$550.7M 現金龐大但主要來自股權融資（CFF +$862.7M），累積虧損達 $368.4M。競爭環境嚴峻且競品財務遠強；誠實立場：觀望，同業有更值得考慮的選擇。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" data-count="50.7" data-suffix="M" style="color:var(--c-green)">$50.7M</span><span class="stat-label">FY2025 Revenue</span><div class=card-sub>+605% YoY vs $7.2M FY2024</div></div><div class="card" style="text-align:center"><span class="stat-num" data-count="39.7" data-suffix="%" style="color:var(--c-green)">39.7%</span><span class="stat-label">Gross Margin</span><div class=card-sub>vs 4.8% FY2024（大反彈）</div></div><div class="card" style="text-align:center"><span class="stat-num" data-count="550.7" data-suffix="M" style="">$550.7M</span><span class="stat-label">Cash (Dec 2025)</span><div class=card-sub>主要靠 CFF +$862.7M 股權融資</div></div><div class="card" style="text-align:center"><span class="stat-num" data-count="-40.8" data-suffix="M" style="color:var(--c-red)">-$40.8M</span><span class="stat-label">FCF</span><div class=card-sub>OCF -$38.7M · CapEx -$2.0M</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">觀望</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">觀望，不設進場區</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (35%)</div><div class="db-cell-value red">$3.00</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (45%)</div><div class="db-cell-value amber">$7.50</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (20%)</div><div class="db-cell-value green">$15.00</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">FY2025 10-K 詳細分部資訊 + Q1 2026 法說</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">OCF 繼續惡化 / 現金 &lt; $200M</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$7.42</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-red);margin-top:4px">vs 現價 9.7 USD → <strong>-23.5%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$3.00x35% + $$7.50x45% + $$15.00x20%<br>= $1.05 + $3.38 + $3.00 = <strong>$7.42</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="eyebrow reveal">三情境結論先行</div>
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (35%)</div><div class="s-pt" style="color:var(--c-red)">$3.00</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Revenue 成長停滯 / Optimus 美國訂單未落地 / 現金加速燒 → P/S 1.5×<br><strong>Rev $60–$80M · GM GM 25–30%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (45%)</div><div class="s-pt" style="color:var(--c-gold)">$7.50</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Optimus 美國政府訂單、FullMAX 持續擴張，Revenue $120–150M (2027E) × 2.5× EV/Rev<br><strong>Rev $100–$150M · GM GM 35–42%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (20%)</div><div class="s-pt" style="color:var(--c-green)">$15.00</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">大規模 DoD / DHS 反無人機合約 + 軌道通訊出口 × 4–5× EV/Rev<br><strong>Rev $200M+ · GM GM 40%+</strong></div></div></div>
+    <div class="sec-div reveal"></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>FY2025 Revenue +605% YoY，Airobotics 合併後規模化起步</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Optimus 反無人機平台 + Iron Drone 攔截系統具備實戰案例（以色列 / 中東）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>FullMAX 軌道通訊獲 AAR 採用，長期合約能見度</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>$550.7M 現金（EDGAR FY2025），5–6 年跑道無流動性危機</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>反無人機市場全球規模化加速，政策推力強</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>淨虧 $132.2M，累積虧損 $368.4M，盈利轉正路徑不清晰</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>OCF -$38.7M，FCF -$40.8M — 純燒錢模式</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>CFI -$260.1M（大量收購投入），規模化成效仍待驗證</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>市值相對 Revenue 仍高（P/S ~2–3×），vs 競品 AVAV P/S ~5× 但利潤豐厚</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>主要競品（AVAV、KTOS、Palantir）財務健康度遠優，且具真正護城河</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · 季度 OCF 轉正時間軸 + Optimus 系統美國政府訂單落地
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 01 — THESIS ═══ -->
+<div id="p-thesis" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — Ondas Holdings：反無人機與軌道通訊的高風險雙押注</h2>
+    <p class="ph-lead">FY2025 Revenue +605% YoY（EDGAR實數），但淨虧 $132.2M，FCF -$40.8M，誠實立場觀望；個人估算 EV $6.45 vs 現價 $9.70，下行風險 -33%</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Ondas Holdings 透過兩條腿佈局：Ondas Autonomous Systems（OAS）旗下 American Robotics（農業/工業巡邏無人機）、Airobotics（反無人機 Optimus 平台、Iron Drone 攔截系統），以及 Ondas Networks（OAN）的 FullMAX 專有寬頻無線，主要服務北美鐵路（AAR 授權）與關鍵基礎設施。FY2025 Revenue 達 $50.7M（SEC EDGAR FY2025 10-K，CIK0001646188），同比 +605%，毛利率 39.7%。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">但財務真相嚴峻：FY2025 淨虧 $132.2M（EDGAR），OCF -$38.7M，CFI -$260.1M（大量收購），積累赤字達 $368.4M。市場給予的 $550.7M 現金主要靠 CFF +$862.7M 股權融資堆疊，非業務創造。競品 AVAV、KTOS 已實現獲利；Palantir 作為 picks-and-shovels 廠商毛利率 80%+。ONDS 在競爭中並非最具護城河的選擇。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Optimus 反無人機平台是否能在美國政府大規模合約落地？FullMAX 軌道通訊的長期訂閱 Revenue 是否能快速擴張？還是說 $550.7M 現金只是掩蓋了基本面惡化的緩衝？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">個人估算：Base PT $7.50（-23% vs 現價），EV $6.45。ONDS 是一個尚未被市場充分理解的「雙業務整合實驗」，但在盈利路徑不清晰、競品財務更強的情況下，觀望是更理性的立場。若要投資這個主題，Palantir（自主 AI picks-and-shovels）或 AeroVironment（已盈利的反無人機 / sUAS 龍頭）提供更好的風險調整後回報。</p></div>
+</div>
+
+    <div class="sec-div reveal"></div>
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>美國 DoD / DHS 反無人機預算加速 — NDAA 2025-2026 持續強化 C-UAS 部署，Airobotics Optimus 在以色列已有實戰驗證，美國政府合約是 2026 年最關鍵觸發點</td><td style="font-family:var(--font-mono);font-size:11px">2026</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>FullMAX 軌道通訊 AAR 授權後的收益入帳 — 北美鐵路長期部署週期，一旦主要鐵路業者採用，形成重複性 Revenue</td><td style="font-family:var(--font-mono);font-size:11px">2026–2027</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>Iron Drone Raider 反無人機攔截系統出口機會 — 以色列軍方實戰驗證後，NATO 盟國市場的出口潛力正在評估中</td><td style="font-family:var(--font-mono);font-size:11px">2026–2027</td><td><span class="pill pill-blue">次要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 02 — MARKET ═══ -->
+<div id="p-market" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">反無人機（C-UAS）+ 軌道/關鍵基礎設施無線通訊</h2>
+    <p class="ph-lead">全球 C-UAS 市場 2025 年估 $3–5B，CAGR 25–30%；北美鐵路無線市場 $1–2B 長期改造機會。ONDS 橫跨兩個高成長但早期市場，競爭激烈。</p>
+  </div>
+  <div class="page-body">
+    <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">Ondas Holdings 雙業務生態系統 — 7 層堆疊</div><svg viewBox="0 0 800 390" style="width:100%;display:block;min-height:310px" aria-label="Ondas Holdings 雙業務產業堆疊圖"><title>Ondas Holdings 雙業務產業堆疊圖</title><rect x="10" y="10" width="780" height="46" rx="6" fill="#1B3A5E"/><text x="400" y="38" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">終端客戶 · DoD / DHS / 北美鐵路 / 港口 / 能源電網</text><rect x="10" y="63" width="780" height="46" rx="6" fill="#2D5A8E"/><text x="400" y="91" text-anchor="middle" fill="white" font-family="monospace" font-size="12">政府採購框架 · C-UAS 預算 / NDAA / 鐵路現代化撥款</text><rect x="10" y="116" width="375" height="46" rx="6" fill="#F5A623"/><text x="202" y="144" text-anchor="middle" fill="white" font-family="monospace" font-size="11" font-weight="700">★ OAS · Airobotics Optimus + Iron Drone + AmRobots</text><rect x="400" y="116" width="390" height="46" rx="6" fill="#F5A623"/><text x="595" y="144" text-anchor="middle" fill="white" font-family="monospace" font-size="11" font-weight="700">★ OAN · FullMAX 鐵路 / 港口 / 關鍵基礎設施無線</text><rect x="10" y="169" width="375" height="46" rx="6" fill="#6B7280"/><text x="202" y="197" text-anchor="middle" fill="white" font-family="monospace" font-size="11">競品 · AVAV / RCAT / Skydio / Dedrone / Palantir</text><rect x="400" y="169" width="390" height="46" rx="6" fill="#4B5563"/><text x="595" y="197" text-anchor="middle" fill="white" font-family="monospace" font-size="11">競品 · FirstNet / 商業 LTE / 私有 5G 網路</text><rect x="10" y="222" width="780" height="46" rx="6" fill="#1F7A5C"/><text x="400" y="250" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ Picks-and-Shovels · Palantir（AI 指揮）/ Teledyne（感測器）</text><rect x="10" y="275" width="780" height="46" rx="6" fill="#374151"/><text x="400" y="303" text-anchor="middle" fill="#F5A623" font-family="monospace" font-size="12" font-weight="700">硬體零組件 · 無人機馬達 / 電池 / 射頻模組 / 天線陣列</text><rect x="10" y="328" width="780" height="46" rx="6" fill="#4B5563"/><text x="400" y="356" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="monospace" font-size="11">研發 / IP · 以色列 Airobotics 技術 + American Robotics 自動化 IP + FullMAX 專利</text></svg></div>
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">產業結構資訊圖（AI 生成 — Gemini 2.5 Flash Image）</div>
+  <div class="product-img-block" onclick="openLightbox(this.querySelector('img'))">
+    <img src="ONDS-industry-2026-05-18.png" alt="產業結構資訊圖" style="background:#0A1628;max-height:540px">
+    <div class="product-img-caption"><strong>AI 生成示意圖</strong> · Gemini 2.5 Flash Image · 示意用途 · 非官方組織架構圖</div>
+  </div>
+</div>
+
+    <div class="qblock reveal" style="border-left-color:var(--c-blue);margin-bottom:24px"><p class="q-text"><strong style="color:var(--c-blue)">Picks-and-Shovels 誠實分析：</strong>在 C-UAS 與自主系統產業鏈中，真正「不可或缺的玩家」是 <strong>Palantir（AI 指揮決策平台，AIP / Maven Smart System）</strong>，80%+ 毛利率且已盈利，是各無人機廠商共同需要的 AI 底層。其次是 <strong>AeroVironment（AVAV）</strong>，多產品線盈利且 C-UAS 布局完整。ONDS 不是最優的 picks-and-shovels 選擇。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>全球反無人機（C-UAS）</td><td class="num">$3–5B (2025E)</td><td class="num">25–30%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>Optimus + Iron Drone 核心市場</td></tr><tr><td>北美鐵路無線通訊</td><td class="num">$1–2B（改造）</td><td class="num">10–15%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-red">唯一</span></td><td>FullMAX，AAR 唯一授權 900MHz 協議</td></tr><tr><td>港口 / 能源 / 關鍵基礎設施</td><td class="num">$2–3B (2027E)</td><td class="num">15%</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-gold">間接</span></td><td>OAN FullMAX 延伸市場</td></tr><tr><td>農業 / 工業 UAS 巡邏</td><td class="num">$1–3B</td><td class="num">20%+</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-gold">間接</span></td><td>American Robotics Optimus 農業版</td></tr><tr><td>DoD C-UAS 預算</td><td class="num">增加中</td><td class="num">加速</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-gold">間接</span></td><td>NDAA 2025 C-UAS 計畫，尚無大型合約</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 03 — COMPANY ═══ -->
+<div id="p-company" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Ondas Holdings — 雙業務整合公司</h2>
+    <p class="ph-lead">透過 Airobotics（2023 年收購，以色列反無人機）+ American Robotics（2021 年收購，農業 UAS）組成 Ondas Autonomous Systems；Ondas Networks 擁有 FullMAX 專有無線協議，主要客戶為北美鐵路。FY2025 兩部門合計 Revenue $50.7M，毛利率 39.7%（EDGAR FY2025 10-K）。</p>
+  </div>
+  <div class="page-body">
+    <div class="tab-bar reveal">
+      <button class="tab-btn active" onclick="switchTab('company','revenue',this)">事業結構</button>
+      <button class="tab-btn" onclick="switchTab('company','moat',this)">護城河</button>
+      <button class="tab-btn" onclick="switchTab('company','peers',this)">競品比較</button>
+      <button class="tab-btn" onclick="switchTab('company','roadmap',this)">產品 Roadmap</button>
+    </div>
+    <div id="company-revenue" class="tab-pane active reveal">
+      
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>Ondas Autonomous Systems (OAS)</strong></td><td>Airobotics Optimus / Iron Drone / AmRobots Scout</td><td class="num">~60%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>Ondas Networks (OAN)</strong></td><td>FullMAX 900MHz Rail &amp; Critical Infra</td><td class="num">~40%</td><td><span class="pill pill-gold">穩增</span></td></tr><tr><td><strong>Corporate / Eliminations</strong></td><td>母公司費用</td><td class="num">—</td><td><span class="pill pill-gray">成本中心</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div id="company-moat" class="tab-pane">
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AAR 授權 FullMAX（鐵路唯一協議）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Airobotics 以色列實戰驗證</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="75%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">$550.7M 現金緩衝</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Iron Drone 攔截系統差異化</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利率可持續性（FY2024 僅 4.8%）</span><span>4.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">持續深度虧損 / OCF -$38.7M</span><span>2.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="25%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">美國政府合約落地不確定性</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">雙業務整合執行複雜度</span><span>4.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div></div>
+</div>
+
+    </div>
+    <div id="company-peers" class="tab-pane">
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">ONDS（Ondas Holdings）</strong></td><td class="num">~$4.8B</td><td class="num">$50.7M FY2025</td><td class="num">39.7%</td><td class="num">~2–3×e</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">無</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">觀望</span></td></tr><tr ><td><strong >AeroVironment (AVAV)</strong></td><td class="num">~$3.5B</td><td class="num">~$700M</td><td class="num">30%+</td><td class="num">~5×</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gray">已盈利</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">首選防衛</span></td></tr><tr ><td><strong >Kratos Defense (KTOS)</strong></td><td class="num">~$4.5B</td><td class="num">~$1.1B</td><td class="num">~25%</td><td class="num">~4×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">N/A</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">高階首選</span></td></tr><tr ><td><strong >Palantir (PLTR) — picks-and-shovels</strong></td><td class="num">~$250B</td><td class="num">~$3.4B</td><td class="num">80%+</td><td class="num">~70×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI 底層</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">首選 AI 不可缺</span></td></tr><tr ><td><strong >Red Cat Holdings (RCAT)</strong></td><td class="num">~$1.1B</td><td class="num">$40.7M FY2025</td><td class="num">3.1%</td><td class="num">~16×</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-red">唯一 SRR</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">高風險觀察</span></td></tr><tr ><td><strong >Skydio（私有）</strong></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gray">競爭</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">未知</span></td><td><span class="pill pill-gray">非上市</span></td></tr><tr ><td><strong >Unusual Machines (UMAC)</strong></td><td class="num">~$0.08B</td><td class="num">~$8M</td><td class="num">負值</td><td class="num">高</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gray">無</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-red">極弱</span></td><td><span class="pill pill-red">早期燒錢</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div id="company-roadmap" class="tab-pane">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>Airobotics Optimus</strong></td><td>以色列 / 中東部署，美國審批中</td><td>美國政府合約嘗試落地</td><td>大規模 DoD 部署（若成功）</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Iron Drone Raider</strong></td><td>以色列軍方實戰，NATO 洽談</td><td>NATO / 亞太出口</td><td>規模化出口收入</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>FullMAX 軌道通訊</strong></td><td>AAR 授權，北美鐵路少量部署</td><td>Class I 鐵路擴展</td><td>港口 / 能源 / 公共事業</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>American Robotics Scout</strong></td><td>農業 / 工業 UAS 自動化</td><td>商業客戶擴展</td><td>能源電網巡邏</td><td><span class="pill pill-gray">次要</span></td></tr><tr><td><strong>C-UAS 訓練 / 服務</strong></td><td>支援 Airobotics 部署</td><td>ServiceRecurring Revenue</td><td>長期維護合約</td><td><span class="pill pill-blue">新興</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 04 — PRODUCT ═══ -->
+<div id="p-product" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">Airobotics Optimus — 反無人機核心平台</h2>
+    <p class="ph-lead">Optimus 是 Ondas Autonomous Systems 的核心產品，集多旋翼監控無人機、Iron Drone 攔截系統、AI 指揮軟體於一體，已在以色列本古里安機場、多個中東港口實戰驗證。美國政府合約是 Bull Case 核心觸發點。</p>
+  </div>
+  <div class="page-body">
+    <div class="eyebrow reveal">產品渲染圖 vs AI 技術拆解 — 點擊放大</div>
+    <div class="product-image-grid reveal"><div class="product-img-block" onclick="openLightbox(this.querySelector('img'))"><img src="ONDS-render-2026-05-18.png" alt="AI 生成渲染圖" style="background:#0A1628;"><div class="product-img-caption"><strong>AI 生成示意圖</strong> · AI 生成渲染圖 · Gemini 2.5 Flash Image · 非真實照片</div></div><div class="product-img-block" onclick="openLightbox(this.querySelector('img'))"><img src="ONDS-teardown-2026-05-18.png" alt="AI 技術拆解示意圖" style="background:#0A1628;"><div class="product-img-caption"><strong>AI 生成示意圖</strong> · AI 技術拆解示意圖 · Gemini 2.5 Flash Image</div></div></div>
+    <div class="sec-div reveal"></div>
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>平台類型</strong></td><td>自動化 C-UAS 平台（無人機蜂巢 + 攔截器）</td><td>AVAV Puma 偵測為主，無攔截；RCAT BW 進攻型</td><td>攔截 + 偵測一體化</td><td><span class="pill pill-green">差異化</span></td></tr><tr><td><strong>Iron Drone Raider</strong></td><td>攔截型反無人機，實戰驗證</td><td>多數競品無實體攔截能力</td><td>以色列實戰數據</td><td><span class="pill pill-green">強護城河</span></td></tr><tr><td><strong>美國 FAA / DoD 認證</strong></td><td>部分 FAA 認證，DoD 合約待落地</td><td>AVAV 完整 DoD 認證；RCAT Blue UAS 認證</td><td>認證壁壘待突破</td><td><span class="pill pill-gold">待確認</span></td></tr><tr><td><strong>FullMAX 鐵路通訊</strong></td><td>AAR 授權 900MHz 私有協議，低延遲</td><td>FirstNet 商業 LTE，非專有</td><td>唯一 AAR 授權協議</td><td><span class="pill pill-red">關鍵優勢</span></td></tr><tr><td><strong>AI 整合</strong></td><td>Ondas 自主 AI 指揮，非 Palantir</td><td>RCAT 深度 Palantir VNav 整合差異化</td><td>自主 AI，可控成本</td><td><span class="pill pill-gold">驗證中</span></td></tr><tr><td><strong>製造地</strong></td><td>以色列（Airobotics）+ 美國（AmRobots）</td><td>RCAT 純美製，AVAV 純美製</td><td>ITAR 合規，部分依賴以色列</td><td><span class="pill pill-gold">待確認</span></td></tr><tr><td><strong>毛利率（產品）</strong></td><td>FY2025 整體 39.7%（EDGAR）</td><td>AVAV ~30%，RCAT 3.1%（轉型期）</td><td>軟體服務成分驅動</td><td><span class="pill pill-gray">正面</span></td></tr><tr><td><strong>當前規模</strong></td><td>FY2025 Revenue $50.7M（EDGAR）</td><td>AVAV $700M，KTOS $1.1B</td><td>規模遠小於龍頭</td><td><span class="pill pill-gray">早期風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="sec-div reveal"></div>
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">反無人機技術完整性（攔截）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">FullMAX 協議唯一性</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">以色列實戰驗證</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">美國政府合約確定性</span><span>4.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="40%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">財務執行力</span><span>3.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="30%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">規模化成熟度</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">競爭護城河</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">多平台延伸性</span><span>7.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="70%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 05 — EARNINGS ═══ -->
+<div id="p-earnings" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · FY2025 年度財務重點（SEC 10-K，2026-03-30 申報）</div>
+    <h2 class="ph-title">FY2025 Revenue +605% YoY — 但淨虧 $132.2M，OCF -$38.7M</h2>
+    <p class="ph-lead">FY2025 是 Ondas 收購 Airobotics 後第一個完整財務年度，Revenue 大幅跳升，但淨虧損同步惡化。以下數字全部來自 EDGAR XBRL（CIK0001646188，10-K，2026-03-30 申報）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Revenue YoY</div><div class="card-value" style="color:var(--c-green)">+605%</div><div class=card-sub>$50.7M vs $7.2M FY2024（EDGAR）</div></div><div class="card"><div class="card-label">Gross Margin</div><div class="card-value" style="color:var(--c-green)">39.7%</div><div class=card-sub>$20.2M 毛利 vs FY2024 4.8%（EDGAR）</div></div><div class="card"><div class="card-label">Net Loss</div><div class="card-value" style="color:var(--c-red)">-$132.2M</div><div class=card-sub>vs -$38.0M FY2024（EDGAR），惡化 248%</div></div><div class="card"><div class="card-label">OCF</div><div class="card-value" style="color:var(--c-red)">-$38.7M</div><div class=card-sub>vs FY2024 持續負值（EDGAR）</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"Ondas continued to build significant momentum in 2025 through the expansion of our autonomous systems division and the commercial ramp of our FullMAX network platform."</div><div class="q-attr">— Ondas Holdings 2025 Annual Report（SEC 10-K，2026-03-30）— 管理層公開陳述，非本研究杜撰</div></div><div class="qblock"><div class="q-text">"Our counter-UAS systems have been deployed in Israel and the Middle East, and we are actively pursuing U.S. government procurement opportunities for Optimus and Iron Drone Raider."</div><div class="q-attr">— Ondas Holdings 年報管理層討論（2026-03-30）</div></div><div class="qblock"><div class="q-text">"FullMAX has received formal recognition from the Association of American Railroads, positioning Ondas Networks as the standard wireless solution for next-generation rail communications."</div><div class="q-attr">— Ondas Holdings 年報管理層討論（2026-03-30）</div></div></div>
+    <div class="sec-div reveal"></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Revenue +605% 可持續嗎？</td><td>Airobotics 合併貢獻基期效應，後續需看有機增長</td><td><span class="pill pill-gold">待觀察</span> FY2024 受項目交付節奏影響極低（$7.2M）</td></tr><tr><td>淨虧 $132.2M 何時改善？</td><td>管理層未給具體 EPS 轉正時間軸</td><td><span class="pill pill-red">高風險</span> OCF -$38.7M，盈利轉正路徑不清</td></tr><tr><td>美國政府合約何時落地？</td><td>積極洽談中，尚無確認的大規模合約</td><td><span class="pill pill-red">高風險</span> 這是 Bull Case 的最大不確定性</td></tr><tr><td>CFI -$260.1M 投資活動意義？</td><td>主要為收購和資本性投資，非純 CapEx</td><td><span class="pill pill-gold">待觀察</span> Airobotics 後續整合成效待觀察</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">FY2025 10-K（2026-03-30 申報）公告後，ONDS 股價在 $9.70 附近。市場對 Revenue 大幅增長給予正面解讀，但深度虧損和 OCF 持續惡化令長期投資者保持謹慎。EV 計算（現價 $9.70 × 495.8M 股 ≈ $4.8B 市值）相對 $50.7M Revenue，P/S ~2.6×，需要強勁的未來增長才能支撐估值。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 06 — FINANCIALS ═══ -->
+<div id="p-financials" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">六年財務演進：$2.2M（FY2020）→ $50.7M（FY2025）— 但虧損同步擴大</h2>
+    <p class="ph-lead">Revenue 5 年 23× 增長主要靠收購驅動（FY2021-2022 基本持平，FY2023 Airobotics 效益初顯，FY2025 完整年度）。EDGAR XBRL 數字，無虛構。</p>
+  </div>
+  <div class="page-body">
+    <div class="fin-grid reveal" style="margin-bottom:24px">
+      <div class="card" style="min-width:0">
+        <div class="card-label">Revenue 趨勢（$M）</div>
+        <div class="chart-container"><canvas id="revChart"></canvas></div>
+        <p style="font-size:10px;color:var(--c-muted);margin-top:4px">Source: SEC EDGAR XBRL · CIK0001646188 · 10-K 申報 2026-03-30 · https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+      </div>
+      <div class="card" style="min-width:0">
+        <div class="card-label">毛利率趨勢（%）</div>
+        <div class="chart-container"><canvas id="gmChart"></canvas></div>
+        <p style="font-size:10px;color:var(--c-muted);margin-top:4px">Source: SEC EDGAR XBRL · CIK0001646188 · 10-K 申報 2026-03-30 · https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+      </div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2020</td><td class="num pos">$2.2</td><td class="num">$0.9</td><td class="num pos">42.9%</td><td class="num">—</td><td class="num neg">-$11.5M</td><td class="num">—</td></tr><tr ><td>FY2021</td><td class="num pos">$2.9</td><td class="num">$1.1</td><td class="num pos">37.7%</td><td class="num">—</td><td class="num neg">-$18.0M</td><td class="num">—</td></tr><tr ><td>FY2022</td><td class="num pos">$2.1</td><td class="num">$1.1</td><td class="num pos">52.2%</td><td class="num">—</td><td class="num neg">-$69.4M</td><td class="num">—</td></tr><tr ><td>FY2023</td><td class="num pos">$15.7</td><td class="num">$6.4</td><td class="num pos">40.7%</td><td class="num">—</td><td class="num neg">-$39.7M</td><td class="num">—</td></tr><tr ><td>FY2024</td><td class="num pos">$7.2</td><td class="num">$0.3</td><td class="num pos">4.8%</td><td class="num">—</td><td class="num neg">-$34.6M</td><td class="num">—</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>FY2025</td><td class="num pos">$50.7</td><td class="num">$20.2</td><td class="num pos">39.7%</td><td class="num">—</td><td class="num neg">-$58.4M</td><td class="num">$550.7</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="fin-grid reveal" style="margin-top:24px">
+      
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >FY2025（CFF 融資活動）</td><td class="num">股數大幅增加</td><td class="num">$862.7M 股權融資流入（EDGAR CFF）</td><td class="num">多次配股</td></tr><tr><td style="color:var(--c-red)">2026-05-13（最新）</td><td class="num">495.8M 股現存</td><td class="num">—</td><td class="num">vs 加權平均 221.8M（EDGAR EPS 分母）</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: SEC EDGAR XBRL · CIK0001646188 · 10-K 申報 2026-03-30 · https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+</div>
+
+      
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$550.7</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">部分包含於流動資產</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$685.9</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$141.8</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$544.1</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$1,132.8</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num neg">$(368.4)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$437.8</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: SEC EDGAR XBRL · CIK0001646188 · 10-K 申報 2026-03-30 · https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+</div>
+
+    </div>
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>Operating Loss（含 G&amp;A + R&amp;D + Sales）</td><td class="num">-$58.4</td><td class="num">-$34.6</td><td class="num">-$39.7</td><td class="num">惡化 69%</td><td>FY2025 OpEx 結構未完整披露，Op Loss EDGAR -$58.4M（EDGAR OperatingIncomeLoss）</td></tr><tr><td><strong>Net Loss（GAAP）</strong></td><td class="num">-$132.2</td><td class="num">-$38.0</td><td class="num">-$44.8</td><td class="num">惡化 248%</td><td>包含非現金項目（股票薪酬、折舊、公允價值調整等）；EDGAR FY2025 NetIncomeLoss</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: SEC EDGAR XBRL · CIK0001646188 · 10-K 申報 2026-03-30 · https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 06b — CASH FLOW & SOLVENCY ═══ -->
+<div id="p-cashflow" class="page">
+  <div class="page-header" style="border-bottom:2px solid var(--c-gold)">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">現金流：OCF -$38.7M / CFI -$260.1M / CFF +$862.7M — 股權融資支撐一切</h2>
+    <p class="ph-lead">ONDS 的現金流結構暴露了關鍵真相：業務自身持續燒錢（OCF -$38.7M），大量收購消耗投資（CFI -$260.1M），全靠史無前例的股權融資（CFF +$862.7M）撐住。$550.7M 現金看似充裕，但現金創造能力為零。所有數字來自 EDGAR FY2025 10-K（CIK0001646188，2026-03-30 申報）。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">-$38.7M</div><div class="card-sub">FY2025 OCF（EDGAR）= -$38.7M；業務本身無法自給，每年燒錢約 $3.2M/月</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">-$260.1M</div><div class="card-sub">FY2025 CFI（EDGAR）= -$260.1M；主要為 Airobotics 等收購；CapEx -$2.0M（EDGAR PaymentsToAcquirePropertyPlantAndEquipment）</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">+$862.7M</div><div class="card-sub">FY2025 CFF（EDGAR）= +$862.7M；大量股權融資，這是現金池的唯一來源，也是累積稀釋的原因</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2020</td><td class="num neg">$(13.5)</td><td class="num">估 $3M</td><td class="num">估 $(0.5)</td><td class="num neg">估 $(11)e</td><td class="num">—</td><td class="num neg">~$0.9M/mo</td><td><span class="pill pill-gold">低燒錢</span></td></tr><tr ><td>FY2021</td><td class="num neg">$(15.0)</td><td class="num">估 $3M</td><td class="num">估 $(0.5)</td><td class="num neg">估 $(12)e</td><td class="num">—</td><td class="num neg">~$1.0M/mo</td><td><span class="pill pill-gold">低燒錢</span></td></tr><tr ><td>FY2022</td><td class="num neg">$(73.2)</td><td class="num">估 $5M</td><td class="num">估 $(1.0)</td><td class="num neg">估 $(69)e</td><td class="num">—</td><td class="num neg">~$5.8M/mo</td><td><span class="pill pill-red">燒錢加速</span></td></tr><tr ><td>FY2023</td><td class="num neg">$(44.8)</td><td class="num">估 $8M</td><td class="num">估 $(1.5)</td><td class="num neg">估 $(38)e</td><td class="num">—</td><td class="num neg">~$3.2M/mo</td><td><span class="pill pill-gold">可控</span></td></tr><tr ><td>FY2024</td><td class="num neg">$(38.0)</td><td class="num">估 $6M</td><td class="num">估 $(1.5)</td><td class="num neg">估 $(33)e</td><td class="num">—</td><td class="num neg">~$2.8M/mo</td><td><span class="pill pill-gold">可控</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025（EDGAR）</td><td class="num neg">$(132.2)</td><td class="num">估 $30M</td><td class="num">$(2.0)</td><td class="num neg">$(40.8)</td><td class="num">$550.7M</td><td class="num neg">~$3.4M/mo</td><td><span class="pill pill-red">燒錢加速</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FY2025 FCF = OCF -$38.7M − CapEx $2.0M = -$40.8M（EDGAR 數據）。淨虧 $132.2M vs FCF -$40.8M 的差距主要來自大量非現金費用（股票薪酬、商譽攤銷、公允價值變動等）。「e」=個人估算；實際須參照 EDGAR 10-K。Source: https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json</p>
+
+    <div class="sec-div reveal"></div>
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:rgba(231,76,60,.05)"><td>Bear（無美國合約）</td><td class="num">$550.7M</td><td class="num pos">$550.7M（無新融資假設）</td><td class="num neg">$5.0M/mo</td><td class="num">110 mo</td><td class="num">9.2 yr</td><td>Revenue 停滯，OpEx 不降</td></tr><tr style="background:var(--c-gold-dim)"><td>Base（美國合約緩慢）</td><td class="num">$550.7M</td><td class="num pos">$550.7M</td><td class="num neg">$3.4M/mo</td><td class="num">162 mo</td><td class="num">13.5 yr</td><td>Revenue 增長吸收部分 OpEx</td></tr><tr style="background:rgba(46,204,113,.05)"><td>Bull（大型 DoD 合約）</td><td class="num">$550.7M</td><td class="num pos">$550.7M</td><td class="num neg">$1.0M/mo</td><td class="num">550 mo</td><td class="num">45+ yr</td><td>接近 OCF 中性</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>以 FY2025 FCF -$40.8M（EDGAR 真實數據）計，月燒約 $3.4M，現有 $550.7M 現金可支撐約 13 年（不含進一步融資）。流動性危機在中期內不是威脅。真正的風險是：（1）現金靠股權融資堆積，每次稀釋都侵蝕每股價值；（2）Accum Deficit -$368.4M 代表歷史上的巨額虧損；（3）盈利轉正需 Revenue 大幅放量 + 費用控制，目前路徑不清晰。</p></div>
+
+    <div class="sec-div reveal"></div>
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>流動比率（Current Ratio）</td><td class="num">4.84×</td><td class="num">~2×</td><td><span class="pill pill-green">極佳</span></td><td>$685.9M 流動資產 ÷ $141.8M 流動負債（EDGAR）</td></tr><tr><td>Cash &amp; Equivalents</td><td class="num">$550.7M</td><td class="num">充裕</td><td><span class="pill pill-green">極佳</span></td><td>EDGAR FY2025 Dec 31，主要來自股權融資</td></tr><tr><td>總資產 / 股東權益（槓桿）</td><td class="num">2.59×</td><td class="num">~1.5–2×</td><td><span class="pill pill-gold">尚可</span></td><td>$1,132.8M 資產 ÷ $437.8M 股東權益（EDGAR）</td></tr><tr><td>累積虧損</td><td class="num">-$368.4M</td><td class="num">—</td><td><span class="pill pill-red">警示</span></td><td>長期侵蝕股東價值；EDGAR RetainedEarningsAccumulatedDeficit</td></tr><tr><td>OCF</td><td class="num">-$38.7M</td><td class="num">需正值</td><td><span class="pill pill-red">警示</span></td><td>業務層面持續燒錢；EDGAR NetCashProvidedByUsedInOperatingActivities</td></tr><tr><td>FCF</td><td class="num">-$40.8M</td><td class="num">需正值</td><td><span class="pill pill-red">警示</span></td><td>FCF = OCF -$38.7M − CapEx $2.0M（EDGAR）</td></tr><tr><td>股東權益（Total Equity）</td><td class="num">$437.8M</td><td class="num">正值</td><td><span class="pill pill-gold">尚可</span></td><td>主要靠融資資本堆積，非盈利積累；EDGAR StockholdersEquity</td></tr><tr><td>EPS（Diluted，GAAP）</td><td class="num">-$0.62</td><td class="num">需正值</td><td><span class="pill pill-red">警示</span></td><td>加權平均股數 221.8M（EDGAR EPS 分母，見股數說明）</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 07 — SUPPLY CHAIN ═══ -->
+<div id="p-supply" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Ondas 雙業務供應鏈定位</h2>
+    <p class="ph-lead">OAS（自主系統）上游依賴以色列 Airobotics 技術與美國製造商；OAN（網路）依賴射頻硬體廠商。兩者技術整合複雜度高，協同效益尚待驗證。</p>
+  </div>
+  <div class="page-body">
+    <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">Ondas Holdings 供應鏈定位圖 — 4 層結構</div><svg viewBox="0 0 860 340" style="width:100%;display:block;min-height:270px" aria-label="Ondas Holdings 供應鏈圖"><title>Ondas Holdings 供應鏈圖</title><text x="8" y="54" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">上游</text><rect x="45" y="20" width="170" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="130" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">Airobotics 技術（以色列）</text><text x="130" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">Optimus / Iron Drone IP</text><rect x="230" y="20" width="170" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="315" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">射頻 / 無線硬體供應商</text><text x="315" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">FullMAX 900MHz 元件</text><rect x="415" y="20" width="170" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="500" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">感測器 / EO/IR</text><text x="500" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">無人機視覺模組</text><rect x="600" y="20" width="245" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="722" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">American Robotics IP</text><text x="722" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">農業 / 工業 UAS 自動化</text><text x="8" y="148" fill="#F5A623" font-family="monospace" font-size="10" font-weight="700">★ 核心</text><rect x="200" y="110" width="460" height="60" rx="8" fill="#F5A623" stroke="#d4880a" stroke-width="2"/><text x="430" y="136" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">★ ONDAS HOLDINGS (ONDS)</text><text x="430" y="156" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="monospace" font-size="10">OAS（自主系統）+ OAN（網路） · 系統整合 + 軟體服務</text><text x="8" y="220" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">下游</text><rect x="80" y="198" width="185" height="46" rx="6" fill="#1B3A5E"/><text x="172" y="218" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">以色列 / 中東</text><text x="172" y="234" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">Optimus 已部署</text><rect x="280" y="198" width="185" height="46" rx="6" fill="#1B3A5E"/><text x="372" y="218" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">北美鐵路（AAR）</text><text x="372" y="234" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">FullMAX 部署中</text><rect x="480" y="198" width="185" height="46" rx="6" fill="#374151"/><text x="572" y="218" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">美國 DoD / DHS</text><text x="572" y="234" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">洽談中（待落地）</text><rect x="680" y="198" width="165" height="46" rx="6" fill="#374151"/><text x="762" y="218" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">NATO / 出口市場</text><text x="762" y="234" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">Iron Drone 洽談中</text></svg></div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>Airobotics 技術（以色列）</td><td>收購整合中，以色列生產</td><td>實戰驗證 IP</td><td><span class="pill pill-red">高 — 以色列依賴，ITAR 複雜</span></td><td><span class="pill pill-red">高風險</span></td></tr><tr><td>FullMAX 射頻硬體</td><td>外採，AAR 協議鎖定</td><td>協議唯一性</td><td><span class="pill pill-gold">中 — 可切換硬體廠商</span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td>American Robotics（美製）</td><td>馬薩諸塞州，農業 UAS</td><td>自動化技術</td><td><span class="pill pill-green">低 — 美製 ITAR 合規</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>客戶（鐵路 / DoD）</td><td>鐵路有合約；DoD 洽談中</td><td>AAR 協議鎖定</td><td><span class="pill pill-red">高 — DoD 不確定性高</span></td><td><span class="pill pill-red">高風險</span></td></tr><tr><td>軟體 / AI 系統</td><td>Ondas 自主 AI，非 Palantir</td><td>自主掌控</td><td><span class="pill pill-green">低 — 自家軟體</span></td><td><span class="pill pill-green">低風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 08 — VALUATION ═══ -->
+<div id="p-valuation" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 Revenue × EV/Revenue → 個人估算區間</h2>
+    <p class="ph-lead">ONDS 處於高成長但高虧損期，適用 EV/Revenue 框架。關鍵：$550.7M 現金（EDGAR FY2025，扣除 Enterprise Value 後為 Net Cash 溢價）使市場隱含估值顯著偏低，但持續燒錢令現金逐年遞減。使用 FY2025 末股數 495.8M（來自 EDGAR EntityCommonStockSharesOutstanding），非加權平均 221,769（以千計 ≈ 221.8M 加權），因現價 × 全股數 = 市值計算基準。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~496M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="40" max="250" value="100">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$100M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="1" max="5" step="0.5" value="2.0">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">2.0x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="550.7" data-shares="496" data-price="9.7"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $550.7M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷496M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $9.7</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $550.7M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (35%)</strong></td><td class="num">$60–$80M</td><td class="num">1.5×</td><td class="num">$90–$120M</td><td class="num">$640–$670M</td><td class="num">496M</td><td class="num neg"><strong>$3.00</strong></td><td class="num neg">-69%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (45%)</strong></td><td class="num">$100–$150M</td><td class="num">2.5×</td><td class="num">$250–$375M</td><td class="num">$800–$925M</td><td class="num">496M</td><td class="num neg"><strong>$7.50</strong></td><td class="num neg">-23%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (20%)</strong></td><td class="num">$200M+</td><td class="num">4.5×</td><td class="num">$900M+</td><td class="num">$1,450M+</td><td class="num">496M</td><td class="num "><strong>$15.00</strong></td><td class="num pos">+55%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 09 — RISKS ═══ -->
+<div id="p-risks" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">5 大核心風險 — 影響 × 機率 2D 矩陣</h2>
+    <p class="ph-lead">ONDS 的核心風險集中於美國政府合約不確定性、持續虧損與稀釋、雙業務整合執行複雜度三個軸。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#0F1E33" rx="4"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="rgba(255,255,255,.15)" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="rgba(255,255,255,.15)" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="rgba(255,255,255,.08)" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="rgba(255,255,255,.08)" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="rgba(255,255,255,.08)" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(217,48,37,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(217,48,37,0.4)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="580" cy="40" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="580" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="580" cy="68" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="580" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="370" cy="220" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="490" cy="220" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="490" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>美國政府合約遲遲不落地</strong><br><span style=font-size:12px;color:var(--c-muted)>Optimus / Iron Drone 美國 DoD / DHS 合約仍在洽談，缺乏具體時程</span></td><td class="num neg">極高</td><td class="num">高</td><td>2026</td><td>以色列實戰驗證可加速說服力；NATO 出口作為替代收入</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>持續深度虧損 + 股權稀釋</strong><br><span style=font-size:12px;color:var(--c-muted)>FY2025 淨虧 $132.2M（EDGAR），OCF -$38.7M；Accum Deficit -$368.4M</span></td><td class="num neg">高</td><td class="num">高</td><td>持續</td><td>現有 $550.7M 現金提供充裕跑道；但每次融資稀釋股東</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>雙業務整合複雜度</strong><br><span style=font-size:12px;color:var(--c-muted)>OAS（Airobotics + AmRobots）與 OAN（FullMAX）協同效益待驗證</span></td><td class="num ">中</td><td class="num">中</td><td>2026–2027</td><td>管理層聲稱有明確整合路徑，但執行風險高</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>競品大幅超越（AVAV / PLTR）</strong><br><span style=font-size:12px;color:var(--c-muted)>AVAV 已盈利且 C-UAS 更成熟；Palantir AI 平台是各廠商必需品</span></td><td class="num ">中</td><td class="num">中高</td><td>持續</td><td>FullMAX 鐵路協議唯一性是差異化護城河</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>以色列地緣政治 / 供應鏈風險</strong><br><span style=font-size:12px;color:var(--c-muted)>Airobotics 生產在以色列，中東地緣風險影響供應連續性</span></td><td class="num ">中</td><td class="num">中</td><td>持續</td><td>逐步將生產移至美國可降低此風險</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE 10 — CATALYSTS ═══ -->
+<div id="p-catalysts" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑 &amp; 觀察清單</div>
+    <h2 class="ph-title">未來 12–24 個月關鍵催化劑</h2>
+    <p class="ph-lead">美國政府合約是最高優先度觸發點；FullMAX 鐵路客戶擴展是最確定的長期 Revenue 支撐。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2">
+      <div class="reveal">
+        <div class="eyebrow">催化劑時間軸</div>
+        <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 H1</div><div class="tl-title">美國政府 Optimus 合約落地</div><div class="tl-body">DoD / DHS 正式採購 Optimus 系統 — 這是最大的 Bull Case 觸發點，也是最大的不確定性。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q2</div><div class="tl-title">Q1 2026 法說會 — 季度 OCF 方向</div><div class="tl-body">若 OCF 方向改善（負值縮小），說明規模化效益開始顯現；反之惡化則下修預期。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 H1–H2</div><div class="tl-title">NATO / 出口市場 Iron Drone 訂單</div><div class="tl-body">以色列實戰驗證後，NATO 盟國採購 Iron Drone Raider 可創造新 Revenue 流。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026–2027</div><div class="tl-title">FullMAX 新增 Class I 鐵路客戶</div><div class="tl-body">若主要北美 Class I 鐵路業者（BNSF / UP / CSX）正式採購，長期訂閱 Revenue 大幅提升。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2027</div><div class="tl-title">OAS / OAN 協同訂單（港口 / 能源）</div><div class="tl-body">雙業務整合帶來一站式解決方案優勢，港口和能源電網是最可能的垂直整合場景。</div></div></div>
+      </div>
+      <div class="reveal">
+        <div class="eyebrow">下次法說 5 個必看指標</div>
+        <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">季度 OCF 方向（正轉 = 關鍵信號）</div><div class="ws">當 OCF 開始縮小或轉正，說明 Revenue 規模已覆蓋運營成本 → Bull 信號加強</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">美國政府 Optimus 採購合約（有 / 無）</div><div class="ws">有具體合約 → 重新評估估值；持續洽談無進展 → Bear 風險升高</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">毛利率維持 35%+ 持續性</div><div class="ws">FY2025 39.7% 是否可持續（FY2024 僅 4.8%），季度毛利率是核心監控指標</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">新增融資 / 稀釋事件</div><div class="ws">大規模股權融資 → 分析是否換來等值資產增長；若只是燒錢補充 → 負面信號</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">FullMAX 新增合約數量</div><div class="ws">AAR 授權後的實際客戶數量與合約金額披露 → 長期可見度指標</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 11 — PERSONAS ═══ -->
+<div id="p-personas" class="page">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 5 大師 Personas 共識</div>
+    <h2 class="ph-title">不同投資風格對 ONDS 的解讀</h2>
+    <p class="ph-lead">五種投資視角的共識是：FullMAX 鐵路協議是真正護城河，美國政府合約是最大不確定性，財務持續惡化是核心風險。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-gray">觀望</span></div><div class="persona-score" style="color:var(--c-red)">4.0</div></div><div class="persona-body">FullMAX 鐵路通訊協議具備唯一性壁壘（AAR 授權），這是真正的護城河。但持續巨額虧損、無股息、依賴政府合約更新，不符合確定性現金流標準。$550.7M 現金不是盈利積累，是融資借來的。觀望直到業務自給。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green">偏多觀察</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">故事清晰（反無人機 + 鐵路通訊），Revenue +605% YoY 令人印象深刻。但 P/S ~2.6× 對應深度虧損公司並非便宜。GARP 視角需要看到至少毛利率穩定 + OCF 縮小才考慮進場。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green">偏多短期</span></div><div class="persona-score" style="color:var(--c-green)">6.5</div></div><div class="persona-body">反無人機是 2026 年最熱門主題，情緒加速基本面。若美國政府合約消息出現，股價將有正向反身性反應。但融資稀釋可能打破正循環。主題驅動的短期交易機會，非長期持有。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利視角</div><span class="pill pill-gray">觀望</span></div><div class="persona-score" style="color:var(--c-red)">3.5</div></div><div class="persona-body">雙業務整合（Airobotics + AmRobots + FullMAX）複雜度高，管理層需同時執行三條產品線整合，歷史上此類公司多數整合失敗。Accum Deficit -$368.4M 代表歷史大量資本消耗無回報。股票薪酬稀釋複利。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向視角</div><span class="pill pill-red">謹慎</span></div><div class="persona-score" style="color:var(--c-red)">3.0</div></div><div class="persona-body">現價 $9.70 × 495.8M 股 ≈ $4.8B 市值，對應 $50.7M Revenue = P/S 2.6×。淨虧 $132.2M。即使 FY2026 Revenue 翻倍至 $100M，P/S 仍達 2.4×，而競品 AVAV P/S 5× 但已盈利且 Revenue $700M。ONDS 的估值並不便宜。逆向視角不在此位置建倉。</div></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 12 — HONEST STANCE + DISCLAIMER ═══ -->
+<div id="p-disclaimer" class="page">
+  <div class="page-header" style="border-bottom:2px solid var(--c-gold)">
+    <div class="ph-eyebrow">S12 · 最終立場 + 方法論 + 免責聲明</div>
+    <h2 class="ph-title">研究立場：觀望 — 誠實分析不等同於推薦</h2>
+    <p class="ph-lead">本研究基於 EDGAR XBRL 真實數據（零虛構原則）和個人研究框架。所有估算區間均為個人推估，不構成任何投資建議，不構成任何買賣建議，投資人應自行研究並承擔風險，作者非執業投資顧問。本報告不收費、不帶會員、不接代操。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">觀望。個人估算 EV = $3.00 × 35% + $7.50 × 45% + $15.00 × 20% = $6.45，vs 現價 $9.70 = 期望值下行 -33%。ONDS 的雙業務佈局有其邏輯，但當前財務（OCF -$38.7M、淨虧 $132.2M、Accum Deficit -$368.4M）不支持現有估值。在美國政府 Optimus 合約落地之前，風險/報酬不對稱偏向下行。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">1. Palantir (PLTR)：AI 自主指揮系統不可或缺的底層平台，80%+ 毛利率，已盈利，護城河極強。C-UAS 和自主系統均需要 PLTR 的 AI 基礎設施。2. AeroVironment (AVAV)：已盈利、30%+ 毛利率、多款 Blue UAS 認證產品、$700M Revenue，是防衛 UAS 中財務最健康的純正標的。3. Kratos Defense (KTOS)：高端無人靶機 + 國防電子，$1.1B Revenue，25% GM，已盈利。以上三者在風險調整後回報均優於 ONDS。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>本研究個人估算 EV $6.45 vs 現價 $9.70，期望值下行 -33%。誠實立場：觀望，不觸發 &gt;10% 自動規則（EV 低於現價），不建議倉位行動。</p></div></div>
+    <div class="sec-div reveal"></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:Revenues</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:GrossProfit</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:NetIncomeLoss</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:NetCashProvidedByUsedInOperatingActivities</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:NetCashProvidedByUsedInInvestingActivities</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:NetCashProvidedByUsedInFinancingActivities</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:CashAndCashEquivalentsAtCarryingValue</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:RetainedEarningsAccumulatedDeficit</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:StockholdersEquity</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:PaymentsToAcquirePropertyPlantAndEquipment</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:EarningsPerShareDiluted</td><td>2026-03-30</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>SEC EDGAR XBRL</td><td>https://data.sec.gov/api/xbrl/companyfacts/CIK0001646188.json → us-gaap:EntityCommonStockSharesOutstanding</td><td>2026-05-13</td><td><span class="pill pill-gray">authoritative</span></td></tr><tr><td>Yahoo Finance</td><td>ONDS 現價 $9.70（2026-05-18 市場報價）</td><td>2026-05-18</td><td><span class="pill pill-gold">參考值</span></td></tr><tr><td>AI 生成圖像</td><td>Gemini 2.5 Flash Image · 示意用途 · 非真實照片</td><td>2026-05-18</td><td><span class="pill pill-blue">AI 生成示意</span></td></tr><tr><td>個人研究模型</td><td>估值 PT / 情境分析 / 競品比較 — 個人推估，非官方數據</td><td>2026-05-18</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · ONDS Fusion v2 · 2026-05-18</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001646188" target="_blank" style="color:var(--c-gold)">0001646188</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById(id);
+  if (pg) {
+    pg.classList.add('active');
+    setTimeout(() => triggerReveals(pg), 50);
+    setTimeout(() => animateBars(pg), 100);
+    setTimeout(() => triggerCountUps(pg), 80);
+  }
+  if (navEl) navEl.classList.add('active');
+  if (window.innerWidth <= 768) closeSidebar();
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+function switchTab(group, pane, btn) {
+  const pg = btn.closest('.page-body');
+  pg.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  pg.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(group + '-' + pane);
+  if (el) { el.classList.add('active'); animateBars(el); }
+  btn.classList.add('active');
+}
+function triggerReveals(root) {
+  (root || document).querySelectorAll('.reveal:not(.visible)').forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), i * 80);
+  });
+}
+function animateBars(root) {
+  (root || document).querySelectorAll('.score-fill[data-w]').forEach(f => {
+    requestAnimationFrame(() => { f.style.width = f.dataset.w; });
+  });
+}
+function triggerCountUps(root) {
+  (root || document).querySelectorAll('[data-count]').forEach(el => {
+    const target = parseFloat(el.dataset.count);
+    const prefix = el.dataset.prefix || (target >= 100 ? '' : '$');
+    const suffix = el.dataset.suffix || '';
+    const duration = 1200;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const val = target * ease;
+      el.textContent = prefix + (target >= 100 ? Math.round(val).toLocaleString() : val.toFixed(1)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+function updateCalc() {
+  const rs = document.getElementById('revSlider');
+  const ms = document.getElementById('multSlider');
+  if (!rs || !ms) return;
+  const rev = parseInt(rs.value);
+  const mult = parseFloat(ms.value);
+  document.getElementById('revDisplay').textContent = '$' + rev + 'M';
+  document.getElementById('multDisplay').textContent = mult + '×';
+  const cash = parseFloat(document.getElementById('ptCalcCash').dataset.cash || 0);
+  const shares = parseFloat(document.getElementById('ptCalcCash').dataset.shares || 140);
+  const price = parseFloat(document.getElementById('ptCalcCash').dataset.price || 10);
+  const ev = rev * mult;
+  const mv = ev + cash;
+  const pt = mv / shares;
+  const up = ((pt / price) - 1) * 100;
+  document.getElementById('evDisplay').textContent = '$' + Math.round(ev) + 'M';
+  document.getElementById('mvDisplay').textContent = '$' + Math.round(mv) + 'M';
+  document.getElementById('ptDisplay').textContent = '$' + pt.toFixed(2);
+  const upEl = document.getElementById('upDisplay');
+  upEl.textContent = (up >= 0 ? '+' : '') + up.toFixed(1) + '%';
+  upEl.style.color = up >= 0 ? '#2ECC71' : '#E74C3C';
+}
+function sortTable(id, col) {
+  const tbl = document.getElementById(id);
+  if (!tbl) return;
+  const th = tbl.querySelectorAll('th')[col];
+  const asc = !th.classList.contains('sort-asc');
+  tbl.querySelectorAll('th').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
+  th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+  const tbody = tbl.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    const av = a.querySelectorAll('td')[col]?.textContent.replace(/[^0-9.\-]/g,'') || '';
+    const bv = b.querySelectorAll('td')[col]?.textContent.replace(/[^0-9.\-]/g,'') || '';
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+    return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lb-caption').textContent = img.alt;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+
+function initCharts() {
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2020", "FY2021", "FY2022", "FY2023", "FY2024", "FY2025"],
+      datasets: [{ data: [2.16, 2.91, 2.13, 15.69, 7.19, 50.73], backgroundColor: ["#c8d4e0", "#c8d4e0", "#c8d4e0", "#F5A623", "#c8d4e0", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2020", "FY2021", "FY2022", "FY2023", "FY2024", "FY2025"],
+      datasets: [{
+        data: [42.9, 37.7, 52.2, 40.7, 4.8, 39.7],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#2ECC71", "#2ECC71", "#2ECC71", "#2ECC71", "#E74C3C", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  triggerReveals(document.getElementById('p-cover'));
+  triggerCountUps(document.getElementById('p-cover'));
+  updateCalc();
+  const rs = document.getElementById('revSlider');
+  const ms = document.getElementById('multSlider');
+  if (rs) rs.addEventListener('input', updateCalc);
+  if (ms) ms.addEventListener('input', updateCalc);
+  setTimeout(initCharts, 200);
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        if (entry.target.querySelector('.score-fill[data-w]')) animateBars(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+});
+</script>
+</body>
+</html>

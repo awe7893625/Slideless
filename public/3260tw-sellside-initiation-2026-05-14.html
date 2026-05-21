@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>威剛 3260.TW AI Research Notes · AI Research Notes · 2026-05-14</title>
+<style>
+:root{
+  --fs-xs:12px;--fs-sm:14px;--fs-md:16px;--fs-lg:22px;--fs-xl:32px;
+  --font-sans:'Inter','Noto Sans TC',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --bg-page:#F5F4EE;--bg-card:#FFFFFF;--bg-cover:#0A1628;
+  --text:#1A2540;--text-muted:#6B7280;--border:#E5E7EB;
+  --accent:#003B36;--accent-on-dark:#5BC9A8;
+  --positive:#1F7A5C;--negative:#C8302C;
+  --info:#4A90E2;--warning:#F5A623;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text);overflow-x:hidden;font-size:var(--fs-md);line-height:1.6}
+img,svg{max-width:100%}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,245,241,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:20px;overflow-x:auto}
+.nav-brand{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.1em}
+.nav-links{display:flex;gap:14px;flex:1;overflow-x:auto}
+.nav-links a{font-size:var(--fs-xs);color:var(--text-muted);text-decoration:none;white-space:nowrap}
+.nav-links a:hover{color:var(--accent)}
+.nav-badge{font-family:var(--font-mono);font-size:var(--fs-xs);background:#C8302C;color:#fff;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cover{background:var(--bg-cover);padding:100px 40px 64px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(91,201,168,.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(59,130,246,.05) 0%,transparent 60%)}
+.cover-inner{position:relative;z-index:1;max-width:900px;margin:0 auto}
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent-on-dark);margin-bottom:16px}
+.cover h1{font-size:var(--fs-xl);font-weight:700;color:#fff;line-height:1.15;margin-bottom:12px}
+.cover-subtitle{font-size:var(--fs-md);color:rgba(255,255,255,.55);margin-bottom:32px;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-meta{font-family:var(--font-mono);font-size:var(--fs-xs);color:rgba(255,255,255,.3);margin-bottom:40px;letter-spacing:1px}
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:24px 0;margin-bottom:28px}
+.stat-item{text-align:center;padding:0 8px}
+.stat-item+.stat-item{border-left:1px solid rgba(255,255,255,.10)}
+.stat-num{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;color:var(--accent-on-dark);display:block}
+.stat-label{font-size:var(--fs-xs);color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.cover-signal{display:inline-flex;align-items:center;gap:8px;background:rgba(91,201,168,.08);border:1px solid rgba(91,201,168,.25);border-radius:8px;padding:10px 20px}
+.cover-signal-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-on-dark);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cover-signal-text{font-family:var(--font-mono);font-size:var(--fs-xs);color:rgba(255,255,255,.8);letter-spacing:1px}
+.section{max-width:1100px;margin:0 auto;padding:72px 40px 56px}
+.section-divider{height:1px;background:var(--border);margin:0 40px}
+.section-eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.section-title{font-size:var(--fs-lg);font-weight:700;color:var(--text);margin-bottom:8px}
+.section-desc{font-size:var(--fs-sm);color:var(--text-muted);max-width:680px;margin-bottom:28px;line-height:1.7}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}
+.card-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.card-value{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--text)}
+.card-sub{font-size:var(--fs-xs);color:var(--text-muted);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.grid-6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:.5px}
+.pill-green{background:rgba(31,122,92,.12);color:#1F7A5C;border:1px solid rgba(31,122,92,.3)}
+.pill-red{background:rgba(200,48,44,.12);color:#C8302C;border:1px solid rgba(200,48,44,.3)}
+.pill-blue{background:rgba(74,144,226,.12);color:#2563eb;border:1px solid rgba(74,144,226,.3)}
+.pill-gray{background:rgba(107,114,128,.10);color:#555;border:1px solid rgba(107,114,128,.2)}
+.pill-orange{background:rgba(235,128,84,.12);color:#c05a24;border:1px solid rgba(235,128,84,.3)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);margin-bottom:4px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-track{background:#f5f4ee;border-radius:3px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{width:100%;min-width:auto;border-collapse:collapse}
+.table-wrap th{background:#f9f8f5;font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.table-wrap th:hover{color:var(--accent)}
+.table-wrap td{padding:10px 14px;font-size:var(--fs-sm);color:var(--text);border-bottom:1px solid #f0ede8;vertical-align:top}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:rgba(0,59,54,.02)}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}
+.scenario-card{border-radius:12px;padding:24px;border:2px solid}
+.scenario-bear{background:rgba(200,48,44,.04);border-color:rgba(200,48,44,.25)}
+.scenario-base{background:rgba(0,59,54,.04);border-color:rgba(0,59,54,.35)}
+.scenario-bull{background:rgba(31,122,92,.04);border-color:rgba(31,122,92,.25)}
+.scenario-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.scenario-pt{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;margin-bottom:8px}
+.scenario-prob{font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:12px}
+.scenario-trigger{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.6}
+.bear-color{color:#C8302C}.base-color{color:var(--accent)}.bull-color{color:#1F7A5C}
+.risk-card{border-radius:10px;padding:20px;border:1px solid var(--border);background:#fff;border-left:4px solid;margin-bottom:12px}
+.risk-critical{border-left-color:#C8302C}
+.risk-high{border-left-color:var(--accent)}
+.risk-medium{border-left-color:#f5c518}
+.risk-title{font-weight:700;font-size:var(--fs-sm);margin-bottom:6px;color:var(--text)}
+.risk-body{font-size:var(--fs-sm);color:var(--text-muted);line-height:1.6}
+.exec-bullets{background:#F3F4F6;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:0 0 24px;font-size:var(--fs-sm);line-height:1.8;color:var(--text)}
+.exec-bullets ul{list-style:none;padding:0;margin:0}
+.exec-bullets li{padding:2px 0 2px 22px;position:relative}
+.exec-bullets li::before{content:"▸";color:var(--accent);font-size:var(--fs-xs);position:absolute;left:4px;top:4px}
+.watch-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0ede8}
+.watch-row:last-child{border-bottom:none}
+.watch-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:var(--fs-xs);font-weight:700;margin-top:2px}
+.watch-body{flex:1;min-width:0}
+.watch-title{font-weight:600;font-size:var(--fs-sm);color:var(--text)}
+.watch-sub{font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px;line-height:1.6}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab-btn{padding:8px 20px;font-size:var(--fs-sm);font-weight:600;color:var(--text-muted);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.disclaimer-banner{background:rgba(200,48,44,.06);border:1px solid rgba(200,48,44,.20);border-radius:8px;padding:12px 16px;font-size:var(--fs-xs);color:#C8302C;margin-bottom:24px;line-height:1.6}
+.footnote{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);margin-top:16px}
+.catalyst-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f0ede8}
+.catalyst-row:last-child{border-bottom:none}
+.catalyst-badge{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.score-bar-wrap{margin-bottom:10px}
+.score-bar-label{display:flex;justify-content:space-between;font-size:var(--fs-xs);margin-bottom:4px}
+.score-bar-track{height:6px;background:#f0ede8;border-radius:3px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px}
+.calc-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px}
+.calc-title{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}
+.calc-row{display:grid;grid-template-columns:minmax(140px,200px) 1fr 60px;align-items:center;gap:12px;margin-bottom:12px}
+.calc-row label{font-size:var(--fs-sm);color:var(--text);line-height:1.4}
+.calc-row input[type=range]{width:100%;min-width:0;accent-color:var(--accent)}
+.calc-row .calc-val{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:700;color:var(--accent);text-align:right;white-space:nowrap}
+.calc-result{display:flex;gap:20px;margin-top:16px;padding:16px;background:#f5f4ee;border-radius:8px;flex-wrap:wrap}
+.calc-result-item{text-align:center;flex:1;min-width:80px}
+.calc-result-label{font-size:var(--fs-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.calc-result-val{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--accent)}
+.dark-section{background:var(--bg-cover);border-radius:16px;padding:40px}
+.dark-eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(91,201,168,.8);margin-bottom:12px}
+.dark-title{font-size:var(--fs-lg);font-weight:700;color:#fff;margin-bottom:4px}
+.dark-sub{font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-bottom:24px}
+.dark-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px}
+.supply-chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:8px}
+.sc-node{flex:1;min-width:140px;background:#fff;border:1px solid var(--border);padding:16px;text-align:center}
+.sc-node:first-child{border-radius:10px 0 0 10px}
+.sc-node:last-child{border-radius:0 10px 10px 0}
+.sc-node-label{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.sc-node-title{font-size:var(--fs-sm);font-weight:700;color:var(--text);margin-bottom:4px}
+.sc-node-sub{font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5}
+.sc-node.highlight{background:rgba(0,59,54,.05);border-color:rgba(0,59,54,.30)}
+.sc-arrow{display:flex;align-items:center;padding:0 4px;color:var(--text-muted);font-size:var(--fs-lg);flex-shrink:0}
+@media(max-width:768px){
+  .grid-2,.grid-3,.grid-4,.grid-6,.scenario-grid{grid-template-columns:1fr}
+  .cover{padding:48px 24px;min-height:360px}
+  .cover h1{font-size:var(--fs-lg)}
+  .stats-bar{grid-template-columns:repeat(2,1fr);gap:12px;padding:20px 16px}
+  .stat-item+.stat-item{border-left:none}
+  .stat-num{font-size:var(--fs-lg)}
+  .section{padding:40px 20px}
+  .section-divider{margin:0 20px}
+  .top-nav{padding:10px 16px;gap:12px}
+  .supply-chain{flex-direction:column}
+  .sc-node{border-radius:10px!important;min-width:unset}
+  .sc-arrow{transform:rotate(90deg);margin:4px auto}
+  .table-wrap{border:none;border-radius:0;overflow-x:visible}
+  .table-wrap table{min-width:unset!important;width:100%;display:block}
+  .table-wrap thead{display:none}
+  .table-wrap tbody{display:block;width:100%}
+  .table-wrap tr{display:block;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;padding:12px 14px}
+  .table-wrap td{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:var(--fs-sm);align-items:flex-start;line-height:1.5}
+  .table-wrap td:last-child{border-bottom:none;padding-bottom:0}
+  .table-wrap td::before{content:attr(data-label);font-weight:700;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-mono);flex-shrink:0;min-width:72px;padding-top:2px}
+  td.num{text-align:left}
+  .dark-section{padding:24px 16px;border-radius:10px}
+  .calc-row{grid-template-columns:1fr 60px;grid-template-rows:auto auto}
+  .calc-row label{grid-column:1 / -1}
+  .calc-row input[type=range]{grid-column:1}
+  .calc-row .calc-val{grid-column:2}
+}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="nav-brand">威剛 3260.TW · 2026-05-14</div>
+  <div class="nav-links">
+    <a href="#scenarios" style="color:var(--accent);font-weight:700">結論 PT</a>
+    <a href="#snapshot">快照</a>
+    <a href="#thesis">THESIS</a>
+    <a href="#market">MARKET</a>
+    <a href="#company">COMPANY</a>
+    <a href="#earnings">法說會</a>
+    <a href="#driver">核心驅動</a>
+    <a href="#supplychain">供應鏈</a>
+    <a href="#risks">風險</a>
+    <a href="#catalysts">催化劑</a>
+  </div>
+  <span class="nav-badge">RESEARCH ONLY</span>
+</nav>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="eyebrow">AI RESEARCH NOTES · 威剛科技 3260.TW · 2026-05-14</div>
+    <h1>威剛科技（3260.TW）<br>Memory Cycle 2026-2028：DRAM + SSD 雙受惠</h1>
+    <p class="cover-subtitle">NAND Flash + DRAM 供給持續吃緊至 2028，AI Server DDR5 需求爆發帶動模組廠受惠。威剛以 DRAM 68% + SSD 25% 結構，正面迎接 memory cycle 多頭。</p>
+    <div class="cover-meta">TWSE: 3260.TW &nbsp;·&nbsp; 2026-05-14 &nbsp;·&nbsp; 純研究輸出，不含交易建議 · AI Research Notes</div>
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-num" style="color:#ef4444">NT$300</span><div class="stat-label">Bear · 25%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--accent-on-dark)">NT$520</span><div class="stat-label">Base · 55%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">NT$750</span><div class="stat-label">Bull · 20%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#fff">NT$487</span><div class="stat-label">期望值 EV</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:rgba(255,255,255,.85)">NT$444.5</span><div class="stat-label">現價 (5/13)</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">+10%</span><div class="stat-label">EV vs 現價</div></div>
+    </div>
+    <div class="cover-signal">
+      <div class="cover-signal-dot"></div>
+      <span class="cover-signal-text">個人看法:偏多 · EV NT$487 > 現價 · Memory cycle 2028 前不退 · Stop-loss: NT$360</span>
+    </div>
+  </div>
+</div>
+
+<!-- S00 -->
+<div class="section" id="scenarios" style="padding-top:48px">
+  <div class="section-eyebrow" style="color:#C8302C">S00 · 結論先行 · 對股票的影響</div>
+  <div class="section-title">三情境個人估算區間：<span style="color:var(--accent)">期望值 NT$487 vs 現價 NT$444.5 = +10% upside</span></div>
+  <p class="section-desc">三情境以 DRAM/NAND 價格走勢 × 威剛 EPS 估算 × P/E 倍數 × 機率加權。DRAM 漲價週期是核心驅動。</p>
+  <div class="disclaimer-banner">本報告為純研究分析輸出。所有個人估算區間均為機率加權估算，不構成投資建議。投資有風險，請自行判斷。</div>
+  <div class="scenario-grid">
+    <div class="scenario-card scenario-bear">
+      <div class="scenario-label bear-color">Bear Case · 25%</div>
+      <div class="scenario-pt bear-color">NT$260–340</div>
+      <div class="scenario-prob">中位 <strong>NT$300</strong> · 期望貢獻 <strong>NT$75</strong> · 距現價 <strong style="color:#C8302C">−32%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（任一即觸發）：</strong><br>· Memory cycle 提前反轉（DRAM 跌 &gt;20%）<br>· Samsung/SK Hynix 大規模殺價<br>· 消費性需求疲弱（PC/手機出貨下修）<br>· AI Server 需求不如預期<br><br><strong>估值假設：</strong>FY27 EPS NT$20 × 15x = NT$300</div>
+    </div>
+    <div class="scenario-card scenario-base" style="border-width:3px;box-shadow:0 4px 16px rgba(0,59,54,.12)">
+      <div class="scenario-label base-color">Base Case · 55% ★ 最可能</div>
+      <div class="scenario-pt base-color">NT$460–580</div>
+      <div class="scenario-prob">中位 <strong>NT$520</strong> · 期望貢獻 <strong>NT$286</strong> · 距現價 <strong style="color:var(--accent)">+17%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（需全部成立）：</strong><br>· NAND 漲價持續至 2026-2027<br>· AI Server DDR5 需求持續放量<br>· 威剛 SSD 企業級佔比提升<br>· AI PC 拉動消費性 DRAM/SSD<br><br><strong>估值假設：</strong>FY27 EPS NT$30 × 17x = NT$510</div>
+    </div>
+    <div class="scenario-card scenario-bull">
+      <div class="scenario-label bull-color">Bull Case · 20%</div>
+      <div class="scenario-pt bull-color">NT$680–820</div>
+      <div class="scenario-prob">中位 <strong>NT$750</strong> · 期望貢獻 <strong>NT$150</strong> · 距現價 <strong style="color:#1F7A5C">+69%</strong></div>
+      <div class="scenario-trigger"><strong>觸發條件（需全部成立）：</strong><br>· Memory shortage 持續至 2028<br>· AI PC 出貨量超預期（年增 50%+）<br>· 威剛 HBM/DDR5 High-margin 產品放量<br>· NAND 供給不足導致 SSD 大漲<br><br><strong>估值假設：</strong>FY27 EPS NT$50 × 15x = NT$750</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px;background:rgba(0,59,54,.04);border-color:rgba(0,59,54,.25)">
+    <div class="card-label">期望值計算（機率加權）</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--text)">EV = <span style="color:#C8302C">NT$300</span> × 25% + <span style="color:var(--accent)">NT$520</span> × 55% + <span style="color:#1F7A5C">NT$750</span> × 20%</div>
+      <div style="font-size:var(--fs-lg);color:var(--text-muted)">=</div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;color:var(--accent)">NT$487</div>
+      <div style="flex:1;min-width:180px;font-size:var(--fs-sm);color:var(--text-muted);line-height:1.6">距現價 NT$444.5 = <span style="color:#1F7A5C;font-weight:700">+10% upside</span>。Memory cycle 多頭確立，BUY。</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <div class="card-label">建議動作</div>
+      <ul style="font-size:var(--fs-sm);line-height:1.9;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>BUY</strong>：EV NT$487 &gt; 現價，memory cycle 多頭確立</li>
+        <li><strong>加碼時機</strong>：DRAM 報價公布上漲當月</li>
+        <li><strong>Stop-loss</strong>：跌破 NT$360 → 重新評估；DRAM 報價月跌 &gt;10% → 觀望</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--warning)">
+      <div class="card-label">監控 3 件事</div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(31,122,92,.15);color:#1F7A5C">D</div><div class="watch-body"><div class="watch-title">DRAM/NAND 報價月度走勢</div><div class="watch-sub">TrendForce 月報：連續 2 個月下跌 &gt;5% → Bear case 警戒</div></div></div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(74,144,226,.15);color:#2563eb">A</div><div class="watch-body"><div class="watch-title">AI Server 採購量（IDC/Gartner 季報）</div><div class="watch-sub">AI server 出貨量若下修 → DDR5 需求連動下修</div></div></div>
+      <div class="watch-row"><div class="watch-icon" style="background:rgba(245,166,35,.15);color:#b45309">Q</div><div class="watch-body"><div class="watch-title">威剛季度營收 YoY</div><div class="watch-sub">Q2 2026 年增率需 &gt;20% 以確認漲價傳遞能力</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- SNAPSHOT -->
+<div class="section" id="snapshot">
+  <div class="section-eyebrow">快照 / SNAPSHOT</div>
+  <div class="section-title">威剛 2026 Q1 業績快照</div>
+  <p class="section-desc">Q1 2026 累計營收 NT$261.1 億，DRAM 佔 68%、SSD 25%，台股 DRAM 模組廠代表標的，受惠 AI Server 記憶體需求爆發。</p>
+  <div class="grid-6" style="margin-bottom:24px">
+    <div class="card" style="padding:12px"><div class="card-label">現價</div><div class="card-value" style="font-size:var(--fs-lg)">NT$444.5</div><div class="card-sub">2026-05-13</div></div>
+    <div class="card" style="padding:12px"><div class="card-label">Q1 累計營收</div><div class="card-value" style="font-size:var(--fs-lg);color:var(--positive)">NT$261B</div><div class="card-sub">+YoY（月增連升）</div></div>
+    <div class="card" style="padding:12px"><div class="card-label">DRAM 佔比</div><div class="card-value" style="font-size:var(--fs-lg)">68%</div><div class="card-sub">DDR5 Server 主力</div></div>
+    <div class="card" style="padding:12px"><div class="card-label">SSD 佔比</div><div class="card-value" style="font-size:var(--fs-lg)">24.9%</div><div class="card-sub">企業 + AI PC</div></div>
+    <div class="card" style="padding:12px"><div class="card-label">EV upside</div><div class="card-value" style="font-size:var(--fs-lg);color:var(--positive)">+10%</div><div class="card-sub">EV NT$487 vs 現價</div></div>
+    <div class="card" style="padding:12px"><div class="card-label">Memory cycle</div><div class="card-value" style="font-size:var(--fs-lg);color:var(--positive)">多頭</div><div class="card-sub">至 2028E</div></div>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">產品結構（Q1 2026）</div>
+      <svg viewBox="0 0 200 120" style="width:100%;max-width:220px;height:auto;display:block;margin:8px auto 0">
+        <!-- Simple bar chart: DRAM 68, SSD 24.9, Other 7.1 -->
+        <rect x="20" y="10" width="114" height="22" fill="#003B36" rx="3"/>
+        <text x="140" y="25" font-family="JetBrains Mono,monospace" font-size="11" fill="#003B36" font-weight="700">68%</text>
+        <text x="20" y="48" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">DRAM 模組</text>
+        <rect x="20" y="50" width="42" height="22" fill="#1F7A5C" rx="3"/>
+        <text x="68" y="65" font-family="JetBrains Mono,monospace" font-size="11" fill="#1F7A5C" font-weight="700">24.9%</text>
+        <text x="20" y="88" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">SSD</text>
+        <rect x="20" y="90" width="12" height="22" fill="#9CA3AF" rx="3"/>
+        <text x="38" y="105" font-family="JetBrains Mono,monospace" font-size="11" fill="#9CA3AF">7.1%</text>
+        <text x="55" y="108" font-family="JetBrains Mono,monospace" font-size="10" fill="#6B7280">其他</text>
+      </svg>
+    </div>
+    <div class="card">
+      <div class="card-label">競爭定位</div>
+      <div style="font-size:var(--fs-sm);line-height:1.9;margin-top:4px">
+        <div style="display:flex;justify-content:space-between"><span>台灣市場</span><span class="pill pill-green">前 3 大</span></div>
+        <div style="display:flex;justify-content:space-between"><span>全球 DRAM 模組</span><span class="pill pill-blue">Top 10</span></div>
+        <div style="display:flex;justify-content:space-between"><span>AI Server 切入</span><span class="pill pill-orange">DDR5 積極</span></div>
+        <div style="display:flex;justify-content:space-between"><span>品牌知名度</span><span style="font-family:var(--font-mono)">ADATA 全球</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">關鍵驅動因素</div>
+      <div style="font-size:var(--fs-sm);line-height:1.9;margin-top:4px">
+        <div style="display:flex;justify-content:space-between"><span>DRAM 漲價</span><span class="pill pill-green">持續</span></div>
+        <div style="display:flex;justify-content:space-between"><span>AI Server DDR5</span><span class="pill pill-green">爆發</span></div>
+        <div style="display:flex;justify-content:space-between"><span>AI PC SSD</span><span class="pill pill-green">成長</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Memory shortage</span><span style="font-family:var(--font-mono)">至 2028E</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- THESIS -->
+<div class="section" id="thesis">
+  <div class="section-eyebrow">CH.1 · THESIS</div>
+  <div class="section-title">投資論點：Memory Cycle 2026-2028 — 威剛是最直接受惠者</div>
+  <p class="section-desc">Silicon Motion CEO 警告 memory+SSD 短缺持續到 2028，AI Server 需求帶動 HBM 及 DDR5 同步缺貨。威剛以 DRAM 模組廠身份，直接受惠漲價週期。</p>
+  <div class="exec-bullets">
+    <ul>
+      <li>因果鏈：AI Server 爆炸式成長 → HBM + DDR5 需求暴增 → DRAM 供給吃緊 → 報價上漲 → 威剛模組廠 ASP 提升 + 毛利率擴張</li>
+      <li>驗證證據：Q1 2026 累計營收 NT$261.1 億，DRAM 佔比 68% 為核心受惠段，SSD 25% 受 AI PC 推升</li>
+      <li>市場誤解：市場低估 AI Server 對 DRAM 模組需求的直接帶動；模組廠 beta 值高於上游晶片廠（漲價 10% → 毛利率改善更大）</li>
+      <li>主要風險：memory cycle 反轉（Samsung/SK Hynix 殺價策略）、消費性需求疲弱</li>
+    </ul>
+  </div>
+  <div class="grid-3">
+    <div class="card" style="border-top:3px solid var(--accent)">
+      <div class="card-label">Situation</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">DRAM + NAND 供給持續吃緊，AI Server 需求爆發。Silicon Motion CEO 明確警告短缺至 2028。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--warning)">
+      <div class="card-label">Complication</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">三星 / SK Hynix 殺價風險、消費性端（PC/手機）需求復甦時程不確定、威剛品牌溢價有限。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--positive)">
+      <div class="card-label">Answer（結論）</div>
+      <div style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.7;margin-top:8px">EV NT$487 &gt; 現價，Memory cycle 多頭前景明確。BUY，監控 DRAM 報價月度走勢。</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- MARKET -->
+<div class="section" id="market">
+  <div class="section-eyebrow">CH.2 · MARKET</div>
+  <div class="section-title">全球 DRAM + SSD 市場：AI 需求重寫供需結構</div>
+  <p class="section-desc">全球 DRAM TAM 2026E $120B+，AI Server 端 DDR5 需求 CAGR 40%+。SSD 企業級 TAM $80B+，AI PC 拉動消費級同步成長。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>市場維度</th><th class="num">規模（2026E）</th><th>成長率</th><th>威剛連結</th></tr></thead>
+      <tbody>
+        <tr><td>全球 DRAM TAM</td><td class="num" style="font-weight:700">$120B+</td><td>AI Server 帶動 CAGR 20%+</td><td>DDR5 模組直接受惠，佔收入 ~68%</td></tr>
+        <tr><td>SSD 企業 TAM</td><td class="num" style="font-weight:700">$80B+</td><td>DC + AI PC 雙驅動</td><td>企業 SSD 佔比持續提升，ASP 改善</td></tr>
+        <tr><td>DDR5 Server CAGR</td><td class="num" style="color:var(--positive);font-weight:700">40%+</td><td>2024-2027 · AI 驅動</td><td>HBM 短缺外溢帶動 DDR5 需求</td></tr>
+        <tr><td>Supply Shortage 週期</td><td class="num" style="color:var(--positive);font-weight:700">至 2028E</td><td>供給吃緊</td><td>矽動 CEO 外部確認，漲價週期持續</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:24px">
+    <div class="card">
+      <div class="card-label">需求結構分析</div>
+      <div class="grid-3" style="margin-top:12px;gap:12px">
+        <div style="padding:12px;background:#f9f8f5;border-radius:8px">
+          <div style="font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:4px">AI SERVER DDR5</div>
+          <div style="font-size:var(--fs-sm);font-weight:700">爆發式成長段</div>
+          <div style="font-size:var(--fs-xs);color:var(--text-muted)">每台 AI Server 配置 8-16 條 DDR5，HBM 短缺帶動 DDR5 同步需求</div>
+        </div>
+        <div style="padding:12px;background:#f9f8f5;border-radius:8px">
+          <div style="font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:4px">AI PC SSD</div>
+          <div style="font-size:var(--fs-sm);font-weight:700">成長替換段</div>
+          <div style="font-size:var(--fs-xs);color:var(--text-muted)">AI PC 需求本地 LLM 推理更大 SSD 容量（1TB+），更新換代速度加快</div>
+        </div>
+        <div style="padding:12px;background:#f9f8f5;border-radius:8px">
+          <div style="font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:4px">消費 DRAM</div>
+          <div style="font-size:var(--fs-sm);font-weight:700">穩定恢復段</div>
+          <div style="font-size:var(--fs-xs);color:var(--text-muted)">手機/PC 換機週期 + 庫存去化完成，穩步回升但非主驅動</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- COMPANY -->
+<div class="section" id="company">
+  <div class="section-eyebrow">CH.3 · COMPANY ANALYSIS</div>
+  <div class="section-title">財務分析 × 護城河 × 同業比較</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(event,'rev3260')">營收趨勢</button>
+    <button class="tab-btn" onclick="switchTab(event,'peer3260')">同業比較</button>
+  </div>
+  <div id="tab-rev3260" class="tab-panel active">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>期間</th><th class="num">月營收（億）</th><th class="num">YoY</th><th class="num">DRAM 貢獻</th><th class="num">SSD 貢獻</th><th>備註</th></tr></thead>
+        <tbody>
+          <tr><td data-label="期間">2026-01</td><td class="num" data-label="月營收（億）">NT$83.6</td><td class="num" data-label="YoY" style="color:#1F7A5C">+</td><td class="num" data-label="DRAM 貢獻">68%</td><td class="num" data-label="SSD 貢獻">25%</td><td data-label="備註">Q1 起步強</td></tr>
+          <tr><td data-label="期間">2026-02</td><td class="num" data-label="月營收（億）">NT$88.2</td><td class="num" data-label="YoY" style="color:#1F7A5C">+</td><td class="num" data-label="DRAM 貢獻">68%</td><td class="num" data-label="SSD 貢獻">25%</td><td data-label="備註">農曆年後回升</td></tr>
+          <tr><td data-label="期間">2026-03</td><td class="num" data-label="月營收（億）">NT$89.3</td><td class="num" data-label="YoY" style="color:#1F7A5C">+</td><td class="num" data-label="DRAM 貢獻">68%</td><td class="num" data-label="SSD 貢獻">25%</td><td data-label="備註">AI Server 拉貨</td></tr>
+          <tr style="background:rgba(0,59,54,.04)"><td data-label="期間"><strong>Q1 2026 累計</strong></td><td class="num" data-label="月營收（億）"><strong>NT$261.1</strong></td><td class="num" data-label="YoY" style="color:#1F7A5C"><strong>年增正向</strong></td><td class="num" data-label="DRAM 貢獻">68%</td><td class="num" data-label="SSD 貢獻">24.9%</td><td data-label="備註"><span class="pill pill-green">符合預期</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="tab-peer3260" class="tab-panel">
+    <div class="table-wrap">
+      <table id="peer-table-3260">
+        <thead><tr><th onclick="sortTable('peer-table-3260',0)">公司</th><th class="num" onclick="sortTable('peer-table-3260',1)">定位</th><th class="num" onclick="sortTable('peer-table-3260',2)">DRAM 佔比</th><th onclick="sortTable('peer-table-3260',3)">品牌</th><th onclick="sortTable('peer-table-3260',4)">護城河</th></tr></thead>
+        <tbody>
+          <tr style="background:rgba(0,59,54,.04)"><td data-label="公司"><strong>威剛 3260</strong> <span class="pill pill-blue">本標的</span></td><td class="num" data-label="定位">模組廠</td><td class="num" data-label="DRAM 佔比">68%</td><td data-label="品牌">ADATA 全球</td><td data-label="護城河">品牌 + 通路</td></tr>
+          <tr><td data-label="公司">創見 2451</td><td class="num" data-label="定位">模組廠</td><td class="num" data-label="DRAM 佔比">~55%</td><td data-label="品牌">Transcend</td><td data-label="護城河">工業規 + 特規</td></tr>
+          <tr><td data-label="公司">宇瞻 8271</td><td class="num" data-label="定位">模組廠</td><td class="num" data-label="DRAM 佔比">~60%</td><td data-label="品牌">APACER</td><td data-label="護城河">汽車規格</td></tr>
+          <tr><td data-label="公司">Kingston</td><td class="num" data-label="定位">模組廠</td><td class="num" data-label="DRAM 佔比">~70%</td><td data-label="品牌">Kingston 全球</td><td data-label="護城河">全球最大</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div style="margin-top:24px">
+    <div class="card">
+      <div class="card-label">護城河評分</div>
+      <div class="grid-2" style="margin-top:12px">
+        <div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>品牌 + 通路覆蓋</span><span>7.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:#1F7A5C"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>DDR5 Server 切換速度</span><span>7.0/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:70%;background:#4A90E2"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>SSD 企業級能力</span><span>6.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:65%;background:#4A90E2"></div></div></div>
+        </div>
+        <div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>供應鏈議價力</span><span>5.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:55%;background:#F5A623"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>AI PC / Server 打入率</span><span>6.0/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:#4A90E2"></div></div></div>
+          <div class="score-bar-wrap"><div class="score-bar-label"><span>綜合護城河</span><span>6.5/10</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:65%;background:#4A90E2"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- EARNINGS -->
+<div class="section" id="earnings">
+  <div class="section-eyebrow">CH.4 · 最近法說會重點</div>
+  <div class="section-title">2026 年度業績說明：Memory 漲價正面傳遞中</div>
+  <p class="section-desc">威剛董事長陳立白確認 DRAM 報價持續走強，AI Server DDR5 訂單能見度高至 2026 年底。Silicon Motion CEO 外部確認 shortage 至 2028。</p>
+  <div class="dark-section">
+    <div class="dark-eyebrow">KEY QUOTES · 法說會 / 公開發言</div>
+    <div class="dark-title">威剛 × 產業外部佐證</div>
+    <div class="dark-sub">2026 Q1 法說 · Silicon Motion CEO 外部發言</div>
+    <div class="grid-2" style="gap:16px">
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">陳立白 · 董事長</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"DRAM 報價持續走強，AI Server 客戶訂單能見度高，Q2 展望樂觀。SSD 企業級佔比持續提升。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 正向催化</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">Silicon Motion CEO · 外部佐證</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"Memory and SSD supply shortages will persist through 2028 due to structural AI demand — this is not a short-term phenomenon."</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 強力外部確認</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">AI PC 展望</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"AI PC 換機潮帶動 SSD 需求升級，容量需求從 512GB 向 1TB+ 移動，有利 SSD ASP 提升。"</div><div style="margin-top:8px"><span class="pill pill-green" style="font-size:10px">🟢 正向催化</span></div></div>
+      <div class="dark-card"><div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px">潛在風險警示</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,.8);line-height:1.7;margin-top:8px;font-style:italic">"若消費性市場（PC/手機）需求復甦緩慢，DRAM 消費段報價可能拖累整體均價。"</div><div style="margin-top:8px"><span class="pill pill-orange" style="font-size:10px;color:#b45309">⚪ 中性風險提示</span></div></div>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top:20px">
+    <table>
+      <thead><tr><th>法說維度</th><th>詳情</th><th>訊號</th></tr></thead>
+      <tbody>
+        <tr><td><strong>業績反應</strong></td><td>Q1 累計 NT$261.1 億 · 月增趨勢連續走升</td><td><span class="pill pill-green">市場樂觀</span></td></tr>
+        <tr><td><strong>Guide 重點</strong></td><td>AI Server 訂單能見度高至年底 · SSD 企業佔比持續提升 · DRAM 報價走強</td><td><span class="pill pill-green">正向</span></td></tr>
+        <tr><td><strong>關鍵觀察點</strong></td><td>TrendForce DRAM 月報是最直接領先指標；三星 Q2 price list 公布日為關鍵事件</td><td><span class="pill pill-blue">短期正向</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- DRIVER -->
+<div class="section" id="driver">
+  <div class="section-eyebrow">CH.5 · 核心驅動產品深拆</div>
+  <div class="section-title">DRAM 模組：AI Server DDR5 × SSD：AI PC 換機</div>
+  <p class="section-desc">DRAM 模組是威剛 68% 收入核心，DDR5 Server 段是 2026-2028 最高 CAGR 子段。SSD 企業級佔比提升是毛利率改善路徑。</p>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead><tr><th>產品</th><th class="num">FY26 佔比</th><th class="num">成長驅動</th><th>核心優勢</th><th>主要風險</th><th>股價驅動力</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(0,59,54,.04)"><td data-label="產品"><strong>DRAM 模組</strong> ⭐ 主驅動</td><td class="num" data-label="FY26 佔比">68%</td><td class="num" data-label="成長驅動" style="color:#1F7A5C">DDR5 Server</td><td data-label="核心優勢">全球品牌 ADATA、AI Server 認證、DDR5 切換快</td><td data-label="主要風險">三星/SK Hynix 殺價、cycle 反轉</td><td data-label="股價驅動力"><span class="pill pill-green">漲價週期受惠</span></td></tr>
+        <tr><td data-label="產品"><strong>SSD</strong></td><td class="num" data-label="FY26 佔比">24.9%</td><td class="num" data-label="成長驅動" style="color:#1F7A5C">AI PC + DC</td><td data-label="核心優勢">容量升級趨勢、1TB+ 需求增加、企業 SSD 合作</td><td data-label="主要風險">NAND 控制器競爭</td><td data-label="股價驅動力"><span class="pill pill-blue">ASP 提升路徑</span></td></tr>
+        <tr><td data-label="產品">其他（周邊/特規）</td><td class="num" data-label="FY26 佔比">7.1%</td><td class="num" data-label="成長驅動">穩定</td><td data-label="核心優勢">工業規格認證</td><td data-label="主要風險">市場小</td><td data-label="股價驅動力"><span class="pill pill-gray">基盤穩定</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-label">DRAM DDR5 Server 生態圖解</div>
+    <svg viewBox="0 0 700 160" style="width:100%;max-width:700px;height:auto;display:block;margin:12px auto 0">
+      <rect width="700" height="160" fill="#f9f8f5" rx="8"/>
+      <!-- AI Server demand chain -->
+      <rect x="20" y="20" width="130" height="120" fill="#0A1628" rx="8"/>
+      <text x="85" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#5BC9A8" font-weight="700">AI SERVER</text>
+      <text x="85" y="78" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">每台 8-16 條</text>
+      <text x="85" y="94" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">DDR5 模組</text>
+      <text x="85" y="115" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" fill="#5BC9A8" font-weight="800">↑</text>
+      <text x="85" y="132" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#5BC9A8">需求爆發</text>
+      <!-- DDR5 shortage -->
+      <rect x="170" y="20" width="130" height="120" fill="#003B36" rx="8"/>
+      <text x="235" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#5BC9A8" font-weight="700">DDR5 供給</text>
+      <text x="235" y="78" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">HBM 排擠</text>
+      <text x="235" y="94" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">產能吃緊</text>
+      <text x="235" y="115" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" fill="#ef4444" font-weight="800">↓</text>
+      <text x="235" y="132" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#ef4444">供給不足</text>
+      <!-- Price up -->
+      <rect x="320" y="20" width="130" height="120" fill="#1F7A5C" rx="8"/>
+      <text x="385" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#fff" font-weight="700">DRAM 報價</text>
+      <text x="385" y="78" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.8)">持續走強</text>
+      <text x="385" y="94" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.8)">至 2028E</text>
+      <text x="385" y="115" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" fill="#4ade80" font-weight="800">↑</text>
+      <text x="385" y="132" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4ade80">漲價週期</text>
+      <!-- ADATA benefit -->
+      <rect x="470" y="20" width="130" height="120" fill="#003B36" rx="8" style="border:2px solid #5BC9A8"/>
+      <text x="535" y="52" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#5BC9A8" font-weight="700">威剛受惠</text>
+      <text x="535" y="70" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">ASP 提升</text>
+      <text x="535" y="86" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,.7)">毛利率擴張</text>
+      <text x="535" y="104" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="20" fill="#5BC9A8" font-weight="800">★</text>
+      <text x="535" y="124" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#5BC9A8">直接受惠</text>
+      <!-- Arrows -->
+      <text x="158" y="85" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+      <text x="308" y="85" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+      <text x="458" y="85" font-family="JetBrains Mono,monospace" font-size="16" fill="#6B7280">→</text>
+      <!-- PT label -->
+      <rect x="615" y="30" width="75" height="100" fill="rgba(91,201,168,.15)" rx="8" stroke="#5BC9A8" stroke-width="1"/>
+      <text x="652" y="70" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#003B36" font-weight="700">BASE PT</text>
+      <text x="652" y="90" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" fill="#003B36" font-weight="800">520</text>
+      <text x="652" y="108" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1F7A5C">TWD</text>
+    </svg>
+  </div>
+  <!-- Interactive Calculator -->
+  <div class="calc-wrap">
+    <div class="calc-title">三情境個人估算區間計算機（互動）</div>
+    <div class="calc-row"><label>DRAM 漲價幅度 FY26 (%)</label><input type="range" min="5" max="40" value="20" id="dram-up" oninput="calcPT3260()"><span class="calc-val" id="dram-up-val">20%</span></div>
+    <div class="calc-row"><label>EPS 估算倍數 (x)</label><input type="range" min="8" max="25" value="17" step="0.5" id="pe-3260" oninput="calcPT3260()"><span class="calc-val" id="pe-3260-val">17x</span></div>
+    <div class="calc-row"><label>FY26 EPS 基準 (TWD)</label><input type="range" min="15" max="60" value="30" step="1" id="eps-3260" oninput="calcPT3260()"><span class="calc-val" id="eps-3260-val">NT$30</span></div>
+    <div class="calc-result">
+      <div class="calc-result-item"><div class="calc-result-label">FY26 EPS 估算</div><div class="calc-result-val" id="res-eps3260">NT$30</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">P/E 倍數</div><div class="calc-result-val" id="res-pe3260">17x</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">股價 PT</div><div class="calc-result-val" id="res-pt3260">NT$510</div></div>
+      <div class="calc-result-item"><div class="calc-result-label">vs 現價</div><div class="calc-result-val" id="res-up3260">+15%</div></div>
+    </div>
+  </div>
+
+  <!-- SVG 圖 1 — 3260 威剛 DRAM 模組 5 層拆解 -->
+  <div style="margin-top:28px">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px">DRAM 模組產品解剖 — 5 層堆疊示意</div>
+    <svg viewBox="0 0 720 420" width="100%" height="auto" style="max-width:720px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .bg3260{fill:#0A1628}
+        .die-ly{fill:#5BC9A8}
+        .pcb-ly{fill:#F5A623}
+        .ctl-ly{fill:#94A3B8}
+        .hs-ly{fill:#4A90E2}
+        .mod-ly{fill:rgba(91,201,168,0.3);stroke:#5BC9A8;stroke-width:2}
+        .lbl32{font:600 12px 'Inter',sans-serif;fill:#fff}
+        .lbld32{font:600 11px 'Inter',sans-serif;fill:#0A1628}
+        .ttl32{font:700 14px 'Inter',sans-serif;fill:#fff;text-anchor:middle}
+        .an32{font:500 10px 'Inter',sans-serif;fill:rgba(255,255,255,0.65)}
+        .moat32{font:600 10px 'Inter',sans-serif;fill:#5BC9A8;text-anchor:middle}
+      </style>
+      <rect width="720" height="420" class="bg3260" rx="8"/>
+      <text x="360" y="26" class="ttl32">威剛 3260 · DDR5 DRAM 模組 — 五層結構拆解</text>
+
+      <!-- 左側 5 層堆疊 -->
+      <!-- L5: 散熱片 Heatsink -->
+      <rect x="60" y="48" width="280" height="44" class="hs-ly" rx="4"/>
+      <text x="70" y="70" class="lbld32">L5 散熱片 Heatsink（第三方 OEM）</text>
+      <text x="70" y="84" class="lbld32" style="font-weight:400">鋁製 / 銅散熱模組，外觀差異化；XPG 系列高端版本</text>
+
+      <!-- L4: DDR Controller -->
+      <rect x="60" y="98" width="280" height="44" class="ctl-ly" rx="4"/>
+      <text x="70" y="118" class="lbld32">L4 DDR 控制器 / Register（第三方）</text>
+      <text x="70" y="134" class="lbld32" style="font-weight:400">Renesas / Montage DDR5 RCD；威剛採購並整合</text>
+
+      <!-- L3: PCB 電路板 (自家設計) -->
+      <rect x="60" y="148" width="280" height="50" class="pcb-ly" rx="4"/>
+      <text x="70" y="172" class="lbld32">L3 PCB 電路板（威剛自行設計）</text>
+      <text x="70" y="188" class="lbld32" style="font-weight:400">10 層板 / Signal Integrity 優化；自有設計核心 IP</text>
+
+      <!-- L2: DRAM Die × 8-16 顆 (Micron/Samsung/SK Hynix) -->
+      <rect x="60" y="204" width="280" height="80" class="pcb-ly" rx="4" style="fill:#F5A623"/>
+      <text x="70" y="226" class="lbld32">L2 DRAM Die × 8/16 顆（上游採購）</text>
+      <text x="70" y="242" class="lbld32" style="font-weight:400">DDR5 / LPDDR5X Die</text>
+      <text x="70" y="258" class="lbld32" style="font-weight:400;color:#005c4b">Micron · Samsung · SK Hynix 三選一</text>
+      <text x="70" y="274" class="lbld32" style="font-weight:400;color:#005c4b">威剛無定價權（最大 BOM 成本 ~65-70%）</text>
+
+      <!-- L1: 模組組裝 + 品牌 (威剛核心加值) -->
+      <rect x="60" y="290" width="280" height="80" class="mod-ly" rx="4"/>
+      <text x="70" y="316" class="lbl32">L1 威剛模組組裝 + ADATA 品牌（核心加值）</text>
+      <text x="70" y="332" class="lbl32" style="font-weight:400">品管 / 相容性測試 / OEM 認證</text>
+      <text x="70" y="348" class="lbl32" style="font-weight:400">AI Server DDR5 ECC RDiMM 認證</text>
+      <text x="70" y="364" class="an32">護城河：15 年品牌 + Server 客戶認證壁壘</text>
+
+      <!-- 右側 client 應用 -->
+      <text x="700" y="62" class="an32" style="text-anchor:end">終端客戶 / 用途</text>
+
+      <rect x="360" y="72" width="340" height="40" rx="4" fill="rgba(91,201,168,0.15)" stroke="#5BC9A8" stroke-width="1"/>
+      <text x="370" y="90" class="lbl32">AI Server RDiMM</text>
+      <text x="370" y="104" class="an32">H100/H200 每台需 8-16 條 DDR5 ECC; 高毛利</text>
+
+      <rect x="360" y="120" width="340" height="40" rx="4" fill="rgba(245,166,35,0.15)" stroke="#F5A623" stroke-width="1"/>
+      <text x="370" y="138" class="lbl32">企業 / 工業規格</text>
+      <text x="370" y="152" class="an32">工業溫度 / 長壽命認證；毛利率優於消費品</text>
+
+      <rect x="360" y="168" width="340" height="38" rx="4" fill="rgba(148,163,184,0.15)" stroke="#94A3B8" stroke-width="1"/>
+      <text x="370" y="186" class="lbl32">消費性 PC / AI PC</text>
+      <text x="370" y="200" class="an32">XPG 電競品牌；SODIMM AI PC 規格升級</text>
+
+      <!-- BOM 占比 -->
+      <text x="360" y="232" class="lbl32" style="font-size:11px">BOM 成本結構</text>
+      <rect x="360" y="242" width="198" height="12" style="fill:#F5A623"/>
+      <rect x="558" y="242" width="60" height="12" style="fill:#5BC9A8"/>
+      <rect x="618" y="242" width="30" height="12" style="fill:#94A3B8"/>
+      <rect x="648" y="242" width="42" height="12" style="fill:#4A90E2"/>
+      <text x="360" y="268" class="an32">DRAM Die 65% | PCB 設計 18% | Controller 9% | Heatsink 8%</text>
+
+      <!-- Legend -->
+      <rect x="60" y="384" width="10" height="10" class="mod-ly" rx="2"/>
+      <text x="76" y="393" class="an32">威剛自主</text>
+      <rect x="158" y="384" width="10" height="10" style="fill:#F5A623" rx="2"/>
+      <text x="174" y="393" class="an32">上游採購 (無議價)</text>
+      <rect x="318" y="384" width="10" height="10" style="fill:#94A3B8" rx="2"/>
+      <text x="334" y="393" class="an32">第三方 OEM</text>
+      <rect x="440" y="384" width="10" height="10" style="fill:#4A90E2" rx="2"/>
+      <text x="456" y="393" class="an32">外觀/散熱</text>
+      <text x="360" y="410" class="an32" style="text-anchor:middle;opacity:0.6">CAVEAT：此圖為示意性結構，各層相對高度非按真實 PCB 尺寸比例</text>
+    </svg>
+  </div>
+
+  <!-- SVG 圖 3 — 3260 競爭力 Stack (產品 section 內插入) -->
+  <div style="margin-top:28px">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px">威剛 vs 同業 — 六維競爭力比較矩陣</div>
+    <svg viewBox="0 0 720 460" width="100%" height="auto" style="max-width:720px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .lbl-32c{font:600 12px/1.2 'Inter',sans-serif;fill:#1a1a1a}
+        .hdr-32c{font:700 13px/1.2 'Inter',sans-serif;fill:#fff;text-anchor:middle}
+        .lyr-32c{font:600 11px/1.2 'Inter',sans-serif;fill:#444;text-anchor:end}
+        .cel-32c{font:600 11px/1.2 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}
+        .gold-32c{fill:#F5A623}
+        .pale-32c{fill:#FCE4B6}
+        .gray-32c{fill:#E5E5E5}
+        .hbg-32c{fill:#0A1628}
+        .own-32c{fill:rgba(91,201,168,0.25);stroke:#5BC9A8;stroke-width:2}
+      </style>
+      <!-- Header row: 威剛 / Kingston / 創見 / 群聯 / 宇瞻 -->
+      <rect x="170" y="20" width="105" height="32" class="hbg-32c" rx="4"/>
+      <text x="222" y="40" class="hdr-32c">威剛 3260</text>
+      <rect x="277" y="20" width="105" height="32" class="hbg-32c" rx="4"/>
+      <text x="329" y="40" class="hdr-32c">Kingston</text>
+      <rect x="384" y="20" width="105" height="32" class="hbg-32c" rx="4"/>
+      <text x="436" y="40" class="hdr-32c">創見 Transcend</text>
+      <rect x="491" y="20" width="105" height="32" class="hbg-32c" rx="4"/>
+      <text x="543" y="40" class="hdr-32c">群聯 Phison</text>
+      <rect x="598" y="20" width="105" height="32" class="hbg-32c" rx="4"/>
+      <text x="650" y="40" class="hdr-32c">宇瞻 Apacer</text>
+
+      <!-- L6: 品牌知名度 -->
+      <text x="165" y="80" class="lyr-32c">L6 品牌知名度</text>
+      <rect x="170" y="60" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="90" class="cel-32c">ADATA 全球</text>
+      <rect x="277" y="60" width="105" height="52" class="gold-32c" rx="4"/><text x="329" y="90" class="cel-32c">最強 ★</text>
+      <rect x="384" y="60" width="105" height="52" class="pale-32c" rx="4"/><text x="436" y="90" class="cel-32c">工業 強</text>
+      <rect x="491" y="60" width="105" height="52" class="gray-32c" rx="4"/><text x="543" y="90" class="cel-32c">B2B 控制器</text>
+      <rect x="598" y="60" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="90" class="cel-32c">中</text>
+
+      <!-- L5: 通路深度 -->
+      <text x="165" y="138" class="lyr-32c">L5 通路深度</text>
+      <rect x="170" y="120" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="150" class="cel-32c">全球通路</text>
+      <rect x="277" y="120" width="105" height="52" class="gold-32c" rx="4"/><text x="329" y="150" class="cel-32c">最廣 ★</text>
+      <rect x="384" y="120" width="105" height="52" class="pale-32c" rx="4"/><text x="436" y="150" class="cel-32c">工業直銷</text>
+      <rect x="491" y="120" width="105" height="52" class="gray-32c" rx="4"/><text x="543" y="150" class="cel-32c">OEM 為主</text>
+      <rect x="598" y="120" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="150" class="cel-32c">亞洲集中</text>
+
+      <!-- L4: 工業認證 -->
+      <text x="165" y="196" class="lyr-32c">L4 工業認證</text>
+      <rect x="170" y="178" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="208" class="cel-32c">ITES 工業</text>
+      <rect x="277" y="178" width="105" height="52" class="pale-32c" rx="4"/><text x="329" y="208" class="cel-32c">部分</text>
+      <rect x="384" y="178" width="105" height="52" class="gold-32c" rx="4"/><text x="436" y="208" class="cel-32c">最深 ★</text>
+      <rect x="491" y="178" width="105" height="52" class="gray-32c" rx="4"/><text x="543" y="208" class="cel-32c">控制器端</text>
+      <rect x="598" y="178" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="208" class="cel-32c">中</text>
+
+      <!-- L3: 服務器 AI 布局 -->
+      <text x="165" y="254" class="lyr-32c">L3 AI Server 布局</text>
+      <rect x="170" y="236" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="266" class="cel-32c">DDR5 ECC ★</text>
+      <rect x="277" y="236" width="105" height="52" class="gold-32c" rx="4"/><text x="329" y="266" class="cel-32c">最大量 ★</text>
+      <rect x="384" y="236" width="105" height="52" class="pale-32c" rx="4"/><text x="436" y="266" class="cel-32c">部分</text>
+      <rect x="491" y="236" width="105" height="52" class="gray-32c" rx="4"/><text x="543" y="266" class="cel-32c">控制器受惠</text>
+      <rect x="598" y="236" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="266" class="cel-32c">中</text>
+
+      <!-- L2: R&D -->
+      <text x="165" y="312" class="lyr-32c">L2 R&amp;D 能力</text>
+      <rect x="170" y="294" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="324" class="cel-32c">PCB 設計 IP</text>
+      <rect x="277" y="294" width="105" height="52" class="pale-32c" rx="4"/><text x="329" y="324" class="cel-32c">模組設計</text>
+      <rect x="384" y="294" width="105" height="52" class="pale-32c" rx="4"/><text x="436" y="324" class="cel-32c">工業固件</text>
+      <rect x="491" y="294" width="105" height="52" class="gold-32c" rx="4"/><text x="543" y="324" class="cel-32c">控制器 ★</text>
+      <rect x="598" y="294" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="324" class="cel-32c">中</text>
+
+      <!-- L1: 利潤率 -->
+      <text x="165" y="370" class="lyr-32c">L1 利潤率水平</text>
+      <rect x="170" y="352" width="105" height="52" class="own-32c" rx="4"/><text x="222" y="382" class="cel-32c">12-15%（中）</text>
+      <rect x="277" y="352" width="105" height="52" class="pale-32c" rx="4"/><text x="329" y="382" class="cel-32c">私有，估中</text>
+      <rect x="384" y="352" width="105" height="52" class="pale-32c" rx="4"/><text x="436" y="382" class="cel-32c">~12-14%</text>
+      <rect x="491" y="352" width="105" height="52" class="gold-32c" rx="4"/><text x="543" y="382" class="cel-32c">30%+ ★</text>
+      <rect x="598" y="352" width="105" height="52" class="pale-32c" rx="4"/><text x="650" y="382" class="cel-32c">~10-13%</text>
+
+      <!-- Legend -->
+      <rect x="170" y="418" width="12" height="10" class="own-32c" rx="2"/><text x="188" y="427" class="lbl-32c">威剛強項</text>
+      <rect x="310" y="418" width="12" height="10" class="gold-32c" rx="2"/><text x="328" y="427" class="lbl-32c">同類最強</text>
+      <rect x="430" y="418" width="12" height="10" class="pale-32c" rx="2"/><text x="448" y="427" class="lbl-32c">中等</text>
+      <rect x="520" y="418" width="12" height="10" class="gray-32c" rx="2"/><text x="538" y="427" class="lbl-32c">弱/不適用</text>
+    </svg>
+  </div>
+
+  <!-- SVG 圖 4 — 3260 營收 Mix 演進 -->
+  <div style="margin-top:28px">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px">威剛營收結構演進 2025 → 2028F（AI Server 拉動）</div>
+    <svg viewBox="0 0 720 380" width="100%" height="auto" style="max-width:720px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .ax-3m{stroke:#1a1a1a;stroke-width:1.5}
+        .gd-3m{stroke:#E5E5E5;stroke-width:0.5;stroke-dasharray:2,2}
+        .lbl-3m{font:600 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}
+        .yr-3m{font:700 14px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}
+        .ya-3m{font:500 10px 'Inter',sans-serif;fill:#666;text-anchor:end}
+        .pct-3m{font:700 11px 'Inter',sans-serif;fill:#fff;text-anchor:middle}
+        .tot-3m{font:700 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}
+        .leg-3m{font:500 11px 'Inter',sans-serif;fill:#1a1a1a}
+        .s1-3m{fill:#5BC9A8}.s2-3m{fill:#F5A623}.s3-3m{fill:#4A90E2}.s4-3m{fill:#94A3B8}
+      </style>
+      <text x="360" y="22" class="lbl-3m" style="font-size:14px">威剛 3260 · 營收結構演進 2025 → 2028F（AI Server 拉動服務器 Mix 提升）</text>
+
+      <line x1="80" y1="50" x2="80" y2="300" class="ax-3m"/>
+      <text x="75" y="55" class="ya-3m">100%</text>
+      <text x="75" y="115" class="ya-3m">75%</text>
+      <text x="75" y="180" class="ya-3m">50%</text>
+      <text x="75" y="240" class="ya-3m">25%</text>
+      <text x="75" y="302" class="ya-3m">0</text>
+
+      <line x1="80" y1="50" x2="640" y2="50" class="gd-3m"/>
+      <line x1="80" y1="115" x2="640" y2="115" class="gd-3m"/>
+      <line x1="80" y1="180" x2="640" y2="180" class="gd-3m"/>
+      <line x1="80" y1="240" x2="640" y2="240" class="gd-3m"/>
+      <line x1="80" y1="300" x2="640" y2="300" class="ax-3m"/>
+
+      <!-- 2025: 消費50% / 工業25% / 服務器15% / 其他10% -->
+      <rect x="115" y="270" width="100" height="30" class="s4-3m"/><text x="165" y="289" class="pct-3m">其他 10%</text>
+      <rect x="115" y="225" width="100" height="45" class="s3-3m"/><text x="165" y="251" class="pct-3m">服務器 15%</text>
+      <rect x="115" y="150" width="100" height="75" class="s2-3m"/><text x="165" y="192" class="pct-3m">工業 25%</text>
+      <rect x="115" y="50" width="100" height="100" class="s1-3m"/><text x="165" y="103" class="pct-3m">消費 50%</text>
+      <text x="165" y="320" class="yr-3m">2025</text>
+      <text x="165" y="336" class="tot-3m">消費主導</text>
+
+      <!-- 2026: 消費45% / 工業25% / 服務器20% / 其他10% -->
+      <rect x="245" y="270" width="100" height="30" class="s4-3m"/>
+      <rect x="245" y="210" width="100" height="60" class="s3-3m"/><text x="295" y="244" class="pct-3m">服務器 20%</text>
+      <rect x="245" y="135" width="100" height="75" class="s2-3m"/>
+      <rect x="245" y="50" width="100" height="85" class="s1-3m"/><text x="295" y="97" class="pct-3m">消費 45%</text>
+      <text x="295" y="320" class="yr-3m">2026F</text>
+      <text x="295" y="336" class="tot-3m">服務器 ↑</text>
+
+      <!-- 2027: 消費40% / 工業25% / 服務器25% / 其他10% -->
+      <rect x="375" y="270" width="100" height="30" class="s4-3m"/>
+      <rect x="375" y="195" width="100" height="75" class="s3-3m"/><text x="425" y="236" class="pct-3m">服務器 25%</text>
+      <rect x="375" y="120" width="100" height="75" class="s2-3m"/><text x="425" y="163" class="pct-3m">工業 25%</text>
+      <rect x="375" y="50" width="100" height="70" class="s1-3m"/><text x="425" y="90" class="pct-3m">消費 40%</text>
+      <text x="425" y="320" class="yr-3m">2027F</text>
+      <text x="425" y="336" class="tot-3m">均衡轉型</text>
+
+      <!-- 2028: 消費35% / 工業25% / 服務器30% / 其他10% -->
+      <rect x="505" y="270" width="100" height="30" class="s4-3m"/>
+      <rect x="505" y="180" width="100" height="90" class="s3-3m"/><text x="555" y="228" class="pct-3m">服務器 30%</text>
+      <rect x="505" y="105" width="100" height="75" class="s2-3m"/><text x="555" y="146" class="pct-3m">工業 25%</text>
+      <rect x="505" y="50" width="100" height="55" class="s1-3m"/><text x="555" y="82" class="pct-3m">消費 35%</text>
+      <text x="555" y="320" class="yr-3m">2028F</text>
+      <text x="555" y="336" class="tot-3m">服務器 30%</text>
+
+      <rect x="80" y="358" width="12" height="10" class="s1-3m"/><text x="98" y="367" class="leg-3m">消費 DRAM/SSD</text>
+      <rect x="230" y="358" width="12" height="10" class="s2-3m"/><text x="248" y="367" class="leg-3m">工業規格</text>
+      <rect x="340" y="358" width="12" height="10" class="s3-3m"/><text x="358" y="367" class="leg-3m">服務器 ECC RDiMM（成長）</text>
+      <rect x="510" y="358" width="12" height="10" class="s4-3m"/><text x="528" y="367" class="leg-3m">其他（周邊等）</text>
+    </svg>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:8px">估算基於 AI Server DRAM 需求增長趨勢；實際比例受 DRAM 報價週期與客戶結構變化影響。</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- SUPPLY CHAIN -->
+<div class="section" id="supplychain">
+  <div class="section-eyebrow">CH.6 · SUPPLY CHAIN</div>
+  <div class="section-title">供應鏈位置：上游晶圓依賴高 → 模組組裝 → 品牌通路</div>
+  <p class="section-desc">威剛在記憶體供應鏈中處於「模組廠 + 品牌通路」的中游角色，上游晶圓完全依賴三大廠，議價力有限，漲價週期時受益，跌價週期時承壓。</p>
+
+  <!-- SVG 圖 2 — 威剛 上下游供應鏈 SVG -->
+  <svg viewBox="0 0 720 360" width="100%" height="auto" style="max-width:720px;display:block;margin:0 auto 20px" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .own-32s{stroke:#5BC9A8;stroke-width:2;fill:rgba(91,201,168,0.1)}
+      .up-32s{fill:rgba(245,166,35,0.12);stroke:#F5A623;stroke-width:1.5}
+      .dn-32s{fill:rgba(74,144,226,0.12);stroke:#4A90E2;stroke-width:1.5}
+      .em-32s{fill:rgba(148,163,184,0.12);stroke:#94A3B8;stroke-width:1.5}
+      .nt-32s{font:700 12px 'Inter',sans-serif;fill:#1a1a1a;text-anchor:middle}
+      .ns-32s{font:500 10px 'Inter',sans-serif;fill:#444;text-anchor:middle}
+      .sl-32s{font:700 11px 'Inter',sans-serif;fill:#888;text-transform:uppercase;letter-spacing:1px;text-anchor:middle}
+      .ar-32s{fill:#1a1a1a}
+      .an-32s{font:500 10px 'Inter',sans-serif;fill:#666;text-anchor:middle}
+      .mo-32s{font:600 10px 'Inter',sans-serif;fill:#5BC9A8;text-anchor:middle}
+    </style>
+
+    <!-- Stage labels -->
+    <text x="90" y="30" class="sl-32s">上游 DRAM/NAND</text>
+    <text x="270" y="30" class="sl-32s">威剛（本品）</text>
+    <text x="450" y="30" class="sl-32s">下游客戶</text>
+    <text x="630" y="30" class="sl-32s">終端市場</text>
+
+    <!-- 上游 3 nodes -->
+    <rect x="20" y="48" width="140" height="52" rx="6" class="up-32s"/>
+    <text x="90" y="72" class="nt-32s">Micron Technology</text>
+    <text x="90" y="90" class="ns-32s">DDR5 DRAM die 供應</text>
+
+    <rect x="20" y="110" width="140" height="52" rx="6" class="up-32s"/>
+    <text x="90" y="134" class="nt-32s">Samsung Electronics</text>
+    <text x="90" y="152" class="ns-32s">DRAM / NAND 晶圓</text>
+
+    <rect x="20" y="172" width="140" height="52" rx="6" class="up-32s"/>
+    <text x="90" y="196" class="nt-32s">SK Hynix</text>
+    <text x="90" y="214" class="ns-32s">HBM / DDR5 晶圓</text>
+
+    <!-- Arrows 上游→威剛 -->
+    <polygon points="166,74 196,74 196,69 211,79 196,89 196,84 166,84" class="ar-32s"/>
+    <polygon points="166,136 196,136 196,131 211,141 196,151 196,146 166,136" class="ar-32s"/>
+    <polygon points="166,198 196,198 196,193 211,203 196,213 196,208 166,198" class="ar-32s"/>
+
+    <!-- 威剛核心 node -->
+    <rect x="216" y="80" width="144" height="160" rx="8" class="own-32s"/>
+    <text x="288" y="120" class="nt-32s" style="font-size:14px">威剛 3260</text>
+    <text x="288" y="138" class="ns-32s">ADATA Technology</text>
+    <text x="288" y="162" class="ns-32s">核心加值：</text>
+    <text x="288" y="178" class="ns-32s" style="font-weight:700">— DDR5 模組組裝</text>
+    <text x="288" y="194" class="ns-32s" style="font-weight:700">— ADATA / XPG 品牌</text>
+    <text x="288" y="210" class="ns-32s" style="font-weight:700">— AI Server 認證</text>
+    <text x="288" y="230" class="mo-32s">護城河：15 年品牌 + 認證壁壘</text>
+
+    <!-- Arrows 威剛→下游 -->
+    <polygon points="365,132 395,132 395,127 410,137 395,147 395,142 365,132" class="ar-32s"/>
+    <polygon points="365,202 395,202 395,197 410,207 395,217 395,212 365,202" class="ar-32s"/>
+
+    <!-- 下游 -->
+    <rect x="415" y="98" width="140" height="60" rx="6" class="dn-32s"/>
+    <text x="485" y="122" class="nt-32s">AI Server OEM 廠</text>
+    <text x="485" y="140" class="ns-32s">Super Micro / Wistron</text>
+    <text x="485" y="158" class="ns-32s" style="font-size:9px">DDR5 ECC RDiMM 直接採購</text>
+
+    <rect x="415" y="170" width="140" height="60" rx="6" class="dn-32s"/>
+    <text x="485" y="194" class="nt-32s">PC OEM / 零售通路</text>
+    <text x="485" y="212" class="ns-32s">消費性 / 工業規格</text>
+    <text x="485" y="228" class="ns-32s" style="font-size:9px">Kingston 主要競爭戰場</text>
+
+    <!-- Arrows 下游→終端 -->
+    <polygon points="560,128 590,128 590,123 605,133 590,143 590,138 560,128" class="ar-32s"/>
+    <polygon points="560,200 590,200 590,195 605,205 590,215 590,210 560,200" class="ar-32s"/>
+
+    <!-- 終端 -->
+    <rect x="610" y="98" width="106" height="58" rx="6" class="em-32s"/>
+    <text x="663" y="120" class="nt-32s">企業 / AI Server</text>
+    <text x="663" y="140" class="ns-32s">H100/H200 平台</text>
+    <text x="663" y="156" class="ns-32s">高毛利</text>
+
+    <rect x="610" y="168" width="106" height="58" rx="6" class="em-32s"/>
+    <text x="663" y="190" class="nt-32s">消費 / AI PC</text>
+    <text x="663" y="210" class="ns-32s">PC / 筆電換機</text>
+    <text x="663" y="226" class="ns-32s">量大毛利低</text>
+
+    <!-- Bottom annotation -->
+    <text x="360" y="286" class="an-32s">上游三大廠議價力強（DRAM die 占 BOM 65-70%）→ 威剛模組組裝 → AI Server + 消費雙路線 → 漲價週期直接受惠</text>
+    <text x="360" y="306" class="an-32s" style="opacity:0.7">虛線 = 間接競爭；實線 = 主要商業關係；漲價週期：上游漲價 10% → 威剛毛利率改善幅度高於上游廠商（beta 效應）</text>
+
+    <!-- Legend -->
+    <rect x="80" y="324" width="12" height="10" rx="2" class="up-32s"/>
+    <text x="98" y="333" class="an-32s" style="text-anchor:start">上游晶圓廠</text>
+    <rect x="210" y="324" width="12" height="10" rx="2" class="own-32s"/>
+    <text x="228" y="333" class="an-32s" style="text-anchor:start">威剛</text>
+    <rect x="310" y="324" width="12" height="10" rx="2" class="dn-32s"/>
+    <text x="328" y="333" class="an-32s" style="text-anchor:start">下游客戶</text>
+    <rect x="430" y="324" width="12" height="10" rx="2" class="em-32s"/>
+    <text x="448" y="333" class="an-32s" style="text-anchor:start">終端市場</text>
+  </svg>
+
+  <div class="supply-chain">
+    <div class="sc-node"><div class="sc-node-label">上游</div><div class="sc-node-title">DRAM/NAND 晶圓</div><div class="sc-node-sub">Micron<br>Samsung<br>SK Hynix</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node highlight"><div class="sc-node-label">本品 ★</div><div class="sc-node-title">威剛 模組組裝</div><div class="sc-node-sub">DDR5 模組<br>SSD 整合<br>ADATA 品牌</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node"><div class="sc-node-label">下游</div><div class="sc-node-title">品牌商 / 通路</div><div class="sc-node-sub">AI Server 廠<br>PC OEM<br>零售通路</div></div>
+    <div class="sc-arrow">→</div>
+    <div class="sc-node"><div class="sc-node-label">替代品</div><div class="sc-node-title">Kingston / 創見</div><div class="sc-node-sub">Kingston（全球最大）<br>創見（工業規）<br>Patriot（美國）</div></div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <div class="card-label">供應鏈風險評估</div>
+    <div class="grid-3" style="margin-top:12px;gap:12px">
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid #C8302C">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">上游議價力弱（高風險）</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">晶圓完全依賴三星/Micron/SK Hynix，跌價週期時庫存損失風險高，漲價時 ASP 滯後</div>
+      </div>
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid var(--warning)">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">品牌溢價有限（中度風險）</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">ADATA 品牌在消費市場有一定知名度，但企業客戶採購更看重 Kingston/Hynix 原廠品牌</div>
+      </div>
+      <div style="padding:12px;background:#f9f8f5;border-radius:8px;border-left:3px solid #1F7A5C">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:4px">漲價週期受益（優勢）</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);line-height:1.5">模組廠在漲價週期享有庫存增值效果，毛利率改善速度快於晶片廠，beta 值高</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- RISKS + CATALYSTS -->
+<div class="section" id="risks">
+  <div class="section-eyebrow">CH.7 · RISKS + CATALYSTS</div>
+  <div class="section-title">三大風險 × 四大催化劑</div>
+  <div class="grid-2">
+    <div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#C8302C;margin-bottom:12px">▼ 下行風險</div>
+      <div class="risk-card risk-critical"><div class="risk-title">R1 · Memory Cycle 提前反轉（6-12 個月）</div><div class="risk-body">若 DRAM 報價跌 &gt;15% 且連續 2 個月，Bear case 機率升至 50%。三星 aggressive 定價策略是最大觸發點。Stop-loss NT$360 為 Bear 下緣。</div></div>
+      <div class="risk-card risk-high"><div class="risk-title">R2 · 消費端需求疲弱（持續觀察）</div><div class="risk-body">PC/手機換機週期延後、庫存去化不如預期，拖累消費 DRAM 佔比。AI Server 段無法完全覆蓋消費端缺口。</div></div>
+      <div class="risk-card risk-medium"><div class="risk-title">R3 · Kingston / 宇瞻競爭加劇（中期）</div><div class="risk-body">模組廠同質化高，若競爭對手以低價策略搶佔 AI Server 認證，威剛市占承壓。</div></div>
+    </div>
+    <div id="catalysts">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A5C;margin-bottom:12px">▲ 上行催化劑</div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(31,122,92,.15);color:#1F7A5C">每月</span><div><div style="font-weight:700;font-size:var(--fs-sm)">DRAM 報價月度上漲</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">TrendForce 月報：連續上漲 &gt;5% → 模組廠毛利率快速改善</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(31,122,92,.15);color:#1F7A5C">2026 H2</span><div><div style="font-weight:700;font-size:var(--fs-sm)">AI PC 出貨量超預期</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">AI PC DRAM + SSD 雙需求，推動 ASP + 出貨量同步提升</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(74,144,226,.15);color:#2563eb">FY27</span><div><div style="font-weight:700;font-size:var(--fs-sm)">企業 SSD 佔比提升至 40%+</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">企業 SSD 毛利率高於消費 DRAM，結構改善推動 PE 重評</div></div></div>
+      <div class="catalyst-row"><span class="catalyst-badge" style="background:rgba(245,166,35,.15);color:#b45309">持續</span><div><div style="font-weight:700;font-size:var(--fs-sm)">AI Server 訂單能見度延伸</div><div style="font-size:var(--fs-xs);color:var(--text-muted);margin-top:2px">大型雲端業者 AI Server 採購計畫若延伸至 FY28 → 訂單鎖定 Base Case</div></div></div>
+    </div>
+  </div>
+  <div class="footnote" style="margin-top:24px">本報告由AI Research Notes編製，純研究分析用途。所有個人估算區間為機率加權估算，不構成投資建議。市場有風險，請自行判斷。資料截止 2026-05-14。</div>
+</div>
+
+<script>
+function switchTab(e,id){
+  const section=e.target.closest('.section');
+  section.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  section.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  e.target.classList.add('active');
+}
+let sortDir={};
+function sortTable(tblId,col){
+  const tbl=document.getElementById(tblId);
+  if(!tbl)return;
+  const tbody=tbl.querySelector('tbody');
+  const rows=Array.from(tbody.querySelectorAll('tr'));
+  const key=tblId+'_'+col;
+  sortDir[key]=(sortDir[key]||1)*-1;
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.innerText?.trim()||'';
+    const bv=b.cells[col]?.innerText?.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.-]/g,''));
+    const bn=parseFloat(bv.replace(/[^0-9.-]/g,''));
+    if(!isNaN(an)&&!isNaN(bn)) return (an-bn)*sortDir[key];
+    return av.localeCompare(bv)*sortDir[key];
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+function calcPT3260(){
+  const dramUp=parseFloat(document.getElementById('dram-up').value);
+  const pe=parseFloat(document.getElementById('pe-3260').value);
+  const eps=parseFloat(document.getElementById('eps-3260').value);
+  document.getElementById('dram-up-val').textContent=dramUp+'%';
+  document.getElementById('pe-3260-val').textContent=pe+'x';
+  document.getElementById('eps-3260-val').textContent='NT$'+eps;
+  const epsAdj=eps*(1+dramUp*0.02);
+  const pt=Math.round(epsAdj*pe);
+  const upside=((pt/444.5-1)*100).toFixed(1);
+  document.getElementById('res-eps3260').textContent='NT$'+Math.round(epsAdj);
+  document.getElementById('res-pe3260').textContent=pe+'x';
+  document.getElementById('res-pt3260').textContent='NT$'+pt;
+  const upEl=document.getElementById('res-up3260');
+  upEl.textContent=(upside>0?'+':'')+upside+'%';
+  upEl.style.color=upside>0?'#1F7A5C':'#C8302C';
+}
+calcPT3260();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MOBILE RWD ROOT FIX v2 — injected 2026-05-14
+     Overrides all min-width that cause horizontal scroll on 390px viewports
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+@media (max-width: 768px) {
+  /* ── Prevent body from overflowing ── */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* ── Zero out min-width on all class-based elements ── */
+  .card, .panel, .scenario-card, .tech-col, .persona-badge,
+  .stack-col, .kpi-tile, .stat-item, .chain-node, .sc-node,
+  .watch-item, .sm-card, .sm-section, .deal-card, .cat-card,
+  .exec-card, .flow-node, .calc-result-item, .cover-stat,
+  [class*="col"], [class*="card"], [class*="item"], [class*="node"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ── Flow & supply chain: vertical on mobile ── */
+  .flow-wrap, .supply-chain, .sc-wrap, .chain {
+    flex-direction: column !important;
+    overflow-x: visible !important;
+    align-items: stretch !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ── Stacked table for files that don't have .table-wrap ── */
+  /* Only targets bare tables NOT inside .table-wrap */
+  table:not(.table-wrap table) {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    display: block !important;
+  }
+  table:not(.table-wrap table) thead { display: none !important; }
+  table:not(.table-wrap table) tbody { display: block !important; width: 100% !important; }
+  table:not(.table-wrap table) tr {
+    display: block !important;
+    background: #fff;
+    border: 1px solid var(--border, #e5e7eb) !important;
+    border-radius: 8px !important;
+    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+    overflow: hidden !important;
+  }
+  table:not(.table-wrap table) td {
+    display: flex !important;
+    gap: 8px !important;
+    padding: 5px 0 !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+    font-size: 14px !important;
+    align-items: flex-start !important;
+    line-height: 1.5 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+  }
+  table:not(.table-wrap table) td:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  table:not(.table-wrap table) td::before {
+    content: attr(data-label) !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    color: #6b7280 !important;
+    flex-shrink: 0 !important;
+    min-width: 72px !important;
+    padding-top: 2px !important;
+  }
+
+  /* ── Nav: horizontal scroll, hide scrollbar ── */
+  .top-nav, nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .top-nav::-webkit-scrollbar, nav::-webkit-scrollbar { display: none !important; }
+
+  /* ── calc-row stacking ── */
+  .calc-row { flex-direction: column !important; gap: 8px !important; }
+  .calc-row label, .calc-row input, .calc-row .calc-val { min-width: 0 !important; }
+
+  /* ── Cover/hero padding ── */
+  .cover, .hero { padding: 48px 20px !important; min-height: auto !important; }
+  .section, .sm-section { padding: 40px 16px !important; }
+
+  /* ── Cover stats: 2-col on mobile ── */
+  .cover-stats, .stats-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+}
+</style>
+
+<script>
+/* ── Mobile RWD root fix v2 — runtime: strip inline min-width on SVG/flex elements ── */
+(function() {
+  if (window.innerWidth > 768) return;
+
+  /* 1. Large flow SVGs with inline min-width: strip it, keep width:100% */
+  document.querySelectorAll('svg[style*="min-width"]').forEach(function(el) {
+    var s = el.getAttribute('style') || '';
+    s = s.replace(/;?\s*min-width\s*:\s*[^;]+/g, '');
+    el.setAttribute('style', s);
+    el.style.setProperty('width', '100%', 'important');
+    el.style.setProperty('height', 'auto', 'important');
+    el.style.setProperty('max-width', '100%', 'important');
+  });
+
+  /* 2. Flex div containers with large inline min-width (>=100px) */
+  document.querySelectorAll('div[style*="min-width"]').forEach(function(el) {
+    var s = el.getAttribute('style') || '';
+    var newStyle = s.replace(/min-width\s*:\s*(\d+)px/g, function(match, px) {
+      return parseInt(px) >= 100 ? 'min-width:0' : match;
+    });
+    if (newStyle !== s) {
+      el.setAttribute('style', newStyle);
+      el.style.setProperty('flex-shrink', '1', 'important');
+      el.style.setProperty('max-width', '100%', 'important');
+      el.style.setProperty('box-sizing', 'border-box', 'important');
+    }
+  });
+
+  /* 3. Tables with inline min-width (not inside .table-wrap — those already handled) */
+  document.querySelectorAll('table[style*="min-width"]').forEach(function(el) {
+    if (el.closest('.table-wrap')) return; /* already handled */
+    el.style.removeProperty('min-width');
+    el.style.setProperty('width', '100%', 'important');
+  });
+  /* th cells with inline min-width */
+  document.querySelectorAll('th[style*="min-width"]').forEach(function(el) {
+    el.style.removeProperty('min-width');
+  });
+
+  /* 4. Auto-inject data-label on tables that don't have it yet */
+  document.querySelectorAll('table').forEach(function(table) {
+    var headerRow = table.querySelector('thead tr') || table.querySelector('tr');
+    if (!headerRow) return;
+    var ths = Array.from(headerRow.querySelectorAll('th')).map(function(th) {
+      return th.textContent.trim();
+    });
+    if (ths.length === 0) return;
+    var tbody = table.querySelector('tbody');
+    var rows = tbody
+      ? Array.from(tbody.querySelectorAll('tr'))
+      : Array.from(table.querySelectorAll('tr')).slice(1);
+    rows.forEach(function(tr) {
+      tr.querySelectorAll('td').forEach(function(td, i) {
+        if (ths[i] && !td.getAttribute('data-label')) {
+          td.setAttribute('data-label', ths[i]);
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

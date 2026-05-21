@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RKLB — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">RKLB</div>
+    <div class="sidebar-name">Rocket Lab USA Inc.</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">20.5 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">22</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$23.55</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: RKLB · 2026-05-21</div>
+    <h1 class="ph-title">Rocket Lab USA — AI Research Notes</h1>
+    <p class="ph-lead">全球最活躍的商業小型火箭發射公司，Electron 火箭已完成 50+ 次任務，正開發中型火箭 Neutron，同時快速建立太空系統（衛星元件）業務，是商業太空革命的小型入場券。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-gold)">~$9.8B</span><span class="stat-label">市值</span><div class=card-sub>NASDAQ 小型科技</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-text)">$20.50</span><span class="stat-label">現價</span><div class=card-sub>NASDAQ 2026-05-21</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-text)">~$390M</span><span class="stat-label">Revenue TTM</span><div class=card-sub>FY2024 YoY +78%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-gold)">~28%</span><span class="stat-label">Gross Margin</span><div class=card-sub>FY2024，改善中</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">HOLD — 估值已含 Neutron 期權，等待里程碑確認</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$15-18（對應核心業務 EV/Rev 8-10x + Neutron 折價期權）</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (30%)</div><div class="db-cell-value red">8</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (45%)</div><div class="db-cell-value amber">22</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">45</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Neutron Archimedes 引擎地面靜態點火（預計 2025 下半年）</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">Neutron 開發停止 / 重大發射失敗 / 現金低於 $200M 需緊急再融資</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$23.55</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 20.5 USD → <strong>+14.9%</strong></div>
+    </div>
+    <div class="ev-math">EV = $8x30% + $22x45% + $45x25%<br>= $2.40 + $9.90 + $11.25 = <strong>$23.55</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (30%)</div><div class="s-pt" style="color:var(--c-red)">8</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Neutron 進度嚴重延誤（首飛推至 2028+）+ Electron 競爭加劇（市佔下降）+ 緊急再融資大幅稀釋（+30% 股本）。核心業務 EV/Rev 6x，期權價值大幅折扣，PT $7-9。現金危機是尾部風險。</div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (45%)</div><div class="s-pt" style="color:var(--c-gold)">22</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Electron 維持 16-18 次/年 + Space Systems 毛利率 33-35% + Neutron FY2026-2027 首飛（但不確定是否成功）。FY2026 Revenue $600M，仍虧損但 EBITDA 接近轉正。核心業務 EV/Rev 10x + Neutron 期權 $3-5 = PT $18-25。</div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">45</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Neutron FY2026 首飛成功 + 獲得首個商業大型衛星發射合約 + Space Systems 持續高速成長（80%+ YoY）。政府採購大訂單加速。市場重新定價為「SpaceX 最强替代者」，EV/Rev 20x+，PT $40-55。</div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Electron 是全球發射頻率第二的軌道火箭（僅次 SpaceX），已完成 53 次發射，可靠性 ~90%，商業小衛星市場無可替代的第二選擇</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Space Systems 業務（衛星元件 / 太空車）成長迅速，FY2024 收入 ~$280M（佔 73%），已成為主要收入驅動力，毛利率 ~32% 且持續改善</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Neutron 中型火箭（8 噸有效載荷）正在開發，預計 FY2026 首飛，可打入 Falcon 9 市場，市場前景巨大，目前股價未充分反映 Option Value</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>政府合約增加：NASA / DARPA / NRO 合約，US Government 太空商業化採購趨勢，RKLB 是 SpaceX 之外的主要替代選項</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>太空系統垂直整合：太陽能電池板（SolarAve）、星追器、推進系統全自製，降低成本且形成元件業務護城河</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>持續虧損：FY2024 淨虧損 ~-$185M，Non-GAAP EPS 負值，FY2025-2026 EPS 轉正時程不確定，燒錢速度是核心風險</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Neutron 開發成本高昂：預估開發成本 $1-2B，若進度延誤或失敗，將消耗大量現金並需要再融資，影響現有股東</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>SpaceX 競爭壓力：Falcon 9 快速複用降低發射成本，若 SpaceX 進入小衛星市場，Electron 市場份額受威脅</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>估值偏高：EV/Revenue ~25x（FY2024），對於仍在虧損的航太公司而言估值已 price in 多年成長，下行風險大</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>供應鏈集中和地緣政治：火箭發射高度受美國政府監管（ITAR），海外客戶訂單受限，且 NZ 製造廠存在地緣集中風險</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · Electron 發射頻率（目標 2025 達每年 24 次）+ Neutron 開發里程碑進度 + Space Systems 毛利率改善進度（目標 35%+）
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">商業太空第二梯隊領導者：Electron 穩定現金流 + Neutron 估值期權</h2>
+    <p class="ph-lead">Rocket Lab 的投資邏輯是雙層的：(1) Electron 小火箭 + Space Systems 元件業務提供實際收入增長（FY2024 YoY +78%），是商業太空生態的真實基礎；(2) Neutron 中型火箭是一個巨大的未來期權，若成功將使 RKLB 進入 Falcon 9 市場，重新定義估值空間。風險在於高估值 + 持續虧損 + 執行不確定性。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">商業太空市場正在快速成長（LEO 衛星星座、地球觀測、商業通訊），全球小型衛星發射需求激增。Rocket Lab 的 Electron 火箭是全球第二活躍的軌道發射載具，Space Systems 業務（衛星元件製造）提供穩定收入基礎。FY2024 收入 $390M，YoY +78%，展現強勁增長。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">但 RKLB 仍持續虧損（FY2024 淨虧 -$185M），Electron 業務毛利率偏低（~20-22%），Space Systems 毛利率雖改善至 32% 但仍未達到理想水準。Neutron 中型火箭開發耗資巨大（$1-2B 估），進度和技術風險難以量化。目前估值 EV/Revenue ~25x 已 price in 大量未來成長，下行保護不足。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Rocket Lab 能否在 Neutron 首飛成功之前維持資金充足、Electron 業務繼續成長、Space Systems 毛利率改善，從而避免大規模稀釋性再融資，同時讓股價維持在合理估值？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：FY2026 Electron 達到 20+ 次/年 + Space Systems 毛利率 33-35% + Neutron 首飛延至 FY2026-2027。Revenue $580-650M，仍虧損但 EBITDA 轉正。Neutron 期權價值在股價中佔 40-50%，核心業務支撐 PT $12-16。整體 PT $20-25（含 Neutron 期權）。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>Electron 發射頻率加速：2025 目標 15-18 次（2024 完成 16 次），每次發射收入 $8-10M，規模效益推動毛利率改善</td><td style="font-family:var(--font-mono);font-size:11px">FY2025</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>Neutron 開發里程碑：引擎 Archimedes 熱測試 + 全箭 PDR 完成，技術進度確認，Option Value 重新評估</td><td style="font-family:var(--font-mono);font-size:11px">2025 下半年</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>政府大型合約：NASA / NRO / DARPA 商業太空採購進入加速期，RKLB 作為 SpaceX 替代選項獲得政府訂單</td><td style="font-family:var(--font-mono);font-size:11px">FY2025-2026</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">4</td><td>Space Systems 垂直整合：衛星元件（太陽能板、星追器）需求隨 LEO 星座爆發，RKLB 成為主要元件供應商</td><td style="font-family:var(--font-mono);font-size:11px">FY2025-2026</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">5</td><td>美國商業太空政策支持：新一屆政府加大商業太空採購，RKLB 是 SpaceX 之外少數有產品力的美國太空公司</td><td style="font-family:var(--font-mono);font-size:11px">2025</td><td><span class="pill pill-gold">一般</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">產業 / TAM</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    
+    
+    
+    
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Rocket Lab USA — 公司側寫</h2>
+    <p class="ph-lead">2006 年創立於紐西蘭，2021 年 SPAC 上市，是全球唯一具備完整商業太空能力的非 SpaceX 公司：火箭製造 + 發射服務 + 衛星元件製造。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>Launch Services（Electron）</strong></td><td>小型衛星軌道發射服務</td><td class="num">27%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>Space Systems（元件）</strong></td><td>太陽能電池板 / 星追器 / 太空車</td><td class="num">73%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>Neutron（開發中）</strong></td><td>中型火箭 8 噸有效載荷</td><td class="num">0%</td><td><span class="pill pill-blue">新起步</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Electron 發射記錄（53 次 / 90%+ 可靠性）</span><span>8/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Space Systems 垂直整合元件製造</span><span>7/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="70%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">紐西蘭發射場地理優勢（極地 / 太陽同步）</span><span>7/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="70%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">政府合約資質（ITAR / 美國本土製造）</span><span>7/10</span></div><div class="score-track"><div class="score-fill gold" style="width:0%" data-w="70%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">SpaceX Falcon 9 複用競爭壓力</span><span>-8/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">持續虧損 + 高估值（EV/Rev 25x）</span><span>-7/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="70%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Neutron 開發執行風險</span><span>-6/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">小市場（小型衛星）規模限制</span><span>-5/10</span></div><div class="score-track"><div class="score-fill gold" style="width:0%" data-w="50%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">Rocket Lab (RKLB)</strong></td><td class="num">$9.8B</td><td class="num">$390M</td><td class="num">28%</td><td class="num">25x</td><td><span class="pill pill-green">✓</span></td><td><span class="pill pill-gray">最活躍非SpaceX</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gold">偏多觀察</span></td></tr><tr ><td><strong >SpaceX（非上市）</strong></td><td class="num">~$350B</td><td class="num">~$8B</td><td class="num">N/A</td><td class="num">~40x</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">霸主，不上市</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">非上市</span></td></tr><tr ><td><strong >Astra（ASTR）</strong></td><td class="num">~$0.1B</td><td class="num">~$10M</td><td class="num">N/A</td><td class="num">~10x</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">發射失敗，退出市場</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-red">極弱</span></td><td><span class="pill pill-gray">規模太小</span></td></tr><tr ><td><strong >Virgin Orbit（破產）</strong></td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">已破產，退出市場</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-red">極弱</span></td><td><span class="pill pill-gray">規模太小</span></td></tr><tr ><td><strong >Redwire (RDW)</strong></td><td class="num">$0.3B</td><td class="num">$280M</td><td class="num">15%</td><td class="num">1.1x</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">太空系統元件競爭</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">觀望</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>Electron 複用（回收助推器）</strong></td><td>完成首次海上回收，技術驗證</td><td>進入量產複用循環，降低 CapEx</td><td>實現 10 次/助推器複用，毛利率 30%+</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Space Systems 衛星元件</strong></td><td>FY2024 收入 $280M，毛利率 32%</td><td>LEO 星座大批量訂單，規模效益提升</td><td>毛利率達 35-40%，成為主要盈利業務</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Neutron 中型火箭</strong></td><td>Archimedes 引擎熱測試，PDR 完成</td><td>全箭組裝，2025-2026 年地面靜態點火</td><td>FY2026-2027 首飛，目標 8 噸 LEO</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>政府大型合約（SDA / NRO）</strong></td><td>SDA 衛星運輸層 Phase 1 合約獲得</td><td>SDA Phase 2 + NRO 商業偵察訂單</td><td>政府收入佔比升至 40%，穩定現金流</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>Photon 太空車平台</strong></td><td>CAPSTONE 月球任務成功</td><td>NASA 商業月球有效載荷服務訂單</td><td>深空探測 / 行星際任務平台商業化</td><td><span class="pill pill-blue">新興</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">核心產品深拆</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    <div class="product-image-grid reveal"><div class="product-img-block"><div class="product-img-caption">圖片未提供</div></div></div>
+    
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div></div><div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · 法說重點</div>
+    <h2 class="ph-title">最新法說重點</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    
+    
+    
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">FY2024 Q4 財報後股價維持，Space Systems 增速超預期和毛利率改善是正面因素，但 Neutron 進度問題和持續虧損限制多頭信心。整體市場對 RKLB 估值持謹慎態度。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">財務分析</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+    <div class="card" style="min-width:0"><div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div><p style="font-size:13px;color:var(--c-muted);margin-top:8px">無資料</p></div>
+    <div class="card" style="min-width:0"><div class="card-label">資產負債表快照</div><p style="font-size:13px;color:var(--c-muted);margin-top:8px">無資料</p></div>
+    
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">現金流分析 &amp; 財務健全度</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">-$110M（FY2024）</div><div class="card-sub">持續虧損推動 OCF 負值，FY2025E 目標 OCF 改善至 -$80M（燒錢率下降）。Electron 業務本身接近 OCF 平衡，Neutron 開發是主要消耗。</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">-$50M（FY2024 CapEx）</div><div class="card-sub">Electron 複用技術 + 發射場擴建 + Neutron 研發設施投資。FY2025-2026 CapEx 因 Neutron 全速開發將升至 $80-100M。</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">+$150M（FY2024 融資）</div><div class="card-sub">主要為可轉債融資 + ATM 股票發行。FY2025 若現金低於安全線，預計再次進行 ATM 融資或可轉債發行，稀釋風險高。</div></div>
+  </div>
+</div>
+
+    
+    
+    
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Rocket Lab 供應鏈 — 垂直整合航太製造</h2>
+    <p class="ph-lead">Electron 和 Space Systems 均高度垂直整合（Rutherford 引擎 3D 列印自製、太陽能電池板自製），降低外部依賴。但特殊材料（Carbon Fiber / III-V 族太陽能電池）存在供應商集中風險。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>Rutherford 引擎（3D 列印）</td><td>100% 自製（紐西蘭 + 加州）</td><td>極高</td><td><span class="pill pill-gray">高</span></td><td><span class="pill pill-gray">自主研發 3D 列印電動幫浦發動機，製造集中但技術護城河強風險</span></td></tr><tr><td>碳纖維複合材料（箭體）</td><td>外購 Hexcel / Toray</td><td>低</td><td><span class="pill pill-gray">中</span></td><td><span class="pill pill-gray">日本 Toray 是主要供應商，美中貿易爭端低影響，但交貨週期長風險</span></td></tr><tr><td>III-V 族太陽能電池（SolarAve）</td><td>100% 自製（Albuquerque）</td><td>高</td><td><span class="pill pill-gray">高</span></td><td><span class="pill pill-gray">最高效率太空太陽能電池，自製提供護城河，廠房集中於新墨西哥州風險</span></td></tr><tr><td>Avionics（飛控電腦）</td><td>自研 + 部分外購</td><td>中</td><td><span class="pill pill-gray">中</span></td><td><span class="pill pill-gray">部分航電依賴 ITAR 管制元件，供應鏈受美國出口管制風險</span></td></tr><tr><td>星追器（Star Tracker）</td><td>100% 自製</td><td>高</td><td><span class="pill pill-gray">高</span></td><td><span class="pill pill-gray">全球少數商業星追器製造商之一，精度高但產能集中風險</span></td></tr><tr><td>推進系統（衛星推進器）</td><td>自製 Curie 引擎</td><td>中</td><td><span class="pill pill-gray">中</span></td><td><span class="pill pill-gray">Curie 氣體推進引擎自製，但高推力版本開發中，需外部驗證風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">估值模型</h2>
+    <p class="ph-lead"></p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="30" max="200" value="70">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$70M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="1" max="6" step="0.5" value="2.5">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">2.5x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="20.5"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $20.5</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">技術面中性整理，等待基本面催化劑方向確認。Neutron 靜態點火若成功，可能突破 $23-25 阻力帶。若 Electron 連續發射失敗，則測試 $17.5 支撐。建議等待方向確認後再調整倉位。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">中性整理</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 股價</td><td>股價接近 50MA，±3% 窄幅整理</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 股價</td><td>股價位於 200MA 上方 +8%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI 估計</td><td>52（中性）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>成交量正常，無明顯異常放量或縮量</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">關鍵支撐位</td><td style="color:var(--c-green);font-weight:600">$17.5（FY2024 底部整理區）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">關鍵阻力位</td><td style="color:var(--c-red);font-weight:600">$23-25（FY2024 高點 + 可轉債轉換價 $25.77）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style=";font-weight:700">中性</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">5.0</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">技術面中性整理，等待基本面催化劑方向確認。Neutron 靜態點火若成功，可能突破 $23-25 阻力帶。若 Electron 連續發射失敗，則測試 $17.5 支撐。建議等待方向確認後再調整倉位。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">5 大核心風險 — Neutron 期權 + 現金 + 估值三角</h2>
+    <p class="ph-lead">Neutron 開發失敗是最大的二元風險（佔股價 40%+），現金耗盡再融資是最可能的短期稀釋風險，SpaceX 降價競爭是持續的結構性壓力，估值過高是整體市場風險敞口。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="40" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="370" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="490" cy="68" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="490" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="370" cy="68" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="370" cy="68" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="68" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>Neutron 開發失敗 / 嚴重延誤</strong><br><span style=font-size:12px;color:var(--c-muted)>Neutron 是 RKLB 估值的重要支柱（佔股價 ~40-50%），若開發失敗、技術問題導致嚴重延誤（&gt;2 年），或商業環境惡化導致公司決定停止開發，股價將對應大幅下跌至純 Electron 業務估值（$8-12）。</span></td><td class="num neg">極高</td><td class="num">中</td><td>FY2025-2027</td><td>分期里程碑（引擎 → 全箭 → 首飛），每個里程碑可重評開發決策；政府合約背書（若 DoD / NASA 訂單確認，技術可信度提升）</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>現金耗盡 / 稀釋性再融資</strong><br><span style=font-size:12px;color:var(--c-muted)>FY2024 末現金 $470M，年燒錢 $160M。若 Neutron 開發加速（$300M/年），FY2026 現金告急，需要大規模 ATM 融資或可轉債，每次再融資稀釋現有股東 10-20%。</span></td><td class="num neg">高</td><td class="num">中高</td><td>FY2026</td><td>Space Systems 業務收入增加改善 FCF；政府大合約提供預付款；管理層謹慎控制 Neutron 資本支出</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>SpaceX 降價競爭</strong><br><span style=font-size:12px;color:var(--c-muted)>Falcon 9 可複用降低發射成本，若 SpaceX 針對小型衛星市場提供專屬小型艙位服務（Transporter 計畫），Electron 的價格優勢削弱。Electron 每次 $8-10M vs. Falcon 9 Transporter $6-8M（分攤後）。</span></td><td class="num neg">高</td><td class="num">中</td><td>持續</td><td>Electron 的差異化是「專屬發射窗口 + 精確軌道」（Transporter 是拼單，窗口不靈活）；政府客戶安全需求不走 SpaceX</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>發射失敗（Electron 可靠性）</strong><br><span style=font-size:12px;color:var(--c-muted)>雖然 Electron 可靠性達 90%+（53 次中 6 次失敗），但每次失敗不僅損失客戶關係，也直接影響股價 10-20%。若連續兩次失敗，客戶信心崩潰，訂單取消風險高。</span></td><td class="num neg">高</td><td class="num">低至中</td><td>持續</td><td>嚴格發射前品質管控，技術持續改進；商業保險覆蓋客戶損失；多客戶 + 多衛星分散集中度</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>估值過高的下行風險</strong><br><span style=font-size:12px;color:var(--c-muted)>RKLB 當前 EV/Revenue ~25x（FY2024），對比 FY2025E 仍虧損的公司，估值已充分反映 Neutron 期權和高成長預期。若市場情緒轉向（利率上升 / 成長股估值收縮），RKLB 估值下行至 10-15x EV/Revenue 即對應股價 $8-12。</span></td><td class="num neg">高</td><td class="num">中</td><td>持續市場風險</td><td>逢里程碑買入（減少持有高估值期間）；分批建倉；等待 Neutron 首飛確認後再加碼</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 18-24 個月關鍵催化劑</h2>
+    <p class="ph-lead">Neutron 引擎靜態點火是最近期最重要的估值催化劑；政府大合約是業績確定性催化劑；Neutron 首飛是歷史性二元事件，是 RKLB 最大的估值重評機會。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 下半年</div><div class="tl-title">Neutron Archimedes 引擎地面靜態點火</div><div class="tl-body">Neutron 的 Archimedes 引擎全推力靜態點火是最重要的技術里程碑。成功確認技術可行性，Neutron 期權價值重新評估，股價可能 +15-30%。這是 2025 年最重要的 RKLB 催化劑。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q3-Q4</div><div class="tl-title">Space Systems 大型政府合約公告</div><div class="tl-body">SDA（太空發展局）第二批衛星運輸層合約 / NRO 商業偵察衛星合約若落地，Space Systems 收入能見度大幅改善，確認政府採購 RKLB 的戰略地位，是業績確定性提升的重要信號。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 全年</div><div class="tl-title">Electron 發射頻率達標（16-18 次/年）</div><div class="tl-body">每季法說確認發射次數是否達到目標節奏。若 FY2025 完成 18+ 次，表示複用技術降低成本，毛利率改善，Electron 業務接近 FCF 正值的里程碑確認。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2026</div><div class="tl-title">Neutron 全箭組裝 + 靜態點火</div><div class="tl-body">Neutron 全箭組裝完成並進入地面靜態點火測試，是首飛前最後一個重大驗證里程碑。若 FY2026 完成，FY2027 首飛可期，Neutron 期權大幅升值。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2026-2027</div><div class="tl-title">Neutron 首飛（最大催化劑）</div><div class="tl-body">Neutron 首飛成功是 RKLB 最大的歷史性催化劑——將 RKLB 從「小型火箭公司」升級為「SpaceX 最強替代者」，估值從 EV/Rev 10x 重評至 20x+，對應股價 $35-55。首飛失敗則是最大下行風險。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Neutron 里程碑進度</div><div class="ws">按季追蹤：Archimedes 引擎靜態點火 → 全箭 CDR → 地面整合測試 → 發射台測試 → 首飛。每個里程碑成功推動期權價值升值，延誤則期權折扣。</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">現金餘額趨勢</div><div class="ws">目標維持 $300M+ 現金儲備。若低於 $250M 且無大合約預付款進賬，即再融資壓力信號，追蹤管理層資本策略公告。</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">Electron 發射頻率 + 毛利率</div><div class="ws">目標：FY2025 每季 4-5 次發射，Launch 業務毛利率超過 25%。若 2 季連續未達目標，Electron 業務本身的競爭力假設需重評。</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">Space Systems 訂單 Backlog</div><div class="ws">追蹤每季末 Backlog 金額（目前 $1B+）。Backlog 是 Space Systems 業務的領先指標，若 Backlog 停止成長，代表需求放緩或競爭加劇。</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">五位思想家的 RKLB 投資觀點衝突</h2>
+    <p class="ph-lead">Cathie Wood 型成長投資者的最愛 vs. Buffett 型價值投資者的噩夢。分歧核心在 Neutron 期權價值、虧損容忍度、以及商業太空市場的長期可信度。高風險高期望值的典型二元結構。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Warren Buffett 護城河視角</div><span class="pill pill-gray">不介入</span></div><div class="persona-score" style="color:var(--c-red)">3.5</div></div><div class="persona-body">「Rocket Lab 做的是我看不懂的生意——火箭科技、衛星、太空。我不知道 10 年後的太空市場長什麼樣，也不知道 Neutron 會不會成功。這種我看不懂的科技賭注，我從來不做。持續虧損、高燒錢率、高估值，三件事加在一起讓我避而遠之。等他們賺錢了我再看——就像我等 Geico 賺錢很多年後才買進。太空產業確實可能改變世界，但現在的估值已經反映了最好的情景。」</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Charlie Munger 商業模式視角</div><span class="pill pill-red">謹慎觀察</span></div><div class="persona-score" style="color:var(--c-red)">4.5</div></div><div class="persona-body">「Rocket Lab 的商業模式有些我欣賞的地方：垂直整合製造（自製引擎、太陽能板、星追器）是有護城河的策略；紐西蘭發射場的地理位置確實提供了差異化；Pete Beck 是有能力的創始人。但持續虧損讓我不安——好生意不應該每年燒掉幾億美元。Neutron 是個巨大的賭注，成功則豐收，失敗則皆空。我更喜歡確定性高的生意，而 Neutron 賭注的不確定性遠超我的舒適區。等 Electron 業務能自給自足再說。」</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Cathie Wood（ARK）創新視角</div><span class="pill pill-green">積極看多</span></div><div class="persona-score" style="color:var(--c-green)">9.0</div></div><div class="persona-body">「Rocket Lab 是我們最看好的商業太空主題核心持倉之一。太空是未來 10 年最大的結構性機會——LEO 星座、太空旅遊、深空探測——而 RKLB 是 SpaceX 之外唯一具備完整能力（火箭 + 衛星系統）的美國上市公司。Neutron 若成功，將完全重新定義 RKLB 的估值空間，從 $10B 跳升至 $50B+。我們不擔心短期虧損——Amazon 也虧損很多年，Tesla 也是。這是一個 10 年 10-20 倍的機會，我們持有並繼續增持。」</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Quant / Factor Model 量化視角</div><span class="pill pill-gray">不評分</span></div><div class="persona-score" style="color:var(--c-red)">4.0</div></div><div class="persona-body">「RKLB 在因子模型中是邊緣案例：Momentum 因子 +0.3（過去 6 個月微幅超 S&amp;P 500），Quality 因子 -0.8（持續虧損 / 負 ROIC），Value 因子 -0.9（EV/Rev 25x 極高，無 P/E）。傳統因子模型難以評分虧損高成長公司——RKLB 更像是一個期權合約，而非傳統因子分析的標的。建議投資人採用二元事件分析框架（Neutron 成功 / 失敗）而非傳統因子，並對倉位設置明確止損。」</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Peter Lynch GARP 視角</div><span class="pill pill-red">謹慎觀察</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">「我能一句話說清楚 Rocket Lab 嗎？能：『他們做小型火箭和衛星零件，是 SpaceX 之外最好的商業太空公司，正在開發更大的火箭。』故事我懂。但 GARP 原則讓我猶豫——這不是 GARP（合理價格的成長股），這更像是一個科技期權。PEG 無法計算因為 EPS 為負。Revenue 成長 50%+ 很好，但 EV/Rev 25x 意味著我付出的代價太高。如果 Neutron 成功，是 10 倍股；失敗，是腰斬。我在商業太空板塊會等更確定的時機（比如 Neutron 首飛成功後）再建倉。」</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場與重要聲明</h2>
+    <p class="ph-lead">本報告為個人投資研究筆記，不構成投資建議，不代表任何機構立場，所有估算均為個人觀點，請獨立判斷。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">RKLB 是一個高風險、高期望值的太空期權。EV($22B) = 核心業務($11-13B) + Neutron期權($9-11B)。Neutron 是關鍵：成功則 Bull PT $45+，失敗則 Bear PT $8。目前 $20.50 的股價意味著市場給 Neutron 期權 ~40-50% 成功機率。我認為合理成功機率 35%，因此股價略高。適合高風險容忍投資者，建議等 Neutron 靜態點火成功後再考慮倉位，現階段觀望為主。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">在商業太空主題中，RKLB 是唯一真正可投資的上市替代選項（SpaceX 不上市，Astra 已失敗）。但作為組合的一部分，建議控制在 3-5% 以下，純期權倉位思考。若 Neutron 里程碑不如預期，應快速減倉。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>本研究為個人學習記錄，不構成任何買賣建議或投資推薦。所有估算均為個人觀點，實際財務數據以 Rocket Lab USA Inc. 官方 SEC 申報為準，太空產業前景的預測帶有極大不確定性，請勿依賴本報告做出投資決策。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>SEC Filing</td><td>Rocket Lab 10-K FY2024（2025年2月）</td><td>2025-02</td><td><span class="pill pill-gray">高</span></td></tr><tr><td>Earnings</td><td>RKLB FY2024 Q4 Earnings Call（2025年2月）</td><td>2025-02</td><td><span class="pill pill-gray">高</span></td></tr><tr><td>Industry</td><td>Bryce Space &amp; Technology Global Launch Market 2024</td><td>2024-12</td><td><span class="pill pill-gray">中高</span></td></tr><tr><td>Analyst</td><td>Morgan Stanley RKLB 報告（EW / PT $9-25 wide）</td><td>2025-01</td><td><span class="pill pill-gray">中</span></td></tr><tr><td>Industry</td><td>SpaceNews Commercial Launch Industry Report 2024</td><td>2024-11</td><td><span class="pill pill-gray">中高</span></td></tr><tr><td>Company IR</td><td>Rocket Lab Investor Presentation 2025</td><td>2025-01</td><td><span class="pill pill-gray">高</span></td></tr><tr><td>Government</td><td>SDA Tranche 2 Transport Layer Contract Award</td><td>2024-09</td><td><span class="pill pill-gray">高</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · RKLB Fusion v2 · 2026-05-21</span>
+    
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+function initCharts() {
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2021", "FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{ data: [62, 211, 245, 390, 580], backgroundColor: [], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: [],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+}
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const f = document.getElementById('pt-rev');
+  const m = document.getElementById('pt-mult');
+  const out = document.getElementById('pt-out');
+  if (!f || !m || !out) return;
+  function update() {
+    const rv = parseFloat(f.value) || 0;
+    const mv = parseFloat(m.value) || 0;
+    const shares = parseFloat(out.dataset.shares) || 1;
+    const cash = parseFloat(out.dataset.cash) || 0;
+    const pt = (rv * mv + cash) / shares;
+    out.textContent = '$' + pt.toFixed(2);
+    const rv_lbl = document.getElementById('pt-rev-val');
+    const mv_lbl = document.getElementById('pt-mult-val');
+    if (rv_lbl) rv_lbl.textContent = '$' + rv.toFixed(0) + 'M';
+    if (mv_lbl) mv_lbl.textContent = mv.toFixed(1) + '×';
+  }
+  f.addEventListener('input', update);
+  m.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

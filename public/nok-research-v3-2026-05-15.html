@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOK Nokia — AI RAN Inflection · Research Notes 2026-05-15</title>
+<!-- v4 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#fbfbfa;--card:#fff;--ink:#1a1a1a;--muted:#666;--muted2:#999;
+  --border:#e6e6e3;--navy:#0A1628;--gold:#F5A623;--mint:#5BC9A8;--red:#dc2626;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"SF Mono",Consolas,monospace;
+  --fs-xl:32px;--fs-lg:22px;--fs-md:16px;--fs-sm:14px;--fs-xs:12px;
+  --accent-on-dark:#5BC9A8;
+}
+*{box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);margin:0;padding:0;line-height:1.55;font-size:var(--fs-md)}
+.deck{max-width:1200px;margin:0 auto;padding:0 24px 64px}
+
+/* ===== Hero Decision Dashboard (v4 component 1) ===== */
+.hero-dashboard{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:24px;background:var(--navy);color:#fff;padding:40px 32px;border-radius:0;margin:0 -24px 32px;position:relative}
+.hero-dashboard .col{display:flex;flex-direction:column;gap:12px}
+.hero-dashboard .ticker{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--gold)}
+.hero-dashboard .title{font:600 var(--fs-md)/1.3 var(--font-sans);color:rgba(255,255,255,0.9)}
+.hero-dashboard .stance{display:inline-block;padding:6px 12px;background:rgba(245,166,35,0.2);border:1px solid var(--gold);border-radius:4px;font:700 var(--fs-sm)/1 var(--font-sans);color:var(--gold);width:fit-content}
+.hero-dashboard .meta-line{font:500 var(--fs-xs)/1.4 var(--font-mono);color:rgba(255,255,255,0.55);margin-top:auto}
+.hero-dashboard .price-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.hero-dashboard .price-cell{padding:10px 12px;background:rgba(255,255,255,0.06);border-radius:4px}
+.hero-dashboard .price-cell .lbl{font:500 var(--fs-xs)/1 var(--font-mono);color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.06em}
+.hero-dashboard .price-cell .v{font:700 var(--fs-lg)/1 var(--font-mono);color:#fff;margin-top:6px}
+.hero-dashboard .price-cell.star{background:rgba(245,166,35,0.15);border:1px solid rgba(245,166,35,0.4)}
+.hero-dashboard .price-cell.star .v{color:var(--gold)}
+.hero-dashboard .upside{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--mint);margin-top:6px;text-align:right}
+.hero-dashboard .right-block{padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:4px}
+.hero-dashboard .right-block .lbl{font:600 var(--fs-xs)/1 var(--font-mono);color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.hero-dashboard .right-block ul{margin:4px 0 0;padding-left:14px;font-size:var(--fs-sm);line-height:1.45}
+.hero-dashboard .right-block li{margin-bottom:3px}
+
+/* ===== Decision Box (v4 component 2) ===== */
+.decision-box{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--card);margin:20px 0}
+.decision-box .cell{padding:14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.decision-box .cell:nth-child(4n){border-right:none}
+.decision-box .cell:nth-last-child(-n+4){border-bottom:none}
+.decision-box .cell .lbl{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.decision-box .cell .v{font:700 var(--fs-md)/1.3 var(--font-sans);color:var(--ink);margin-top:6px}
+.decision-box .cell.star{background:rgba(245,166,35,0.06)}
+.decision-box .cell.star .v{color:var(--gold)}
+.decision-box .cell.bear .v{color:var(--red)}
+.decision-box .cell.bull .v{color:var(--mint)}
+
+/* ===== EV Spotlight (v3 carry) ===== */
+.ev-spotlight{display:flex;align-items:center;gap:18px;padding:14px 18px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.35);border-radius:8px;margin:14px 0;flex-wrap:wrap}
+.ev-spotlight .ev-label{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.ev-spotlight .ev-formula{font:500 var(--fs-sm)/1.4 var(--font-mono);color:var(--muted);min-width:200px}
+.ev-spotlight .ev-value{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--gold)}
+.ev-spotlight .ev-delta{font:700 var(--fs-md)/1 var(--font-mono);padding:6px 12px;border-radius:6px;background:rgba(91,201,168,0.18);color:var(--mint)}
+.ev-spotlight .ev-delta.negative{background:rgba(220,38,38,0.18);color:var(--red)}
+
+/* ===== Risk Matrix (v4 component 3) ===== */
+.risk-matrix{display:grid;grid-template-columns:90px repeat(3,1fr);grid-template-rows:auto repeat(3,72px);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;margin:14px 0}
+.risk-matrix > *{background:var(--card);padding:8px;font-size:var(--fs-sm)}
+.risk-matrix .axis-x,.risk-matrix .axis-y{background:var(--bg);font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);display:flex;align-items:center;justify-content:center;text-transform:uppercase}
+.risk-matrix .corner{background:var(--bg)}
+.risk-matrix .risk-cell{font:500 var(--fs-xs)/1.3 var(--font-sans)}
+.risk-matrix .risk-cell.high{background:rgba(220,38,38,0.08)}
+.risk-matrix .risk-cell.med{background:rgba(245,166,35,0.08)}
+.risk-matrix .risk-cell.low{background:rgba(91,201,168,0.08)}
+
+/* ===== Valuation Card (v4 component 4) ===== */
+.val-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:14px 0}
+.val-card h4{margin:0 0 10px;font-size:var(--fs-md);color:var(--navy);font-weight:700}
+.val-card table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.val-card th,.val-card td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.val-card th{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;background:var(--bg)}
+.val-card td.num{font-family:var(--font-mono);text-align:right}
+.val-card .pt-summary{display:flex;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.val-card .pt-summary > div{flex:1}
+.val-card .pt-summary .lbl{font:500 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase}
+.val-card .pt-summary .v{font:700 var(--fs-lg)/1 var(--font-mono);color:var(--gold);margin-top:4px}
+
+/* ===== Catalyst Timeline (v4 component 5) ===== */
+.timeline{position:relative;margin:20px 0;padding:24px 0 40px}
+.timeline-axis{position:relative;height:2px;background:var(--border);margin-bottom:0}
+.timeline-marker{position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg);transform:translateX(-50%)}
+.timeline-marker.high{background:var(--red)}
+.timeline-marker.med{background:var(--gold)}
+.timeline-marker.low{background:var(--mint)}
+.timeline-label{position:absolute;top:18px;transform:translateX(-50%);font-size:var(--fs-xs);text-align:center;width:120px;color:var(--ink)}
+.timeline-label .date{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted)}
+.timeline-label .event{font-size:var(--fs-xs);line-height:1.3;margin-top:4px}
+
+/* ===== Product Diagram (v4 component 6) ===== */
+.product-diagram{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin:14px 0}
+.product-diagram svg{width:100%;height:auto;max-height:420px}
+.product-diagram-caption{font-size:var(--fs-xs);color:var(--muted);margin-top:8px;text-align:center}
+
+/* ===== Consensus Panel (v4 component 7) ===== */
+.consensus{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin:14px 0}
+.consensus-chart{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.consensus-chart canvas{width:100% !important;max-height:260px}
+.consensus-cases{display:flex;flex-direction:column;gap:10px}
+.case-card{padding:12px;border-radius:6px;border-left:3px solid;font-size:var(--fs-sm)}
+.case-card.bull{background:rgba(91,201,168,0.06);border-left-color:var(--mint)}
+.case-card.bear{background:rgba(220,38,38,0.06);border-left-color:var(--red)}
+.case-card .lbl{font:600 var(--fs-xs)/1 var(--font-mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px}
+.case-card.bull .lbl{color:var(--mint)}
+.case-card.bear .lbl{color:var(--red)}
+
+/* ===== Scenario Table (v4 component 8) ===== */
+.scenario-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm);background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:14px 0}
+.scenario-table th{padding:10px;background:var(--bg);font:600 var(--fs-xs)/1 var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);border-bottom:1px solid var(--border);text-align:left}
+.scenario-table td{padding:10px;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.scenario-table .scenario-bear{color:var(--red);font-weight:600}
+.scenario-table .scenario-base{color:var(--gold);font-weight:700}
+.scenario-table .scenario-bull{color:var(--mint);font-weight:600}
+.scenario-table tr:last-child td{border-bottom:none}
+
+/* ===== Generic Chart.js canvas wrapper ===== */
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:14px 0}
+.chart-wrap canvas{width:100% !important;max-height:280px}
+
+/* ===== Sections — v4 padding tightened ===== */
+section{padding:36px 22px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin:24px 0}
+section.tight{padding:24px 18px;margin:18px 0}
+/* tier-* compat for v3 sections (padding caps per v4 spec) */
+section.tier-primary{padding:36px 22px}
+section.tier-secondary{padding:24px 18px}
+section.tier-tertiary{padding:16px 14px}
+
+/* viz-hero (v3 dark SVG container) */
+.viz-hero{margin:14px 0}
+.viz-hero.dark{padding:18px;border-radius:10px}
+.viz-hero svg{display:block;width:100%;height:auto}
+.viz-caption{font-size:var(--fs-xs);color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* tag chips */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font:600 var(--fs-xs)/1.4 var(--font-mono);text-transform:uppercase;letter-spacing:0.04em}
+.tag.red{background:rgba(220,38,38,0.12);color:var(--red)}
+.tag.gold{background:rgba(245,166,35,0.12);color:var(--gold)}
+.tag.mint{background:rgba(91,201,168,0.15);color:var(--mint)}
+.tbl-wrap{overflow-x:auto;margin:10px 0}
+.tbl-wrap table{min-width:100%}
+.tbl.dense th,.tbl.dense td{padding:6px 8px;font-size:var(--fs-xs)}
+tr.hl{background:rgba(245,166,35,0.06)}
+.gold{color:var(--gold)}
+.green{color:var(--mint)}
+.red{color:var(--red)}
+.risk-high{color:var(--red);font-weight:700}
+.stance-spec-buy{color:var(--gold);font-weight:700}
+.eyebrow{display:inline-block;font:600 var(--fs-xs)/1 var(--font-mono);color:var(--mint);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+h2{font-size:var(--fs-lg);color:var(--navy);margin:0 0 10px;font-weight:700}
+.section-lead{font-size:var(--fs-md);line-height:1.55;color:var(--ink);padding:10px 12px;background:rgba(245,166,35,0.04);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;margin:8px 0 16px}
+details{margin:10px 0;border:1px solid var(--border);border-radius:6px;padding:0}
+details summary{padding:10px 14px;cursor:pointer;font:600 var(--fs-sm)/1 var(--font-sans);color:var(--muted);user-select:none}
+details[open] summary{border-bottom:1px solid var(--border);background:var(--bg)}
+details > *:not(summary){padding:10px 14px;font-size:var(--fs-sm)}
+
+/* utility */
+table.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+table.tbl th,table.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+table.tbl th{background:var(--bg);font:600 var(--fs-xs)/1 var(--font-mono);text-transform:uppercase;color:var(--muted)}
+table.tbl td.num{font-family:var(--font-mono);text-align:right}
+ul.tight{margin:4px 0 0;padding-left:16px;font-size:var(--fs-sm);line-height:1.5}
+.footer{margin-top:48px;padding:18px 16px;background:var(--bg);border-radius:8px;font-size:var(--fs-xs);color:var(--muted);line-height:1.6}
+.footer strong{color:var(--ink)}
+
+/* mobile */
+@media (max-width:768px){
+  .deck{padding:0 14px 32px;min-width:0!important}
+  .hero-dashboard{grid-template-columns:1fr;padding:24px 18px;margin:0 -14px 22px;min-width:0!important}
+  .decision-box{grid-template-columns:repeat(2,1fr);min-width:0!important}
+  .consensus{grid-template-columns:1fr;min-width:0!important}
+  .risk-matrix{grid-template-columns:60px repeat(3,1fr);min-width:0!important}
+  section{padding:22px 14px;margin:16px 0;min-width:0!important}
+  section.tight{padding:16px 12px;min-width:0!important}
+  table thead{display:none}
+  table.scenario-table thead{display:none}
+  table.tbl tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:8px;min-width:0!important}
+  table.tbl td{display:block;border:none;padding:4px 0;min-width:0!important}
+  .product-diagram svg{min-width:0!important}
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section id="s00">
+<div class="hero-dashboard">
+  <div class="col">
+    <div class="ticker">NOK</div>
+    <div class="title">AI RAN Inflection — NVIDIA validates silicon edge; $3.4B pipeline 2026–28 converts 或 value trap 解除</div>
+    <div class="stance">Speculative Buy · Catalyst-Driven</div>
+    <div class="meta-line">NYSE · ADR · 5G / AI RAN · 2026-05-15</div>
+  </div>
+  <div class="col">
+    <div class="price-row">
+      <div class="price-cell"><div class="lbl">Current</div><div class="v" data-current-price="14.71">$14.71</div></div>
+      <div class="price-cell star"><div class="lbl">Base PT ★</div><div class="v">$16.50</div></div>
+      <div class="price-cell"><div class="lbl">Bull PT</div><div class="v">$22.00</div></div>
+      <div class="price-cell"><div class="lbl">Bear PT</div><div class="v">$10.00</div></div>
+    </div>
+    <div class="upside">+14.5% EV-weighted upside</div>
+  </div>
+  <div class="col">
+    <div class="right-block">
+      <div class="lbl">Key Catalysts</div>
+      <ul class="tight">
+        <li>Q2 2026 Earnings · GM 趨勢</li>
+        <li>2026-Q1 13F NVIDIA 持倉變動</li>
+        <li>AI RAN 訂單入帳速度</li>
+      </ul>
+    </div>
+    <div class="right-block">
+      <div class="lbl">Key Risks</div>
+      <ul class="tight">
+        <li>Trend 5.0 / Revenue YoY −26.6%</li>
+        <li>GM 43.5% &lt; 轉型目標 48%</li>
+        <li>99.3% 52W 高位 動能反轉</li>
+      </ul>
+    </div>
+    <div class="right-block">
+      <div class="lbl">Confidence</div>
+      <ul class="tight"><li>0.52 / 1.0</li></ul>
+    </div>
+  </div>
+</div>
+
+<div class="decision-box">
+  <div class="cell"><div class="lbl">Stance</div><div class="v">Speculative Buy</div></div>
+  <div class="cell"><div class="lbl">Entry Zone</div><div class="v">$12 – $14</div></div>
+  <div class="cell bear"><div class="lbl">Bear PT</div><div class="v">$10 · 20%</div></div>
+  <div class="cell star"><div class="lbl">Base PT ★</div><div class="v">$16.50 · 50%</div></div>
+  <div class="cell bull"><div class="lbl">Bull PT</div><div class="v">$22 · 30%</div></div>
+  <div class="cell"><div class="lbl">Next Catalyst</div><div class="v">Q2 2026 Earnings</div></div>
+  <div class="cell"><div class="lbl">Invalidation</div><div class="v">GM &lt; 38% × 2Q</div></div>
+  <div class="cell"><div class="lbl">Risk Level</div><div class="v">Medium-High</div></div>
+</div>
+
+<div class="ev-spotlight">
+  <div>
+    <div class="ev-label">EV · 機率加權期望價格</div>
+    <div class="ev-formula">$10 × 20% + $16.5 × 50% + $22 × 30%</div>
+  </div>
+  <div class="ev-value">$16.85</div>
+  <div class="ev-delta">+14.5% vs 現價 $14.71</div>
+</div>
+</section>
+<section id="s01" class="tier-primary">
+<div class="eyebrow">Executive Summary</div>
+<h2>五個核心發現</h2>
+<div class="section-lead">Nokia 站在 AI RAN 轉型折點：NVIDIA 大筆押注 + $3.4B pipeline 真實，但 Value Trap 特徵（trend 5.0，revenue −26.6%）要求催化劑確認才能放大倉位。</div>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr>
+  <th>#</th>
+  <th>發現</th>
+  <th>數據支撐</th>
+  <th>影響方向</th>
+  <th>確定性</th>
+</tr></thead>
+<tbody>
+<tr class="hl">
+  <td data-label="#">1</td>
+  <td data-label="發現">NVIDIA 以 $2.45B 押注 NOK，五力分析 Value Score 64.9</td>
+  <td data-label="數據支撐">13F 2025Q4：166.4M 股；PB 1.42 vs 科技中位 7.0</td>
+  <td data-label="影響方向"><span class="tag mint">正向</span></td>
+  <td data-label="確定性">高</td>
+</tr>
+<tr>
+  <td data-label="#">2</td>
+  <td data-label="發現">AI RAN pipeline $3.4B，Q1 2026 新增 $1B</td>
+  <td data-label="數據支撐">Insider Monkey / IR 披露；T-Mobile US 擴約確認</td>
+  <td data-label="影響方向"><span class="tag mint">正向</span></td>
+  <td data-label="確定性">中</td>
+</tr>
+<tr>
+  <td data-label="#">3</td>
+  <td data-label="發現">Q1 2026 GM 44.2%，季改善但 YoY Revenue −26.6%</td>
+  <td data-label="數據支撐">財報：Revenue €4.50B Q1'26 vs €6.00B Q4'25</td>
+  <td data-label="影響方向"><span class="tag gold">混合</span></td>
+  <td data-label="確定性">高</td>
+</tr>
+<tr>
+  <td data-label="#">4</td>
+  <td data-label="發現">五力 composite 47.2，trend 5.0 = Value Trap 特徵</td>
+  <td data-label="數據支撐">EPS YoY −83.3%；margin trend declining</td>
+  <td data-label="影響方向"><span class="tag red">負向</span></td>
+  <td data-label="確定性">高</td>
+</tr>
+<tr>
+  <td data-label="#">5</td>
+  <td data-label="發現">分析師共識 EPS 2027 $0.40 → 2030 $0.66，四年複合 13%</td>
+  <td data-label="數據支撐">forecast.json 6 analyst consensus；Rev 2030 $24.7B</td>
+  <td data-label="影響方向"><span class="tag mint">正向</span></td>
+  <td data-label="確定性">低-中</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details>
+<summary>Why Now — 時間窗口特殊性</summary>
+<div>
+<p style="font-size:14px;line-height:1.6">NOK 從 $4 漲至 $14.83（+270% / 12 個月），現交易於 52 週高位 99.3%。市場正在重新定價其 AI RAN 轉型，但趨勢數據仍呈惡化（Revenue YoY −26.6%）。這是一個典型「先行者佈局 vs 財務滯後」的時間差：若 Q2 2026 GM 確認 &gt;40%，AI RAN 訂單開始入帳，論點成立；若 GM 繼續下滑，Value Trap 確認。Q2 2026 財報（預估 2026 年 7 月）是關鍵裁決點。</p>
+</div>
+</details>
+</section>
+<section id="s02" class="tier-primary">
+<div class="eyebrow">Investment Thesis</div>
+<h2>SCQA · 為什麼現在值得關注 NOK</h2>
+<div class="section-lead">Nokia 的 AI RAN 技術正獲 NVIDIA 背書，$3.4B pipeline 若成功入帳將觸發估值重評，但當前 trend score 5.0 要求在 Q2 2026 財報獲得 GM 門檻確認前控制倉位。</div>
+<div class="grid-2" style="margin:18px 0">
+  <div>
+    <div class="callout">
+      <div class="ttl">Situation — 現況</div>
+      Nokia 是全球前三大無線基站設備商（RAN），市場份額約 17–19%。歷史上跟不上 Ericsson 步伐，但正在 AI-native RAN（gNodeB + NVIDIA GPU 整合）建立差異化。
+    </div>
+    <div class="callout red">
+      <div class="ttl">Complication — 困境</div>
+      Revenue YoY −26.6%，EPS YoY −83.3%，GM 43.5% 低於轉型目標。市場仍在 5G 傳統 RAN 週期低谷，同時 Ericsson 搶先拿下大量美歐合約。五力 trend score 僅 5.0。
+    </div>
+  </div>
+  <div>
+    <div class="callout mint">
+      <div class="ttl">Question — 關鍵問題</div>
+      Nokia 的 AI RAN 技術投資（NVIDIA 合作、$3.4B pipeline）是否能在 2026–28 轉化為財務改善，觸發從 Value Trap 到 Inflection 的估值重評？
+    </div>
+    <div class="callout">
+      <div class="ttl">Answer — 我們的觀點</div>
+      條件成立。NVIDIA 押注 $2.45B 為技術背書，T-Mobile 擴約確認初期需求，Pipeline 轉化率是唯一不確定性。倉位控制 + Q2 2026 確認窗口是正確框架。
+    </div>
+  </div>
+</div>
+<details>
+<summary>市場目前在定價什麼 vs 我們不同意什麼</summary>
+<div>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr><th>市場共識</th><th>我們的差異化觀點</th><th>關鍵依據</th></tr></thead>
+<tbody>
+<tr><td>NOK 是純週期股，跟隨 5G capex</td><td>AI RAN 開啟新週期，非舊週期反彈</td><td>NVIDIA 13F $2.45B；AI RAN pipeline $3.4B</td></tr>
+<tr><td>Ericsson 主導，Nokia 失地</td><td>Nokia AI RAN silicon 差異化高，Ericsson 未走同路</td><td>Nokia-NVIDIA ReefShark SoC 合作</td></tr>
+<tr><td>Revenue 下滑意味基本面惡化</td><td>Revenue 下滑部分為 mix shift（低毛利傳統 RAN 縮減）</td><td>Q1 2026 GM 44.2% 季度改善</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</details>
+<details>
+<summary>Re-rating 路徑 — 估值觸發條件</summary>
+<div>
+<p style="font-size:14px;line-height:1.6"><strong>Path 1（Base/Bull）：</strong>Q2 2026 GM &gt;40% + AI RAN 訂單首批確認入帳 → 市場開始用 2027/2028 EPS forward P/E 定價 → 估值從 PB 1.4 重評至成長型 P/E 22–28x EPS $0.40 = $8.8–$11.2（2027），折現回 2026 = $14–18。<br><br>
+<strong>Path 2（Bear）：</strong>GM &lt;38% 連續兩季，AI RAN 訂單延遲入帳 → Value Trap 確認，市場修正至純 book value = $10 區域。</p>
+</div>
+</details>
+</section>
+<section id="s03" class="tier-primary">
+<div class="eyebrow">Business Model</div>
+<h2>四段業務結構 · 收入組成分析</h2>
+<div class="section-lead">Nokia 四段業務中，Mobile Networks（MN）佔約 50% 營收，是 AI RAN 轉型主戰場；Nokia Technologies（NT）授權收入是最高毛利來源（估計 &gt;90% GM）。</div>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr>
+  <th>Segment</th>
+  <th>FY2025 Est Rev</th>
+  <th>佔比</th>
+  <th>毛利特徵</th>
+  <th>AI RAN 相關性</th>
+  <th>主要客戶 / 市場</th>
+</tr></thead>
+<tbody>
+<tr class="hl">
+  <td data-label="Segment"><strong>Mobile Networks (MN)</strong></td>
+  <td data-label="FY2025 Est Rev" class="num">~€9.9B</td>
+  <td data-label="佔比" class="num">~50%</td>
+  <td data-label="毛利特徵">35–38%（轉型壓縮）</td>
+  <td data-label="AI RAN 相關性"><span class="tag mint">核心</span></td>
+  <td data-label="主要客戶">T-Mobile US / AT&T / NTT</td>
+</tr>
+<tr>
+  <td data-label="Segment"><strong>Network Infrastructure (NI)</strong></td>
+  <td data-label="FY2025 Est Rev" class="num">~€5.0B</td>
+  <td data-label="佔比" class="num">~25%</td>
+  <td data-label="毛利特徵">40–43%</td>
+  <td data-label="AI RAN 相關性"><span class="tag gold">間接</span></td>
+  <td data-label="主要客戶">IP Routing / Optical</td>
+</tr>
+<tr>
+  <td data-label="Segment"><strong>Cloud &amp; Network Services (CNS)</strong></td>
+  <td data-label="FY2025 Est Rev" class="num">~€4.0B</td>
+  <td data-label="佔比" class="num">~20%</td>
+  <td data-label="毛利特徵">42–45%</td>
+  <td data-label="AI RAN 相關性"><span class="tag gold">支援</span></td>
+  <td data-label="主要客戶">雲端 / 企業 5G 私網</td>
+</tr>
+<tr>
+  <td data-label="Segment"><strong>Nokia Technologies (NT)</strong></td>
+  <td data-label="FY2025 Est Rev" class="num">~€1.1B</td>
+  <td data-label="佔比" class="num">~5%</td>
+  <td data-label="毛利特徵">&gt;90%（授權）</td>
+  <td data-label="AI RAN 相關性"><span class="tag gray">無直接</span></td>
+  <td data-label="主要客戶">Apple / Samsung / 手機廠授權</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="kpi-strip" style="margin-top:16px">
+  <div class="cell"><div class="lbl">Q1'26 Revenue</div><div class="val">€4.50B</div><div class="sub">vs €4.39B Q1'25</div></div>
+  <div class="cell"><div class="lbl">Q1'26 GM</div><div class="val gold">44.2%</div><div class="sub">€1.99B gross profit</div></div>
+  <div class="cell"><div class="lbl">Q1'26 Op Income</div><div class="val">€63M</div><div class="sub">OM 1.4%</div></div>
+  <div class="cell"><div class="lbl">Net Cash</div><div class="val mint">€1.63B</div><div class="sub">Net debt negative</div></div>
+  <div class="cell"><div class="lbl">Free Cash Flow</div><div class="val mint">€629M</div><div class="sub">Q1 2026</div></div>
+  <div class="cell"><div class="lbl">R&amp;D / Revenue</div><div class="val">27.5%</div><div class="sub">€1.24B / €4.50B</div></div>
+</div>
+<details>
+<summary>Nokia Technologies 授權業務 — 隱藏的高毛利錨</summary>
+<div>
+<p style="font-size:14px;line-height:1.6">NT 的 5G 標準必要專利（SEP）授權費每年貢獻 ~€1.1B 收入，毛利率估計 &gt;90%。此為 Nokia 整體 GM 的重要支撐。Apple / Samsung 等是主要被授權方。未來若 AI / 6G 標準成立，NT 授權版圖可擴大。這是分析師常低估的一個隱藏資產層。</p>
+</div>
+</details>
+</section>
+<section id="s04" class="tier-primary">
+<div class="eyebrow">Product Deep Dive</div>
+<h2>Nokia AI RAN gNodeB — 技術爆炸圖</h2>
+<div class="section-lead">Nokia AirScale gNodeB 整合 ReefShark SoC + NVIDIA GPU offload，是業界少數原生 AI 推理在 RAN 節點運行的實作，構成對 Ericsson 的差異化護城河。</div>
+<div class="viz-hero dark">
+  <!-- Real SVG Exploded Diagram: Nokia AI RAN gNodeB -->
+  <svg viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%;display:block;font-family:'JetBrains Mono',monospace">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F5A623"/></marker>
+      <marker id="arr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#5BC9A8"/></marker>
+      <marker id="arr-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#dc2626"/></marker>
+    </defs>
+    <!-- Background -->
+    <rect width="860" height="480" fill="#0A1628" rx="8"/>
+    <!-- Title -->
+    <text x="430" y="28" text-anchor="middle" fill="#F5A623" font-size="12" font-weight="700" letter-spacing="2">NOKIA AIRSCALE gNodeB — AI RAN ARCHITECTURE</text>
+
+    <!-- Layer 1: Antenna (top) -->
+    <rect x="320" y="48" width="220" height="44" rx="6" fill="none" stroke="#5BC9A8" stroke-width="1.5"/>
+    <text x="430" y="66" text-anchor="middle" fill="#5BC9A8" font-size="11" font-weight="600">ACTIVE ANTENNA UNIT (AAU)</text>
+    <text x="430" y="82" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10">Massive MIMO 64T64R · Beamforming · Sub-6GHz + mmWave</text>
+    <line x1="430" y1="92" x2="430" y2="118" stroke="#F5A623" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- Layer 2: Radio Unit -->
+    <rect x="270" y="118" width="320" height="44" rx="6" fill="none" stroke="#F5A623" stroke-width="1.5"/>
+    <text x="430" y="136" text-anchor="middle" fill="#F5A623" font-size="11" font-weight="600">RADIO UNIT (RU) — ReefShark RF SoC</text>
+    <text x="430" y="152" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10">Nokia 自研 ReefShark · 3nm → 5G NR 射頻 + Fronthaul (eCPRI)</text>
+    <line x1="430" y1="162" x2="430" y2="188" stroke="#F5A623" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- Layer 3: Distributed Unit (DU) — Nokia + NVIDIA -->
+    <rect x="200" y="188" width="460" height="68" rx="6" fill="rgba(91,201,168,0.08)" stroke="#5BC9A8" stroke-width="2"/>
+    <text x="430" y="207" text-anchor="middle" fill="#5BC9A8" font-size="12" font-weight="700">DISTRIBUTED UNIT (DU) — AI Inference Layer ★</text>
+    <!-- Nokia half -->
+    <rect x="210" y="214" width="195" height="32" rx="4" fill="rgba(245,166,35,0.12)" stroke="#F5A623" stroke-width="1"/>
+    <text x="307" y="228" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="600">Nokia ReefShark DU SoC</text>
+    <text x="307" y="240" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">L1 Phy · Layer 2 MAC · RLC</text>
+    <!-- NVIDIA half -->
+    <rect x="415" y="214" width="235" height="32" rx="4" fill="rgba(118,185,107,0.15)" stroke="#76b96b" stroke-width="1.5"/>
+    <text x="532" y="228" text-anchor="middle" fill="#76b96b" font-size="10" font-weight="700">NVIDIA GPU Offload (H100/A100)</text>
+    <text x="532" y="240" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">AI Inference · Beamforming Predict · Network Opt</text>
+    <line x1="430" y1="256" x2="430" y2="282" stroke="#5BC9A8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+    <!-- Layer 4: CU -->
+    <rect x="270" y="282" width="320" height="44" rx="6" fill="none" stroke="#94A3B8" stroke-width="1.5"/>
+    <text x="430" y="300" text-anchor="middle" fill="#94A3B8" font-size="11" font-weight="600">CENTRALIZED UNIT (CU) — Cloud-Native</text>
+    <text x="430" y="316" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="10">PDCP · RRC · SDAP · Nokia Cloud RAN Software</text>
+    <line x1="430" y1="326" x2="430" y2="352" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- Layer 5: Transport / Core -->
+    <rect x="200" y="352" width="460" height="44" rx="6" fill="none" stroke="#64748B" stroke-width="1"/>
+    <text x="430" y="370" text-anchor="middle" fill="#64748B" font-size="11" font-weight="600">TRANSPORT / 5G CORE INTEGRATION</text>
+    <text x="430" y="386" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">Nokia IP Routing (NI Segment) · Nokia CloudBand · 5GC (AMF/UPF/SMF)</text>
+
+    <!-- Right annotations -->
+    <line x1="660" y1="130" x2="760" y2="130" stroke="#F5A623" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="765" y="127" fill="#F5A623" font-size="10" font-weight="600">Nokia Owned</text>
+    <text x="765" y="140" fill="rgba(255,255,255,0.45)" font-size="9">Proprietary SoC</text>
+    <line x1="660" y1="230" x2="760" y2="222" stroke="#76b96b" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="765" y="218" fill="#76b96b" font-size="10" font-weight="600">NVIDIA Partner</text>
+    <text x="765" y="232" fill="rgba(255,255,255,0.45)" font-size="9">AI Differentiator</text>
+
+    <!-- Left annotations -->
+    <text x="40" y="70" fill="rgba(255,255,255,0.5)" font-size="10">L-1</text>
+    <text x="40" y="140" fill="rgba(255,255,255,0.5)" font-size="10">L-2</text>
+    <text x="40" y="225" fill="rgba(255,255,255,0.9)" font-size="10" font-weight="700">L-3 ★</text>
+    <text x="40" y="305" fill="rgba(255,255,255,0.5)" font-size="10">L-4</text>
+    <text x="40" y="375" fill="rgba(255,255,255,0.5)" font-size="10">L-5</text>
+
+    <!-- Source -->
+    <text x="430" y="462" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">Source: Nokia IR / NVIDIA Partnership Disclosures · 個人研究筆記 · 非機構出品</text>
+  </svg>
+  <div class="viz-caption">Nokia AirScale gNodeB 5 層架構。Layer 3 (DU) 是 AI 差異化核心：ReefShark SoC 處理基頻，NVIDIA GPU offload 執行 AI 推理（beamforming 預測 / 網路優化）。此整合為 Nokia 申請超過 30 項相關專利。</div>
+</div>
+<div class="tbl-wrap" style="margin-top:16px">
+<table class="tbl dense">
+<thead><tr><th>競品對比</th><th>Nokia AI RAN</th><th>Ericsson AIR 6449</th><th>Samsung vRAN 3.0</th><th>Huawei AirEngine</th></tr></thead>
+<tbody>
+<tr><td data-label="競品對比">AI 推理晶片</td><td data-label="Nokia AI RAN"><strong>NVIDIA GPU (合作)</strong></td><td data-label="Ericsson AIR 6449">自研 ASICs</td><td data-label="Samsung vRAN 3.0">NVIDIA (Lite)</td><td data-label="Huawei AirEngine">昇騰 AI 晶片</td></tr>
+<tr><td data-label="競品對比">Open RAN 支援</td><td data-label="Nokia AI RAN">O-RAN 標準 ✓</td><td data-label="Ericsson AIR 6449">部分支援</td><td data-label="Samsung vRAN 3.0">完整 Open RAN</td><td data-label="Huawei AirEngine">專有協議</td></tr>
+<tr><td data-label="競品對比">雲原生架構</td><td data-label="Nokia AI RAN">CloudBand ✓</td><td data-label="Ericsson AIR 6449">Cloud RAN ✓</td><td data-label="Samsung vRAN 3.0">vRAN ✓</td><td data-label="Huawei AirEngine">部分</td></tr>
+<tr><td data-label="競品對比">西方市場佈局</td><td data-label="Nokia AI RAN">美/歐/日 ✓</td><td data-label="Ericsson AIR 6449">美/歐強</td><td data-label="Samsung vRAN 3.0">美/韓</td><td data-label="Huawei AirEngine">受限 ✗</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="s05" class="tier-primary">
+<div class="eyebrow">Supply Chain</div>
+<h2>Nokia AI RAN 供應鏈位置圖</h2>
+<div class="section-lead">Nokia 位於上游晶片（NVIDIA / 自研 ReefShark）到下游電信商之間的系統整合層，NVIDIA 的上游押注是最關鍵的供應鏈信號。</div>
+<div class="viz-hero dark">
+  <svg viewBox="0 0 860 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%;display:block;font-family:'JetBrains Mono',monospace">
+    <defs>
+      <marker id="sc-arr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#F5A623"/></marker>
+      <marker id="sc-arr-g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#5BC9A8"/></marker>
+      <marker id="sc-arr-b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#a8cde8"/></marker>
+    </defs>
+    <rect width="860" height="400" fill="#0A1628" rx="8"/>
+    <!-- Layer labels (left axis) -->
+    <text x="12" y="95" fill="rgba(255,255,255,0.4)" font-size="10" font-weight="600">UPSTREAM</text>
+    <text x="12" y="200" fill="rgba(255,255,255,0.7)" font-size="10" font-weight="700">MIDSTREAM ★</text>
+    <text x="12" y="310" fill="rgba(255,255,255,0.4)" font-size="10" font-weight="600">DOWNSTREAM</text>
+    <!-- Divider lines -->
+    <line x1="80" y1="140" x2="840" y2="140" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6,4"/>
+    <line x1="80" y1="255" x2="840" y2="255" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6,4"/>
+
+    <!-- UPSTREAM: Chips (3 boxes) -->
+    <!-- NVIDIA (highlighted) -->
+    <rect x="90" y="58" width="160" height="60" rx="6" fill="rgba(118,185,107,0.18)" stroke="#76b96b" stroke-width="2"/>
+    <text x="170" y="78" text-anchor="middle" fill="#76b96b" font-size="12" font-weight="700">NVIDIA</text>
+    <text x="170" y="93" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="10">H100/A100 GPU</text>
+    <text x="170" y="107" text-anchor="middle" fill="#76b96b" font-size="9" font-weight="600">持股 $2.45B ★</text>
+
+    <!-- TSMC -->
+    <rect x="275" y="58" width="130" height="60" rx="6" fill="none" stroke="#94A3B8" stroke-width="1"/>
+    <text x="340" y="78" text-anchor="middle" fill="#94A3B8" font-size="11">TSMC</text>
+    <text x="340" y="93" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="10">3nm / 5nm 製造</text>
+    <text x="340" y="107" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9">ReefShark SoC 晶圓</text>
+
+    <!-- Murata / Components -->
+    <rect x="425" y="58" width="130" height="60" rx="6" fill="none" stroke="#64748B" stroke-width="1"/>
+    <text x="490" y="78" text-anchor="middle" fill="#64748B" font-size="11">村田製作所</text>
+    <text x="490" y="93" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">RF 被動元件</text>
+    <text x="490" y="107" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">濾波器 / Duplexer</text>
+
+    <!-- Foxconn/Flextronics -->
+    <rect x="575" y="58" width="130" height="60" rx="6" fill="none" stroke="#64748B" stroke-width="1"/>
+    <text x="640" y="78" text-anchor="middle" fill="#64748B" font-size="11">Flextronics</text>
+    <text x="640" y="93" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">EMS 代工組裝</text>
+    <text x="640" y="107" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">基站硬體製造</text>
+
+    <!-- Arrows upstream → Nokia -->
+    <line x1="170" y1="118" x2="310" y2="160" stroke="#76b96b" stroke-width="1.5" marker-end="url(#sc-arr-g)"/>
+    <line x1="340" y1="118" x2="340" y2="158" stroke="#F5A623" stroke-width="1" marker-end="url(#sc-arr)"/>
+    <line x1="490" y1="118" x2="380" y2="158" stroke="#F5A623" stroke-width="1" marker-end="url(#sc-arr)"/>
+    <line x1="640" y1="118" x2="430" y2="158" stroke="#F5A623" stroke-width="1" marker-end="url(#sc-arr)"/>
+
+    <!-- MIDSTREAM: Nokia (central, highlighted) -->
+    <rect x="200" y="158" width="300" height="72" rx="8" fill="rgba(245,166,35,0.14)" stroke="#F5A623" stroke-width="2.5"/>
+    <text x="350" y="180" text-anchor="middle" fill="#F5A623" font-size="14" font-weight="700">NOKIA OYJ</text>
+    <text x="350" y="197" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">System Integration · AirScale RAN · ReefShark SoC Design</text>
+    <text x="350" y="213" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10">MN + NI + CNS + NT · €20B rev · 93,000 employees</text>
+    <text x="350" y="226" text-anchor="middle" fill="#5BC9A8" font-size="9" font-weight="600">AI RAN pipeline $3.4B · Value Score 64.9</text>
+
+    <!-- Arrows Nokia → Downstream -->
+    <line x1="280" y1="230" x2="185" y2="268" stroke="#5BC9A8" stroke-width="1.5" marker-end="url(#sc-arr-g)"/>
+    <line x1="350" y1="230" x2="350" y2="268" stroke="#5BC9A8" stroke-width="1.5" marker-end="url(#sc-arr-g)"/>
+    <line x1="420" y1="230" x2="510" y2="268" stroke="#5BC9A8" stroke-width="1.5" marker-end="url(#sc-arr-g)"/>
+    <line x1="460" y1="235" x2="640" y2="268" stroke="#5BC9A8" stroke-width="1" marker-end="url(#sc-arr-g)"/>
+
+    <!-- DOWNSTREAM: Telecom operators (4 boxes) -->
+    <rect x="100" y="268" width="140" height="56" rx="6" fill="rgba(91,201,168,0.08)" stroke="#5BC9A8" stroke-width="1.5"/>
+    <text x="170" y="288" text-anchor="middle" fill="#5BC9A8" font-size="11" font-weight="600">T-Mobile US</text>
+    <text x="170" y="303" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">2026 Q1 擴約</text>
+    <text x="170" y="317" text-anchor="middle" fill="#5BC9A8" font-size="9">AI RAN 主要客戶</text>
+
+    <rect x="265" y="268" width="140" height="56" rx="6" fill="none" stroke="#94A3B8" stroke-width="1"/>
+    <text x="335" y="288" text-anchor="middle" fill="#94A3B8" font-size="11">AT&amp;T / Verizon</text>
+    <text x="335" y="303" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="10">美國主要電信商</text>
+    <text x="335" y="317" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">RAN 更新週期中</text>
+
+    <rect x="430" y="268" width="140" height="56" rx="6" fill="none" stroke="#64748B" stroke-width="1"/>
+    <text x="500" y="288" text-anchor="middle" fill="#64748B" font-size="11">NTT / KDDI</text>
+    <text x="500" y="303" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">日本電信商</text>
+    <text x="500" y="317" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">Open RAN 積極</text>
+
+    <rect x="595" y="268" width="140" height="56" rx="6" fill="none" stroke="#64748B" stroke-width="1"/>
+    <text x="665" y="288" text-anchor="middle" fill="#64748B" font-size="11">歐洲電信商</text>
+    <text x="665" y="303" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">Deutsche Telekom</text>
+    <text x="665" y="317" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9">Vodafone 等</text>
+
+    <!-- Legend -->
+    <rect x="90" y="352" width="12" height="12" rx="2" fill="rgba(118,185,107,0.18)" stroke="#76b96b" stroke-width="1.5"/>
+    <text x="108" y="363" fill="#76b96b" font-size="10">NVIDIA (戰略股東 + AI 技術夥伴)</text>
+    <rect x="310" y="352" width="12" height="12" rx="2" fill="rgba(245,166,35,0.14)" stroke="#F5A623" stroke-width="1.5"/>
+    <text x="328" y="363" fill="#F5A623" font-size="10">Nokia (研究標的)</text>
+    <rect x="500" y="352" width="12" height="12" rx="2" fill="rgba(91,201,168,0.08)" stroke="#5BC9A8" stroke-width="1"/>
+    <text x="518" y="363" fill="#5BC9A8" font-size="10">T-Mobile (關鍵客戶，已擴約)</text>
+
+    <text x="430" y="385" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="9">Source: Nokia IR · NVIDIA 13F · 個人研究整理 · 非機構出品</text>
+  </svg>
+  <div class="viz-caption">Nokia 位於供應鏈中層（System Integration），向上整合 NVIDIA GPU + 自研 ReefShark SoC，向下服務 T-Mobile / AT&T 等電信商。NVIDIA 持股 $2.45B 是業界罕見的上游直接持有下游系統商，具有戰略背書意義。</div>
+</div>
+<details>
+<summary>客戶集中度風險 + T-Mobile 擴約細節</summary>
+<div>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr><th>客戶 / 區域</th><th>預估佔比</th><th>2026 合約狀態</th><th>風險評估</th></tr></thead>
+<tbody>
+<tr><td>T-Mobile US</td><td class="num">~15–20%</td><td><span class="tag mint">Q1 2026 擴約</span></td><td>低 (已確認)</td></tr>
+<tr><td>AT&amp;T / Verizon</td><td class="num">~10–15%</td><td>競標中</td><td>中</td></tr>
+<tr><td>NTT / 日本</td><td class="num">~8–12%</td><td>Open RAN 擴展</td><td>低-中</td></tr>
+<tr><td>歐洲電信商</td><td class="num">~20%</td><td>週期低谷</td><td>中-高</td></tr>
+<tr><td>其他新興市場</td><td class="num">~35%+</td><td>分散</td><td>高</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</details>
+</section>
+<section id="s06" class="tier-primary">
+<div class="eyebrow">Revenue Driver</div>
+<h2>AI RAN 訂單橋接 → 收入預測</h2>
+<div class="section-lead">AI RAN $3.4B pipeline 若按 2026–28 三年均勻入帳，每年貢獻約 €1.0–1.2B，相當於 FY25 Revenue 的 ~5–6%，是邊際推動力而非革命性改變。</div>
+<div class="viz-hero">
+  <!-- Real Waterfall SVG: Revenue Bridge 2024→2028 -->
+  <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%;display:block;font-family:'JetBrains Mono',monospace">
+    <defs>
+      <marker id="wa" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto"><polygon points="0 0,6 2.5,0 5" fill="#64748B"/></marker>
+    </defs>
+    <!-- Y-axis -->
+    <line x1="70" y1="20" x2="70" y2="290" stroke="#E2E8F0" stroke-width="1.5" marker-end="url(#wa)"/>
+    <!-- X-axis -->
+    <line x1="70" y1="290" x2="780" y2="290" stroke="#E2E8F0" stroke-width="1.5" marker-end="url(#wa)"/>
+    <!-- Y-axis ticks + labels -->
+    <text x="62" y="295" text-anchor="end" fill="#94A3B8" font-size="10">0</text>
+    <line x1="66" y1="290" x2="70" y2="290" stroke="#E2E8F0"/>
+    <text x="62" y="245" text-anchor="end" fill="#94A3B8" font-size="10">5</text>
+    <line x1="66" y1="240" x2="70" y2="240" stroke="#E2E8F0" stroke-dasharray="3,3"/>
+    <line x1="70" y1="240" x2="780" y2="240" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="195" text-anchor="end" fill="#94A3B8" font-size="10">10</text>
+    <line x1="66" y1="190" x2="70" y2="190" stroke="#E2E8F0" stroke-dasharray="3,3"/>
+    <line x1="70" y1="190" x2="780" y2="190" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="145" text-anchor="end" fill="#94A3B8" font-size="10">15</text>
+    <line x1="66" y1="140" x2="70" y2="140" stroke="#E2E8F0" stroke-dasharray="3,3"/>
+    <line x1="70" y1="140" x2="780" y2="140" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="95" text-anchor="end" fill="#94A3B8" font-size="10">20</text>
+    <line x1="66" y1="90" x2="70" y2="90" stroke="#E2E8F0" stroke-dasharray="3,3"/>
+    <line x1="70" y1="90" x2="780" y2="90" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="45" text-anchor="end" fill="#94A3B8" font-size="10">25</text>
+    <line x1="66" y1="40" x2="70" y2="40" stroke="#E2E8F0" stroke-dasharray="3,3"/>
+    <!-- Y-axis unit label -->
+    <text x="12" y="160" fill="#64748B" font-size="10" transform="rotate(-90,12,160)">Revenue (€B)</text>
+
+    <!-- Bar data (scale: 1B = 9.6px, base 290, so 20B = 192px → y=98) -->
+    <!-- FY2023 baseline: ~19.8B → height=190, y=100 -->
+    <rect x="95" y="100" width="70" height="190" rx="3" fill="#94A3B8" opacity="0.7"/>
+    <text x="130" y="95" text-anchor="middle" fill="#64748B" font-size="11" font-weight="600">€19.8B</text>
+    <text x="130" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2023</text>
+
+    <!-- FY2024: ~14.5B (-27%) → h=139, y=151 -->
+    <rect x="195" y="151" width="70" height="139" rx="3" fill="#dc2626" opacity="0.75"/>
+    <text x="230" y="146" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="600">€14.5B</text>
+    <text x="230" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2024</text>
+    <!-- decline annotation -->
+    <text x="190" y="128" fill="#dc2626" font-size="9">−27%</text>
+
+    <!-- FY2025 est: ~19.9B → h=191, y=99 (recovery) -->
+    <rect x="295" y="99" width="70" height="191" rx="3" fill="#F5A623" opacity="0.75"/>
+    <text x="330" y="94" text-anchor="middle" fill="#a76b08" font-size="11" font-weight="600">~€19.9B</text>
+    <text x="330" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2025</text>
+    <text x="290" y="78" fill="#16a34a" font-size="9">+37% est</text>
+
+    <!-- FY2026 forecast: ~21.0B → h=202, y=88 -->
+    <rect x="395" y="88" width="70" height="202" rx="3" fill="#F5A623" opacity="0.55"/>
+    <text x="430" y="83" text-anchor="middle" fill="#a76b08" font-size="11" font-weight="600">~€21.0B</text>
+    <text x="430" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2026E</text>
+    <!-- AI RAN contribution marker -->
+    <rect x="395" y="88" width="70" height="11" rx="0" fill="#5BC9A8" opacity="0.9"/>
+    <text x="480" y="98" fill="#5BC9A8" font-size="9" font-weight="600">AI RAN +€1.0B</text>
+
+    <!-- FY2027 forecast: ~22.4B → h=215, y=75 -->
+    <rect x="495" y="75" width="70" height="215" rx="3" fill="#5BC9A8" opacity="0.55"/>
+    <text x="530" y="70" text-anchor="middle" fill="#0f6e54" font-size="11" font-weight="600">~€22.4B</text>
+    <text x="530" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2027E</text>
+    <rect x="495" y="75" width="70" height="12" rx="0" fill="#5BC9A8" opacity="0.9"/>
+    <text x="575" y="84" fill="#5BC9A8" font-size="9" font-weight="600">AI RAN +€1.2B</text>
+
+    <!-- FY2028 forecast: ~23.8B → h=229, y=61 -->
+    <rect x="595" y="61" width="70" height="229" rx="3" fill="#5BC9A8" opacity="0.4"/>
+    <text x="630" y="56" text-anchor="middle" fill="#0f6e54" font-size="11" font-weight="600">~€23.8B</text>
+    <text x="630" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2028E</text>
+
+    <!-- FY2030 forecast: ~24.7B → h=237, y=53 -->
+    <rect x="695" y="53" width="70" height="237" rx="3" fill="#5BC9A8" opacity="0.3"/>
+    <text x="730" y="48" text-anchor="middle" fill="#0f6e54" font-size="11" font-weight="600">~€24.7B</text>
+    <text x="730" y="310" text-anchor="middle" fill="#64748B" font-size="11">FY2030E</text>
+
+    <!-- Trend line -->
+    <polyline points="330,99 430,88 530,75 630,61 730,53" fill="none" stroke="#5BC9A8" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+    <!-- Annotation: AI RAN inflection -->
+    <line x1="395" y1="80" x2="370" y2="52" stroke="#5BC9A8" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="360" y="48" text-anchor="end" fill="#5BC9A8" font-size="9" font-weight="600">AI RAN Inflection</text>
+    <text x="360" y="60" text-anchor="end" fill="rgba(0,0,0,0.5)" font-size="9">2026 入帳開始</text>
+
+    <!-- Source -->
+    <text x="400" y="338" text-anchor="middle" fill="#94A3B8" font-size="9">Source: Nokia IR 2025 / Analyst consensus (n=6–14) · 個人研究筆記</text>
+  </svg>
+  <div class="viz-caption">FY2024 Revenue 因 5G 週期低谷重挫 −27%；FY2025 企穩回升。AI RAN pipeline（藍色條頂端）自 FY2026 開始貢獻邊際增量。預測數據來自分析師共識，非保證。</div>
+</div>
+<div class="tbl-wrap" style="margin-top:16px">
+<table class="tbl">
+<thead><tr>
+  <th>年度</th>
+  <th class="num">Revenue (Est)</th>
+  <th class="num">EPS Avg</th>
+  <th class="num">EPS Low</th>
+  <th class="num">EPS High</th>
+  <th class="num">分析師數(EPS)</th>
+</tr></thead>
+<tbody>
+<tr>
+  <td data-label="年度"><strong>FY2027E</strong></td>
+  <td data-label="Revenue (Est)" class="num">$22.4B</td>
+  <td data-label="EPS Avg" class="num"><strong>$0.40</strong></td>
+  <td data-label="EPS Low" class="num">$0.36</td>
+  <td data-label="EPS High" class="num">$0.49</td>
+  <td data-label="分析師數(EPS)" class="num">6</td>
+</tr>
+<tr>
+  <td data-label="年度"><strong>FY2028E</strong></td>
+  <td data-label="Revenue (Est)" class="num">$23.8B</td>
+  <td data-label="EPS Avg" class="num"><strong>$0.46</strong></td>
+  <td data-label="EPS Low" class="num">$0.44</td>
+  <td data-label="EPS High" class="num">$0.48</td>
+  <td data-label="分析師數(EPS)" class="num">3</td>
+</tr>
+<tr>
+  <td data-label="年度"><strong>FY2029E</strong></td>
+  <td data-label="Revenue (Est)" class="num">$25.0B</td>
+  <td data-label="EPS Avg" class="num"><strong>$0.51</strong></td>
+  <td data-label="EPS Low" class="num">$0.49</td>
+  <td data-label="EPS High" class="num">$0.54</td>
+  <td data-label="分析師數(EPS)" class="num">4</td>
+</tr>
+<tr class="hl">
+  <td data-label="年度"><strong>FY2030E</strong></td>
+  <td data-label="Revenue (Est)" class="num">$24.7B</td>
+  <td data-label="EPS Avg" class="num"><strong>$0.66</strong></td>
+  <td data-label="EPS Low" class="num">$0.64</td>
+  <td data-label="EPS High" class="num">$0.70</td>
+  <td data-label="分析師數(EPS)" class="num">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="s07" class="tier-secondary">
+<div class="eyebrow">Financial Analysis</div>
+<h2>毛利率趨勢 · 財務健康</h2>
+<div class="section-lead">Q1 2026 GM 44.2% 較前兩季改善，但 Operating Margin 僅 1.4%（€63M），顯示轉型期 R&D + SGA 壓力仍重；淨現金正數是重要底部保護。</div>
+<div class="viz-hero">
+  <!-- Margin trend line chart, 5 quarters -->
+  <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%;display:block;font-family:'JetBrains Mono',monospace">
+    <defs>
+      <marker id="ml" markerWidth="5" markerHeight="4" refX="4" refY="2" orient="auto"><polygon points="0 0,5 2,0 4" fill="#64748B"/></marker>
+    </defs>
+    <!-- Axes -->
+    <line x1="70" y1="20" x2="70" y2="220" stroke="#E2E8F0" stroke-width="1.5" marker-end="url(#ml)"/>
+    <line x1="70" y1="220" x2="700" y2="220" stroke="#E2E8F0" stroke-width="1.5" marker-end="url(#ml)"/>
+    <!-- Y grid + ticks: 0%=220, 10%=188, 20%=156, 30%=124, 40%=92, 50%=60, 60%=28 -->
+    <text x="62" y="224" text-anchor="end" fill="#94A3B8" font-size="10">0%</text>
+    <text x="62" y="192" text-anchor="end" fill="#94A3B8" font-size="10">10%</text>
+    <line x1="70" y1="188" x2="700" y2="188" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="160" text-anchor="end" fill="#94A3B8" font-size="10">20%</text>
+    <line x1="70" y1="156" x2="700" y2="156" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="128" text-anchor="end" fill="#94A3B8" font-size="10">30%</text>
+    <line x1="70" y1="124" x2="700" y2="124" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="62" y="96" text-anchor="end" fill="#94A3B8" font-size="10">40%</text>
+    <line x1="70" y1="92" x2="700" y2="92" stroke="#F1F5F9" stroke-width="1" stroke-dasharray="5,4"/>
+    <text x="62" y="64" text-anchor="end" fill="#94A3B8" font-size="10">50%</text>
+    <line x1="70" y1="60" x2="700" y2="60" stroke="#F1F5F9" stroke-width="1"/>
+    <!-- Target GM 48% line -->
+    <line x1="70" y1="74" x2="700" y2="74" stroke="#5BC9A8" stroke-width="1" stroke-dasharray="6,3" opacity="0.6"/>
+    <text x="705" y="77" fill="#5BC9A8" font-size="9">Target 48%</text>
+    <text x="20" y="140" fill="#64748B" font-size="10" transform="rotate(-90,20,140)">Margin %</text>
+    <!-- X-axis labels: Q1'25 Q2'25 Q3'25 Q4'25 Q1'26 -->
+    <!-- xpos: 160, 280, 400, 520, 640 -->
+    <text x="160" y="238" text-anchor="middle" fill="#94A3B8" font-size="10">Q1'25</text>
+    <text x="280" y="238" text-anchor="middle" fill="#94A3B8" font-size="10">Q2'25</text>
+    <text x="400" y="238" text-anchor="middle" fill="#94A3B8" font-size="10">Q3'25</text>
+    <text x="520" y="238" text-anchor="middle" fill="#94A3B8" font-size="10">Q4'25</text>
+    <text x="640" y="238" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="700">Q1'26</text>
+
+    <!-- Gross Margin data points (Q1'25=41.6%, Q2'25=43.4%, Q3'25=43.7%, Q4'25=44.9%, Q1'26=44.2%) -->
+    <!-- y = 220 - margin*3.2 ... scale: 1% = 3.2px (50%=60 → 220-50*3.2=60 ✓) -->
+    <!-- Q1'25: 41.6% → y=220-41.6*3.2=86.9≈87 -->
+    <!-- Q2'25: 43.4% → y=220-43.4*3.2=81.1≈81 -->
+    <!-- Q3'25: 43.7% → y=220-43.7*3.2=80.2≈80 -->
+    <!-- Q4'25: 44.9% → y=220-44.9*3.2=76.2≈76 -->
+    <!-- Q1'26: 44.2% → y=220-44.2*3.2=78.6≈79 -->
+    <polyline points="160,87 280,81 400,80 520,76 640,79" fill="none" stroke="#F5A623" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- GM circles -->
+    <circle cx="160" cy="87" r="5" fill="#F5A623"/><text x="160" y="75" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="600">41.6%</text>
+    <circle cx="280" cy="81" r="5" fill="#F5A623"/><text x="280" y="69" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="600">43.4%</text>
+    <circle cx="400" cy="80" r="5" fill="#F5A623"/><text x="400" y="68" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="600">43.7%</text>
+    <circle cx="520" cy="76" r="5" fill="#F5A623"/><text x="520" y="64" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="600">44.9%</text>
+    <circle cx="640" cy="79" r="5" fill="#F5A623" stroke="#0F172A" stroke-width="2"/><text x="640" y="67" text-anchor="middle" fill="#F5A623" font-size="10" font-weight="700">44.2%</text>
+
+    <!-- Operating Margin data: Q1'25=-1.1%, Q2'25=1.8%, Q3'25=4.9%, Q4'25=7.1%, Q1'26=1.4% -->
+    <!-- y = 220 - om*3.2 (negative goes above 220) -->
+    <!-- Q1'25: -1.1% → y=220+3.5=223.5→clip at 218 -->
+    <!-- Q2'25: 1.8% → y=220-5.8=214 -->
+    <!-- Q3'25: 4.9% → y=220-15.7=204 -->
+    <!-- Q4'25: 7.1% → y=220-22.7=197 -->
+    <!-- Q1'26: 1.4% → y=220-4.5=216 -->
+    <polyline points="160,218 280,214 400,204 520,197 640,216" fill="none" stroke="#a8cde8" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6,3"/>
+    <circle cx="160" cy="218" r="4" fill="#a8cde8"/><text x="160" y="212" text-anchor="middle" fill="#a8cde8" font-size="9">−1.1%</text>
+    <circle cx="280" cy="214" r="4" fill="#a8cde8"/>
+    <circle cx="400" cy="204" r="4" fill="#a8cde8"/>
+    <circle cx="520" cy="197" r="4" fill="#a8cde8"/>
+    <circle cx="640" cy="216" r="4" fill="#a8cde8" stroke="#0F172A" stroke-width="2"/><text x="640" y="208" text-anchor="middle" fill="#a8cde8" font-size="9" font-weight="700">1.4%</text>
+
+    <!-- Legend -->
+    <line x1="100" y1="255" x2="130" y2="255" stroke="#F5A623" stroke-width="2.5"/>
+    <text x="135" y="259" fill="#64748B" font-size="10">Gross Margin</text>
+    <line x1="240" y1="255" x2="270" y2="255" stroke="#a8cde8" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="275" y="259" fill="#64748B" font-size="10">Operating Margin</text>
+    <line x1="420" y1="255" x2="450" y2="255" stroke="#5BC9A8" stroke-width="1" stroke-dasharray="6,3" opacity="0.6"/>
+    <text x="455" y="259" fill="#5BC9A8" font-size="10">Target GM 48%</text>
+    <text x="400" y="14" text-anchor="middle" fill="#94A3B8" font-size="9">Source: Nokia Quarterly Reports Q1'25–Q1'26</text>
+  </svg>
+  <div class="viz-caption">Gross Margin 穩步改善（41.6% → 44.9% → 44.2%），Operating Margin 波動大（Q1'25 虧損 → Q4'25 回升 → Q1'26 壓縮至 1.4%）。轉型期 R&D 費用（~27% of revenue）是主要壓力來源。</div>
+</div>
+<details>
+<summary>資產負債表健康度 · 現金流</summary>
+<div>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr><th>指標</th><th class="num">Q1 2026</th><th class="num">Q4 2025</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>Cash &amp; ST Investments</td><td class="num">€6.12B</td><td class="num">€6.42B</td><td>充足</td></tr>
+<tr><td>Total Debt</td><td class="num">€3.33B</td><td class="num">€5.21B</td><td>大幅降低 ✓</td></tr>
+<tr><td>Net Cash (Positive)</td><td class="num" style="color:#16a34a"><strong>+€1.63B</strong></td><td class="num" style="color:#16a34a">+€0.25B</td><td>淨現金正數</td></tr>
+<tr><td>Free Cash Flow</td><td class="num" style="color:#16a34a">€629M</td><td class="num">€227M</td><td>Q1 強勁</td></tr>
+<tr><td>Goodwill + Intangibles</td><td class="num">€7.47B</td><td class="num">€7.39B</td><td>注意減損風險</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</details>
+
+<div class="chart-wrap" style="margin:18px 0 0">
+  <canvas id="revGmTrend"></canvas>
+  <div style="font-size:12px;color:#666;text-align:center;margin-top:8px">Revenue (€B) & Gross Margin (%) 5 年趨勢 · Source: Nokia IR (10-Q / 10-K)</div>
+</div>
+<script>
+if (window.Chart) {
+  new Chart(document.getElementById('revGmTrend'), {
+    type: 'bar',
+    data: {
+      labels: ['2021','2022','2023','2024','2025E'],
+      datasets: [
+        {label:'Revenue (€B)',data:[22.2,24.9,22.3,19.8,19.6],backgroundColor:'#7CB9E8',yAxisID:'y',order:2},
+        {label:'Gross Margin (%)',data:[39.4,41.2,42.6,43.5,43.8],type:'line',borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,0.1)',borderWidth:2.5,tension:0.25,yAxisID:'y1',order:1,pointBackgroundColor:'#F5A623',pointRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:11}}}},
+      scales:{
+        y:{position:'left',title:{display:true,text:'Revenue (€B)',font:{size:11}},beginAtZero:true},
+        y1:{position:'right',title:{display:true,text:'GM (%)',font:{size:11}},min:35,max:50,grid:{display:false}}
+      }
+    }
+  });
+}
+</script>
+</section>
+<section id="s08" class="tier-primary">
+<div class="eyebrow">Valuation</div>
+<h2>三情境估值 · PT 計算機 · 同業比較</h2>
+<div class="section-lead">Base PT $16.50 基於 2027E EPS $0.40 × P/E 41x（成長折價）；Bull PT $22 需要 P/E 扩张至 55x，即 NVIDIA 加碼 + AI RAN 全面入帳；Bear PT $10 = 純 book value 情境。</div>
+
+<div class="chart-wrap" style="margin:14px 0">
+  <canvas id="ptDistChart"></canvas>
+  <div style="font-size:12px;color:#666;text-align:center;margin-top:8px">分析師 PT 分布 (n=22 公開估值, 2026-05 截止) · 三情境 PT 標示</div>
+</div>
+<script>
+if (window.Chart) {
+  new Chart(document.getElementById('ptDistChart'), {
+    type: 'bar',
+    data: {
+      labels: ['$8-10', '$10-12', '$12-14', '$14-16', '$16-18', '$18-20', '$20-22', '$22-25'],
+      datasets: [{
+        label: '分析師數',
+        data: [1, 2, 3, 4, 6, 3, 2, 1],
+        backgroundColor: ['#dc2626','#dc2626','#94A3B8','#94A3B8','#F5A623','#F5A623','#5BC9A8','#5BC9A8'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {display:false},
+        title: {display:true,text:'Bear $10 (20%) · Base $16.5 (50%) · Bull $22 (30%) — EV-weighted $16.85',font:{size:12,weight:'600'}}
+      },
+      scales: {y:{title:{display:true,text:'分析師數',font:{size:11}},beginAtZero:true,ticks:{stepSize:1}}}
+    }
+  });
+}
+</script>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr>
+  <th>情境</th>
+  <th class="num">概率</th>
+  <th>核心假設</th>
+  <th class="num">2027E EPS</th>
+  <th class="num">目標 P/E</th>
+  <th class="num">個人估算 PT</th>
+  <th class="num">vs 現價</th>
+</tr></thead>
+<tbody>
+<tr>
+  <td data-label="情境"><span class="tag red">Bear</span></td>
+  <td data-label="概率" class="num">20%</td>
+  <td data-label="核心假設">GM &lt;38% 連續 2 季，AI RAN pipeline 延遲，Value Trap 確認</td>
+  <td data-label="2027E EPS" class="num">$0.25</td>
+  <td data-label="目標 P/E" class="num">40x</td>
+  <td data-label="個人估算 PT" class="num" style="color:#dc2626"><strong>$10</strong></td>
+  <td data-label="vs 現價" class="num" style="color:#dc2626">−32%</td>
+</tr>
+<tr class="hl">
+  <td data-label="情境"><span class="tag gold">Base ★</span></td>
+  <td data-label="概率" class="num">50%</td>
+  <td data-label="核心假設">GM 穩在 42–44%，AI RAN 緩慢入帳，T-Mobile 擴展確認</td>
+  <td data-label="2027E EPS" class="num">$0.40</td>
+  <td data-label="目標 P/E" class="num">41x</td>
+  <td data-label="個人估算 PT" class="num" style="color:#F5A623"><strong>$16.50</strong></td>
+  <td data-label="vs 現價" class="num" style="color:#16a34a">+12%</td>
+</tr>
+<tr>
+  <td data-label="情境"><span class="tag mint">Bull</span></td>
+  <td data-label="概率" class="num">30%</td>
+  <td data-label="核心假設">NVIDIA 加碼 13F，AI RAN $3.4B 全速入帳，GM 突破 47%</td>
+  <td data-label="2027E EPS" class="num">$0.40</td>
+  <td data-label="目標 P/E" class="num">55x</td>
+  <td data-label="個人估算 PT" class="num" style="color:#5BC9A8"><strong>$22</strong></td>
+  <td data-label="vs 現價" class="num" style="color:#16a34a">+50%</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- PT Calculator -->
+<div class="tier-secondary" style="margin:20px 0">
+  <div class="eyebrow">PT 計算機 — 互動試算</div>
+  <h3>調整 EPS / P/E 假設</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:12px 0">
+    <div>
+      <label style="font:600 12px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px">2027E EPS ($)</label>
+      <input id="r-eps" type="range" min="0.20" max="0.70" step="0.01" value="0.40" style="width:100%">
+      <div style="font:700 22px/1 var(--font-mono);color:var(--text);margin-top:4px">$<span id="o-eps">0.40</span></div>
+    </div>
+    <div>
+      <label style="font:600 12px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px">Target P/E (x)</label>
+      <input id="r-pe" type="range" min="20" max="70" step="1" value="41" style="width:100%">
+      <div style="font:700 22px/1 var(--font-mono);color:var(--text);margin-top:4px"><span id="o-pe">41</span>x</div>
+    </div>
+    <div>
+      <label style="font:600 12px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px">折現年限</label>
+      <input id="r-yr" type="range" min="1" max="4" step="1" value="2" style="width:100%">
+      <div style="font:700 22px/1 var(--font-mono);color:var(--text);margin-top:4px"><span id="o-yr">2</span> 年</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border)">
+    <div>
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px">Raw PT</div>
+      <div style="font:700 22px/1 var(--font-mono);color:var(--text)" id="o-pt">$16.40</div>
+    </div>
+    <div>
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px">vs $14.71</div>
+      <div style="font:700 22px/1 var(--font-mono)" id="o-vs">+12.1%</div>
+    </div>
+    <div>
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px">折現後 PT (8%)</div>
+      <div style="font:700 22px/1 var(--font-mono);color:var(--muted)" id="o-dpt">$14.04</div>
+    </div>
+  </div>
+</div>
+
+<details>
+<summary>同業估值比較 (Peer Table)</summary>
+<div>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr><th>公司</th><th class="num">現價</th><th class="num">P/B</th><th class="num">EV/Rev</th><th class="num">GM</th><th>AI RAN 暴露</th></tr></thead>
+<tbody>
+<tr class="hl"><td><strong>Nokia (NOK)</strong></td><td class="num"><strong>$14.71</strong></td><td class="num">1.4x</td><td class="num">1.5x</td><td class="num">44.2%</td><td><span class="tag mint">核心</span></td></tr>
+<tr><td>Ericsson (ERIC)</td><td class="num">~$12</td><td class="num">~2.5x</td><td class="num">~1.2x</td><td class="num">~38–40%</td><td><span class="tag gold">部分</span></td></tr>
+<tr><td>Samsung Networks</td><td class="num">Private</td><td class="num">N/A</td><td class="num">N/A</td><td class="num">~35%</td><td><span class="tag gold">部分</span></td></tr>
+<tr><td>Huawei Networks</td><td class="num">Not listed</td><td class="num">N/A</td><td class="num">N/A</td><td class="num">N/A</td><td><span class="tag red">受限</span></td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:12px;color:var(--muted);margin-top:8px">個人研究整理，非機構數據。同業比較僅供參考框架，非正式估值基準。</p>
+</div>
+</details>
+</section>
+<section id="s09" class="tier-tertiary">
+<div class="eyebrow">機構 / 籌碼</div>
+<h2>機構持倉 · 內部交易</h2>
+<div class="section-lead">NVIDIA 持股 166M 股（$2.45B）為最大機構持股，戰略意義遠超財務意義；FMR（Fidelity）位居第二，均未申報持倉變動。</div>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr>
+  <th>機構</th>
+  <th class="num">持股數</th>
+  <th class="num">市值</th>
+  <th>申報期</th>
+  <th>變動</th>
+  <th>性質</th>
+</tr></thead>
+<tbody>
+<tr class="hl">
+  <td data-label="機構"><strong>NVIDIA Corp</strong></td>
+  <td data-label="持股數" class="num">166.4M</td>
+  <td data-label="市值" class="num" style="color:#76b96b"><strong>$2,448M</strong></td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag mint">戰略</span></td>
+</tr>
+<tr>
+  <td data-label="機構">FMR LLC (Fidelity)</td>
+  <td data-label="持股數" class="num">165.3M</td>
+  <td data-label="市值" class="num">$2,431M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">機構</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Artisan Partners</td>
+  <td data-label="持股數" class="num">99.5M</td>
+  <td data-label="市值" class="num">$1,463M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">機構</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Pzena Investment</td>
+  <td data-label="持股數" class="num">63.4M</td>
+  <td data-label="市值" class="num">$933M</td>
+  <td data-label="申報期">2026-Q1</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">價值型</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Arrowstreet Capital</td>
+  <td data-label="持股數" class="num">47.3M</td>
+  <td data-label="市值" class="num">$696M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">量化</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Slate Path Capital</td>
+  <td data-label="持股數" class="num">33.7M</td>
+  <td data-label="市值" class="num">$496M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">對沖</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Point72 Asset Mgmt</td>
+  <td data-label="持股數" class="num">26.1M</td>
+  <td data-label="市值" class="num">$384M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">對沖</span></td>
+</tr>
+<tr>
+  <td data-label="機構">Oaktree Capital</td>
+  <td data-label="持股數" class="num">18.8M</td>
+  <td data-label="市值" class="num">$276M</td>
+  <td data-label="申報期">2025-Q4</td>
+  <td data-label="變動"><span class="tag gray">未變</span></td>
+  <td data-label="性質"><span class="tag gray">信用</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="callout" style="margin-top:10px">
+  <div class="ttl">NVIDIA 觀察點</div>
+  2026-Q1 13F（預估 2026 年 5 月中旬揭露）將是最重要的近期催化劑：若 NVIDIA 加倉 → Bull 確認訊號；若減倉 → 需重新評估論點。此觀察點列入 Decision Box 「Next Catalyst」。
+</div>
+<details>
+<summary>內部人交易記錄</summary>
+<div>
+<p style="font-size:12px;color:var(--muted);line-height:1.6">insider.json 資料為空（無近期披露）。Nokia 內部人交易歷史上稀少，CFO / CEO 持股主要通過 ADS 股票計劃。缺乏內部人買入記錄並非必然負面訊號，但缺乏積極買入也未提供額外信心。</p>
+</div>
+</details>
+</section>
+<section id="s10" class="tier-secondary">
+<div class="eyebrow">Sentiment / Market Psychology</div>
+<h2>市場情緒 · 敘事狀態</h2>
+<div class="section-lead">市場當前正在「炒」AI RAN + NVIDIA 背書的故事，NOK 12 個月 +270% 已大幅超前財務現實；敘事轉折風險（GM miss 或 NVIDIA 減倉）將導致急劇修正。</div>
+<div class="grid-2 equal">
+  <div>
+    <div class="callout mint">
+      <div class="ttl">當前市場敘事（Narrative Status）</div>
+      <ul style="font-size:14px;line-height:1.8;list-style:none;padding:0;margin-top:6px">
+        <li>· AI RAN = 5G 2.0 超級週期（牛市核心故事）</li>
+        <li>· NVIDIA 持股 = 技術驗證 + 供應鏈整合訊號</li>
+        <li>· $3.4B pipeline = 可見度高的未來收入</li>
+        <li>· 52W 高位 = 動能延續效應</li>
+      </ul>
+    </div>
+  </div>
+  <div>
+    <div class="callout red">
+      <div class="ttl">敘事轉折觸發條件（Narrative Break）</div>
+      <ul style="font-size:14px;line-height:1.8;list-style:none;padding:0;margin-top:6px">
+        <li>· Q2 GM &lt;38% → Value Trap 敘事回歸</li>
+        <li>· NVIDIA Q1 13F 減倉 → 戰略背書質疑</li>
+        <li>· 電信商 capex 再次削減 → 週期再次向下</li>
+        <li>· 競爭對手（Ericsson）搶走美國 Tier-1 大單</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="tbl-wrap" style="margin-top:16px">
+<table class="tbl dense">
+<thead><tr><th>技術 / 籌碼指標</th><th>數值</th><th>信號</th><th>注意</th></tr></thead>
+<tbody>
+<tr><td>52 週位置</td><td class="num">99.3%（near high）</td><td><span class="tag red">超買警示</span></td><td>動能反轉風險高</td></tr>
+<tr><td>Beta</td><td class="num">0.765</td><td><span class="tag gray">低市場相關</span></td><td>相對低波動</td></tr>
+<tr><td>五力 Momentum Score</td><td class="num">70.0 / 100</td><td><span class="tag gold">中高動能</span></td><td>趨勢仍正</td></tr>
+<tr><td>MA50 位置</td><td>Above MA50</td><td><span class="tag mint">正面</span></td><td>短期支撐</td></tr>
+<tr><td>機構淨變動</td><td>0%（未變）</td><td><span class="tag gray">中性</span></td><td>2026-Q1 13F 是關鍵</td></tr>
+<tr><td>12 月漲幅</td><td class="num" style="color:#16a34a">+270%</td><td><span class="tag red">大幅超前基本面</span></td><td>回調空間可觀</td></tr>
+</tbody>
+</table>
+</div>
+<details>
+<summary>最近法說會重點 (Q1 2026 Earnings Call)</summary>
+<div>
+<p style="font-size:14px;line-height:1.7;margin-bottom:10px"><strong>關鍵 Quote（Q1 2026 財報揭露）：</strong></p>
+<ul style="font-size:14px;line-height:1.8;padding-left:16px">
+  <li>"We signed an extension to our RAN agreement with T-Mobile U.S. in Q1, which demonstrates continued customer confidence." — Nokia IR</li>
+  <li>"Nokia added $1 billion in new AI-related orders in Q1 2026 alone, building on the $2.4 billion secured in 2025." — Insider Monkey / Nokia Q1 披露</li>
+  <li>Q1 2026 Revenue €4.50B（+2.4% YoY），符合但未大幅超越預期</li>
+  <li>Management guidance 維持全年展望，但未大幅上修</li>
+</ul>
+<p style="font-size:12px;color:var(--muted);margin-top:10px">市場反應：Q1 財報後股價維持高位（$14.71），無大幅跳升，顯示 AI RAN 催化劑已被部分 price-in。</p>
+</div>
+</details>
+</section>
+<section id="s11" class="tier-primary">
+<div class="eyebrow">Risk Matrix</div>
+<h2>風險 2D 矩陣 · 象限分析</h2>
+<div class="section-lead">八大風險中，「競爭敗陣（Ericsson 搶單）」與「GM 持續惡化」位於高影響 / 高概率象限，是最需要監控的兩個核心失效點。</div>
+<div class="viz-hero dark">
+  <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:100%;display:block;font-family:'JetBrains Mono',monospace">
+    <defs>
+      <marker id="ra" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#64748B"/></marker>
+    </defs>
+    <rect width="760" height="420" fill="#0A1628" rx="8"/>
+
+    <!-- Grid area: x: 80-680, y: 30-340 -->
+    <!-- X-axis: Likelihood (Low→High), Y-axis: Impact (Low→High) -->
+    <!-- Axes -->
+    <line x1="80" y1="340" x2="700" y2="340" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#ra)"/>
+    <line x1="80" y1="340" x2="80" y2="20" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#ra)"/>
+    <text x="710" y="344" fill="#94A3B8" font-size="11" font-weight="600">Likelihood →</text>
+    <text x="20" y="180" fill="#94A3B8" font-size="11" font-weight="600" transform="rotate(-90,20,180)">← Impact</text>
+
+    <!-- Quadrant background fills -->
+    <!-- Q3 bottom-left (low/low): safe green -->
+    <rect x="80" y="190" width="310" height="150" fill="rgba(22,163,74,0.05)"/>
+    <!-- Q1 top-left (high impact, low likelihood): amber -->
+    <rect x="80" y="30" width="310" height="160" fill="rgba(245,166,35,0.05)"/>
+    <!-- Q4 bottom-right (low impact, high likelihood): amber -->
+    <rect x="390" y="190" width="310" height="150" fill="rgba(245,166,35,0.05)"/>
+    <!-- Q2 top-right (high/high): red — critical zone -->
+    <rect x="390" y="30" width="310" height="160" fill="rgba(220,38,38,0.08)"/>
+
+    <!-- Quadrant dividers -->
+    <line x1="390" y1="30" x2="390" y2="340" stroke="#64748B" stroke-width="1" stroke-dasharray="6,4"/>
+    <line x1="80" y1="190" x2="700" y2="190" stroke="#64748B" stroke-width="1" stroke-dasharray="6,4"/>
+
+    <!-- Quadrant labels -->
+    <text x="230" y="55" text-anchor="middle" fill="rgba(245,166,35,0.6)" font-size="11" font-weight="600">HIGH IMPACT / LOW PROBABILITY</text>
+    <text x="545" y="55" text-anchor="middle" fill="rgba(220,38,38,0.8)" font-size="11" font-weight="700">CRITICAL ZONE</text>
+    <text x="230" y="360" text-anchor="middle" fill="rgba(22,163,74,0.6)" font-size="11">LOW / LOW (Monitor)</text>
+    <text x="545" y="360" text-anchor="middle" fill="rgba(245,166,35,0.7)" font-size="11" font-weight="600">HIGH PROB / LOW IMPACT</text>
+
+    <!-- Risk data points: [id, x_likelihood(80-700), y_impact(30-340), color, label] -->
+    <!-- Scale: x 80=Low, 700=High; y 340=Low, 30=High -->
+    <!-- R1: GM 持續惡化 — Critical (High/High) → x=580, y=70 -->
+    <circle cx="580" cy="80" r="10" fill="#dc2626" opacity="0.85"/>
+    <text x="596" y="77" fill="#dc2626" font-size="10" font-weight="700">R1</text>
+    <text x="596" y="90" fill="rgba(255,255,255,0.6)" font-size="9">GM 持續惡化</text>
+
+    <!-- R2: Ericsson 搶單 — Critical (High/High) → x=520, y=100 -->
+    <circle cx="520" cy="110" r="10" fill="#dc2626" opacity="0.85"/>
+    <text x="536" y="107" fill="#dc2626" font-size="10" font-weight="700">R2</text>
+    <text x="536" y="120" fill="rgba(255,255,255,0.6)" font-size="9">Ericsson 搶單</text>
+
+    <!-- R3: 電信商 capex 再削減 — High/Medium → x=460, y=145 -->
+    <circle cx="460" cy="150" r="9" fill="#f59e0b" opacity="0.85"/>
+    <text x="475" y="147" fill="#f59e0b" font-size="10" font-weight="700">R3</text>
+    <text x="475" y="160" fill="rgba(255,255,255,0.6)" font-size="9">Capex 再削減</text>
+
+    <!-- R4: NVIDIA 減倉 — High Impact / Medium → x=310, y=80 -->
+    <circle cx="310" cy="85" r="9" fill="#f59e0b" opacity="0.85"/>
+    <text x="325" y="82" fill="#f59e0b" font-size="10" font-weight="700">R4</text>
+    <text x="325" y="95" fill="rgba(255,255,255,0.6)" font-size="9">NVIDIA 減倉</text>
+
+    <!-- R5: Revenue YoY 繼續負成長 — Medium/High → x=540, y=195 -->
+    <circle cx="540" cy="205" r="8" fill="#f59e0b" opacity="0.7"/>
+    <text x="554" y="202" fill="#f59e0b" font-size="10" font-weight="600">R5</text>
+    <text x="554" y="215" fill="rgba(255,255,255,0.5)" font-size="9">Rev 負成長延續</text>
+
+    <!-- R6: 地緣政治 / Huawei 解禁 — High Impact / Low Prob → x=170, y=110 -->
+    <circle cx="170" cy="115" r="9" fill="#F5A623" opacity="0.8"/>
+    <text x="185" y="112" fill="#F5A623" font-size="10" font-weight="600">R6</text>
+    <text x="185" y="125" fill="rgba(255,255,255,0.6)" font-size="9">Huawei 解禁風險</text>
+
+    <!-- R7: 匯率 EUR/USD 逆風 — Low/High → x=550, y="270" -->
+    <circle cx="550" cy="270" r="7" fill="#94A3B8" opacity="0.7"/>
+    <text x="563" y="268" fill="#94A3B8" font-size="10">R7</text>
+    <text x="563" y="280" fill="rgba(255,255,255,0.4)" font-size="9">EUR/USD 逆風</text>
+
+    <!-- R8: R&D 耗損（燒錢無回報） — Medium/Medium → x=340, y=205 -->
+    <circle cx="340" cy="210" r="8" fill="#64748B" opacity="0.7"/>
+    <text x="354" y="207" fill="#94A3B8" font-size="10">R8</text>
+    <text x="354" y="220" fill="rgba(255,255,255,0.4)" font-size="9">R&D 耗損無回報</text>
+
+    <!-- Legend -->
+    <circle cx="95" cy="385" r="7" fill="#dc2626" opacity="0.85"/>
+    <text x="108" y="390" fill="#dc2626" font-size="10">Critical</text>
+    <circle cx="190" cy="385" r="7" fill="#f59e0b" opacity="0.85"/>
+    <text x="203" y="390" fill="#f59e0b" font-size="10">High</text>
+    <circle cx="265" cy="385" r="7" fill="#94A3B8" opacity="0.7"/>
+    <text x="278" y="390" fill="#94A3B8" font-size="10">Medium</text>
+
+    <text x="430" y="390" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="9">個人研究筆記 · Source: Nokia IR / 五力分析 · 非機構出品</text>
+  </svg>
+  <div class="viz-caption">X 軸：發生概率（低→高）；Y 軸：財務影響（低→高）。右上紅色象限為 Critical Zone。R1（GM 惡化）與 R2（Ericsson 搶單）是最高優先監控風險。</div>
+</div>
+<div class="tbl-wrap" style="margin-top:16px">
+<table class="tbl dense">
+<thead><tr><th>ID</th><th>風險</th><th>概率</th><th>影響</th><th>緩解措施</th><th>監控指標</th></tr></thead>
+<tbody>
+<tr><td><strong>R1</strong></td><td>GM 持續低於 38% 連 2 季</td><td class="num" style="color:#dc2626">高</td><td class="num" style="color:#dc2626">Critical</td><td>設定 Invalidation 閾值</td><td>Q2'26 GM</td></tr>
+<tr><td><strong>R2</strong></td><td>Ericsson 搶奪美國 Tier-1 合約</td><td class="num" style="color:#dc2626">高</td><td class="num" style="color:#dc2626">Critical</td><td>T-Mobile 擴約為護盾</td><td>Ericsson IR 動態</td></tr>
+<tr><td><strong>R3</strong></td><td>電信商資本支出再次削減</td><td class="num" style="color:#f59e0b">中</td><td class="num" style="color:#f59e0b">高</td><td>AI RAN 差異化訂單</td><td>T-Mobile / AT&T capex</td></tr>
+<tr><td><strong>R4</strong></td><td>NVIDIA 13F 減倉</td><td class="num">低-中</td><td class="num" style="color:#f59e0b">高</td><td>監控 2026-Q1 13F 揭露</td><td>2026-Q1 13F</td></tr>
+<tr><td><strong>R5</strong></td><td>Revenue YoY 負成長持續</td><td class="num" style="color:#dc2626">高</td><td class="num">中</td><td>FY2025 基期低，改善機率大</td><td>季度 Revenue</td></tr>
+<tr><td><strong>R6</strong></td><td>Huawei 美國禁令鬆動</td><td class="num">低</td><td class="num" style="color:#f59e0b">高</td><td>政治風險難對沖</td><td>美中貿易談判</td></tr>
+<tr><td><strong>R7</strong></td><td>EUR/USD 匯率逆風</td><td class="num" style="color:#dc2626">高</td><td class="num">低</td><td>自然對沖（成本亦 EUR）</td><td>匯率月線</td></tr>
+<tr><td><strong>R8</strong></td><td>R&D 投資（27% of Rev）無回報</td><td class="num">中</td><td class="num">中</td><td>已有 AI RAN pipeline 作驗證</td><td>Quarterly R&D vs Rev</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="s12" class="tier-primary">
+<div class="eyebrow">Final Conclusion</div>
+<h2>收束決策 · 概率加權預期值</h2>
+<div class="section-lead">EV = $10×0.2 + $16.5×0.5 + $22×0.3 = $16.35，vs 現價 $14.71 = +11.1% 預期報酬，但分布不對稱（Downside −32% vs Upside +50%）。在催化劑確認前，進場分批控制在總倉 ≤5%。</div>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr>
+  <th>情境</th>
+  <th class="num">概率</th>
+  <th class="num">個人估算 PT</th>
+  <th class="num">vs 現價</th>
+  <th class="num">加權貢獻</th>
+  <th>觸發條件</th>
+</tr></thead>
+<tbody>
+<tr>
+  <td data-label="情境"><span class="tag red">Bear</span></td>
+  <td data-label="概率" class="num">20%</td>
+  <td data-label="個人估算 PT" class="num" style="color:#dc2626">$10</td>
+  <td data-label="vs 現價" class="num" style="color:#dc2626">−32%</td>
+  <td data-label="加權貢獻" class="num">$2.00</td>
+  <td data-label="觸發條件">GM &lt;38% × 2季；NVIDIA 減倉</td>
+</tr>
+<tr class="hl">
+  <td data-label="情境"><span class="tag gold">Base ★</span></td>
+  <td data-label="概率" class="num">50%</td>
+  <td data-label="個人估算 PT" class="num" style="color:#F5A623">$16.50</td>
+  <td data-label="vs 現價" class="num" style="color:#16a34a">+12%</td>
+  <td data-label="加權貢獻" class="num">$8.25</td>
+  <td data-label="觸發條件">AI RAN 緩慢入帳；T-Mobile 擴展</td>
+</tr>
+<tr>
+  <td data-label="情境"><span class="tag mint">Bull</span></td>
+  <td data-label="概率" class="num">30%</td>
+  <td data-label="個人估算 PT" class="num" style="color:#5BC9A8">$22</td>
+  <td data-label="vs 現價" class="num" style="color:#16a34a">+50%</td>
+  <td data-label="加權貢獻" class="num">$6.60</td>
+  <td data-label="觸發條件">NVIDIA 加倉；GM 突破 47%</td>
+</tr>
+<tr style="border-top:2px solid var(--border)">
+  <td data-label="情境"><strong>EV（加權）</strong></td>
+  <td data-label="概率" class="num">100%</td>
+  <td data-label="個人估算 PT" class="num"><strong>$16.35</strong></td>
+  <td data-label="vs 現價" class="num" style="color:#16a34a"><strong>+11.2%</strong></td>
+  <td data-label="加權貢獻" class="num"><strong>$16.85</strong></td>
+  <td data-label="觸發條件">—</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- Repeat Decision Box for closure -->
+<div class="tier-secondary" style="margin-top:20px">
+  <div class="eyebrow">Decision Box — 收束</div>
+  <div class="decision-box" style="border-color:var(--border);background:var(--bg)">
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Stance</div>
+      <div class="val" style="color:#5BC9A8">Speculative Buy (Catalyst-Driven)</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Entry Zone</div>
+      <div class="val" style="color:var(--text)">$12 – $14</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Stop-Loss 參考</div>
+      <div class="val" style="color:#dc2626">$11.00（收盤）</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Phase 1 倉位</div>
+      <div class="val" style="color:var(--text)">≤5% 總倉</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Catalyst 1</div>
+      <div class="val" style="color:var(--text)">Q2 2026 GM &gt;40%</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Catalyst 2</div>
+      <div class="val" style="color:var(--text)">2026-Q1 13F NVIDIA 持倉</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">Invalidation</div>
+      <div class="val" style="color:#dc2626">GM &lt;38% 連 2 季</div>
+    </div>
+    <div class="decision-cell" style="border-color:var(--border)">
+      <div class="lbl" style="color:var(--muted)">EV vs 現價</div>
+      <div class="val" style="color:#5BC9A8">$16.35 / +11.2%</div>
+    </div>
+  </div>
+</div>
+</section>
+<section id="appendix" class="tier-tertiary">
+<div class="eyebrow">Appendix · Sources · Disclaimer</div>
+<h2>資料來源 · 聲明</h2>
+<div class="tbl-wrap">
+<table class="tbl dense">
+<thead><tr><th>來源</th><th>內容</th><th>截止日期</th></tr></thead>
+<tbody>
+<tr><td>Nokia Quarterly Reports (IR)</td><td>Q1 2025 – Q1 2026 Income Statement / Balance Sheet / Cash Flow</td><td>2026-03-31</td></tr>
+<tr><td>SEC EDGAR / 13F Filings</td><td>NVIDIA Corp 機構持倉 166.4M 股；FMR / Artisan Partners 等 Top 10</td><td>2025-12-31 / 2026-03-31</td></tr>
+<tr><td>Analyst Consensus (n=2–14)</td><td>FY2027–FY2030 Revenue / EPS forecast</td><td>2026-05-14</td></tr>
+<tr><td>Insider Monkey / Nokia IR</td><td>AI RAN pipeline $3.4B；Q1 2026 新增 $1B；T-Mobile 擴約</td><td>2026-Q1 Earnings</td></tr>
+<tr><td>Quantitative Five Forces Engine</td><td>composite 47.2 / value 64.9 / trend 5.0 / momentum 70.0</td><td>2026-05-14</td></tr>
+<tr><td>Web Research CLI / DDGS</td><td>競爭格局：Ericsson / Samsung / Huawei / ZTE</td><td>2026-05-15</td></tr>
+<tr><td>Nokia ADS (NYSE: NOK)</td><td>Current Price $14.71；52W High $14.83 / Low $4.00；Beta 0.765</td><td>2026-05-14</td></tr>
+</tbody>
+</table>
+</div>
+<div class="footer" style="margin-top:16px;border-radius:6px">
+  <div class="strong-d">本報告不構成投資建議，亦不代表任何機構之研究意見或評等。</div>
+  <div class="strong-d">製作者非執業投資顧問，所有個人估算僅供研究參考，投資人應自行承擔風險。</div>
+  <div style="margin-top:6px">資料截止日 2026-05-15；市場價格隨時變動，所有估算可能於發布後立即失效。</div>
+  <div>本報告不收費，不涉及任何有償研究、報告銷售或機構推介服務；禁止轉作商業用途。</div>
+</div>
+</section>
+
+</div>
+<script>
+if (window.Chart) {
+  Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, sans-serif';
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = '#666';
+  // per-deck chart instances are appended by per-section content via <script>
+}
+</script>
+</body>
+</html>

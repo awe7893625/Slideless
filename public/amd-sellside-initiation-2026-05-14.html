@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMD AI Research Notes Brief — 2026-05-14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--border:#e5e3de;--text:#1a1a1a;--muted:#888;--cover:#0A1628;--accent:#5BC9A8;--orange:#f97316;--green:#22c55e;--blue:#3b82f6;--red:#ef4444}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;font-size:14px;line-height:1.6}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,245,241,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:20px;overflow-x:auto}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);white-space:nowrap;letter-spacing:.1em}
+.nav-links{display:flex;gap:14px;flex:1;overflow-x:auto}
+.nav-links a{font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .2s}
+.nav-links a:hover{color:var(--orange)}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--orange);color:#fff;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cover{background:var(--cover);padding:96px 40px 60px;text-align:center;position:relative;overflow:hidden;width:100vw}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 60%,rgba(91,201,168,.07),transparent 55%),radial-gradient(ellipse at 75% 20%,rgba(59,130,246,.06),transparent 55%)}
+.cover-inner{position:relative;z-index:1;max-width:920px;margin:0 auto}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.cover h1{font-size:32px;font-weight:700;color:#fff;line-height:1.18;margin-bottom:10px}
+.cover h1 .hi{color:var(--accent)}
+.cover-subtitle{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:28px;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.75}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.28);margin-bottom:36px;letter-spacing:1px}
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:18px 0;margin-bottom:28px}
+.stat-item{text-align:center;padding:0 8px}
+.stat-item+.stat-item{border-left:1px solid rgba(255,255,255,.08)}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;display:block;line-height:1.1}
+.stat-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px;margin-top:4px}
+.cover-signal{display:inline-flex;align-items:center;gap:8px;background:rgba(91,201,168,.1);border:1px solid rgba(91,201,168,.3);border-radius:8px;padding:10px 20px}
+.cover-signal-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.cover-signal-text{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.8);letter-spacing:.8px}
+.section{max-width:1100px;margin:0 auto;padding:72px 40px 56px}
+.divider{height:1px;background:var(--border);margin:0 40px}
+.s-eye{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
+.s-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px}
+.s-title .hi{color:var(--orange)}
+.s-desc{font-size:14px;color:var(--muted);max-width:700px;margin-bottom:28px;line-height:1.75}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;min-width:0}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;min-width:0}
+.kpi-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text);line-height:1.1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}
+.sc-card{border-radius:12px;padding:22px;border:2px solid}
+.sc-bear{background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.25)}
+.sc-base{background:rgba(249,115,22,.04);border-color:rgba(249,115,22,.35)}
+.sc-bull{background:rgba(34,197,94,.04);border-color:rgba(34,197,94,.25)}
+.sc-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.sc-pt{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;margin-bottom:6px}
+.sc-prob{font-size:12px;color:var(--muted);margin-bottom:10px}
+.sc-trigger{font-size:12px;color:var(--muted);line-height:1.65}
+.c-bear{color:#dc2626}.c-base{color:var(--orange)}.c-bull{color:#16a34a}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);margin-bottom:4px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{width:100%;min-width:auto;border-collapse:collapse}
+.table-wrap th{background:#f9f8f5;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.table-wrap td{padding:10px 14px;font-size:12px;color:var(--text);border-bottom:1px solid #f0ede8;vertical-align:top}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:rgba(249,115,22,.02)}
+td.num,th.num{text-align:right;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+.dense-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.dense-table th{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 10px;border-bottom:2px solid var(--border);text-align:left}
+.dense-table td{padding:7px 10px;font-size:12px;border-bottom:1px solid #f0ede8}
+.dense-table tr:last-child td{border-bottom:none}
+.calc-row{display:grid;grid-template-columns:minmax(140px,200px) 1fr 70px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ede8}
+.calc-row:last-child{border-bottom:none}
+.calc-label{font-size:12px;color:var(--text)}
+.calc-input{width:100%;accent-color:var(--orange)}
+.calc-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;text-align:right;color:var(--orange)}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px}
+.pill-green{background:rgba(34,197,94,.12);color:#16a34a;border:1px solid rgba(34,197,94,.3)}
+.pill-orange{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.pill-red{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.3)}
+.pill-blue{background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.3)}
+.pill-gray{background:rgba(136,136,136,.1);color:#666;border:1px solid rgba(136,136,136,.2)}
+.risk-card{border-radius:10px;padding:16px 18px;border:1px solid var(--border);background:#fff;border-left:4px solid;margin-bottom:10px}
+.risk-critical{border-left-color:#dc2626}.risk-high{border-left-color:#f97316}.risk-medium{border-left-color:#f5c518}
+.risk-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.risk-body{font-size:12px;color:var(--muted);line-height:1.6}
+.supply-row{display:flex;align-items:center;gap:0;margin:24px 0;overflow-x:auto;padding-bottom:8px}
+.supply-node{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:130px;text-align:center;flex-shrink:0}
+.supply-node-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.supply-node-name{font-size:12px;font-weight:600;color:var(--text)}
+.supply-arrow{font-size:22px;color:#bbb;padding:0 6px;flex-shrink:0}
+.waterfall-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;overflow-x:auto}
+.product-hero{background:linear-gradient(135deg,#071428 0%,#0d1f3c 100%);border-radius:14px;padding:32px;margin-bottom:24px}
+.product-hero-eye{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.product-hero-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+.product-hero-sub{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7}
+.product-spec-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+.spec-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px}
+.spec-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.spec-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--accent)}
+.spec-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.ev-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:12px}
+.ev-result{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--accent)}
+.ev-label{font-size:12px;color:var(--muted);margin-top:4px}
+.sub-h{font-size:14px;font-weight:700;color:var(--text);margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+.pbar-wrap{margin-bottom:10px}
+.pbar-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.pbar-track{height:6px;background:#f0ede8;border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px}
+.disclaimer{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:8px;padding:12px 16px;font-size:12px;color:#dc2626;margin-bottom:20px;line-height:1.6}
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border)}
+.tab-btn{padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.cat-table{width:100%;border-collapse:collapse}
+.cat-table th{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left}
+.cat-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid #f0ede8;vertical-align:top}
+.cat-table tr:last-child td{border-bottom:none}
+.footnote{font-size:11px;color:var(--muted);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);margin-top:16px}
+details{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px}
+details summary{padding:11px 16px;cursor:pointer;font-weight:600;font-size:12px;color:var(--text);background:#f9f8f5;user-select:none;list-style:none;display:flex;align-items:center;gap:8px}
+details summary::before{content:'▶';font-size:10px;color:var(--orange);transition:transform .2s;flex-shrink:0}
+details[open] summary::before{transform:rotate(90deg)}
+details .detail-body{padding:16px;font-size:12px;line-height:1.7;color:var(--muted)}
+@media(max-width:768px){
+  /* Mobile RWD reset — 2026-05-14 audit fix */
+  svg, [class*="flow"], [class*="grid"], .table-wrap, .table-wrap table, .card, .panel, table, .chart-wrap, .calc-wrap, .scenario-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  svg { height: auto !important; display: block; }
+  .g2,.g3,.g4,.sc-grid{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+  .cover{padding:80px 20px 48px}
+  .cover h1{font-size:22px}
+  .section{padding:40px 20px 36px}
+  .divider{margin:0 20px}
+  .product-spec-grid{grid-template-columns:repeat(2,1fr)}
+  .supply-row{flex-wrap:wrap;gap:8px}
+  .supply-arrow{display:none}
+  /* table stacked card mode */
+  table thead { display: none !important; }
+  table tr { display: block !important; margin-bottom: 12px !important; border: 1px solid #e5e7eb !important; border-radius: 8px !important; padding: 12px !important; }
+  table td { display: block !important; border: none !important; padding: 4px 0 !important; }
+  table td::before { content: attr(data-label); font-weight: 600; font-size: 11px; color: #6b7280; text-transform: uppercase; display: block; }
+}
+
+/* 2026-05-14 anti-overflow */
+html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+@media (max-width: 768px) {
+  .top-nav { max-width: 100vw !important; overflow-x: auto !important; }
+  .nav-links { max-width: calc(100vw - 200px) !important; overflow-x: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">AMD · INITIATION</div>
+  <div class="nav-links">
+    <a href="#scenarios" style="color:var(--orange);font-weight:700">結論 PT</a>
+    <a href="#snapshot">快照</a>
+    <a href="#thesis">THESIS</a>
+    <a href="#market">市場</a>
+    <a href="#company">公司</a>
+    <a href="#earnings">法說</a>
+    <a href="#product">核心產品</a>
+    <a href="#supplychain">供應鏈</a>
+    <a href="#risks">風險</a>
+    <a href="#catalysts">催化劑</a>
+    <a href="#calculator">計算機</a>
+    <a href="#transparency">透明度</a>
+  </div>
+  <span class="nav-badge">PHASE 1 · REPORT ONLY</span>
+</nav>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="eyebrow">AI Research Notes · AI Research Notes · 2026-05-14</div>
+    <h1>Advanced Micro Devices <span class="hi">(AMD)</span><br>AI 資料中心爆發 — 第二輪競爭已開啟</h1>
+    <p class="cover-subtitle">資料中心 +57% YoY to $5.8B、Server CPU 30% record 市佔、MI350 HBM3E 288GB 挑戰 NVIDIA — 問題從來不是「AMD 夠不夠強」，而是「MI400 能否準時，ROCm 生態能否跨越 CUDA 護城河」</p>
+    <div class="cover-meta">NASDAQ: AMD &nbsp;·&nbsp; 現價 $445.50 (2026-05-13) &nbsp;·&nbsp; 純研究輸出 · 不含交易建議</div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-num" style="color:#dc2626">$350</span>
+        <div class="stat-label">Bear PT · 25%</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" style="color:var(--orange)">$500</span>
+        <div class="stat-label">Base PT · 50%</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" style="color:#22c55e">$700</span>
+        <div class="stat-label">Bull PT · 25%</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" style="color:#fff">$512</span>
+        <div class="stat-label">期望值 EV</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" style="color:rgba(255,255,255,.85)">$445</span>
+        <div class="stat-label">現價</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" style="color:#22c55e">+15%</span>
+        <div class="stat-label">EV 溢價%</div>
+      </div>
+    </div>
+    <div class="cover-signal">
+      <div class="cover-signal-dot"></div>
+      <span class="cover-signal-text">個人看法:偏多 · 目標 $500 Base · Stop-loss $380 · EV/現價 +15% 溢價 · 純研究輸出</span>
+    </div>
+  </div>
+</div>
+
+<!-- S00 結論先行 -->
+<div class="section" id="scenarios" style="padding-top:48px">
+  <div class="s-eye" style="color:#dc2626">S00 · 結論先行 · 對股票的影響</div>
+  <div class="s-title">三情境個人估算區間：<span class="hi">期望值 $512 vs 現價 $445 = +15% 溢價</span></div>
+  <p class="s-desc">FY28 EPS × P/E × 機率加權。核心驅動：MI300X/MI350/MI400 AI GPU ramp + EPYC Server CPU 持續吃 Intel。下方所有章節為支撐此結論的證據鏈。</p>
+
+  <div class="disclaimer">Phase 1 免責：本報告僅供研究參考，不構成買賣建議。所有個人估算區間基於公開資料建模，存在重大不確定性。</div>
+
+  <div class="sc-grid">
+    <div class="sc-card sc-bear">
+      <div class="sc-label c-bear">Bear Case · 25%</div>
+      <div class="sc-pt c-bear">$320–380</div>
+      <div class="sc-prob">中位 <strong>$350</strong> · 期望貢獻 <strong>$87.5</strong> · 距現價 <strong style="color:#dc2626">−21%</strong></div>
+      <div class="sc-trigger">
+        <strong>觸發條件</strong><br>
+        · MI400 量產延至 2027 H1<br>
+        · NVIDIA Rubin 鞏固 85%+ GPU share<br>
+        · Q2 guide 低於 $11B 共識<br>
+        · 估值修正 P/S 從 10× 壓至 7×<br>
+        <br><strong>Stop-loss 觸發價：$380 跌破</strong>
+      </div>
+    </div>
+    <div class="sc-card sc-base">
+      <div class="sc-label c-base">Base Case · 50%</div>
+      <div class="sc-pt c-base">$460–540</div>
+      <div class="sc-prob">中位 <strong>$500</strong> · 期望貢獻 <strong>$250</strong> · 距現價 <strong style="color:#22c55e">+12%</strong></div>
+      <div class="sc-trigger">
+        <strong>觸發條件</strong><br>
+        · MI350 H2 2026 順利 ramp<br>
+        · DC 市佔升至 15%（2027）<br>
+        · FY27 Non-GAAP EPS ~$5.0<br>
+        · EPYC 市佔穩定 28-32%<br>
+        <br><strong>建議動作：目前持有 / 分批建倉</strong>
+      </div>
+    </div>
+    <div class="sc-card sc-bull">
+      <div class="sc-label c-bull">Bull Case · 25%</div>
+      <div class="sc-pt c-bull">$620–780</div>
+      <div class="sc-prob">中位 <strong>$700</strong> · 期望貢獻 <strong>$175</strong> · 距現價 <strong style="color:#22c55e">+57%</strong></div>
+      <div class="sc-trigger">
+        <strong>觸發條件</strong><br>
+        · MI400 大成 + hyperscaler 大規模切換<br>
+        · ROCm 突破 CUDA 護城河<br>
+        · FY28 Non-GAAP EPS ~$8.0<br>
+        · OpenAI 官宣 MI400 採用<br>
+        <br><strong>建議動作：等 MI350 確認後加倉</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:24px">
+    <div class="card">
+      <div class="s-eye" style="font-size:10px;margin-bottom:8px">EV 計算</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2.1">
+        Bear $350 × 25% = <strong>$87.5</strong><br>
+        Base $500 × 50% = <strong>$250.0</strong><br>
+        Bull $700 × 25% = <strong>$175.0</strong><br>
+        <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-size:16px;color:var(--orange)">期望值 EV = <strong>$512.5</strong></div>
+        現價 $445.50 → EV 溢價 <strong style="color:#22c55e">+15.1%</strong>
+      </div>
+    </div>
+    <div class="card">
+      <div class="s-eye" style="font-size:10px;margin-bottom:8px">監控 3 件事</div>
+      <div style="font-size:12px;line-height:2.1">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--orange)">①</span> <strong>MI350 出貨確認</strong> — 2026 H2 客戶 backlog vs 實際出貨量<br>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--orange)">②</span> <strong>Q2 2026 DC 指引</strong> — 是否超越 $6B（+7% QoQ）<br>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--orange)">③</span> <strong>ROCm / vLLM 採用率</strong> — 開源 LLM 社群 AMD 生態黏著度
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S01 SNAPSHOT -->
+<div class="section" id="snapshot">
+  <div class="s-eye">S01 · Executive Snapshot</div>
+  <div class="s-title">核心 KPI 一覽 — <span class="hi">資料中心是唯一增長引擎</span></div>
+  <p class="s-desc">Q1 2026（ended 2026-03-29，filed 2026-05-06）。GAAP 數字，除另標注。</p>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">股價</div>
+      <div class="kpi-value">$445</div>
+      <div class="kpi-sub">2026-05-13 收盤</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">市值</div>
+      <div class="kpi-value">$726B</div>
+      <div class="kpi-sub">NASDAQ: AMD</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">12m Return</div>
+      <div class="kpi-value" style="color:#22c55e">+278%</div>
+      <div class="kpi-sub">$110.31 → $445.50</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">P/S (TTM)</div>
+      <div class="kpi-value">10.1×</div>
+      <div class="kpi-sub">AI 成長溢價</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Gross Margin</div>
+      <div class="kpi-value">54.3%</div>
+      <div class="kpi-sub">Q1 2026 GAAP</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">DC YoY</div>
+      <div class="kpi-value" style="color:#22c55e">+57%</div>
+      <div class="kpi-sub">Data Center Q1 2026</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">Q1 2026 P&amp;L 快照</div>
+      <table class="dense-table">
+        <thead><tr><th>項目</th><th style="text-align:right">金額</th><th style="text-align:right">Margin</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$10.25B</td><td style="text-align:right">—</td></tr>
+          <tr><td>Cost of Revenue</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$4.84B</td><td style="text-align:right">—</td></tr>
+          <tr><td><strong>Gross Profit</strong></td><td style="text-align:right;font-family:'JetBrains Mono',monospace"><strong>$5.42B</strong></td><td style="text-align:right;font-family:'JetBrains Mono',monospace"><strong>54.3%</strong></td></tr>
+          <tr><td>R&amp;D Expense</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$2.40B</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">23.4%</td></tr>
+          <tr><td><strong>Operating Income</strong></td><td style="text-align:right;font-family:'JetBrains Mono',monospace"><strong>$1.84B</strong></td><td style="text-align:right;font-family:'JetBrains Mono',monospace"><strong>18.0%</strong></td></tr>
+          <tr><td>Net Income</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$1.51B</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">14.7%</td></tr>
+          <tr><td>EPS (GAAP)</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$0.92</td><td style="text-align:right">ROE 8.1%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">營收結構 Q1 2026</div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>Data Center</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange)">$5.8B · 57%</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:57%;background:var(--orange)"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>Client (PC)</span><span style="font-family:'JetBrains Mono',monospace">$2.3B · 22%</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:22%;background:#3b82f6"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>Gaming</span><span style="font-family:'JetBrains Mono',monospace">$1.2B · 12%</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:12%;background:#a855f7"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>Embedded (Xilinx)</span><span style="font-family:'JetBrains Mono',monospace">$0.9B · 9%</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:9%;background:#888"></div></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">資料中心佔總 57%，YoY +57%。Gaming / Embedded 持續拖累。</div>
+    </div>
+  </div>
+
+  <div class="waterfall-wrap" style="margin-top:16px">
+    <div class="s-eye" style="font-size:10px;margin-bottom:14px">Q1 2026 P&amp;L Waterfall (GAAP · $B) — AMD 已盈利，Op Income +$1.84B</div>
+    <svg viewBox="0 0 780 230" width="100%" height="220" style="font-family:'JetBrains Mono',monospace">
+      <!-- Baseline y=195, chart height=165 (scale: 165/10.25=16.1px per $1B) -->
+      <!-- Revenue 10.25 → h=165, y=30 -->
+      <rect x="20" y="30" width="70" height="165" fill="#22c55e" rx="3" opacity=".85"/>
+      <text x="55" y="22" text-anchor="middle" font-size="11" fill="#555">$10.25B</text>
+      <text x="55" y="215" text-anchor="middle" font-size="10" fill="#888">Revenue</text>
+      <!-- COGS -4.84 → h=78, waterfall drop from 195-78=117 up -->
+      <rect x="110" y="117" width="70" height="78" fill="#ef4444" rx="3" opacity=".7"/>
+      <text x="145" y="110" text-anchor="middle" font-size="11" fill="#ef4444">−$4.84B</text>
+      <text x="145" y="215" text-anchor="middle" font-size="10" fill="#888">COGS</text>
+      <!-- Gross 5.42 → h=87.3, y=195-87=108 -->
+      <rect x="200" y="108" width="70" height="87" fill="#22c55e" rx="3" opacity=".85"/>
+      <text x="235" y="100" text-anchor="middle" font-size="11" fill="#22c55e">$5.42B</text>
+      <text x="235" y="215" text-anchor="middle" font-size="10" fill="#888">Gross P.</text>
+      <!-- R&D -2.40 → h=38.6, drop from GP bottom 108+87=195 up 38.6→156.4 -->
+      <rect x="290" y="157" width="70" height="38" fill="#f97316" rx="3" opacity=".75"/>
+      <text x="325" y="150" text-anchor="middle" font-size="11" fill="#f97316">−$2.40B</text>
+      <text x="325" y="215" text-anchor="middle" font-size="10" fill="#888">R&amp;D</text>
+      <!-- SGA ~1.18 → h=19 -->
+      <rect x="380" y="176" width="70" height="19" fill="#f97316" rx="3" opacity=".55"/>
+      <text x="415" y="168" text-anchor="middle" font-size="11" fill="#f97316">−$1.18B</text>
+      <text x="415" y="215" text-anchor="middle" font-size="10" fill="#888">SG&amp;A</text>
+      <!-- Op Income 1.84 → h=29.6, y=195-29.6=165.4 -->
+      <rect x="470" y="166" width="70" height="29" fill="#22c55e" rx="3"/>
+      <text x="505" y="158" text-anchor="middle" font-size="11" fill="#16a34a">$1.84B</text>
+      <text x="505" y="215" text-anchor="middle" font-size="10" fill="#888">Op Inc.</text>
+      <!-- Other -0.33 → h=5 -->
+      <rect x="560" y="171" width="70" height="5" fill="#ef4444" rx="3" opacity=".7"/>
+      <text x="595" y="164" text-anchor="middle" font-size="11" fill="#ef4444">−$0.33B</text>
+      <text x="595" y="215" text-anchor="middle" font-size="10" fill="#888">Other</text>
+      <!-- Net 1.51 → h=24.3 -->
+      <rect x="650" y="171" width="70" height="24" fill="#16a34a" rx="3"/>
+      <text x="685" y="163" text-anchor="middle" font-size="11" fill="#16a34a">$1.51B</text>
+      <text x="685" y="215" text-anchor="middle" font-size="10" fill="#888">Net Inc.</text>
+      <!-- baseline -->
+      <line x1="10" y1="195" x2="770" y2="195" stroke="#e5e3de" stroke-width="1.5"/>
+    </svg>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S02 THESIS -->
+<div class="section" id="thesis">
+  <div class="s-eye">S02 · Investment Thesis — 因果鏈</div>
+  <div class="s-title">為什麼現在是 AMD AI 第二輪的拐點</div>
+  <p class="s-desc">SCQA 框架：Situation → Complication → Question → Answer</p>
+
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <div class="s-eye" style="font-size:10px;color:#3b82f6;margin-bottom:6px">SITUATION</div>
+      <div style="font-size:14px;line-height:1.75">AMD 在 2024-2026 完成關鍵轉型：資料中心從 $1.3B/季 飆升至 $5.8B/季（YoY +57%），Server CPU EPYC 市佔達 30% record，Instinct AI GPU 從 0 開始 ramp。AMD 已進入 AI 半導體核心圈第三席（NVIDIA → Broadcom → AMD）。</div>
+    </div>
+    <div class="card" style="border-left:4px solid #f97316">
+      <div class="s-eye" style="font-size:10px;color:#f97316;margin-bottom:6px">COMPLICATION</div>
+      <div style="font-size:14px;line-height:1.75">NVIDIA CUDA 護城河深，Blackwell 已出貨，軟體生態黏著度極高。AMD ROCm 雖開源，但開發者 onboarding 慢、效能仍落後 CUDA 10-15%。同時 hyperscaler 自研 ASIC（Google TPU、AWS Trainium）持續分食。</div>
+    </div>
+    <div class="card" style="border-left:4px solid #a855f7">
+      <div class="s-eye" style="font-size:10px;color:#a855f7;margin-bottom:6px">QUESTION</div>
+      <div style="font-size:14px;line-height:1.75">AMD 能否在 NVIDIA 主導的 AI GPU 市場取得結構性份額？MI350 → MI400 的 roadmap 執行力能否讓 hyperscaler 從「NVIDIA-only」走向「NVIDIA + AMD dual-vendor」？</div>
+    </div>
+    <div class="card" style="border-left:4px solid #22c55e">
+      <div class="s-eye" style="font-size:10px;color:#16a34a;margin-bottom:6px">ANSWER — THESIS：BUY</div>
+      <div style="font-size:14px;line-height:1.75"><strong>是。</strong> ① hyperscaler 主動扶持替代，NVIDIA 供應不足推動 dual-vendor；② MI350 288GB HBM3E 技術領先 B200；③ EPYC 雙引擎確保底線；④ 開源 ROCm + vLLM-ATOM 在開源 LLM 切入。Base 個人估算區間 $500，+15% upside。</div>
+    </div>
+  </div>
+
+  <div class="sub-h">因果鏈</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);background:rgba(249,115,22,.1);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
+      <div style="font-size:14px;line-height:1.75"><strong>NVIDIA 統治 AI GPU 但供應不足 + 客戶集中度過高</strong> → hyperscaler 主動扶持替代方案 → 2026 起 NVDA 80% share 開始裂解，AMD 是最直接受益者</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);background:rgba(249,115,22,.1);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+      <div style="font-size:14px;line-height:1.75"><strong>MI350（288GB HBM3E，比 B200 多 50%）+ Helios rack-scale system</strong> 進軍訓練市場，從 inference-only 切到全 stack 競爭</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);background:rgba(249,115,168,.1);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
+      <div style="font-size:14px;line-height:1.75"><strong>EPYC Server CPU 已拿下 30% 市佔（record）</strong>，Turin / Venice 持續壓 Intel → 資料中心雙引擎（GPU + CPU），提供穩定底線</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);background:rgba(249,115,22,.1);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</div>
+      <div style="font-size:14px;line-height:1.75"><strong>資料中心 +57% YoY 確認 AI inflection point 已過</strong> → AMD 軌跡進入 AI 半導體核心圈，估值重評已開始但尚未完成</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S03 MARKET -->
+<div class="section" id="market">
+  <div class="s-eye">S03 · Market — TAM 與競爭格局</div>
+  <div class="s-title">AI 半導體 2026 $300B → 2030 $1T+</div>
+  <p class="s-desc">AMD addressable：Data Center GPU + Server CPU + Custom Silicon inference。</p>
+
+  <div class="g3">
+    <div class="card">
+      <div class="kpi-label" style="margin-bottom:8px">AI 半導體 TAM</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)">$300B</div>
+      <div style="font-size:12px;color:var(--muted)">2026 市場規模估值</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#22c55e;margin-top:8px">$1T+</div>
+      <div style="font-size:12px;color:var(--muted)">2030 預測</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label" style="margin-bottom:8px">AMD Addressable</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)">$200B</div>
+      <div style="font-size:12px;color:var(--muted)">2030 可及市場</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">DC GPU + Server CPU + Custom Silicon</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label" style="margin-bottom:8px">AMD GPU 市佔預估</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)">5–10%</div>
+      <div style="font-size:12px;color:var(--muted)">2027</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#22c55e;margin-top:8px">15–25%</div>
+      <div style="font-size:12px;color:var(--muted)">2030（若 MI400/Helios 順）</div>
+    </div>
+  </div>
+
+  <div class="sub-h">競爭矩陣</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>公司</th><th>AI GPU 市佔</th><th>主力產品</th><th>優勢</th><th>劣勢</th><th>AMD 相對</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NVIDIA (NVDA)</strong></td>
+          <td class="num">~80%</td>
+          <td>Blackwell B200/B300<br>Rubin 2026 H2</td>
+          <td>CUDA 護城河、生態系、出貨規模</td>
+          <td>供應不足、客戶集中度高</td>
+          <td><span class="pill pill-red">落後 12-18mo</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--orange)">AMD (本標的)</strong></td>
+          <td class="num">~5-8%</td>
+          <td>MI300X / MI350 / MI400<br>EPYC Server CPU</td>
+          <td>HBM3E 288GB、開源 ROCm、CPU+GPU 雙引擎</td>
+          <td>ROCm 未成熟、訓練市場未驗證</td>
+          <td><span class="pill pill-green">BUY — 目標 $500</span></td>
+        </tr>
+        <tr>
+          <td><strong>Intel (INTC)</strong></td>
+          <td class="num">&lt;2%</td>
+          <td>Gaudi 3</td>
+          <td>IFS Fab 自主</td>
+          <td>Gaudi 落後、Server CPU 被 EPYC 吃</td>
+          <td><span class="pill pill-gray">AMD 明顯領先</span></td>
+        </tr>
+        <tr>
+          <td><strong>Marvell (MRVL)</strong></td>
+          <td class="num">N/A</td>
+          <td>Custom ASIC（Trainium/TPU 代工）</td>
+          <td>客製化定制優勢</td>
+          <td>依賴單一客戶、開發週期長</td>
+          <td><span class="pill pill-blue">不同 segment</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S04 COMPANY -->
+<div class="section" id="company">
+  <div class="s-eye">S04 · Company Analysis</div>
+  <div class="s-title">四大業務部門 — <span class="hi">資料中心是唯一驅動引擎</span></div>
+
+  <div class="g2">
+    <div class="card" style="border-top:3px solid var(--orange)">
+      <div class="s-eye" style="font-size:10px;margin-bottom:6px">Data Center — 主引擎</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)">$5.8B</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Q1 2026 · YoY +57% · 佔總 57%</div>
+      <div style="font-size:12px;line-height:1.8">· Instinct MI GPU（MI300X 量產 / MI350 H2 2026 / MI400 2026 sampling）<br>· EPYC Server CPU（Turin / Genoa，30% 市佔 record）<br>· Helios rack-scale（對標 NVIDIA NVL72）<br>· 客戶：Microsoft Azure、Meta、Oracle Cloud</div>
+    </div>
+    <div class="card" style="border-top:3px solid #3b82f6">
+      <div class="s-eye" style="font-size:10px;color:#3b82f6;margin-bottom:6px">Client — 穩定但平淡</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#3b82f6">$2.3B</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Q1 2026 · YoY 持平 · 佔總 22%</div>
+      <div style="font-size:12px;line-height:1.8">· Ryzen 7000/8000，消費 PC 復甦慢<br>· AI PC（NPU 整合）尚未轉化為量<br>· 提供底線現金流，非成長驅動</div>
+    </div>
+    <div class="card" style="border-top:3px solid #a855f7">
+      <div class="s-eye" style="font-size:10px;color:#a855f7;margin-bottom:6px">Gaming — 週期低谷</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#a855f7">$1.2B</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Q1 2026 · YoY 年減 · 佔總 12%</div>
+      <div style="font-size:12px;line-height:1.8">· Console cycle 接近尾聲（PS5/Xbox 後期）<br>· 半定制 SOC 訂單已見頂<br>· 2027 次世代主機可能帶動新波需求</div>
+    </div>
+    <div class="card" style="border-top:3px solid #888">
+      <div class="s-eye" style="font-size:10px;color:#888;margin-bottom:6px">Embedded (Xilinx) — 溫和回升</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#888">$0.9B</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Q1 2026 · YoY 小幅回升 · 佔總 9%</div>
+      <div style="font-size:12px;line-height:1.8">· Xilinx FPGA 庫存去化完成<br>· 工業 / 通信市場需求穩定<br>· 有助改善整體 margin，非核心驅動</div>
+    </div>
+  </div>
+
+  <!-- SVG 3: AMD Competitive Stack vs Intel / NVIDIA / Marvell -->
+  <div style="margin:24px 0">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:10px">圖 3 · 競爭力 Stack — AMD vs Intel / NVIDIA / Marvell（6 層）</div>
+    <svg viewBox="0 0 720 460" width="100%" height="auto" style="max-width:720px;display:block;margin:0 0 4px" xmlns="http://www.w3.org/2000/svg">
+      <rect width="720" height="460" fill="#f9f8f5" rx="8"/>
+      <!-- Header -->
+      <rect x="170" y="20" width="130" height="32" fill="#0A1628" rx="4"/>
+      <text x="235" y="40" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700" fill="#f97316">AMD</text>
+      <rect x="305" y="20" width="130" height="32" fill="#0A1628" rx="4"/>
+      <text x="370" y="40" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700" fill="#fff">NVIDIA</text>
+      <rect x="440" y="20" width="130" height="32" fill="#0A1628" rx="4"/>
+      <text x="505" y="40" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700" fill="#fff">Intel</text>
+      <rect x="575" y="20" width="130" height="32" fill="#0A1628" rx="4"/>
+      <text x="640" y="40" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700" fill="#fff">Marvell</text>
+      <!-- L6: 客戶綁定 -->
+      <text x="165" y="82" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L6 客戶綁定</text>
+      <rect x="170" y="60" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="235" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">Azure/Meta</text><text x="235" y="98" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">核心確認中</text>
+      <rect x="305" y="60" width="130" height="52" fill="#F5A623" rx="4"/><text x="370" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">全主要 Hyper</text><text x="370" y="98" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">CUDA 鎖定最深</text>
+      <rect x="440" y="60" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="505" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">企業 + PC</text><text x="505" y="98" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">Gaudi 3 推進中</text>
+      <rect x="575" y="60" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="640" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">Custom ASIC</text><text x="640" y="98" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">Hyperscaler 專屬</text>
+      <!-- L5: 封裝 chiplet -->
+      <text x="165" y="146" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L5 封裝 Chiplet</text>
+      <rect x="170" y="124" width="130" height="52" fill="#F5A623" rx="4"/><text x="235" y="144" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">Infinity Fabric</text><text x="235" y="160" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">3D Chiplet 成熟</text>
+      <rect x="305" y="124" width="130" height="52" fill="#F5A623" rx="4"/><text x="370" y="144" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">NVLink 最強</text><text x="370" y="160" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">NVL72 系統領先</text>
+      <rect x="440" y="124" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="505" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">EMIB / Foveros</text>
+      <rect x="575" y="124" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="640" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">CoWoS (依 TSMC)</text>
+      <!-- L4: GPU IP -->
+      <text x="165" y="210" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L4 GPU IP</text>
+      <rect x="170" y="188" width="130" height="52" fill="#F5A623" rx="4"/><text x="235" y="208" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">CDNA4 (2027)</text><text x="235" y="224" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">追趕中，HBM +50%</text>
+      <rect x="305" y="188" width="130" height="52" fill="#F5A623" rx="4"/><text x="370" y="208" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">Blackwell/Rubin</text><text x="370" y="224" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">壓倒性領先</text>
+      <rect x="440" y="188" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="505" y="208" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">Gaudi 3</text><text x="505" y="224" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#777">落後 AMD</text>
+      <rect x="575" y="188" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="640" y="208" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">無自研 GPU</text>
+      <!-- L3: 軟體生態 -->
+      <text x="165" y="274" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L3 軟體生態</text>
+      <rect x="170" y="252" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="235" y="272" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">ROCm 開源</text><text x="235" y="288" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">成熟度落後 CUDA</text>
+      <rect x="305" y="252" width="130" height="52" fill="#F5A623" rx="4"/><text x="370" y="272" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">CUDA 生態</text><text x="370" y="288" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">最強護城河</text>
+      <rect x="440" y="252" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="505" y="272" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">oneAPI</text><text x="505" y="288" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#777">採用率低</text>
+      <rect x="575" y="252" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="640" y="272" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">Custom DSP</text><text x="640" y="288" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">ASIC 客戶化</text>
+      <!-- L2: CPU IP -->
+      <text x="165" y="338" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L2 CPU IP</text>
+      <rect x="170" y="316" width="130" height="52" fill="#F5A623" rx="4"/><text x="235" y="336" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">EPYC (x86)</text><text x="235" y="352" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">30% Server 市佔</text>
+      <rect x="305" y="316" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="370" y="342" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">無 x86 CPU</text>
+      <rect x="440" y="316" width="130" height="52" fill="#F5A623" rx="4"/><text x="505" y="336" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">Xeon (x86)</text><text x="505" y="352" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">仍市場主流</text>
+      <rect x="575" y="316" width="130" height="52" fill="#E5E5E5" rx="4"/><text x="640" y="342" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#555">無 CPU</text>
+      <!-- L1: 製程 -->
+      <text x="165" y="402" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#444">L1 製程</text>
+      <rect x="170" y="380" width="130" height="52" fill="#F5A623" rx="4"/><text x="235" y="400" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0A1628">TSMC 3nm</text><text x="235" y="416" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">MI350 制程領先</text>
+      <rect x="305" y="380" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="370" y="400" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">TSMC 4NP</text><text x="370" y="416" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">B200 量產成熟</text>
+      <rect x="440" y="380" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="505" y="400" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">TSMC+IFS</text><text x="505" y="416" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">IFS 追趕中</text>
+      <rect x="575" y="380" width="130" height="52" fill="#FCE4B6" rx="4"/><text x="640" y="400" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#333">TSMC (代工)</text><text x="640" y="416" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#555">Fabless</text>
+      <!-- Legend -->
+      <rect x="170" y="443" width="12" height="10" fill="#F5A623" rx="1"/><text x="188" y="453" font-family="JetBrains Mono,monospace" font-size="10" fill="#333">強項/AMD 優勢</text>
+      <rect x="310" y="443" width="12" height="10" fill="#FCE4B6" rx="1"/><text x="328" y="453" font-family="JetBrains Mono,monospace" font-size="10" fill="#333">中等</text>
+      <rect x="400" y="443" width="12" height="10" fill="#E5E5E5" rx="1"/><text x="418" y="453" font-family="JetBrains Mono,monospace" font-size="10" fill="#333">弱/無</text>
+    </svg>
+  </div>
+
+  <div class="sub-h">財務健康指標</div>
+  <div class="g4">
+    <div class="kpi"><div class="kpi-label">P/B</div><div class="kpi-value">5.54×</div><div class="kpi-sub">資產重估合理</div></div>
+    <div class="kpi"><div class="kpi-label">R&amp;D 強度</div><div class="kpi-value">23.4%</div><div class="kpi-sub">技術護城河投入</div></div>
+    <div class="kpi"><div class="kpi-label">Beta</div><div class="kpi-value">2.40</div><div class="kpi-sub">半導體高波動</div></div>
+    <div class="kpi"><div class="kpi-label">MA50 / MA200</div><div class="kpi-value" style="font-size:14px">$270 / $222</div><div class="kpi-sub" style="color:#22c55e">強多頭排列</div></div>
+  </div>
+
+  <div class="g2" style="margin-top:14px">
+    <div class="card">
+      <div style="font-size:12px;line-height:1.85;color:var(--muted)">
+        <strong style="color:var(--text)">52週高低</strong>：$458.79 / $110.31<br>
+        <strong style="color:var(--text)">12m return</strong>：+278%（ATH $458.79 接近）<br>
+        <strong style="color:var(--text)">技術形態</strong>：<span class="pill pill-green" style="font-size:10px">強多頭排列</span> MA50 > MA200
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;line-height:1.85;color:var(--muted)">
+        <strong style="color:var(--text)">機構持股</strong>：Blackrock 147.5M · Vanguard 105.9M · 總機構 ~60%+<br>
+        <strong style="color:var(--text)">Insider</strong>：Lisa Su CEO 依 10b5-1 plan 定期賣股（正常程序）<br>
+        <strong style="color:var(--text)">SEC 10-Q</strong>：2026-05-06 filed
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S05 EARNINGS -->
+<div class="section" id="earnings">
+  <div class="s-eye">S05 · 最近法說會重點 — Q1 2026 (2026-05-06)</div>
+  <div class="s-title">Beat 共識 · DC 創新高 · MI350 指引明確</div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(event,'beats')">亮點 Beat</button>
+    <button class="tab-btn" onclick="switchTab(event,'misses')">隱憂 Miss</button>
+    <button class="tab-btn" onclick="switchTab(event,'guidance')">Forward Guide</button>
+    <button class="tab-btn" onclick="switchTab(event,'quote')">管理層 Quote</button>
+  </div>
+
+  <div id="beats" class="tab-pane active">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card" style="border-left:4px solid #22c55e;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-green">BEAT</span><strong style="font-size:14px">資料中心 +57% YoY to $5.8B</strong></div>
+        <div style="font-size:12px;color:var(--muted)">超越市場共識約 $5.2B。AI GPU（MI300X）與 EPYC Server CPU 雙引擎驅動。</div>
+      </div>
+      <div class="card" style="border-left:4px solid #22c55e;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-green">BEAT</span><strong style="font-size:14px">Server CPU 市佔 30%（record 歷史新高）</strong></div>
+        <div style="font-size:12px;color:var(--muted)">EPYC Turin / Genoa 持續吃 Intel。每 +1% 市佔 ≈ $300M 年額外營收。</div>
+      </div>
+      <div class="card" style="border-left:4px solid #22c55e;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-green">BEAT</span><strong style="font-size:14px">MI350 需求「exceed supply」+ Helios 量產 timeline 確認</strong></div>
+        <div style="font-size:12px;color:var(--muted)">Lisa Su 明確確認 MI350 H2 2026 量產，Helios rack-scale 鎖定 hyperscaler 訓練集群。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="misses" class="tab-pane">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card" style="border-left:4px solid #ef4444;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-red">隱憂</span><strong style="font-size:14px">Client / Embedded segment 仍弱</strong></div>
+        <div style="font-size:12px;color:var(--muted)">消費 PC 復甦速度慢，Xilinx FPGA 去庫存未完全結束，拖累整體 mix。</div>
+      </div>
+      <div class="card" style="border-left:4px solid #ef4444;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-red">隱憂</span><strong style="font-size:14px">Gaming 收入年減</strong></div>
+        <div style="font-size:12px;color:var(--muted)">Console cycle 接近尾聲，半定制 SOC 訂單見頂。</div>
+      </div>
+      <div class="card" style="border-left:4px solid #f97316;padding:14px 18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="pill pill-orange">觀察</span><strong style="font-size:14px">ROCm 生態進展低於預期</strong></div>
+        <div style="font-size:12px;color:var(--muted)">AMD 未提供具體 ROCm 採用率數字，CUDA 遷移仍慢。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="guidance" class="tab-pane">
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">Q2 2026 Forward Guidance</div>
+      <table class="dense-table">
+        <thead><tr><th>指標</th><th style="text-align:right">管理層指引</th><th style="text-align:right">市場共識</th><th>信號</th></tr></thead>
+        <tbody>
+          <tr><td>Q2 Revenue</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">~$11.0B ±$300M</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$10.8B</td><td><span class="pill pill-green">小幅 beat</span></td></tr>
+          <tr><td>Non-GAAP GM%</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">~53%</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">52.8%</td><td><span class="pill pill-green">符合</span></td></tr>
+          <tr><td>DC Revenue (est)</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$6.2B+</td><td style="text-align:right;font-family:'JetBrains Mono',monospace">$6.0B</td><td><span class="pill pill-green">持續成長</span></td></tr>
+          <tr><td>MI350 出貨</td><td style="text-align:right">H2 2026</td><td style="text-align:right">—</td><td><span class="pill pill-orange">待觀察</span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">市場反應：Q1 報後股價 +5% gap-up，維持高位。</div>
+    </div>
+  </div>
+
+  <div id="quote" class="tab-pane">
+    <div class="card" style="background:linear-gradient(135deg,#071428,#0d1f3c);border:none;color:#fff">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;margin-bottom:14px">CEO · Q1 2026 EARNINGS CALL · 2026-05-06</div>
+      <div style="font-size:16px;font-style:italic;line-height:1.75;color:rgba(255,255,255,.9);margin-bottom:14px">"AI 加速進入第二章，從 inference 擴到 training 全 stack。我們的 MI350 和 Helios 是這個轉變的核心產品，客戶需求已超過我們目前的供應能力。"</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35)">來源：AMD Q1 2026 Earnings Call Transcript · 2026-05-06</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S06 PRODUCT DEEP DIVE -->
+<div class="section" id="product">
+  <div class="s-eye">S06 · 核心驅動產品深拆 — Instinct MI 系列 AI GPU</div>
+  <div class="s-title">為什麼 <span class="hi">MI350 / MI400</span> 是股價的核心驅動變數</div>
+  <p class="s-desc">資料中心 +57% YoY 大部分由 MI300X ramp 驅動。MI350（H2 2026）是下一個拐點；MI400（2026 H2 sampling）是 2027-2028 估值再評的關鍵事件。</p>
+
+  <div class="product-hero">
+    <div class="product-hero-eye">Instinct MI Series — AI GPU Roadmap</div>
+    <div class="product-hero-title">MI300X → MI350 → MI400 → Helios Rack-Scale</div>
+    <div class="product-hero-sub">從推論 → 訓練全 stack。TSMC 3nm + HBM3E 領先，開源 ROCm 軟體棧差異化。vLLM-ATOM 加速 DeepSeek-R1 / Kimi-K2 等開源 LLM。</div>
+    <div class="product-spec-grid">
+      <div class="spec-card">
+        <div class="spec-label">MI300X (2024 量產)</div>
+        <div class="spec-value">192GB HBM3</div>
+        <div class="spec-sub">Inference ramp 完成 · Azure/Meta 部署</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">MI350 (H2 2026 出貨)</div>
+        <div class="spec-value">288GB HBM3E</div>
+        <div class="spec-sub">TSMC 3nm · 比 B200 多 50% · 需求超供</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">MI400 (2026 H2 sampling)</div>
+        <div class="spec-value">HBM4</div>
+        <div class="spec-sub">下一代架構 · 2027 hyperscaler 訓練</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-label">Helios Rack-Scale</div>
+        <div class="spec-value">vs NVL72</div>
+        <div class="spec-sub">Rack-level interconnect · 訓練集群用途</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG 1: AMD MI300 AI Accelerator Anatomy -->
+  <div style="margin-bottom:24px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:10px">圖 1 · AMD MI300 AI Accelerator 架構拆解（4 層）</div>
+    <svg viewBox="0 0 720 420" width="100%" height="auto" style="max-width:720px;display:block;margin:0 0 16px" xmlns="http://www.w3.org/2000/svg">
+      <rect width="720" height="420" fill="#0A1628" rx="10"/>
+      <text x="360" y="26" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="14" font-weight="700" fill="#fff">AMD Instinct MI300 系列 — 4 層架構拆解</text>
+      <!-- Left: rack diagram -->
+      <rect x="30" y="44" width="240" height="340" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" rx="8"/>
+      <text x="150" y="60" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="rgba(255,255,255,0.5)">MI300X 封裝剖面</text>
+      <!-- L1: HBM3E 288GB -->
+      <rect x="42" y="70" width="216" height="60" fill="#5BC9A8" rx="4"/>
+      <text x="150" y="96" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#0A1628">L1 · HBM3E 288GB（MI350）</text>
+      <text x="150" y="112" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">SK Hynix / Micron · 3.2TB/s 頻寬 · 最關鍵競爭優勢</text>
+      <!-- L2: CDNA3 GPU dies -->
+      <rect x="42" y="140" width="216" height="70" fill="#F5A623" rx="4"/>
+      <text x="150" y="164" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#0A1628">L2 · CDNA3 GPU Dies（自研架構）</text>
+      <text x="150" y="180" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">TSMC 3nm · Compute Die × 3 · 304 Compute Units</text>
+      <text x="150" y="196" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">FP8/FP16/BF16 全支援 · 192 TFLOPS BF16</text>
+      <!-- L3: Infinity Fabric -->
+      <rect x="42" y="220" width="216" height="60" fill="rgba(245,166,35,0.25)" rx="4" stroke="#F5A623" stroke-width="1"/>
+      <text x="150" y="246" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#F5A623">L3 · Infinity Fabric 互連（AMD 自研）</text>
+      <text x="150" y="262" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.7)">3D Chiplet 封裝 · Die-to-Die 896GB/s · 無外部 NVLink 依賴</text>
+      <!-- L4: ROCm Software Stack -->
+      <rect x="42" y="290" width="216" height="84" fill="rgba(91,201,168,0.15)" rx="4" stroke="#5BC9A8" stroke-width="1"/>
+      <text x="150" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#5BC9A8">L4 · ROCm 開源軟體棧（AMD 自建）</text>
+      <text x="150" y="332" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.7)">ROCm 7.x · HIP (CUDA 兼容) · vLLM-ATOM 加速</text>
+      <text x="150" y="348" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.7)">DeepSeek-R1 / Kimi-K2 原生支援</text>
+      <text x="150" y="364" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#F5A623">⚠ 差距：CUDA 生態成熟度仍領先 ROCm</text>
+      <!-- Right side: Key specs + customer nodes -->
+      <text x="700" y="75" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="rgba(255,255,255,0.5)">規格對比 vs B200</text>
+      <rect x="310" y="88" width="390" height="46" rx="4" fill="rgba(91,201,168,0.12)" stroke="#5BC9A8" stroke-width="1"/>
+      <text x="318" y="108" font-family="JetBrains Mono,monospace" font-size="11" fill="#5BC9A8" font-weight="700">HBM MI350: 288GB (+50% vs B200 192GB) ✓</text>
+      <text x="318" y="126" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.6)">帶寬 3.2TB/s · 大模型推論一卡跑得完，減少 NVLink 依賴</text>
+      <rect x="310" y="144" width="390" height="46" rx="4" fill="rgba(245,166,35,0.12)" stroke="#F5A623" stroke-width="1"/>
+      <text x="318" y="164" font-family="JetBrains Mono,monospace" font-size="11" fill="#F5A623" font-weight="700">製程 MI350: TSMC 3nm vs B200 TSMC 4NP</text>
+      <text x="318" y="182" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.6)">AMD 製程領先 1 代，能耗效率優勢 ~15%</text>
+      <rect x="310" y="200" width="390" height="46" rx="4" fill="rgba(148,163,184,0.10)" stroke="#94A3B8" stroke-width="1"/>
+      <text x="318" y="220" font-family="JetBrains Mono,monospace" font-size="11" fill="#94A3B8" font-weight="700">軟體 ROCm: 開源 vs CUDA 封閉</text>
+      <text x="318" y="238" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.5)">成熟度落後約 2-3 年，企業換棧成本高 → 核心風險</text>
+      <!-- Client nodes -->
+      <rect x="310" y="258" width="185" height="60" rx="4" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="1"/>
+      <text x="402" y="278" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#22c55e">Microsoft Azure ✓</text>
+      <text x="402" y="294" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.6)">MI300X 部署 · Copilot 推論</text>
+      <text x="402" y="308" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.5)">確認客戶 · 深度整合</text>
+      <rect x="510" y="258" width="185" height="60" rx="4" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="1"/>
+      <text x="602" y="278" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#22c55e">Meta ✓</text>
+      <text x="602" y="294" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.6)">MI300X 部署 · Llama 模型</text>
+      <text x="602" y="308" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.5)">確認客戶 · 大量採購</text>
+      <rect x="310" y="330" width="385" height="46" rx="4" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+      <text x="502" y="350" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#ef4444" font-weight="700">OpenAI — 仍在評估 AMD (關鍵觀察點)</text>
+      <text x="502" y="368" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="rgba(255,255,255,0.5)">若 OpenAI 採用 AMD，估值重評 +30~50%</text>
+      <!-- Legend -->
+      <rect x="30" y="394" width="10" height="8" fill="#5BC9A8" rx="1"/>
+      <text x="46" y="402" font-family="JetBrains Mono,monospace" font-size="9" fill="#94A3B8">AMD HBM 優勢</text>
+      <rect x="185" y="394" width="10" height="8" fill="#F5A623" rx="1"/>
+      <text x="201" y="402" font-family="JetBrains Mono,monospace" font-size="9" fill="#94A3B8">GPU 架構 (自研)</text>
+      <rect x="360" y="394" width="10" height="8" fill="#94A3B8" rx="1"/>
+      <text x="376" y="402" font-family="JetBrains Mono,monospace" font-size="9" fill="#94A3B8">軟體缺口 (待追</text>
+      <text x="360" y="414" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="rgba(148,163,184,0.4)">CAVEAT: 示意性架構，各層厚度非真實比例</text>
+    </svg>
+  </div>
+
+  <div class="sub-h">五欄產品拆解</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>維度</th><th>MI300X (現況)</th><th>MI350 (H2 2026)</th><th>NVIDIA B200 對比</th><th>AMD 差異化</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>製程</strong></td><td>TSMC 5nm 3D chiplet</td><td>TSMC 3nm</td><td>TSMC 4NP</td><td>AMD 3nm 領先 B200</td></tr>
+        <tr><td><strong>HBM</strong></td><td>192GB HBM3</td><td><strong>288GB HBM3E</strong></td><td>192GB HBM3e</td><td><span class="pill pill-green">+50% HBM 優勢</span></td></tr>
+        <tr><td><strong>目標用途</strong></td><td>Inference（大模型）</td><td>Inference + Training</td><td>Training + Inference</td><td>MI350 首次進 training</td></tr>
+        <tr><td><strong>軟體生態</strong></td><td>ROCm 6.x（開源）</td><td>ROCm 7.x + vLLM-ATOM</td><td>CUDA（封閉，成熟）</td><td>開源差異化，成熟度落後</td></tr>
+        <tr><td><strong>主要客戶</strong></td><td>Microsoft Azure、Meta</td><td>同 + 擴展中</td><td>全主要 hyperscaler</td><td>OpenAI 仍在評估 AMD</td></tr>
+        <tr><td><strong>占 AMD DC 估</strong></td><td>15-20%</td><td>預估升至 25-30%</td><td>—</td><td>FY28 目標 35-45%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="g2" style="margin-top:20px">
+    <div class="card" style="border-top:3px solid var(--accent)">
+      <div class="s-eye" style="font-size:10px;margin-bottom:10px">護城河分析</div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>HBM 容量優勢（288GB vs 192GB）</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#22c55e">強</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:80%;background:#22c55e"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>ROCm 軟體成熟度</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#ef4444">弱</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:35%;background:#ef4444"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>Hyperscaler 關係深度</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#f97316">中等</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:55%;background:#f97316"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>TSMC 3nm 製程優勢</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#22c55e">強</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:75%;background:#22c55e"></div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-header"><span>開源生態（ROCm + vLLM-ATOM）</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#3b82f6">差異化</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:60%;background:#3b82f6"></div></div>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid #ef4444">
+      <div class="s-eye" style="font-size:10px;margin-bottom:10px">競爭威脅</div>
+      <div style="font-size:12px;line-height:1.8">
+        <div style="padding:8px 0;border-bottom:1px solid #f0ede8"><strong>NVIDIA Blackwell B200/B300 → Rubin (2026 H2)</strong><br><span style="color:var(--muted)">CUDA 護城河深，出貨量規模碾壓。Rubin 是下一個威脅時間點。</span></div>
+        <div style="padding:8px 0;border-bottom:1px solid #f0ede8"><strong>Google TPU v5 / AWS Trainium 2</strong><br><span style="color:var(--muted)">Hyperscaler 自研 ASIC，約佔 10-15% GPU 等效需求。</span></div>
+        <div style="padding:8px 0"><strong>Intel Gaudi 3</strong><br><span style="color:var(--muted)">落後但有 IFS fab 優勢，2027+ 仍需觀察。</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S07 SUPPLY CHAIN -->
+<div class="section" id="supplychain">
+  <div class="s-eye">S07 · Supply Chain Flow</div>
+  <div class="s-title">TSMC + HBM → AMD 設計 → Hyperscaler 部署</div>
+  <p class="s-desc">AMD 為 Fabless。核心風險：TSMC 3nm 良率 + HBM3E/HBM4 供應瓶頸。</p>
+
+  <div class="supply-row">
+    <div class="supply-node">
+      <div class="supply-node-label">製造</div>
+      <div class="supply-node-name">TSMC<br><span style="font-size:11px;color:var(--muted)">3nm / 4nm</span></div>
+    </div>
+    <div class="supply-arrow">→</div>
+    <div class="supply-node">
+      <div class="supply-node-label">HBM 記憶體</div>
+      <div class="supply-node-name">SK Hynix<br>Micron<br><span style="font-size:11px;color:var(--muted)">HBM3E / HBM4</span></div>
+    </div>
+    <div class="supply-arrow">→</div>
+    <div class="supply-node" style="border-color:var(--orange);border-width:2px">
+      <div class="supply-node-label" style="color:var(--orange)">AMD 設計</div>
+      <div class="supply-node-name" style="color:var(--orange)">MI350 / MI400<br>EPYC CPU<br>ROCm Stack</div>
+    </div>
+    <div class="supply-arrow">→</div>
+    <div class="supply-node">
+      <div class="supply-node-label">系統整合</div>
+      <div class="supply-node-name">Dell / HPE<br>Supermicro</div>
+    </div>
+    <div class="supply-arrow">→</div>
+    <div class="supply-node" style="border-color:#22c55e;border-width:2px">
+      <div class="supply-node-label" style="color:#16a34a">End Customer</div>
+      <div class="supply-node-name">Azure / Meta<br>Oracle / OpenAI<br><span style="font-size:11px;color:var(--muted)">(評估中)</span></div>
+    </div>
+  </div>
+
+  <!-- SVG 2: AMD Supply Chain Flow -->
+  <div style="margin:20px 0">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:10px">圖 2 · AMD 上下游供應鏈位置</div>
+    <svg viewBox="0 0 720 340" width="100%" height="auto" style="max-width:720px;display:block;margin:0 0 16px" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .mo { fill: rgba(249,115,22,0.12); stroke: #f97316; stroke-width: 2; }
+        .mup { fill: rgba(91,201,168,0.12); stroke: #5BC9A8; stroke-width: 1.5; }
+        .mdo { fill: rgba(74,144,226,0.12); stroke: #4A90E2; stroke-width: 1.5; }
+        .men { fill: rgba(34,197,94,0.12); stroke: #22c55e; stroke-width: 1.5; }
+        .mnt { font-family: Inter,sans-serif; font-size: 12px; font-weight: 700; fill: #1a1a1a; text-anchor: middle; }
+        .mns { font-family: JetBrains Mono,monospace; font-size: 10px; fill: #555; text-anchor: middle; }
+        .msl { font-family: JetBrains Mono,monospace; font-size: 11px; font-weight: 700; fill: #888; letter-spacing: 1px; text-anchor: middle; }
+        .marr { fill: #555; }
+        .mmoat { font-family: JetBrains Mono,monospace; font-size: 10px; fill: #f97316; text-anchor: middle; }
+      </style>
+      <text x="90" y="26" class="msl">上游製造</text>
+      <text x="270" y="26" class="msl">AMD 核心</text>
+      <text x="470" y="26" class="msl">下游 OEM/ODM</text>
+      <text x="645" y="26" class="msl">終端客戶</text>
+      <!-- 上游節點 -->
+      <rect x="15" y="42" width="150" height="52" rx="6" class="mup"/>
+      <text x="90" y="63" class="mnt">TSMC</text>
+      <text x="90" y="78" class="mns">3nm / 4nm / 5nm</text>
+      <text x="90" y="91" class="mns">MI300/350/400 晶片代工</text>
+      <rect x="15" y="104" width="150" height="52" rx="6" class="mup"/>
+      <text x="90" y="125" class="mnt">SK Hynix / Micron</text>
+      <text x="90" y="140" class="mns">HBM3E / HBM4 記憶體</text>
+      <text x="90" y="153" class="mns">MI350 288GB 關鍵元件</text>
+      <rect x="15" y="166" width="150" height="52" rx="6" class="mup"/>
+      <text x="90" y="187" class="mnt">Samsung / ASE</text>
+      <text x="90" y="202" class="mns">晶片封裝 (CoWoS/SoIC)</text>
+      <text x="90" y="215" class="mns">Infinity Fabric 互連</text>
+      <!-- 箭頭 -->
+      <polygon points="170,68 196,68 196,63 212,73 196,83 196,78 170,78" class="marr"/>
+      <polygon points="170,130 196,130 196,125 212,135 196,145 196,140 170,140" class="marr"/>
+      <polygon points="170,192 196,192 196,187 212,197 196,207 196,202 170,202" class="marr"/>
+      <!-- AMD 核心 -->
+      <rect x="218" y="55" width="152" height="165" rx="8" class="mo"/>
+      <text x="294" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#1a1a1a">AMD</text>
+      <text x="294" y="110" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#f97316">(Fabless)</text>
+      <text x="294" y="134" class="mns" style="font-weight:700">— CDNA3/4 GPU 架構</text>
+      <text x="294" y="150" class="mns" style="font-weight:700">— ROCm 開源軟體棧</text>
+      <text x="294" y="166" class="mns" style="font-weight:700">— Chiplet 3D Stacking</text>
+      <text x="294" y="182" class="mns" style="font-weight:700">— EPYC CPU IP</text>
+      <text x="294" y="200" class="mmoat">護城河: x86+GPU 雙棧</text>
+      <!-- 下游箭頭 -->
+      <polygon points="374,120 400,120 400,115 416,125 400,135 400,130 374,130" class="marr"/>
+      <polygon points="374,175 400,175 400,170 416,180 400,190 400,185 374,175" class="marr"/>
+      <!-- 下游 OEM/ODM -->
+      <rect x="420" y="88" width="145" height="60" rx="6" class="mdo"/>
+      <text x="492" y="112" class="mnt">Dell / HPE / Supermicro</text>
+      <text x="492" y="128" class="mns">AI Server 系統整合</text>
+      <text x="492" y="142" class="mns">Helios Rack-Scale 部署</text>
+      <rect x="420" y="158" width="145" height="60" rx="6" class="mdo"/>
+      <text x="492" y="182" class="mnt">ODM 廠商</text>
+      <text x="492" y="198" class="mns">Quanta / Wistron</text>
+      <text x="492" y="212" class="mns">白牌 AI Server</text>
+      <!-- 終端市場箭頭 -->
+      <polygon points="568,118 594,118 594,113 610,123 594,133 594,128 568,128" class="marr"/>
+      <polygon points="568,188 594,188 594,183 610,193 594,203 594,198 568,188" class="marr"/>
+      <!-- 終端客戶 -->
+      <rect x="614" y="88" width="102" height="60" rx="6" class="men"/>
+      <text x="665" y="108" class="mnt">Hyperscaler</text>
+      <text x="665" y="124" class="mns">Azure / Meta (確認)</text>
+      <text x="665" y="138" class="mns">OpenAI (評估中)</text>
+      <rect x="614" y="158" width="102" height="60" rx="6" class="men"/>
+      <text x="665" y="178" class="mnt">Enterprise</text>
+      <text x="665" y="194" class="mns">AI Training / Inference</text>
+      <text x="665" y="208" class="mns">ROCm Open Ecosystem</text>
+      <!-- 底注 -->
+      <text x="360" y="275" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">上游瓶頸：TSMC 3nm CoWoS 配額競爭激烈（vs NVIDIA 搶先），HBM4 2027 供應仍緊</text>
+      <text x="360" y="292" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa">CAVEAT: 示意性流向，AMD Fabless 模式不持有晶圓廠</text>
+      <!-- Legend -->
+      <rect x="80" y="312" width="10" height="8" rx="1" fill="rgba(91,201,168,0.2)" stroke="#5BC9A8" stroke-width="1"/>
+      <text x="95" y="320" font-family="JetBrains Mono,monospace" font-size="9" fill="#666">上游製造（供應風險高）</text>
+      <rect x="240" y="312" width="10" height="8" rx="1" fill="rgba(249,115,22,0.2)" stroke="#f97316" stroke-width="1"/>
+      <text x="255" y="320" font-family="JetBrains Mono,monospace" font-size="9" fill="#666">AMD 核心設計</text>
+      <rect x="360" y="312" width="10" height="8" rx="1" fill="rgba(74,144,226,0.2)" stroke="#4A90E2" stroke-width="1"/>
+      <text x="375" y="320" font-family="JetBrains Mono,monospace" font-size="9" fill="#666">OEM/ODM</text>
+      <rect x="460" y="312" width="10" height="8" rx="1" fill="rgba(34,197,94,0.2)" stroke="#22c55e" stroke-width="1"/>
+      <text x="475" y="320" font-family="JetBrains Mono,monospace" font-size="9" fill="#666">終端客戶</text>
+    </svg>
+  </div>
+
+  <div class="g3" style="margin-top:16px">
+    <div class="card">
+      <div class="s-eye" style="font-size:10px;margin-bottom:8px">上游風險</div>
+      <div style="font-size:12px;line-height:1.8"><strong>TSMC 3nm 良率</strong>：直接影響 MI350 成本和出貨量<br><strong>HBM3E 供應</strong>：SK Hynix / Micron 產能緊張，AMD 需搶配額</div>
+    </div>
+    <div class="card">
+      <div class="s-eye" style="font-size:10px;margin-bottom:8px">AMD 核心能力</div>
+      <div style="font-size:12px;line-height:1.8">· GPU silicon 架構（CDNA3/4）<br>· ROCm 開源軟體棧<br>· Chiplet 3D stacking 技術<br>· HBM 高頻寬封裝設計</div>
+    </div>
+    <div class="card">
+      <div class="s-eye" style="font-size:10px;margin-bottom:8px">替代品威脅</div>
+      <div style="font-size:12px;line-height:1.8">· NVIDIA Blackwell/Rubin（主要）<br>· Google TPU / AWS Trainium（ASIC）<br>· Intel Gaudi 3（次要）</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S08 RISKS -->
+<div class="section" id="risks">
+  <div class="s-eye">S08 · 風險矩陣</div>
+  <div class="s-title">五大結構性風險</div>
+
+  <div class="risk-card risk-critical">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="risk-title">① NVIDIA CUDA 護城河</div><span class="pill pill-red">短期持續</span>
+    </div>
+    <div class="risk-body">ROCm 效能仍落後 CUDA 10-15%。企業客戶不願為省 10% 成本重寫所有 ML 代碼。<br><strong>觀察指標：</strong>vLLM-ATOM 採用率、PyTorch 對 ROCm 支援深度。</div>
+  </div>
+
+  <div class="risk-card risk-high">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="risk-title">② MI400 量產延後</div><span class="pill pill-orange">中期 2026-2027</span>
+    </div>
+    <div class="risk-body">TSMC 3nm 良率 + HBM4 供應不確定。若延至 2027 H1，2027 估值重評延後，股價下修 -15-20%。<br><strong>觀察指標：</strong>2026 Q3-Q4 法說 MI400 sampling 客戶數量。</div>
+  </div>
+
+  <div class="risk-card risk-high">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="risk-title">③ Hyperscaler 自研 ASIC 分食</div><span class="pill pill-orange">中期持續</span>
+    </div>
+    <div class="risk-body">Google TPU v5、AWS Trainium 2、Microsoft Maia 持續加碼。長期侵蝕 AMD AI GPU 潛在市場 15-20%。<br><strong>觀察指標：</strong>各 hyperscaler capex 中 ASIC vs 外購比例。</div>
+  </div>
+
+  <div class="risk-card risk-medium">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="risk-title">④ Client / Embedded 拖累整體 margin</div><span class="pill pill-gray">短期 2026</span>
+    </div>
+    <div class="risk-body">消費 PC + Xilinx FPGA 弱需求佔總 31%，拖累整體 margin 和指引品質。</div>
+  </div>
+
+  <div class="risk-card risk-medium">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="risk-title">⑤ 估值 P/S 10× 修正</div><span class="pill pill-gray">若 Q2 miss</span>
+    </div>
+    <div class="risk-body">若 Q2 miss 或 guide 下調，P/S 可能從 10× 壓至 7-8×，股價 -20-30%。<strong>Stop-loss 觸發：$380 跌破。</strong></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SVG 4: AMD Revenue Mix Evolution -->
+<div class="section">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:10px">圖 4 · AMD 營收結構演進 2025→2028F（部門佔比 %）</div>
+  <svg viewBox="0 0 720 380" width="100%" height="auto" style="max-width:720px;display:block;margin:0 0 4px" xmlns="http://www.w3.org/2000/svg">
+    <rect width="720" height="380" fill="#f9f8f5" rx="8"/>
+    <text x="360" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#1a1a1a">AMD 業務部門營收結構演進 2025→2028F</text>
+    <!-- Axis -->
+    <line x1="80" y1="50" x2="80" y2="300" stroke="#1a1a1a" stroke-width="1.5"/>
+    <line x1="80" y1="300" x2="660" y2="300" stroke="#1a1a1a" stroke-width="1.5"/>
+    <text x="72" y="55" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">100%</text>
+    <text x="72" y="115" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">75%</text>
+    <text x="72" y="177" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">50%</text>
+    <text x="72" y="238" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">25%</text>
+    <text x="72" y="302" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">0</text>
+    <line x1="80" y1="50" x2="660" y2="50" stroke="#E5E5E5" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="80" y1="115" x2="660" y2="115" stroke="#E5E5E5" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="80" y1="177" x2="660" y2="177" stroke="#E5E5E5" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="80" y1="238" x2="660" y2="238" stroke="#E5E5E5" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <!-- 2025: DC 45%, Client 30%, Embedded 20%, Gaming 5% (approx based on annual trend) -->
+    <!-- total 250px. DC 45%=113, Client 30%=75, Emb 20%=50, Gaming 5%=12 -->
+    <rect x="115" y="187" width="100" height="113" fill="#f97316"/>
+    <text x="165" y="250" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">DC 45%</text>
+    <rect x="115" y="112" width="100" height="75" fill="#3b82f6"/>
+    <text x="165" y="153" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">Client 30%</text>
+    <rect x="115" y="62" width="100" height="50" fill="#94A3B8"/>
+    <text x="165" y="91" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">Emb 20%</text>
+    <rect x="115" y="50" width="100" height="12" fill="#5BC9A8"/>
+    <text x="165" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700" fill="#1a1a1a">2025</text>
+    <text x="165" y="336" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">~$25B actual</text>
+    <!-- 2026F: DC 57%, Client 22%, Embedded 12%, Gaming 9% -->
+    <rect x="250" y="157" width="100" height="143" fill="#f97316"/>
+    <text x="300" y="232" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">DC 57%</text>
+    <rect x="250" y="102" width="100" height="55" fill="#3b82f6"/>
+    <text x="300" y="133" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">Client 22%</text>
+    <rect x="250" y="72" width="100" height="30" fill="#94A3B8"/>
+    <text x="300" y="91" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" font-weight="700" fill="#fff">Emb 12%</text>
+    <rect x="250" y="50" width="100" height="22" fill="#5BC9A8"/>
+    <text x="300" y="64" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0A1628">9%</text>
+    <text x="300" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700" fill="#1a1a1a">2026F</text>
+    <text x="300" y="336" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">~$30B est.</text>
+    <!-- 2027F: DC 63%, Client 20%, Embedded 12%, Gaming 5% -->
+    <rect x="385" y="143" width="100" height="157" fill="#f97316"/>
+    <text x="435" y="226" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">DC 63%</text>
+    <rect x="385" y="93" width="100" height="50" fill="#3b82f6"/>
+    <text x="435" y="122" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">Client 20%</text>
+    <rect x="385" y="63" width="100" height="30" fill="#94A3B8"/>
+    <text x="435" y="82" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" font-weight="700" fill="#fff">Emb 12%</text>
+    <rect x="385" y="50" width="100" height="13" fill="#5BC9A8"/>
+    <text x="435" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700" fill="#1a1a1a">2027F</text>
+    <text x="435" y="336" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">~$38B est.</text>
+    <!-- 2028F: DC 70%, Client 20%, Embedded 7%, Gaming 3% -->
+    <rect x="520" y="125" width="100" height="175" fill="#f97316"/>
+    <text x="570" y="218" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">DC 70%</text>
+    <rect x="520" y="75" width="100" height="50" fill="#3b82f6"/>
+    <text x="570" y="104" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#fff">Client 20%</text>
+    <rect x="520" y="60" width="100" height="15" fill="#94A3B8"/>
+    <text x="570" y="72" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" font-weight="700" fill="#fff">7%</text>
+    <rect x="520" y="50" width="100" height="10" fill="#5BC9A8"/>
+    <text x="570" y="320" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700" fill="#1a1a1a">2028F</text>
+    <text x="570" y="336" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#666">~$48B est.</text>
+    <!-- Legend -->
+    <rect x="80" y="355" width="10" height="8" fill="#f97316" rx="1"/><text x="95" y="363" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">Data Center AI GPU + EPYC (擴)</text>
+    <rect x="290" y="355" width="10" height="8" fill="#3b82f6" rx="1"/><text x="305" y="363" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">Client Ryzen (縮%)</text>
+    <rect x="450" y="355" width="10" height="8" fill="#94A3B8" rx="1"/><text x="465" y="363" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">Embedded Xilinx</text>
+    <rect x="580" y="355" width="10" height="8" fill="#5BC9A8" rx="1"/><text x="595" y="363" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">Gaming</text>
+    <text x="360" y="375" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">CAVEAT: 估算為個人研究，非官方財務預測</text>
+  </svg>
+</div>
+
+<div class="divider"></div>
+
+<!-- S09 CATALYSTS -->
+<div class="section" id="catalysts">
+  <div class="s-eye">S09 · 催化劑時程表</div>
+  <div class="s-title">2026-2027 關鍵事件觸發點</div>
+
+  <table class="cat-table">
+    <thead><tr><th>時間</th><th>事件</th><th>預期影響</th><th>性質</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">2026/08</span></td>
+        <td><strong>Q2 2026 業績 + 全年 guide 升</strong><br><span style="font-size:12px;color:var(--muted)">DC 是否超 $6B、EPS guide 是否上調</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">±15%</td>
+        <td><span class="pill pill-orange">高影響</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">2026 H2</span></td>
+        <td><strong>MI350 量產出貨確認 + Helios 首發</strong><br><span style="font-size:12px;color:var(--muted)">需求超供的量化確認</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">+5–10%</td>
+        <td><span class="pill pill-green">正催化</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">2026 Q4</span></td>
+        <td><strong>MI400 sampling + 客戶官宣</strong><br><span style="font-size:12px;color:var(--muted)">首批 sampling 是否有 hyperscaler 公開</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">±15%</td>
+        <td><span class="pill pill-orange">高影響</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">2027 H1</span></td>
+        <td><strong>Hyperscaler MI400 production deployment</strong><br><span style="font-size:12px;color:var(--muted)">若 Azure/Meta 宣告大規模 MI400 部署</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">±20%</td>
+        <td><span class="pill pill-green">最大 bull 催化</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">持續</span></td>
+        <td><strong>EPYC 市佔每升 1%</strong><br><span style="font-size:12px;color:var(--muted)">≈ $300M 年額外收益</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">+2–3%</td>
+        <td><span class="pill pill-blue">穩定正貢獻</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">Black Swan</span></td>
+        <td><strong>OpenAI 官宣採用 MI400</strong><br><span style="font-size:12px;color:var(--muted)">目前評估中，若宣告將顛覆市場信心</span></td>
+        <td style="font-family:'JetBrains Mono',monospace">+20–30%</td>
+        <td><span class="pill pill-green">超預期 bull</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- S10 CALCULATOR -->
+<div class="section" id="calculator">
+  <div class="s-eye">S10 · 互動估值計算機</div>
+  <div class="s-title">三情境 PT 計算機 — <span class="hi">調整參數即時更新</span></div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">輸入參數</div>
+      <div class="calc-row">
+        <div class="calc-label">FY28 Non-GAAP EPS ($)</div>
+        <input class="calc-input" type="range" min="3" max="12" step="0.5" value="6" id="epsSlider" oninput="updateCalc()">
+        <div class="calc-value" id="epsVal">$6.0</div>
+      </div>
+      <div class="calc-row">
+        <div class="calc-label">Base P/E 倍數 (×)</div>
+        <input class="calc-input" type="range" min="20" max="60" step="2" value="40" id="peSlider" oninput="updateCalc()">
+        <div class="calc-value" id="peVal">40×</div>
+      </div>
+      <div class="calc-row">
+        <div class="calc-label">AI GPU DC 市佔 (%)</div>
+        <input class="calc-input" type="range" min="5" max="30" step="1" value="15" id="shareSlider" oninput="updateCalc()">
+        <div class="calc-value" id="shareVal">15%</div>
+      </div>
+      <div class="calc-row">
+        <div class="calc-label">Bear 倍數折扣</div>
+        <input class="calc-input" type="range" min="0.5" max="0.8" step="0.05" value="0.65" id="bearSlider" oninput="updateCalc()">
+        <div class="calc-value" id="bearDiscVal">0.65×</div>
+      </div>
+      <div class="calc-row">
+        <div class="calc-label">Bull 倍數溢價</div>
+        <input class="calc-input" type="range" min="1.2" max="2.0" step="0.1" value="1.5" id="bullSlider" oninput="updateCalc()">
+        <div class="calc-value" id="bullPremVal">1.5×</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="ev-box">
+        <div class="s-eye" style="font-size:10px;margin-bottom:8px">期望值 EV（加權）</div>
+        <div class="ev-result" id="evResult">$512</div>
+        <div class="ev-label">vs 現價 $445.50 = <span id="evUpside" style="color:#22c55e;font-weight:700">+15.1%</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="sc-card sc-bear" style="padding:12px">
+          <div class="sc-label c-bear" style="margin-bottom:4px">Bear PT · 25%</div>
+          <div class="sc-pt c-bear" style="font-size:22px" id="bearPT">$350</div>
+          <div style="font-size:12px;color:var(--muted)">期望貢獻 <span id="bearContrib">$87.5</span></div>
+        </div>
+        <div class="sc-card sc-base" style="padding:12px">
+          <div class="sc-label c-base" style="margin-bottom:4px">Base PT · 50%</div>
+          <div class="sc-pt c-base" style="font-size:22px" id="basePT">$500</div>
+          <div style="font-size:12px;color:var(--muted)">期望貢獻 <span id="baseContrib">$250.0</span></div>
+        </div>
+        <div class="sc-card sc-bull" style="padding:12px">
+          <div class="sc-label c-bull" style="margin-bottom:4px">Bull PT · 25%</div>
+          <div class="sc-pt c-bull" style="font-size:22px" id="bullPT">$700</div>
+          <div style="font-size:12px;color:var(--muted)">期望貢獻 <span id="bullContrib">$175.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">計算方法：Base PT = FY28 Non-GAAP EPS × Base P/E。Bear = Base × bear discount；Bull = Base × bull premium。DC 市佔 slider 作為 EPS 修正係數（每 +5% 市佔 ≈ EPS +15%）。此為簡化模型，方向參考用。</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S11 TRANSPARENCY -->
+<div class="section" id="transparency">
+  <div class="s-eye">S11 · 透明度 · 方法論 · 免責聲明</div>
+  <div class="s-title">資料來源、建模假設、研究局限</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">資料來源</div>
+      <table class="dense-table">
+        <thead><tr><th>來源</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>AMD 10-Q (2026-05-06)</td><td>Q1 2026 財務數據 GAAP</td></tr>
+          <tr><td>AMD 10-K (2026-02-04)</td><td>年度財報基礎</td></tr>
+          <tr><td>AMD Q1 2026 Earnings Call</td><td>管理層 guidance / quote</td></tr>
+          <tr><td>SEC EDGAR 13F</td><td>機構持股</td></tr>
+          <tr><td>FactSet 分析師共識</td><td>估值共識、TAM 預估</td></tr>
+          <tr><td>AMD Press Release / 官網</td><td>產品 roadmap、技術規格</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="sub-h" style="margin-top:0">建模假設與局限</div>
+      <div style="font-size:12px;line-height:1.85;color:var(--muted)">
+        · 個人估算區間基於 FY28 Non-GAAP EPS × P/E，非 DCF<br>
+        · AI GPU 市場份額預估存在高度不確定性（±10ppt）<br>
+        · MI400 出貨 timing 為管理層指引，非保證<br>
+        · SEC Form 4 Insider trading 本次未完整抓取<br>
+        · 匯率影響未納入（AMD 主要美元計算）<br>
+        · 資料截止日：2026-05-13
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer" style="margin-top:20px">
+    <strong>Phase 1 免責聲明：</strong>本報告由AI Research Notes投資研究部門生成，僅供內部研究參考，不構成任何投資建議或買賣邀約。所有個人估算區間與預測均基於公開資料建模，存在重大不確定性。投資有風險，決策前請諮詢專業財務顧問。本報告不代表任何監管機構認可或授權的投資意見。
+  </div>
+
+  <div style="text-align:center;padding:24px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
+    AI Research Notes · AMD AI Research Notes · 2026-05-14<br>
+    純研究輸出 · 不含交易建議 · 投資觀察用途
+  </div>
+</div>
+
+<script>
+function switchTab(e, id) {
+  const bar = e.target.closest('.tab-bar');
+  const section = bar.parentElement;
+  bar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  section.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  section.querySelector('#' + id).classList.add('active');
+}
+
+function updateCalc() {
+  const eps = parseFloat(document.getElementById('epsSlider').value);
+  const pe = parseFloat(document.getElementById('peSlider').value);
+  const share = parseFloat(document.getElementById('shareSlider').value);
+  const bearDisc = parseFloat(document.getElementById('bearSlider').value);
+  const bullPrem = parseFloat(document.getElementById('bullSlider').value);
+  const shareModifier = 1 + (share - 15) * 0.03;
+  const adjEps = eps * shareModifier;
+  const base = Math.round(adjEps * pe);
+  const bear = Math.round(base * bearDisc);
+  const bull = Math.round(base * bullPrem);
+  const ev = Math.round(bear * 0.25 + base * 0.5 + bull * 0.25);
+  const upside = ((ev / 445.5 - 1) * 100).toFixed(1);
+  document.getElementById('epsVal').textContent = '$' + eps.toFixed(1);
+  document.getElementById('peVal').textContent = pe + '×';
+  document.getElementById('shareVal').textContent = share + '%';
+  document.getElementById('bearDiscVal').textContent = bearDisc.toFixed(2) + '×';
+  document.getElementById('bullPremVal').textContent = bullPrem.toFixed(1) + '×';
+  document.getElementById('bearPT').textContent = '$' + bear;
+  document.getElementById('basePT').textContent = '$' + base;
+  document.getElementById('bullPT').textContent = '$' + bull;
+  document.getElementById('bearContrib').textContent = '$' + (bear * 0.25).toFixed(1);
+  document.getElementById('baseContrib').textContent = '$' + (base * 0.5).toFixed(1);
+  document.getElementById('bullContrib').textContent = '$' + (bull * 0.25).toFixed(1);
+  document.getElementById('evResult').textContent = '$' + ev;
+  const upsideEl = document.getElementById('evUpside');
+  upsideEl.textContent = (upside >= 0 ? '+' : '') + upside + '%';
+  upsideEl.style.color = parseFloat(upside) >= 0 ? '#22c55e' : '#ef4444';
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const el = document.querySelector(a.getAttribute('href'));
+    if (el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+</script>
+</body>
+</html>

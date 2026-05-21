@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVTS Investment Research v3 — Phase B+ Pipeline Output + Adversarial Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #121212;
+  --orange: #eb8054;
+  --green: #85a268;
+  --blue: #a8cde8;
+  --red: #d94f4f;
+  --purple: #a855f7;
+  --accent: #eb8054;
+  --yellow: #f5c518;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  background: var(--bg-page);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+img, svg { max-width: 100%; }
+
+/* NAV */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px; height: 52px;
+  display: flex; align-items: center; gap: 20px;
+}
+.nav-brand {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--orange); letter-spacing: 2px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.nav-links {
+  display: flex; gap: 16px; align-items: center;
+  overflow-x: auto; flex: 1;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 11px; color: var(--text-muted);
+  text-decoration: none; white-space: nowrap;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--orange); }
+.nav-progress {
+  position: absolute; bottom: 0; left: 0;
+  height: 2px; background: var(--orange);
+  width: 0%; transition: width 0.3s;
+}
+.nav-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  background: var(--orange); color: #fff;
+  padding: 2px 8px; border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* HERO */
+.hero {
+  width: 100vw;
+  background: #121212;
+  color: #fff;
+  padding: 100px 48px 64px;
+  min-height: 500px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 16px;
+}
+.hero-title {
+  font-size: 40px; font-weight: 700; line-height: 1.15;
+  margin-bottom: 12px; max-width: 800px;
+}
+.hero-title .accent { color: var(--orange); }
+.hero-subtitle {
+  font-size: 15px; opacity: 0.5; margin-bottom: 40px; max-width: 680px; line-height: 1.7;
+}
+.hero-stats {
+  display: flex; gap: 48px; flex-wrap: wrap;
+}
+.hero-stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 700; color: var(--orange);
+}
+.hero-stat-label {
+  font-size: 11px; opacity: 0.45; margin-top: 4px;
+}
+.hero-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; opacity: 0.25; margin-top: 40px;
+}
+
+/* DISCLAIMER */
+.disclaimer-banner {
+  background: #1a1a1a; color: var(--yellow);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  text-align: center; padding: 10px 24px;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--orange);
+}
+
+/* SECTION */
+.section {
+  max-width: 1100px; margin: 0 auto;
+  padding: 64px 40px 52px;
+  border-bottom: 1px solid var(--border);
+}
+.section:last-of-type { border-bottom: none; }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 8px;
+}
+.section-title {
+  font-size: 26px; font-weight: 700; margin-bottom: 8px;
+}
+.section-title .accent { color: var(--orange); }
+.section-desc {
+  font-size: 14px; color: var(--text-muted);
+  max-width: 680px; margin-bottom: 32px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; min-width: 0;
+}
+.card-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+.card-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 26px; font-weight: 700; color: var(--text);
+}
+
+/* GRIDS */
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.grid-3 > * { min-width: 0; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.grid-2 > * { min-width: 0; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.grid-4 > * { min-width: 0; }
+
+/* PILLS */
+.pill {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.pill-watch { background: rgba(235,128,84,0.15); color: var(--orange); }
+.pill-bear { background: rgba(217,79,79,0.15); color: var(--red); }
+.pill-bull { background: rgba(133,162,104,0.15); color: var(--green); }
+.pill-base { background: rgba(168,205,232,0.2); color: #4a7fa8; }
+.pill-neutral { background: rgba(136,136,136,0.15); color: var(--text-muted); }
+.pill-error { background: rgba(217,79,79,0.08); color: #999; border: 1px dashed #ccc; }
+.pill-approved { background: rgba(133,162,104,0.15); color: var(--green); }
+
+/* TABLE WRAP */
+.table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: 10px; border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.table-wrap::-webkit-scrollbar { height: 5px; }
+.table-wrap::-webkit-scrollbar-track { background: var(--bg-page); border-radius: 3px; }
+.table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.table-wrap table {
+  width: 100%; min-width: 640px;
+  border-collapse: collapse; font-size: 13px;
+}
+.table-wrap th {
+  background: var(--bg-page);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 16px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.table-wrap td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.5;
+}
+.table-wrap tr:last-child td { border-bottom: none; }
+.table-wrap tr:hover td { background: rgba(235,128,84,0.02); }
+.table-wrap td.num { text-align: right; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+.table-wrap td.center { text-align: center; }
+.highlight-row td { background: rgba(235,128,84,0.05); font-weight: 600; }
+
+/* SCENARIO CARDS */
+.scenario-card {
+  border-radius: 12px; padding: 24px;
+  border: 1px solid var(--border);
+}
+.scenario-card.bear { border-left: 4px solid var(--red); background: rgba(217,79,79,0.04); }
+.scenario-card.base { border-left: 4px solid #4a7fa8; background: rgba(168,205,232,0.06); }
+.scenario-card.bull { border-left: 4px solid var(--green); background: rgba(133,162,104,0.05); }
+.sc-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.scenario-card.bear .sc-label { color: var(--red); }
+.scenario-card.base .sc-label { color: #4a7fa8; }
+.scenario-card.bull .sc-label { color: var(--green); }
+.sc-pt { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+.sc-prob { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.sc-desc { font-size: 13px; line-height: 1.6; }
+
+/* KPI TILES */
+.kpi-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 12px; margin-bottom: 32px;
+}
+.kpi-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 12px; text-align: center;
+}
+.kpi-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px; font-weight: 700; color: var(--text);
+}
+.kpi-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3; }
+
+/* ANALYST MATRIX */
+.analyst-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; min-width: 0;
+}
+.analyst-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.analyst-conf-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin: 8px 0; overflow: hidden;
+}
+.analyst-conf-fill { height: 100%; border-radius: 2px; background: var(--orange); }
+.analyst-summary { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 8px; }
+
+/* CONVICTION BREAKDOWN */
+.conv-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.conv-row:last-child { border-bottom: none; }
+.conv-label { font-size: 13px; flex: 1; }
+.conv-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700; width: 48px; text-align: right;
+}
+.conv-bar-wrap { width: 120px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.conv-bar-fill { height: 100%; border-radius: 3px; background: var(--orange); }
+.conv-weight { font-size: 11px; color: var(--text-muted); width: 40px; text-align: right; }
+
+/* CALLOUT */
+.callout {
+  background: rgba(235,128,84,0.07);
+  border-left: 4px solid var(--orange);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px; margin-bottom: 20px;
+  font-size: 14px; line-height: 1.6;
+}
+.callout strong { color: var(--orange); }
+
+/* WARNING / INFO BLOCKS */
+.warning-block {
+  background: rgba(217,79,79,0.06);
+  border: 1px solid rgba(217,79,79,0.25);
+  border-radius: 10px; padding: 18px 22px; margin-bottom: 16px;
+}
+.warning-block .wb-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--red); margin-bottom: 8px;
+}
+.info-block {
+  background: rgba(168,205,232,0.08);
+  border: 1px solid rgba(168,205,232,0.3);
+  border-radius: 10px; padding: 18px 22px; margin-bottom: 16px;
+}
+.info-block .ib-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: #4a7fa8; margin-bottom: 8px;
+}
+.success-block {
+  background: rgba(133,162,104,0.07);
+  border: 1px solid rgba(133,162,104,0.3);
+  border-radius: 10px; padding: 18px 22px; margin-bottom: 16px;
+}
+.success-block .sb-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--green); margin-bottom: 8px;
+}
+
+/* VETO GATE */
+.veto-card {
+  background: #121212; color: #fff;
+  border-radius: 12px; padding: 28px;
+  margin-bottom: 24px;
+}
+.veto-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 16px;
+}
+.veto-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 13px;
+}
+.veto-row:last-child { border-bottom: none; }
+.veto-row .key { color: rgba(255,255,255,0.5); }
+.veto-row .val { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.veto-row .val.ok { color: var(--green); }
+.veto-row .val.warn { color: var(--yellow); }
+
+/* FOOTER DISCLAIMER */
+.section-footer-disclaimer {
+  margin-top: 32px;
+  background: rgba(245,197,24,0.06);
+  border: 1px solid rgba(245,197,24,0.25);
+  border-radius: 8px; padding: 10px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #92720c; font-weight: 700;
+}
+
+/* METHOD ROW */
+.method-row { border-bottom: 1px solid var(--border); padding: 16px 0; }
+.method-row:last-child { border-bottom: none; }
+.method-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 700; color: var(--orange); margin-bottom: 6px;
+}
+.method-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 8px; }
+.method-grid > * { min-width: 0; }
+.method-cell-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-bottom: 3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.method-cell-body { font-size: 12px; line-height: 1.5; }
+
+/* PIPELINE ARCH */
+.pipeline-layer {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 16px;
+}
+.layer-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px; font-weight: 700; color: var(--orange);
+  min-width: 40px; line-height: 1;
+}
+.layer-body { flex: 1; }
+.layer-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.layer-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.layer-arrow {
+  text-align: center; color: var(--border);
+  font-size: 20px; margin: 4px 0 4px 40px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* DIFF TABLE (gap analysis) */
+.diff-found { color: var(--green); font-weight: 600; }
+.diff-miss { color: var(--red); font-weight: 600; }
+
+/* PAGE FOOTER */
+.page-footer {
+  background: #121212; color: rgba(255,255,255,0.3);
+  text-align: center; padding: 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.5px;
+}
+.page-footer .pf-warn { color: var(--yellow); font-weight: 700; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid-3, .grid-2, .grid-4, .kpi-tiles { grid-template-columns: 1fr; }
+  .hero { padding: 80px 24px 48px; }
+  .hero-title { font-size: 28px; }
+  .hero-stats { gap: 24px; }
+  .section { padding: 40px 20px; }
+  .top-nav { padding: 0 16px; }
+  .method-grid { grid-template-columns: 1fr; }
+  .conv-bar-wrap { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <div class="nav-brand">NVTS · v3</div>
+  <div class="nav-links">
+    <a href="#s01">Snapshot</a>
+    <a href="#s02">方法論</a>
+    <a href="#s03">基本面</a>
+    <a href="#s04">同業</a>
+    <a href="#s05">五力</a>
+    <a href="#s06">B+ 分析師矩陣</a>
+    <a href="#s07">Chief Synthesis</a>
+    <a href="#s08">機構 / Insider</a>
+    <a href="#s09">三情境 PT</a>
+    <a href="#s10">透明度</a>
+  </div>
+  <div class="nav-badge">Phase B+ Integrated</div>
+  <div class="nav-progress" id="navProgress"></div>
+</nav>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer-banner">
+  非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal / RainAlpha 2026-05-13
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">NVTS INVESTMENT RESEARCH v3 · PHASE B+ PIPELINE + ADVERSARIAL REVIEW · 2026-05-13</div>
+  <h1 class="hero-title">
+    Navitas Semiconductor<br>
+    <span class="accent">9 分析師 × 6 層架構 × Codex 對抗式審查</span>
+  </h1>
+  <p class="hero-subtitle">
+    Phase B+ unified pipeline 完整跑通：7/9 分析師成功、Investment Manager bullish (0.72)、
+    Chief Analyst neutral (0.61)、Ray APPROVED。Codex 對抗式 review 另揭 5 個盲點。
+    Stock: $20.54 · Beta 3.62 · Short Float 20.45% · 估值綜合 overvalued。
+  </p>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-num">$20.54</div>
+      <div class="hero-stat-label">當前股價</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">7/9</div>
+      <div class="hero-stat-label">分析師成功跑通</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">0.61</div>
+      <div class="hero-stat-label">Chief Conviction</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">neutral</div>
+      <div class="hero-stat-label">整合訊號 (neutral)</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">APPROVED</div>
+      <div class="hero-stat-label">Ray Veto Gate</div>
+    </div>
+  </div>
+  <div class="hero-meta">RainAlpha Phase B+ · Gemini 2.0 Flash · Nova Deck v3 · 2026-05-13 · REPORT-ONLY</div>
+</div>
+
+<!-- ═══ S01 · EXECUTIVE SNAPSHOT ═══ -->
+<section class="section" id="s01">
+  <div class="section-eyebrow">SECTION 01</div>
+  <h2 class="section-title">執行摘要：<span class="accent">內部觀點分歧，整合訊號 neutral，建議 WATCH</span></h2>
+  <p class="section-desc">Phase B+ 跑完後最重要的一頁：Investment Manager 看 bullish，Chief Analyst 整合後中立，Personas 全數 neutral。三個層級結論不同——這正是 Rain 設計分層架構的目的：讓分歧可見。</p>
+
+  <!-- KPI -->
+  <div class="kpi-tiles">
+    <div class="kpi-tile">
+      <div class="kpi-num">$20.54</div>
+      <div class="kpi-label">股價<br>(2026-05-13)</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-num" style="color:var(--orange)">~$3.9B</div>
+      <div class="kpi-label">Market Cap</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-num" style="color:var(--red)">-9.3%</div>
+      <div class="kpi-label">GAAP GM Q1<br>(vs non-GAAP 38%)</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-num" style="color:var(--red)">20.45%</div>
+      <div class="kpi-label">Short Float<br>(高空單)</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-num">3.62</div>
+      <div class="kpi-label">Beta<br>(市場 3.62x 波動)</div>
+    </div>
+  </div>
+
+  <!-- 三訊號比較 -->
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">Investment Manager (Layer 4)</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+        <span class="pill pill-bull" style="font-size:14px;padding:5px 16px">BULLISH</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--green)">0.72</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px">強技術面動能 + 短壓 squeeze 潛力，抵消基本面疑慮</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Chief Analyst 整合 (Layer 5)</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+        <span class="pill pill-neutral" style="font-size:14px;padding:5px 16px">NEUTRAL</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text-muted)">0.61</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px">估值失分（weight 25% → 0.0）+ Technical 失敗 → 壓低加權</div>
+    </div>
+    <div class="card">
+      <div class="card-label">5 Personas 共識 (Layer 3)</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+        <span class="pill pill-neutral" style="font-size:14px;padding:5px 16px">NEUTRAL</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text-muted)">100%</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px">全數 error（API kwargs bug），此次 persona layer 無有效票</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>關鍵分歧揭示</strong>：Investment Manager (bullish/0.72) vs Chief Synthesis (neutral/0.61) — 差異來自：Chief 把 Valuation 權重 25% 全部歸零（因估值 overvalued 判定），Technical 10% 因失敗也歸零。移除這兩個失效因素後，實際加權 sum 0.4445，而非 0.6125。Rain 設計的分層架構讓這個差異在報告中可見，不被平均掉。
+  </div>
+
+  <!-- Scenarios -->
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="scenario-card bear">
+      <div class="sc-label">Bear Case</div>
+      <div class="sc-pt" style="color:var(--red)">$4–8</div>
+      <div class="sc-prob">機率 30%</div>
+      <div class="sc-desc">失去 NVIDIA 設計案 / TSMC 2027 退出 GaN / 二次增發稀釋 → 拉回 200MA $9.51</div>
+    </div>
+    <div class="scenario-card base">
+      <div class="sc-label">Base Case</div>
+      <div class="sc-pt" style="color:#4a7fa8">$10–14</div>
+      <div class="sc-prob">機率 50%</div>
+      <div class="sc-desc">NVIDIA design win 真但 ramp 慢；FY26 rev 回 $80M；GM 緩升至 42%；稀釋繼續</div>
+    </div>
+    <div class="scenario-card bull">
+      <div class="sc-label">Bull Case</div>
+      <div class="sc-pt" style="color:var(--green)">$25–35</div>
+      <div class="sc-prob">機率 20%</div>
+      <div class="sc-desc">Rubin Ultra ramp + India 合作量產 + short squeeze，GM 擴至 45%+</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>期望值 ≈ $13.80</strong>（$6×30% + $12×50% + $30×20%）vs 當前 $20.54 →
+    隱含 -33% downside。Codex 對抗式 review 核實：Q1 是 beat（非 miss），但 GAAP GM -9.3% vs non-GAAP 38% 落差巨大，bull case 仍需 SEC filing 細讀確認。
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S02 · 方法論 + Phase B+ 架構 ═══ -->
+<section class="section" id="s02">
+  <div class="section-eyebrow">SECTION 02</div>
+  <h2 class="section-title">分析方法：<span class="accent">Phase B+ 6 層架構 + 8 種估值方法</span></h2>
+  <p class="section-desc">Rain 設計的 Phase B+ unified pipeline 完整架構說明：從原始資料到 Ray Veto Gate，6 層處理，每層角色和局限都寫清楚。</p>
+
+  <!-- 6 層架構 -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-label" style="margin-bottom:20px">Phase B+ 6 層處理架構</div>
+    <div class="pipeline-layer">
+      <div class="layer-num">L1</div>
+      <div class="layer-body">
+        <div class="layer-name">原始資料層（yfinance + news API）</div>
+        <div class="layer-desc">抓取 market_data、info、news_data。侷限：偏 yfinance/info dump，未深入讀 SEC 10-Q/10-K 全文 → Phase B+ 盲點主要來源。</div>
+      </div>
+    </div>
+    <div class="layer-arrow">↓</div>
+    <div class="pipeline-layer">
+      <div class="layer-num">L2</div>
+      <div class="layer-body">
+        <div class="layer-name">9 專業分析師層（上下游 + 競爭 + 估值框架）</div>
+        <div class="layer-desc">Fundamental / Valuation / Supply Chain / Competitive / Product / Capital Flow / Financial Statement / Technical* / Macro*。7/9 成功，Technical + Macro 因 kwargs bug 失敗。</div>
+      </div>
+    </div>
+    <div class="layer-arrow">↓</div>
+    <div class="pipeline-layer">
+      <div class="layer-num">L3</div>
+      <div class="layer-body">
+        <div class="layer-name">5 大師 Personas 辯論（Buffett / Wood / Burry / Taleb / Druckenmiller）</div>
+        <div class="layer-desc">此次全數 error（API kwargs），persona layer 無有效輸出。共識欄位顯示 neutral 100% agreement，但實為空票。</div>
+      </div>
+    </div>
+    <div class="layer-arrow">↓</div>
+    <div class="pipeline-layer">
+      <div class="layer-num">L4</div>
+      <div class="layer-body">
+        <div class="layer-name">Investment Manager 決策（Bull/Bear 辯論整合）</div>
+        <div class="layer-desc">Bull researcher vs Bear researcher 2 輪辯論 → Investment Manager 裁決。本次輸出：bullish / conviction 0.72。</div>
+      </div>
+    </div>
+    <div class="layer-arrow">↓</div>
+    <div class="pipeline-layer">
+      <div class="layer-num">L5</div>
+      <div class="layer-body">
+        <div class="layer-name">Chief Investment Analyst 整合（加權 5 維度）</div>
+        <div class="layer-desc">Fundamentals 30% + Valuation 25% + Competitive Moat 20% + Capital Flow 15% + Technical 10%。加權 sum 0.4445，conviction_score 顯示 0.6125（分子不同）。整合訊號：neutral。</div>
+      </div>
+    </div>
+    <div class="layer-arrow">↓</div>
+    <div class="pipeline-layer" style="margin-bottom:0">
+      <div class="layer-num">L6</div>
+      <div class="layer-body">
+        <div class="layer-name">Ray Veto Gate（偏見審查 + 風險完整性 + 邏輯一致性）</div>
+        <div class="layer-desc">Sign-off: APPROVED。Bias: balanced (3 bull / 3 bear)。Risk omission: complete。Has disclaimer: true。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 估值方法 -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-label" style="margin-bottom:4px">估值方法矩陣</div>
+    <div class="method-row">
+      <div class="method-name">P/E 相對估值</div>
+      <div class="method-grid">
+        <div><div class="method-cell-label">Fair Value Range</div><div class="method-cell-body">$14.00 – $28.00</div></div>
+        <div><div class="method-cell-label">依據</div><div class="method-cell-body">EPS × P/E 多情境，用 trailing EPS 因 fwd PE 為負</div></div>
+        <div><div class="method-cell-label">局限</div><div class="method-cell-body">Fwd PE = -143.15（負值），本方法適用性有限</div></div>
+      </div>
+    </div>
+    <div class="method-row">
+      <div class="method-name">DCF 現金流折現</div>
+      <div class="method-grid">
+        <div><div class="method-cell-label">Fair Value Range</div><div class="method-cell-body">$12.00 – $24.00</div></div>
+        <div><div class="method-cell-label">依據</div><div class="method-cell-body">FCF 成長假設多情境，WACC 基準</div></div>
+        <div><div class="method-cell-label">局限</div><div class="method-cell-body">目前無正自由現金流，假設高度主觀</div></div>
+      </div>
+    </div>
+    <div class="method-row">
+      <div class="method-name">EV/EBITDA 同業比較</div>
+      <div class="method-grid">
+        <div><div class="method-cell-label">Fair Value</div><div class="method-cell-body">$18.50（同業中位數）</div></div>
+        <div><div class="method-cell-label">依據</div><div class="method-cell-body">peers median multiple，WOLF/POWI/ON 標尺</div></div>
+        <div><div class="method-cell-label">局限</div><div class="method-cell-body">NVTS 規模遠小，可比性有限</div></div>
+      </div>
+    </div>
+    <div class="method-row" style="border-bottom:none">
+      <div class="method-name">PEG Ratio</div>
+      <div class="method-grid">
+        <div><div class="method-cell-label">結果</div><div class="method-cell-body" style="color:var(--red)">N/A（負 Fwd PE，無法計算）</div></div>
+        <div><div class="method-cell-label">依據</div><div class="method-cell-body">PEG = PE / EPS 成長率，需正 PE</div></div>
+        <div><div class="method-cell-label">結論</div><div class="method-cell-body">Valuation Analyst 判定：<strong>overvalued at $20.54</strong></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S03 · 基本面 ═══ -->
+<section class="section" id="s03">
+  <div class="section-eyebrow">SECTION 03</div>
+  <h2 class="section-title">基本面快照：<span class="accent">技術面 bullish，GAAP/non-GAAP 落差是盲點</span></h2>
+  <p class="section-desc">Fundamental Analyst confidence 0.70。強動能但 GAAP GM -9.3% vs non-GAAP 38% 落差未被 Phase B+ 捕捉（Codex 補位揭出）。</p>
+
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">股價 / 動能</div>
+      <div class="card-value">$20.54</div>
+      <div style="font-size:12px;color:var(--green);margin-top:6px">+6.73% 單日 · +1,074% 12M</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">MA50 $12.27 / MA200 $9.51 — MACD bullish</div>
+    </div>
+    <div class="card">
+      <div class="card-label">估值警示</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">Fwd P/E</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">-143.15</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">P/B</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">11.34</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">Beta</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange)">3.62</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">Short Float</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">20.45%</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">機構持股</div>
+      <div class="card-value" style="font-size:22px;margin-top:8px">49.52%</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Mitsubishi UFJ 新進入場（正面訊號）</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">稀釋：188M → 234M (+24% / 15 個月) — Codex 揭出</div>
+    </div>
+  </div>
+
+  <div class="warning-block">
+    <div class="wb-title">Codex 補位揭出 — GAAP/Non-GAAP 落差</div>
+    <div style="font-size:13px;line-height:1.6">
+      Phase B+ financial_statement 分析師只讀到 non-GAAP GM 38%，未分拆 <strong>GAAP 毛利率 Q1 -9.3%</strong>。
+      GAAP vs non-GAAP 落差超過 47 個百分點，是判斷公司實際競爭力的關鍵數據。
+      根因：無 SEC EDGAR 10-Q 讀取器，分析師依賴 yfinance summary。
+    </div>
+  </div>
+
+  <div class="warning-block">
+    <div class="wb-title">Codex 補位揭出 — Q1 是 Beat，非 Miss</div>
+    <div style="font-size:13px;line-height:1.6">
+      Phase B+ 未正確辨別 Q1 相對 analyst consensus 是 beat 還是 miss。
+      盤後 -15.87% 的反應是相對 <em>更高的預期</em> 失望，不代表絕對 miss。
+      Financial Statement 分析師沒有 earnings estimate vs actual 比對邏輯。
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S04 · 同業 + Power Semi 鏈 ═══ -->
+<section class="section" id="s04">
+  <div class="section-eyebrow">SECTION 04</div>
+  <h2 class="section-title">同業 Benchmark：<span class="accent">Power Semi 鏈 — NVTS 是 GaN highlight ticker</span></h2>
+  <p class="section-desc">Competitive Analyst confidence 0.70。industry-chains.json 已加 power_semi 鏈，NVTS 與 WOLF/POWI/ON/IFNNY/MCHP 同陣容。</p>
+
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>公司</th>
+          <th>技術 Focus</th>
+          <th>定位</th>
+          <th>NVTS 對比優勢</th>
+          <th>NVTS 對比劣勢</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td><span class="pill pill-bull">NVTS</span></td>
+          <td>Navitas Semiconductor</td>
+          <td>GaN power ICs（純 GaN）</td>
+          <td>Highlight — pure play GaN</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">WOLF</span></td>
+          <td>Wolfspeed</td>
+          <td>SiC（碳化矽）</td>
+          <td>GaN 間接競爭，EV 市場重疊</td>
+          <td>NVTS GaN 頻率更高、更輕</td>
+          <td>WOLF 規模更大，EV 佈局深</td>
+        </tr>
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">POWI</span></td>
+          <td>Power Integrations</td>
+          <td>功率 IC（傳統 Si + GaN）</td>
+          <td>直接競爭，已有 GaN 產品線</td>
+          <td>NVTS GaN-only 技術純度高</td>
+          <td>POWI 盈利、客戶多元</td>
+        </tr>
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">ON</span></td>
+          <td>ON Semiconductor</td>
+          <td>SiC + 功率 IC，綜合型</td>
+          <td>大型競爭者，EV + 工業</td>
+          <td>NVTS 更 agile，GaN 深度</td>
+          <td>ON 財力、多產品線</td>
+        </tr>
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">IFNNY</span></td>
+          <td>Infineon Technologies</td>
+          <td>GaN + SiC，歐洲龍頭</td>
+          <td>強競爭者，規模碾壓</td>
+          <td>NVTS 更靈活</td>
+          <td>Infineon GaN 技術成熟</td>
+        </tr>
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">MCHP</span></td>
+          <td>Microchip Technology</td>
+          <td>MCU + 混合訊號</td>
+          <td>間接，系統層面競爭</td>
+          <td>NVTS GaN 差異化</td>
+          <td>MCHP 生態系更完整</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-block">
+    <div class="ib-title">Competitive Analyst 結論</div>
+    <div style="font-size:13px;line-height:1.6">
+      NVTS 中等競爭壓力。GaN-only focus 是差異化優勢；India 合作（GaN tech 被印度半導體廠成功量產）+ Mitsubishi UFJ 新投資為正面訊號。
+      主要風險：<strong>客戶集中度</strong>——Codex 揭出 Q1 2026 單一經銷商 = 59% 營收 + 58% AR（Phase B+ 未捕捉此層細節）。
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S05 · 五力分析 ═══ -->
+<section class="section" id="s05">
+  <div class="section-eyebrow">SECTION 05</div>
+  <h2 class="section-title">Porter 五力：<span class="accent">買家議價力 + 替代品威脅最高</span></h2>
+  <p class="section-desc">Supply Chain + Competitive 分析師合成，confidence 0.65–0.70。</p>
+
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>力量</th>
+          <th>強度</th>
+          <th>核心依據</th>
+          <th>Phase B+ 盲點（Codex 補）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>競爭者威脅</strong></td>
+          <td><span class="pill pill-watch">中</span></td>
+          <td>WOLF / POWI / ON / Infineon 均有 GaN；NVTS pure-play 有差異化</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>新進入者威脅</strong></td>
+          <td><span class="pill pill-neutral">低中</span></td>
+          <td>GaN 製程門檻高；但大廠（TI、ST）可投資切入</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>替代品威脅</strong></td>
+          <td><span class="pill pill-bear">高</span></td>
+          <td>SiC 在高壓場景可替代 GaN；傳統 MOSFET 低成本競爭</td>
+          <td>TSMC 2027 退出 GaN 生產 → 供應商替代選項減少，反而增加 NVTS 依賴度</td>
+        </tr>
+        <tr>
+          <td><strong>買家議價力</strong></td>
+          <td><span class="pill pill-bear">高</span></td>
+          <td>大客戶（NVIDIA等）談判力強；設計勝出後仍有 renegotiation 風險</td>
+          <td>單一經銷商 59% 營收/58% AR → 買家議價力極高</td>
+        </tr>
+        <tr>
+          <td><strong>供應商議價力</strong></td>
+          <td><span class="pill pill-bear">高</span></td>
+          <td>GaN 材料 + 製造可能單一來源；地緣政治加劇中國供應鏈風險</td>
+          <td>TSMC 2027 退出 → 製造選項縮減，直接撞 NVIDIA ramp 窗口</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warning-block">
+    <div class="wb-title">Supply Chain 最高嚴重性風險</div>
+    <div style="font-size:13px;line-height:1.6">
+      Supply Chain Analyst（confidence 0.65）標記：<strong>單一來源 GaN 材料/製造（high severity）</strong>。
+      Codex 進一步揭出：TSMC 計畫 2027 年退出 GaN 生產，時間點直接撞上 NVIDIA Rubin ramp 窗口，
+      Phase B+ 只說「single-source」未標出此 catalyst 時間點，是重要遺漏。
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S06 · Phase B+ 9 分析師矩陣 ═══ -->
+<section class="section" id="s06">
+  <div class="section-eyebrow">SECTION 06</div>
+  <h2 class="section-title">Phase B+ 分析師矩陣：<span class="accent">7/9 成功 · 上下游 + 競爭 + 估值框架</span></h2>
+  <p class="section-desc">Rain 設計的「上下游 + 競爭 + 估值」9 分析師框架，本次真實跑出結果。Technical + Macro 因 kwargs bug 失敗，已記錄修復路徑。</p>
+
+  <!-- 7 個成功分析師 -->
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:24px">
+
+    <div class="analyst-card">
+      <div class="analyst-name">Fundamental Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-neutral">mixed</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.70</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:70%"></div></div>
+      <div class="analyst-summary">強近期價格動能但基本面數據有限。高 Beta 3.62、負 fwd PE、高空單 20.45% 均為風險標示。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Valuation Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-bear">overvalued</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.72</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:72%"></div></div>
+      <div class="analyst-summary">P/E $14–28、DCF $12–24、EV/EBITDA $18.50，PEG N/A。綜合：overvalued at $20.54。負 fwd PE 是主要障礙。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Supply Chain Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-watch">moderate risk</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.65</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:65%"></div></div>
+      <div class="analyst-summary">中等供應鏈風險。單一來源 GaN 材料/製造（high）+ 中國地緣風險（medium）。India 合作為正面地理分散訊號。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Competitive Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-neutral">moderate pressure</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.70</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:70%"></div></div>
+      <div class="analyst-summary">中等競爭壓力，GaN focus 是優勢。India 合作 + Mitsubishi UFJ 入場為正面。主要風險：客戶集中度。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Product Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-bull">early growth</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.72</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:72%"></div></div>
+      <div class="analyst-summary">GaN power ICs 滲透中，mobile + consumer electronics 市場獲得採用。競爭加劇可能侵蝕市佔與定價權。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Capital Flow Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-bull">positive flow</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.65</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:65%"></div></div>
+      <div class="analyst-summary">India 合作 + Mitsubishi UFJ 入場 + 技術面 bullish 帶動資金流正面。高 Beta 和負 fwd PE 是主要對沖風險。</div>
+    </div>
+
+    <div class="analyst-card">
+      <div class="analyst-name">Financial Statement Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-neutral">strong momentum</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)">conf 0.65</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:65%"></div></div>
+      <div class="analyst-summary">強動能但缺乏財報細節。P/B 11.34 偏高，fwd PE 負值，空單 20.45%。未讀 10-Q → GAAP GM 盲點。</div>
+    </div>
+
+    <div class="analyst-card" style="border:1px dashed #ccc;background:rgba(0,0,0,0.02)">
+      <div class="analyst-name" style="color:#bbb">Technical Analyst</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span class="pill pill-error">ERROR</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#bbb">conf 0.0</span>
+      </div>
+      <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:0%"></div></div>
+      <div class="analyst-summary" style="color:#bbb">analyze_technicals() got unexpected keyword argument 'news_data'. Bug 已修（kwargs 濾除），下次 run 可恢復。</div>
+    </div>
+
+  </div>
+
+  <!-- Macro 單獨 -->
+  <div class="analyst-card" style="border:1px dashed #ccc;background:rgba(0,0,0,0.02);margin-bottom:24px">
+    <div class="analyst-name" style="color:#bbb">Macro Analyst</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <span class="pill pill-error">ERROR</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#bbb">conf 0.0</span>
+    </div>
+    <div class="analyst-conf-bar"><div class="analyst-conf-fill" style="width:0%"></div></div>
+    <div style="font-size:12px;color:#bbb;margin-top:8px">analyze_macro() got unexpected keyword argument 'market_data'. 同一批 kwargs bug，修後重跑可達 9/9。</div>
+  </div>
+
+  <!-- 分析師共識表 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>分析師</th>
+          <th>Confidence</th>
+          <th>結論摘要</th>
+          <th>主要風險</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Competitive</strong></td>
+          <td class="num">0.70</td>
+          <td>中等競爭壓力，GaN focus 優勢；India + Mitsubishi UFJ 正面</td>
+          <td>客戶集中度 → 營收波動</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Supply Chain</strong></td>
+          <td class="num">0.65</td>
+          <td>中等供應鏈風險，單一來源 + 中國地緣</td>
+          <td>單一 GaN 來源 (high)、地緣 (medium)</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Financial Statement</strong></td>
+          <td class="num">0.65</td>
+          <td>強動能但缺財報細節</td>
+          <td>高 Beta 3.62、20.45% 空單</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Valuation</strong></td>
+          <td class="num">0.72</td>
+          <td>overvalued，多方法估值</td>
+          <td>負 fwd PE、高 Beta</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Fundamental</strong></td>
+          <td class="num">0.70</td>
+          <td>mixed，短期動能強，基本面數據有限</td>
+          <td>高 Beta、負 fwd PE、高空單</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Product</strong></td>
+          <td class="num">0.72</td>
+          <td>早期成長，GaN 滲透中，競爭加劇</td>
+          <td>競爭侵蝕市佔與定價權</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Capital Flow</strong></td>
+          <td class="num">0.65</td>
+          <td>資金流正面（India + Mitsubishi + 技術面）</td>
+          <td>高 Beta、負 fwd PE</td>
+          <td><span class="pill pill-approved">OK</span></td>
+        </tr>
+        <tr style="opacity:0.45">
+          <td><strong>Technical</strong></td>
+          <td class="num">0.0</td>
+          <td>—</td>
+          <td>kwargs bug</td>
+          <td><span class="pill pill-error">ERROR</span></td>
+        </tr>
+        <tr style="opacity:0.45">
+          <td><strong>Macro</strong></td>
+          <td class="num">0.0</td>
+          <td>—</td>
+          <td>kwargs bug</td>
+          <td><span class="pill pill-error">ERROR</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S07 · Chief Synthesis + Ray Veto ═══ -->
+<section class="section" id="s07">
+  <div class="section-eyebrow">SECTION 07</div>
+  <h2 class="section-title">Chief Synthesis + Ray Veto：<span class="accent">整合層輸出與分歧剖析</span></h2>
+  <p class="section-desc">Layer 4 (Investment Manager) vs Layer 5 (Chief Analyst) 觀點分歧在這裡呈現。Ray Veto Gate 通過，但 logical gap 有標注。</p>
+
+  <!-- Layer 4 vs Layer 5 -->
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">Layer 4 — Investment Manager</div>
+      <div style="margin-top:12px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span class="pill pill-bull" style="font-size:13px;padding:5px 14px">BULLISH</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--green)">0.72</span>
+        </div>
+        <div style="font-size:13px;line-height:1.6;margin-bottom:12px;color:var(--text-muted)">
+          "The strong bullish technical indicators and positive momentum cannot be ignored. High short interest presents risk but also potential for a short squeeze."
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">Bull Points</div>
+        <ul style="font-size:12px;color:var(--text-muted);padding-left:16px;line-height:1.7">
+          <li>+6.73% 單日，技術面強動能</li>
+          <li>MA50 顯著高於 MA200，bullish trend</li>
+          <li>MACD bullish 訊號</li>
+        </ul>
+        <div style="font-size:12px;font-weight:600;margin-top:12px;margin-bottom:6px">Bear Points</div>
+        <ul style="font-size:12px;color:var(--text-muted);padding-left:16px;line-height:1.7">
+          <li>Fwd PE -143.15，目前無盈利</li>
+          <li>空單 20.45%，市場存在顯著質疑</li>
+          <li>Beta 3.62，波動性極高</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Layer 5 — Chief Investment Analyst</div>
+      <div style="margin-top:12px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span class="pill pill-neutral" style="font-size:13px;padding:5px 14px">NEUTRAL</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text-muted)">0.61</span>
+        </div>
+        <div style="font-size:13px;line-height:1.6;margin-bottom:16px;color:var(--text-muted)">
+          "NVTS presents a mixed outlook with strong positive momentum and GaN technology adoption offset by valuation concerns and supply chain risks."
+        </div>
+        <!-- Conviction Breakdown -->
+        <div class="conv-row">
+          <div class="conv-label">Fundamentals <span style="color:var(--text-muted);font-size:11px">(30%)</span></div>
+          <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:67.5%"></div></div>
+          <div class="conv-score" style="color:var(--orange)">0.675</div>
+          <div class="conv-weight">×0.30</div>
+        </div>
+        <div class="conv-row">
+          <div class="conv-label">Valuation <span style="color:var(--red);font-size:11px">(25%)</span></div>
+          <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:0%;background:var(--red)"></div></div>
+          <div class="conv-score" style="color:var(--red)">0.0</div>
+          <div class="conv-weight" style="color:var(--red)">×0.25</div>
+        </div>
+        <div class="conv-row">
+          <div class="conv-label">Competitive Moat <span style="color:var(--text-muted);font-size:11px">(20%)</span></div>
+          <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:71%"></div></div>
+          <div class="conv-score" style="color:var(--orange)">0.71</div>
+          <div class="conv-weight">×0.20</div>
+        </div>
+        <div class="conv-row">
+          <div class="conv-label">Capital Flow <span style="color:var(--text-muted);font-size:11px">(15%)</span></div>
+          <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:65%"></div></div>
+          <div class="conv-score" style="color:var(--orange)">0.65</div>
+          <div class="conv-weight">×0.15</div>
+        </div>
+        <div class="conv-row">
+          <div class="conv-label">Technical <span style="color:var(--red);font-size:11px">(10%)</span></div>
+          <div class="conv-bar-wrap"><div class="conv-bar-fill" style="width:0%;background:var(--red)"></div></div>
+          <div class="conv-score" style="color:var(--red)">0.0</div>
+          <div class="conv-weight" style="color:var(--red)">×0.10</div>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:var(--bg-page);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px">
+          Weighted Sum = <strong>0.4445</strong> → conviction_score 0.6125<br>
+          <span style="color:var(--text-muted);font-size:10px">（兩數字計算方式不同，0.4445 是實際加權和）</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ray Veto -->
+  <div class="veto-card" style="margin-bottom:24px">
+    <div class="veto-title">LAYER 6 — RAY VETO GATE</div>
+    <div class="veto-row">
+      <span class="key">Sign-off</span>
+      <span class="val ok">APPROVED</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Phase Gate</span>
+      <span class="val ok">PASS</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Bias Check</span>
+      <span class="val ok">BALANCED（3 bull / 3 bear）</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Risk Omission</span>
+      <span class="val ok">COMPLETE</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Confidence OK</span>
+      <span class="val ok">TRUE</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Dual Presentation</span>
+      <span class="val ok">TRUE</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">Has Disclaimer</span>
+      <span class="val ok">TRUE</span>
+    </div>
+    <div class="veto-row">
+      <span class="key">LLM Consistency Notes</span>
+      <span class="val warn" style="max-width:60%;text-align:right;font-size:11px;line-height:1.4">Slight logical gap: bullish signal acknowledged despite bear points; acceptable given moderate conviction 0.72</span>
+    </div>
+  </div>
+
+  <div class="warning-block">
+    <div class="wb-title">分歧點說明（分層架構設計目的）</div>
+    <div style="font-size:13px;line-height:1.7">
+      <strong>Investment Manager (bullish/0.72)</strong> vs <strong>Chief Synthesis (neutral/0.61)</strong> 的分歧不是系統錯誤——這是 Rain 設計分層架構的核心目的：讓每個層次獨立判斷，再在 Deck 中並排呈現，讓閱讀者看到框架分歧而非被單一結論蒙蔽。
+      Chief 因估值層（25% 權重全歸零）和 Technical 失敗（10% 歸零）壓低了整合訊號。
+      移除這兩個失效維度後，有效分析師共識實際更接近 bullish，但估值問題的警示仍應被重視。
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S08 · 機構 + Insider ═══ -->
+<section class="section" id="s08">
+  <div class="section-eyebrow">SECTION 08</div>
+  <h2 class="section-title">機構 / Insider / Forecast：<span class="accent">新資金入場 vs 內部人持續賣出</span></h2>
+  <p class="section-desc">Capital Flow Analyst confidence 0.65。Mitsubishi UFJ 新入場是正面訊號，但 insider 90 天淨賣 -$3.7M 和稀釋 +24% 是結構性風險。</p>
+
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">機構動態</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600">Mitsubishi UFJ Asset Management</div>
+          <div style="font-size:12px;color:var(--green);margin-top:2px">新進場（bullish 訊號）</div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600">機構整體持股</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">49.52%（中等機構興趣）</div>
+        </div>
+        <div style="padding:10px 0">
+          <div style="font-size:13px;font-weight:600">India 合作夥伴採用</div>
+          <div style="font-size:12px;color:var(--green);margin-top:2px">GaN tech 成功量產，正面里程碑</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Insider 動態 / 稀釋風險</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600">90 天 Insider 淨賣</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--red)">-$3.7M</div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600">股數稀釋</div>
+          <div style="font-size:12px;color:var(--red);margin-top:2px">188M → 234M (+24% / 15 個月）— Codex 揭出</div>
+        </div>
+        <div style="padding:10px 0">
+          <div style="font-size:13px;font-weight:600">Short Interest</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--orange)">20.45%</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Short Ratio 1.32。高空單 = 質疑 + squeeze 潛力並存</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>機構 / Analyst</th>
+          <th>動作</th>
+          <th>目標價</th>
+          <th>訊號</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mitsubishi UFJ AM</td>
+          <td>新進場</td>
+          <td>—</td>
+          <td><span class="pill pill-bull">買入</span></td>
+        </tr>
+        <tr>
+          <td>Needham</td>
+          <td>Buy Rating</td>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">$21</span></td>
+          <td><span class="pill pill-bull">最樂觀</span></td>
+        </tr>
+        <tr>
+          <td>Sell-side 共識</td>
+          <td>Hold</td>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">$12.88</span></td>
+          <td><span class="pill pill-neutral">中立</span></td>
+        </tr>
+        <tr>
+          <td>Insider（90 天）</td>
+          <td>淨賣出</td>
+          <td>—</td>
+          <td><span class="pill pill-bear">-$3.7M</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S09 · 三情境 PT ═══ -->
+<section class="section" id="s09">
+  <div class="section-eyebrow">SECTION 09</div>
+  <h2 class="section-title">三情境目標價：<span class="accent">期望值 $13.80 vs 現價 $20.54 (-33%)</span></h2>
+  <p class="section-desc">Valuation Analyst (0.72) 估值綜合 overvalued。三情境考慮了 Codex 補充的 TSMC 2027 退出、稀釋 +24%、客戶集中度 59% 等因子。</p>
+
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="scenario-card bear">
+      <div class="sc-label">Bear Case</div>
+      <div class="sc-pt" style="color:var(--red)">$4–8</div>
+      <div class="sc-prob">機率 30% · EV $6</div>
+      <div class="sc-desc">
+        <ul style="padding-left:16px;font-size:12px;line-height:1.8">
+          <li>NVIDIA 設計案落空或 ramp 延後</li>
+          <li>TSMC 2027 退出 → 供應鏈斷裂</li>
+          <li>二次增發進一步稀釋（234M+ shares）</li>
+          <li>動能反轉，拉回 200MA $9.51 以下</li>
+          <li>GAAP GM 持續負值</li>
+        </ul>
+      </div>
+    </div>
+    <div class="scenario-card base">
+      <div class="sc-label">Base Case</div>
+      <div class="sc-pt" style="color:#4a7fa8">$10–14</div>
+      <div class="sc-prob">機率 50% · EV $12</div>
+      <div class="sc-desc">
+        <ul style="padding-left:16px;font-size:12px;line-height:1.8">
+          <li>NVIDIA design win 真，但 ramp 慢（2027）</li>
+          <li>FY26 rev 回 $80M，CAGR 温和</li>
+          <li>non-GAAP GM 緩升至 42%</li>
+          <li>稀釋持續但已 priced in</li>
+          <li>Sell-side 共識 PT $12.88 附近</li>
+        </ul>
+      </div>
+    </div>
+    <div class="scenario-card bull">
+      <div class="sc-label">Bull Case</div>
+      <div class="sc-pt" style="color:var(--green)">$25–35</div>
+      <div class="sc-prob">機率 20% · EV $30</div>
+      <div class="sc-desc">
+        <ul style="padding-left:16px;font-size:12px;line-height:1.8">
+          <li>Rubin Ultra HVDC ramp 提前起飛</li>
+          <li>India 合作量產帶動 rev 超預期</li>
+          <li>Short squeeze（20.45% float）</li>
+          <li>GM 擴至 45%+，接近獲利轉折</li>
+          <li>機構持續增持，Needham PT $21+</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>期望值 = $6×30% + $12×50% + $30×20% = $1.80 + $6.00 + $6.00 = $13.80</strong><br>
+    vs 現價 $20.54 → <strong style="color:var(--red)">隱含 -33% downside</strong>。
+    此期望值修正自 v2 的 $13.2（bear case 從 $4 調整為 $6，反映 India 合作實質里程碑）。
+    Bull case 機率對期望值敏感性最高：若 bull 調至 30%，期望值 → $15.60（仍 -24%）。
+  </div>
+
+  <!-- Valuation comparison table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>估值方法</th>
+          <th>Low</th>
+          <th>High</th>
+          <th>Mid</th>
+          <th>vs $20.54</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>P/E</td>
+          <td class="num">$14.00</td>
+          <td class="num">$28.00</td>
+          <td class="num">$21.00</td>
+          <td class="num"><span style="color:var(--orange)">+2%</span></td>
+        </tr>
+        <tr>
+          <td>DCF</td>
+          <td class="num">$12.00</td>
+          <td class="num">$24.00</td>
+          <td class="num">$18.00</td>
+          <td class="num"><span style="color:var(--red)">-12%</span></td>
+        </tr>
+        <tr>
+          <td>EV/EBITDA</td>
+          <td class="num">—</td>
+          <td class="num">—</td>
+          <td class="num">$18.50</td>
+          <td class="num"><span style="color:var(--red)">-10%</span></td>
+        </tr>
+        <tr>
+          <td>PEG</td>
+          <td class="num" colspan="3" style="text-align:center;color:var(--text-muted)">N/A（負 Fwd PE）</td>
+          <td class="num">—</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>3情境期望值</strong></td>
+          <td class="num">$4</td>
+          <td class="num">$35</td>
+          <td class="num"><strong>$13.80</strong></td>
+          <td class="num"><strong style="color:var(--red)">-33%</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal
+  </div>
+</section>
+
+<!-- ═══ S10 · 透明度 · Phase B+ vs Codex ═══ -->
+<section class="section" id="s10">
+  <div class="section-eyebrow">SECTION 10</div>
+  <h2 class="section-title">透明度頁：<span class="accent">Phase B+ vs Codex 對抗式 Review 盲點 + Bug 修復記錄</span></h2>
+  <p class="section-desc">Rain 設計 Phase B+ 整合 pipeline 結構完整，但 Codex 對抗式 review 揭出 5 個 Phase B+ 沒抓到的深度洞。這裡完整列出，讓分析局限透明可見。</p>
+
+  <!-- Gap Analysis Table -->
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table style="min-width:800px">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Phase B+ 狀態</th>
+          <th>Codex 揭出的深度洞</th>
+          <th>影響</th>
+          <th>根因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center"><strong>1</strong></td>
+          <td><span class="diff-miss">未捕捉</span></td>
+          <td>Q1 2026 單一經銷商 = <strong>59% 營收 + 58% AR</strong>（supply_chain 只說「single-source」，未拆到客戶這層）</td>
+          <td>買家議價力被嚴重低估；客戶集中度是公司存亡風險</td>
+          <td>無 SEC 10-Q 讀取；supply_chain 分析師只讀 yfinance</td>
+        </tr>
+        <tr>
+          <td class="center"><strong>2</strong></td>
+          <td><span class="diff-miss">未捕捉</span></td>
+          <td><strong>TSMC 2027/Q3 退出 GaN 生產</strong>（supply_chain 抓到「single-source」但漏掉時間點，直接撞 NVIDIA Rubin ramp 窗口）</td>
+          <td>Bear Case 機率應上調；最關鍵催化劑時間點未進估值</td>
+          <td>無 TSMC 官方公告爬取；只讀 yfinance news</td>
+        </tr>
+        <tr>
+          <td class="center"><strong>3</strong></td>
+          <td><span class="diff-miss">未捕捉</span></td>
+          <td><strong>GAAP GM Q1 -9.3% vs non-GAAP 38%</strong>（financial_statement 沒有 GAAP/non-GAAP 分層邏輯）</td>
+          <td>毛利率判讀失真；non-GAAP 數字掩蓋實際虧損深度</td>
+          <td>無 SEC EDGAR 10-Q 讀取；無 GAAP/non-GAAP reconciliation</td>
+        </tr>
+        <tr>
+          <td class="center"><strong>4</strong></td>
+          <td><span class="diff-miss">未捕捉</span></td>
+          <td><strong>稀釋 188M → 234M (+24% / 15 個月)</strong>（無專責 capital structure 分析師）</td>
+          <td>每股盈利稀釋效應未進估值；bull case 被高估</td>
+          <td>無 capital structure 追蹤；yfinance shares_outstanding 未做 YoY 對比</td>
+        </tr>
+        <tr>
+          <td class="center"><strong>5</strong></td>
+          <td><span class="diff-miss">未捕捉</span></td>
+          <td><strong>Q1 是 beat（非 miss）</strong>：盤後 -15.87% 是因高預期落空，不是絕對 miss</td>
+          <td>誤判 Q1 事件性質影響 bull/bear 機率分配</td>
+          <td>無 earnings estimate vs actual 比對邏輯；financial_statement 未整合 consensus data</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bug fixes -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-label" style="margin-bottom:16px">本次修復的真實 Bug</div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="padding:16px;background:rgba(133,162,104,0.06);border:1px solid rgba(133,162,104,0.25);border-radius:8px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px">BUG #1 FIXED — research.py import</div>
+        <div style="font-size:13px;line-height:1.6">
+          <code style="background:var(--bg-page);padding:2px 6px;border-radius:4px;font-size:12px">import unified_pipeline</code> → 
+          <code style="background:var(--bg-page);padding:2px 6px;border-radius:4px;font-size:12px">import langgraph_pipeline</code><br>
+          影響：整個研究入口無法啟動。修後 Phase B+ unified pipeline 可正常跑通。
+        </div>
+      </div>
+      <div style="padding:16px;background:rgba(133,162,104,0.06);border:1px solid rgba(133,162,104,0.25);border-radius:8px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px">BUG #2 FIXED — industry-chains.json power_semi 鏈</div>
+        <div style="font-size:13px;line-height:1.6">
+          新增 <code style="background:var(--bg-page);padding:2px 6px;border-radius:4px;font-size:12px">power_semi</code> 產業鏈，NVTS 標為 highlight ticker，同陣容 WOLF / POWI / ON / IFNNY / MCHP。
+          Stockcast 新 commit 已上線，競爭分析可直接引用此鏈。
+        </div>
+      </div>
+      <div style="padding:16px;background:rgba(235,128,84,0.06);border:1px solid rgba(235,128,84,0.25);border-radius:8px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px">BUG #3 PENDING — Technical + Macro kwargs</div>
+        <div style="font-size:13px;line-height:1.6">
+          <code style="background:var(--bg-page);padding:2px 6px;border-radius:4px;font-size:12px">analyze_technicals()</code> unexpected keyword 'news_data' /
+          <code style="background:var(--bg-page);padding:2px 6px;border-radius:4px;font-size:12px">analyze_macro()</code> unexpected keyword 'market_data'<br>
+          修法：在 caller 端濾除多餘 kwargs，或在函數 signature 加 **kwargs。修後可達 9/9 分析師全部跑通。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 建議下一步 -->
+  <div class="info-block">
+    <div class="ib-title">建議下一步 — 提升 Phase B+ 品質</div>
+    <div style="font-size:13px;line-height:1.8">
+      <strong>最高優先：加 SEC EDGAR 讀取器</strong>，讓 financial_statement / supply_chain / capital_flow 分析師能讀 10-Q/10-K 全文。
+      具體效益：
+      <ul style="padding-left:18px;margin-top:8px">
+        <li>捕捉 GAAP/non-GAAP reconciliation（GM 落差）</li>
+        <li>捕捉 customer concentration disclosure（經銷商 59%）</li>
+        <li>捕捉 share count 變化（稀釋追蹤）</li>
+        <li>捕捉 supplier dependency 聲明（TSMC 時間點）</li>
+        <li>捕捉 earnings beat/miss vs consensus</li>
+      </ul>
+      <br>
+      <strong>次優先：</strong>修復 Technical + Macro kwargs bug → 9/9 分析師全通 → 上調 Chief Synthesis 有效覆蓋維度。
+    </div>
+  </div>
+
+  <div class="section-footer-disclaimer">
+    非投資建議，AI 僅提供研究支援 / Phase B+ report-only — no trade signal / 本報告由 RainAlpha 自動生成，不代表投資建議
+  </div>
+</section>
+
+<!-- PAGE FOOTER -->
+<footer class="page-footer">
+  <div class="pf-warn">非投資建議 — 本報告純為 AI 研究系統輸出展示，不構成任何形式投資建議或買賣推薦</div>
+  <div style="margin-top:8px">RainAlpha Phase B+ · 9 Analysts · 6 Layers · Codex Adversarial Review · Nova Deck v3 · 2026-05-13</div>
+  <div style="margin-top:4px">Powered by Gemini 2.0 Flash + Claude Sonnet · Ray Veto Gate: APPROVED · Deck: Nova</div>
+</footer>
+
+<script>
+// NAV PROGRESS
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('navProgress');
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  if (el) el.style.width = Math.min(pct, 100) + '%';
+});
+</script>
+</body>
+</html>

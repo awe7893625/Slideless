@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2330 台積電 — 個人研究筆記 2026-05-20</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── ROOT OVERFLOW GUARD ── */
+html, body {
+  max-width: 100%;
+}
+.table-wrap, .mermaid-wrap { max-width: 100%; overflow-x: auto; }
+/* Flex/grid children must be able to shrink */
+nav, section, .cover, .cover-inner, .card-grid-2, .card-grid-3,
+.risk-grid, .valuation-grid, .verdict-box, .catalyst-list {
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .nav-links { flex-wrap: wrap; }
+  table { min-width: 0 !important; overflow-wrap: anywhere; }
+  .mermaid-wrap .mermaid { min-width: 0; }
+  .cover-stats { overflow-x: auto; }
+  .thesis-chain { overflow-wrap: anywhere; }
+}
+
+/* ── TOKENS ── */
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #1a1a1a;
+  --orange: #f97316;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --accent: #f97316;
+  --navy: #0f1f3d;
+  --gold: #f59e0b;
+  --accent-on-dark: #5BC9A8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  background: var(--bg-page);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 52px;
+}
+.nav-brand {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  overflow-x: auto;
+}
+.nav-links a {
+  font-size: 12px;
+  color: #555;
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--orange); }
+.nav-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: var(--orange);
+  width: 0%;
+  transition: width 0.1s;
+}
+
+/* ── COVER (HERO) ── */
+.cover {
+  background: linear-gradient(135deg, #0f1f3d 0%, #1a2f52 40%, #0d1b2e 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px 48px 60px;
+  position: relative;
+  overflow: hidden;
+}
+.cover::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cover-inner { max-width: 900px; margin: 0 auto; width: 100%; }
+.cover-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.cover h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.cover h1 .accent { color: var(--orange); }
+.cover-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 40px;
+  max-width: 580px;
+  line-height: 1.5;
+}
+.cover-stats {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+  padding: 28px 32px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+}
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1;
+}
+.stat-num.green { color: var(--green); }
+.stat-num.red { color: var(--red); }
+.stat-num.blue { color: #60a5fa; }
+.stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+}
+.cover-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: rgba(249,115,22,0.20);
+  border: 2px solid rgba(249,115,22,0.7);
+  border-radius: 8px;
+  margin-bottom: 32px;
+}
+.rating-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.rating-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 1px;
+}
+.cover-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 1px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 20px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* ── SECTIONS ── */
+section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 72px 40px 56px;
+}
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.section-title .accent { color: var(--orange); }
+.section-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 640px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.card-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.card-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── STATUS CARDS ── */
+.status-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  border-radius: 10px;
+  padding: 20px;
+}
+.status-card.green-border { border-left-color: var(--green); }
+.status-card.red-border { border-left-color: var(--red); }
+.status-card.blue-border { border-left-color: var(--blue); }
+.status-card.purple-border { border-left-color: var(--purple); }
+.status-card .metric {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.status-card .metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.status-card .delta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+.delta.up { color: var(--green); }
+.delta.down { color: var(--red); }
+.delta.neutral { color: var(--text-muted); }
+
+/* ── TABLES ── */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  max-width: 100%;
+}
+.table-wrap::-webkit-scrollbar { height: 5px; }
+.table-wrap::-webkit-scrollbar-track { background: var(--bg-page); border-radius: 3px; }
+.table-wrap::-webkit-scrollbar-thumb { background: #d0cec9; border-radius: 3px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: var(--bg-card);
+}
+/* Each table gets inline min-width; scroll wrapper handles overflow */
+thead th {
+  background: #f0ede7;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 11px 16px;
+  border-bottom: 1px solid #f0ede7;
+  color: var(--text);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #faf9f6; }
+td.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+td.right { text-align: right; }
+td.green { color: var(--green); font-weight: 600; }
+td.red { color: var(--red); font-weight: 600; }
+td.orange { color: var(--orange); font-weight: 600; }
+
+/* ── PILLS ── */
+.pill {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.pill-green { background: rgba(34,197,94,0.12); color: #16a34a; }
+.pill-red { background: rgba(239,68,68,0.1); color: #dc2626; }
+.pill-orange { background: rgba(249,115,22,0.12); color: #ea580c; }
+.pill-blue { background: rgba(59,130,246,0.1); color: #2563eb; }
+.pill-gray { background: #f0ede7; color: #888; }
+.pill-purple { background: rgba(168,85,247,0.1); color: #9333ea; }
+
+/* ── THESIS BOX ── */
+.thesis-box {
+  background: linear-gradient(135deg, #0f1f3d, #1a2f52);
+  border-radius: 12px;
+  padding: 32px;
+  color: white;
+  margin-bottom: 24px;
+}
+.thesis-box .chain-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+.thesis-chain {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+.chain-node {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+}
+.chain-arrow {
+  font-size: 16px;
+  color: var(--orange);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.thesis-conclusion {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.7;
+}
+.thesis-conclusion strong { color: var(--orange); }
+
+/* ── PRICE CHART ── */
+.chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 28px 20px;
+  margin-bottom: 24px;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.chart-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.legend-dot {
+  width: 8px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* ── SUPPLY CHAIN ── */
+.supply-chain-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.supply-node {
+  flex: 1;
+  min-width: 140px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 14px;
+}
+.supply-arrow-wrap {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.supply-arrow {
+  font-size: 22px;
+  color: var(--orange);
+}
+.supply-node-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+.supply-node-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.supply-node-items {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── TIMELINE ── */
+.timeline {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.tl-card {
+  flex: 0 0 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.tl-ep {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 4px;
+}
+.tl-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.tl-content {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* ── RISK CARDS ── */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.risk-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: 10px;
+  padding: 16px;
+}
+.risk-item.medium { border-left-color: var(--gold); }
+.risk-item.low { border-left-color: var(--blue); }
+.risk-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.risk-item.medium .risk-num { color: var(--gold); }
+.risk-item.low .risk-num { color: var(--blue); }
+.risk-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.risk-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.risk-window {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ── CATALYST ── */
+.catalyst-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.catalyst-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.catalyst-timing {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  white-space: nowrap;
+  min-width: 90px;
+}
+.catalyst-body { flex: 1; }
+.catalyst-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.catalyst-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── VALUATION ── */
+.valuation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.val-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+.val-card.base {
+  background: #0f1f3d;
+  border-color: rgba(249,115,22,0.3);
+}
+.val-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.val-card.base .val-label { color: rgba(255,255,255,0.45); }
+.val-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.val-card.base .val-price { color: var(--orange); }
+.val-upside {
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.val-card.base .val-upside { color: var(--orange); }
+.val-assumption {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.val-card.base .val-assumption { color: rgba(255,255,255,0.4); }
+
+/* ── FINAL VERDICT ── */
+.verdict-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.verdict-rating-block { min-width: 160px; }
+.verdict-rating-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.verdict-rating-main {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.verdict-rating-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.verdict-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+  min-height: 80px;
+}
+.verdict-text { flex: 1; min-width: 260px; }
+.verdict-text p {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+.verdict-text p:last-child { margin-bottom: 0; }
+.verdict-text strong { color: var(--orange); font-weight: 600; }
+
+/* ── INFO ALERT ── */
+.info-alert {
+  background: rgba(59,130,246,0.06);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #2563eb;
+  margin-top: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.6;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .cover { padding: 88px 24px 40px; }
+  section { padding: 48px 20px 36px; }
+  nav { padding: 0 16px; }
+  .cover-stats { gap: 24px; padding: 20px; }
+  .stat-num { font-size: 22px; }
+  .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
+  .risk-grid { grid-template-columns: 1fr; }
+  .valuation-grid { grid-template-columns: 1fr; }
+  .verdict-box { flex-direction: column; gap: 20px; }
+  .verdict-divider { width: 100%; height: 1px; min-height: 0; }
+  .thesis-chain { flex-direction: column; align-items: flex-start; }
+  .chain-arrow { transform: rotate(90deg); padding: 4px 0; }
+  .supply-chain-flow { flex-direction: column; }
+  .supply-arrow { transform: rotate(90deg); }
+  table thead { display: none; }
+  table td { display: block; padding: 8px 12px; border-bottom: 1px solid #f0ede7; }
+  table td::before { content: attr(data-label); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+  table tr { border-bottom: 2px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">2330 台積電</div>
+  <ul class="nav-links">
+    <li><a href="#thesis">投資主題</a></li>
+    <li><a href="#market">市場</a></li>
+    <li><a href="#company">財務</a></li>
+    <li><a href="#products">產品深拆</a></li>
+    <li><a href="#earnings">法說會</a></li>
+    <li><a href="#supplychain">供應鏈</a></li>
+    <li><a href="#gooaye">股癌訊號</a></li>
+    <li><a href="#risks">風險</a></li>
+    <li><a href="#catalysts">催化劑</a></li>
+    <li><a href="#valuation">估值</a></li>
+  </ul>
+  <div class="nav-progress" id="navProgress"></div>
+</nav>
+
+<!-- COVER -->
+<div class="cover" id="cover">
+  <div class="cover-inner">
+    <div class="cover-eyebrow">個人研究筆記 · PERSONAL RESEARCH NOTE</div>
+    <h1>台積電 <span class="accent">2330.TW</span></h1>
+    <div class="cover-subtitle">AI 晶圓代工龍頭 · N2 量產爬坡 · CoWoS 超級週期<br>結構性看多、短期觀望 — 股癌淨觀點</div>
+
+    <div class="cover-rating">
+      <span class="rating-label">投資評等</span>
+      <span class="rating-value">WATCH / 逢回累積</span>
+    </div>
+
+    <div class="cover-stats">
+      <div class="stat-item">
+        <div class="stat-num">2,195</div>
+        <div class="stat-label">現價 TWD</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num green">+127.8%</div>
+        <div class="stat-label">12 個月漲幅</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">NT$1,134.1B</div>
+        <div class="stat-label">Q1 2026 營收</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num orange">66.2%</div>
+        <div class="stat-label">Q1 毛利率</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num blue">US$40.2B</div>
+        <div class="stat-label">Q2 2026 財測</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">~US$1.86T</div>
+        <div class="stat-label">市值估計</div>
+      </div>
+    </div>
+
+    <div class="cover-meta">
+      <span>資料日期：2026-05-20</span>
+      <span>來源：市場資料與量化訊號 · web search</span>
+      <span>股癌 EP624–EP662</span>
+      <span>52W 高 2,310 / 低 932.09</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 1 — THESIS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="thesis">
+  <div class="section-eyebrow">INVESTMENT THESIS</div>
+  <h2 class="section-title">因果鏈：<span class="accent">AI 超週期 → 台積電獨佔代工</span></h2>
+  <p class="section-desc">SCQA 框架：AI 算力需求爆發（S）→ 先進製程/封裝產能嚴重供不應求（C）→ 誰有能力承接？（Q）→ 唯有台積電（A）</p>
+
+  <div class="thesis-box">
+    <div class="chain-label">SCQA 因果鏈</div>
+    <div class="thesis-chain">
+      <div class="chain-node">AI 算力需求爆發<br><small style="opacity:0.6">Nvidia/AMD/雲端 capex</small></div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">N2/3nm 產能全滿<br><small style="opacity:0.6">2026 全年 sold out</small></div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">CoWoS 唯一出口<br><small style="opacity:0.6">US$9.6B → 持續擴產</small></div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">毛利 66.2% 超指引<br><small style="opacity:0.6">超出 63–65% 上緣</small></div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">Q2 指引再創高<br><small style="opacity:0.6">US$40.2B (+12.6% QoQ)</small></div>
+    </div>
+    <div class="thesis-conclusion">
+      <strong>結論先行：</strong>台積電是 AI 超週期唯一不可替代的晶圓代工平台。Q1 2026 淨利率 50.5%、ROE 36.2%，護城河來自製程技術與規模優勢的共振加乘。短期股價已充分反映 12 個月 +128% 的超額回報，但 <strong>AI 代工需求的多年期能見度</strong>支撐結構性多頭邏輯。評等：<strong>WATCH / 逢回累積</strong>（非空頭，非急追）。
+    </div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="status-card green-border">
+      <div class="metric-label">長期看多理由</div>
+      <div style="font-size:12px; color:var(--text); line-height:1.7;">
+        N2(2nm) 2026H2 量產爬坡，ASP 提升；CoWoS 承接 AI 加速器需求，2025 年已達 US$9.6B；A16(1.6nm) 2026 末試產；管理層全年 capex 上修，顯示能見度高。
+      </div>
+    </div>
+    <div class="status-card red-border">
+      <div class="metric-label">短期觀望理由</div>
+      <div style="font-size:12px; color:var(--text); line-height:1.7;">
+        12 個月 +128% 後估值已高；股價近 MA50（MA50 ~2,028）區域震盪；外資賣壓未止；新台幣升值壓縮 EPS；海外廠毛利稀釋 2–4pp。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 2 — MARKET
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="market">
+  <div class="section-eyebrow">MARKET</div>
+  <h2 class="section-title">市場結構：<span class="accent">晶圓代工競爭格局</span></h2>
+  <p class="section-desc">AI 半導體與晶圓代工市場。TAM 精確數字因資料缺口標 N/A，以競爭格局與成長動能替代。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>競爭對手</th>
+          <th>先進製程地位</th>
+          <th>主要客戶</th>
+          <th>護城河</th>
+          <th>台積電相對優勢</th>
+          <th>評估</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>台積電 TSMC</strong></td>
+          <td class="mono">N3 量產<br>N2 爬坡中<br>A16 2026末</td>
+          <td>Apple, Nvidia, AMD<br>Broadcom, Qualcomm</td>
+          <td>製程領先 + 良率 + 規模</td>
+          <td>— 基準</td>
+          <td><span class="pill pill-orange">龍頭</span></td>
+        </tr>
+        <tr>
+          <td><strong>Samsung Foundry</strong></td>
+          <td class="mono">2nm GAA 試產<br>良率偏低</td>
+          <td>客戶採用落後</td>
+          <td>垂直整合 + 記憶體協同</td>
+          <td>技術差距擴大<br>市佔流失趨勢</td>
+          <td><span class="pill pill-red">落後</span></td>
+        </tr>
+        <tr>
+          <td><strong>Intel Foundry</strong></td>
+          <td class="mono">Intel 18A 試產<br>客戶驗證中</td>
+          <td>Intel 自身 CPU 為主</td>
+          <td>美國本土製造<br>政府補貼</td>
+          <td>技術差距大<br>良率未達商業規模</td>
+          <td><span class="pill pill-gray">差距大</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-3" style="margin-top:16px;">
+    <div class="status-card">
+      <div class="metric-label">市場成長動能</div>
+      <div class="metric">AI 半導體</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">AI 訓練/推論晶片需求帶動先進製程爆發；CoWoS 先進封裝為 AI GPU 必要工藝</div>
+    </div>
+    <div class="status-card green-border">
+      <div class="metric-label">TSMC 市場相對表現</div>
+      <div class="metric">4× 同業</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">2025 年成長速度為晶圓代工同業平均的 4 倍，獨佔 AI 代工的結構性優勢明確</div>
+    </div>
+    <div class="status-card blue-border">
+      <div class="metric-label">晶圓代工 TAM</div>
+      <div class="metric">N/A</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">精確 TAM 因資料缺口誠實標 N/A；市值 ~US$1.86T 為公司估值，非市場規模</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 3 — COMPANY ANALYSIS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="company">
+  <div class="section-eyebrow">COMPANY ANALYSIS</div>
+  <h2 class="section-title">財務分析：<span class="accent">Q1 2026 實況</span></h2>
+  <p class="section-desc">所有數字以 context.md 為唯一權威來源。單位：TWD 十億元（B）= NT 十億。</p>
+
+  <div class="card-grid-3" style="margin-bottom:24px;">
+    <div class="status-card green-border">
+      <div class="metric-label">Q1 2026 營收</div>
+      <div class="metric">NT$1,134.1B</div>
+      <div class="delta up">= US$35.71B · YoY +35.1%</div>
+    </div>
+    <div class="status-card green-border">
+      <div class="metric-label">Q1 毛利率</div>
+      <div class="metric">66.2%</div>
+      <div class="delta up">毛利 751.3B · 超財測上緣</div>
+    </div>
+    <div class="status-card green-border">
+      <div class="metric-label">Q1 稅後淨利</div>
+      <div class="metric">NT$572.48B</div>
+      <div class="delta up">YoY +58% · 淨利率 50.5%</div>
+    </div>
+    <div class="status-card">
+      <div class="metric-label">Q1 營業利益</div>
+      <div class="metric">NT$658.9B</div>
+      <div class="delta neutral">COGS 382.8B · 費用 92.3B</div>
+    </div>
+    <div class="status-card green-border">
+      <div class="metric-label">Q1 ROE</div>
+      <div class="metric">36.2%</div>
+      <div class="delta neutral">高資本回報持續</div>
+    </div>
+    <div class="status-card">
+      <div class="metric-label">Q1 EPS（單季）</div>
+      <div class="metric">TWD 22.08</div>
+      <div class="delta neutral">年化 ~88.32 估算</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>損益項目</th>
+          <th>Q1 2026（NT$ B）</th>
+          <th>Q4 2025（參考）</th>
+          <th>YoY 變動</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>營業收入</strong></td>
+          <td class="mono orange">1,134.1B</td>
+          <td class="mono">~1,072B（US$33.73B）</td>
+          <td class="green">+35.1%</td>
+          <td>= US$35.71B；3月單月 YoY +45.2%</td>
+        </tr>
+        <tr>
+          <td>銷貨成本 COGS</td>
+          <td class="mono">382.8B</td>
+          <td class="mono">—</td>
+          <td class="neutral delta">—</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>毛利</strong></td>
+          <td class="mono orange">751.3B</td>
+          <td class="mono">—</td>
+          <td class="green">毛利率 66.2%</td>
+          <td>超出 63–65% 財測上緣</td>
+        </tr>
+        <tr>
+          <td>營業費用</td>
+          <td class="mono">92.3B</td>
+          <td class="mono">—</td>
+          <td class="neutral delta">—</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>營業利益</strong></td>
+          <td class="mono orange">658.9B</td>
+          <td class="mono">—</td>
+          <td class="neutral delta">—</td>
+          <td>營業利益率 58.1%</td>
+        </tr>
+        <tr>
+          <td>所得稅</td>
+          <td class="mono">115.0B</td>
+          <td class="mono">—</td>
+          <td class="neutral delta">—</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>稅後淨利</strong></td>
+          <td class="mono orange">572.48B</td>
+          <td class="mono">505.74B</td>
+          <td class="green">YoY +58%</td>
+          <td>純益率 50.5%</td>
+        </tr>
+        <tr>
+          <td>基本 EPS</td>
+          <td class="mono">TWD 22.08</td>
+          <td class="mono">—</td>
+          <td class="neutral delta">—</td>
+          <td>單季</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SVG 毛利率趨勢 bar chart -->
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:2px;margin-bottom:16px;">GROSS MARGIN TREND</div>
+    <svg viewBox="0 0 680 290" width="100%" style="display:block;min-height:260px;" preserveAspectRatio="xMidYMid meet" role="img" aria-label="台積電近期毛利率趨勢圖">
+      <rect x="0" y="0" width="680" height="290" fill="#ffffff" rx="6"/>
+      <line x1="60" y1="20" x2="660" y2="20" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="60" y1="62" x2="660" y2="62" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="60" y1="104" x2="660" y2="104" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="60" y1="146" x2="660" y2="146" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="60" y1="188" x2="660" y2="188" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="60" y1="230" x2="660" y2="230" stroke="#e5e3de" stroke-width="1.5"/>
+      <text x="54" y="24" font-family="JetBrains Mono,monospace" font-size="10" fill="#aaa" text-anchor="end">70%</text>
+      <text x="54" y="66" font-family="JetBrains Mono,monospace" font-size="10" fill="#aaa" text-anchor="end">65%</text>
+      <text x="54" y="108" font-family="JetBrains Mono,monospace" font-size="10" fill="#aaa" text-anchor="end">60%</text>
+      <text x="54" y="150" font-family="JetBrains Mono,monospace" font-size="10" fill="#aaa" text-anchor="end">55%</text>
+      <text x="54" y="192" font-family="JetBrains Mono,monospace" font-size="10" fill="#aaa" text-anchor="end">50%</text>
+      <rect x="80" y="148" width="70" height="82" rx="4" fill="#e5e3de"/>
+      <text x="115" y="142" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">57.8%</text>
+      <text x="115" y="250" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Q1 2025</text>
+      <rect x="185" y="145" width="70" height="85" rx="4" fill="#e5e3de"/>
+      <text x="220" y="139" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">58.1%</text>
+      <text x="220" y="250" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Q2 2025</text>
+      <rect x="290" y="123" width="70" height="107" rx="4" fill="#f97316" fill-opacity="0.5"/>
+      <text x="325" y="117" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">60.2%</text>
+      <text x="325" y="250" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Q3 2025</text>
+      <rect x="395" y="131" width="70" height="99" rx="4" fill="#f97316" fill-opacity="0.6"/>
+      <text x="430" y="125" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">59.4%</text>
+      <text x="430" y="250" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Q4 2025</text>
+      <rect x="500" y="60" width="70" height="170" rx="4" fill="#f97316"/>
+      <text x="535" y="54" font-family="JetBrains Mono,monospace" font-size="11" fill="#f97316" font-weight="700" text-anchor="middle">66.2%</text>
+      <text x="535" y="250" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Q1 2026</text>
+      <text x="535" y="270" font-family="JetBrains Mono,monospace" font-size="10" fill="#f97316" text-anchor="middle" font-weight="700">↑ 超財測上緣</text>
+      <line x1="60" y1="104" x2="640" y2="104" stroke="#f97316" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
+      <text x="645" y="108" font-family="JetBrains Mono,monospace" font-size="9" fill="#f97316">財測</text>
+      <line x1="60" y1="20" x2="60" y2="230" stroke="#e5e3de" stroke-width="1"/>
+      <text x="360" y="14" font-family="Inter,sans-serif" font-size="11" fill="#888" text-anchor="middle">毛利率季度趨勢（%）· Q1 2025 → Q1 2026</text>
+      <text x="360" y="285" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">灰色 = 歷史均值期 · 橘色漸深 = 毛利率加速爬升 · Q1 2026 突破 66% 創近期新高</text>
+    </svg>
+  </div>
+
+  <div class="info-alert">資料缺口誠實揭露：P/E 官方值、Beta、殖利率、法人持股因 yfinance 服務端 DNS 阻擋無法取得，標 N/A；本益比係以 Q1 EPS 年化推估約 24–25x（非官方）。</div>
+
+  <div class="table-wrap" style="margin-top:16px;">
+    <table>
+      <thead>
+        <tr>
+          <th>估值指標</th>
+          <th>數值</th>
+          <th>來源 / 備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>股價（2026-05-20）</td><td class="mono">TWD 2,195</td><td>市場資料即時報價</td></tr>
+        <tr><td>52 週高</td><td class="mono">2,310（2026-05-07）</td><td>市場資料</td></tr>
+        <tr><td>52 週低</td><td class="mono">932.09（2025-06-02）</td><td>市場資料</td></tr>
+        <tr><td>12M 漲幅</td><td class="mono green">+127.8%</td><td>963.62 → 2,195</td></tr>
+        <tr><td>市值（估）</td><td class="mono">~NT$56.9T ≈ US$1.86T</td><td>2,195 × ~25.93B 股，USD/TWD≈30.6</td></tr>
+        <tr><td>本益比 P/E</td><td class="mono">~24–25x（trailing 推估）</td><td>Q1 EPS 年化非官方</td></tr>
+        <tr><td>Beta</td><td class="mono">N/A</td><td>資料缺口</td></tr>
+        <tr><td>殖利率</td><td class="mono">N/A</td><td>資料缺口</td></tr>
+        <tr><td>法人持股</td><td class="mono">N/A</td><td>yfinance 無回應</td></tr>
+        <tr><td>MA50（計算值）</td><td class="mono">~2,028</td><td>243 日資料計算</td></tr>
+        <tr><td>技術位階</td><td class="mono red">近 MA50 震盪</td><td>技術動能訊號（MA50 計算）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     PRICE CHART
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="pricechart">
+  <div class="section-eyebrow">PRICE ACTION</div>
+  <h2 class="section-title">12 個月<span class="accent">價格走勢</span></h2>
+  <p class="section-desc">2025-05-20 → 2026-05-20 · 243 交易日 · 調整後收盤價（TWD）</p>
+
+  <div class="chart-container">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">台積電 2330.TW — 12 個月走勢圖</div>
+        <div class="chart-sub">52W 低 932.09 · 52W 高 2,310 · 現價 2,195 · MA50 ≈ 2,028</div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div>收盤價</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa;height:2px;"></div>MA50</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div>52W 高</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div>52W 低</div>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 700 220" width="100%" style="display:block;overflow:visible;" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="0" width="700" height="220" fill="#ffffff" rx="6"/>
+
+      <!-- Grid lines -->
+      <line x1="10" y1="47.5" x2="690" y2="47.5" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="10" y1="85" x2="690" y2="85" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="10" y1="122.5" x2="690" y2="122.5" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="10" y1="160" x2="690" y2="160" stroke="#f0ede7" stroke-width="1"/>
+      <line x1="10" y1="197.5" x2="690" y2="197.5" stroke="#f0ede7" stroke-width="1"/>
+
+      <!-- Y-axis labels -->
+      <text x="8" y="13" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="end">2,310</text>
+      <text x="8" y="50" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="end">2,000</text>
+      <text x="8" y="88" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="end">1,650</text>
+      <text x="8" y="125" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="end">1,300</text>
+      <text x="8" y="163" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="end">950</text>
+
+      <!-- Area gradient def -->
+      <defs>
+        <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f97316" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#f97316" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Area fill -->
+      <polygon
+        points="10.0,185.9 12.8,184.3 15.6,185.4 18.4,185.1 21.2,186.1 24.0,187.6 26.9,187.3 29.7,187.3 32.5,190.0 35.3,189.5 38.1,184.3 40.9,183.3 43.7,183.7 46.5,182.4 49.3,177.3 52.1,174.7 55.0,176.7 57.8,178.6 60.6,179.3 63.4,176.7 66.2,175.4 69.0,178.0 71.8,175.4 74.6,179.9 77.4,176.0 80.2,173.5 83.1,172.8 85.9,172.2 88.7,174.7 91.5,171.5 94.3,171.5 97.1,170.9 99.9,171.5 102.7,172.2 105.5,172.2 108.3,170.9 111.2,169.6 114.0,169.6 116.8,170.2 119.6,168.3 122.4,165.7 125.2,165.7 128.0,162.5 130.8,163.1 133.6,165.7 136.4,163.8 139.3,163.8 142.1,163.8 144.9,163.8 147.7,165.1 150.5,162.5 153.3,161.8 156.1,165.1 158.9,163.1 161.7,166.3 164.5,159.2 167.4,159.9 170.2,159.2 173.0,159.2 175.8,156.7 178.6,159.9 181.4,159.2 184.2,159.2 187.0,158.6 189.8,165.1 192.6,163.1 195.5,165.1 198.3,160.5 201.1,159.9 203.9,157.9 206.7,161.8 209.5,161.8 212.3,161.2 215.1,161.8 217.9,161.8 220.7,161.8 223.6,159.2 226.4,159.2 229.2,156.7 232.0,153.4 234.8,151.5 237.6,148.9 240.4,149.5 243.2,145.6 246.0,147.6 248.8,145.0 251.7,147.6 254.5,143.7 257.3,137.9 260.1,137.9 262.9,140.5 265.7,143.1 268.5,142.4 271.3,139.8 274.1,134.6 276.9,130.1 279.8,125.5 282.6,128.1 285.4,124.9 288.2,128.1 291.0,126.8 293.8,121.6 296.6,119.0 299.4,123.6 302.2,119.7 305.0,119.7 307.9,122.3 310.7,123.6 313.5,119.7 316.3,120.3 319.1,116.4 321.9,116.4 324.7,117.1 327.5,115.8 330.3,116.4 333.1,122.3 336.0,121.6 338.8,122.3 341.6,120.3 344.4,121.6 347.2,120.3 350.0,122.3 352.8,126.2 355.6,124.2 358.4,129.4 361.2,130.7 364.0,122.9 366.9,132.0 369.7,133.3 372.5,128.1 375.3,124.9 378.1,125.5 380.9,124.9 383.7,128.8 386.5,126.2 389.3,123.6 392.1,124.2 395.0,122.3 397.8,117.7 400.6,119.7 403.4,116.4 406.2,120.4 409.0,119.1 411.8,123.0 414.6,124.9 417.4,125.6 420.2,125.6 423.1,125.6 425.9,121.0 428.7,117.8 431.5,117.1 434.3,115.1 437.1,112.5 439.9,113.8 442.7,109.9 445.5,105.4 448.3,94.3 451.2,89.8 454.0,93.7 456.8,92.4 459.6,93.0 462.4,91.7 465.2,89.1 468.0,89.1 470.8,91.7 473.6,85.2 476.4,82.6 479.3,80.6 482.1,85.2 484.9,82.6 487.7,81.3 490.5,83.2 493.3,80.0 496.1,74.8 498.9,76.7 501.7,80.6 504.5,81.9 507.4,77.4 510.2,79.3 513.0,81.9 515.8,80.0 518.6,75.4 521.4,67.0 524.2,62.4 527.0,64.4 529.8,55.9 532.6,49.4 535.5,52.0 538.3,54.6 541.1,59.8 543.9,68.9 546.7,64.4 549.5,65.7 552.3,76.1 555.1,70.9 557.9,59.2 560.7,66.3 563.6,68.9 566.4,71.5 569.2,67.5 572.0,62.9 574.8,70.1 577.6,71.4 580.4,75.3 583.2,75.3 586.0,70.7 588.8,71.4 591.7,74.0 594.5,79.2 597.3,81.8 600.1,69.4 602.9,75.3 605.7,68.8 608.5,57.0 611.3,56.4 614.1,50.5 616.9,51.8 619.8,43.3 622.6,40.0 625.4,39.4 628.2,46.6 631.0,47.2 633.8,44.0 636.6,44.0 639.4,40.0 642.2,26.3 645.0,15.9 647.9,22.4 650.7,27.0 653.5,32.9 656.3,14.6 659.1,17.8 661.9,17.8 664.7,10.0 667.5,12.6 670.3,19.8 673.1,17.2 676.0,21.8 678.8,15.2 681.6,15.9 684.4,19.1 687.2,23.7 690.0,25.0 690.0,210 10,210"
+        fill="url(#priceGrad)" stroke="none"
+      />
+
+      <!-- MA50 line -->
+      <polyline
+        points="147.7,175.3 150.5,174.8 153.3,174.4 156.1,174.0 158.9,173.5 161.7,173.1 164.5,172.6 167.4,172.0 170.2,171.5 173.0,170.8 175.8,170.2 178.6,169.7 181.4,169.2 184.2,168.7 187.0,168.2 189.8,168.0 192.6,167.8 195.5,167.5 198.3,167.2 201.1,166.8 203.9,166.4 206.7,166.1 209.5,165.8 212.3,165.5 215.1,165.2 217.9,164.9 220.7,164.7 223.6,164.4 226.4,164.1 229.2,163.8 232.0,163.4 234.8,163.0 237.6,162.6 240.4,162.1 243.2,161.6 246.0,161.1 248.8,160.6 251.7,160.1 254.5,159.6 257.3,159.0 260.1,158.4 262.9,157.9 265.7,157.4 268.5,157.0 271.3,156.5 274.1,155.9 276.9,155.2 279.8,154.5 282.6,153.8 285.4,153.0 288.2,152.3 291.0,151.5 293.8,150.7 296.6,149.8 299.4,149.0 302.2,148.1 305.0,147.3 307.9,146.6 310.7,145.8 313.5,145.0 316.3,144.3 319.1,143.5 321.9,142.6 324.7,141.8 327.5,140.9 330.3,139.9 333.1,139.1 336.0,138.2 338.8,137.5 341.6,136.7 344.4,136.0 347.2,135.1 350.0,134.3 352.8,133.6 355.6,132.9 358.4,132.2 361.2,131.6 364.0,130.9 366.9,130.3 369.7,129.9 372.5,129.4 375.3,128.8 378.1,128.4 380.9,127.9 383.7,127.5 386.5,127.1 389.3,126.7 392.1,126.2 395.0,125.8 397.8,125.4 400.6,125.0 403.4,124.5 406.2,124.1 409.0,123.6 411.8,123.3 414.6,123.1 417.4,123.0 420.2,123.0 423.1,123.0 425.9,122.9 428.7,122.7 431.5,122.5 434.3,122.3 437.1,122.2 439.9,122.0 442.7,121.8 445.5,121.5 448.3,121.0 451.2,120.3 454.0,119.8 456.8,119.2 459.6,118.8 462.4,118.3 465.2,117.7 468.0,117.2 470.8,116.7 473.6,115.9 476.4,115.1 479.3,114.3 482.1,113.6 484.9,112.8 487.7,112.1 490.5,111.3 493.3,110.3 496.1,109.4 498.9,108.3 501.7,107.3 504.5,106.5 507.4,105.4 510.2,104.3 513.0,103.4 515.8,102.5 518.6,101.5 521.4,100.3 524.2,99.0 527.0,97.8 529.8,96.4 532.6,94.9 535.5,93.5 538.3,92.2 541.1,91.0 543.9,90.1 546.7,89.0 549.5,87.9 552.3,87.0 555.1,85.9 557.9,84.6 560.7,83.4 563.6,82.2 566.4,81.3 569.2,80.2 572.0,79.2 574.8,78.3 577.6,77.4 580.4,76.7 583.2,76.0 586.0,75.3 588.8,74.8 591.7,74.5 594.5,74.2 597.3,74.0 600.1,73.5 602.9,73.2 605.7,72.8 608.5,72.2 611.3,71.5 614.1,70.8 616.9,70.1 619.8,69.4 622.6,68.5 625.4,67.6 628.2,66.9 631.0,66.2 633.8,65.5 636.6,64.9 639.4,64.2 642.2,63.1 645.0,61.7 647.9,60.6 650.7,59.6 653.5,58.6 656.3,57.3 659.1,56.2 661.9,55.2 664.7,54.1 667.5,53.1 670.3,52.4 673.1,51.7 676.0,51.1 678.8,50.3 681.6,49.5 684.4,48.5 687.2,47.6 690.0,46.8"
+        fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"
+      />
+
+      <!-- Price line -->
+      <polyline
+        points="10.0,185.9 12.8,184.3 15.6,185.4 18.4,185.1 21.2,186.1 24.0,187.6 26.9,187.3 29.7,187.3 32.5,190.0 35.3,189.5 38.1,184.3 40.9,183.3 43.7,183.7 46.5,182.4 49.3,177.3 52.1,174.7 55.0,176.7 57.8,178.6 60.6,179.3 63.4,176.7 66.2,175.4 69.0,178.0 71.8,175.4 74.6,179.9 77.4,176.0 80.2,173.5 83.1,172.8 85.9,172.2 88.7,174.7 91.5,171.5 94.3,171.5 97.1,170.9 99.9,171.5 102.7,172.2 105.5,172.2 108.3,170.9 111.2,169.6 114.0,169.6 116.8,170.2 119.6,168.3 122.4,165.7 125.2,165.7 128.0,162.5 130.8,163.1 133.6,165.7 136.4,163.8 139.3,163.8 142.1,163.8 144.9,163.8 147.7,165.1 150.5,162.5 153.3,161.8 156.1,165.1 158.9,163.1 161.7,166.3 164.5,159.2 167.4,159.9 170.2,159.2 173.0,159.2 175.8,156.7 178.6,159.9 181.4,159.2 184.2,159.2 187.0,158.6 189.8,165.1 192.6,163.1 195.5,165.1 198.3,160.5 201.1,159.9 203.9,157.9 206.7,161.8 209.5,161.8 212.3,161.2 215.1,161.8 217.9,161.8 220.7,161.8 223.6,159.2 226.4,159.2 229.2,156.7 232.0,153.4 234.8,151.5 237.6,148.9 240.4,149.5 243.2,145.6 246.0,147.6 248.8,145.0 251.7,147.6 254.5,143.7 257.3,137.9 260.1,137.9 262.9,140.5 265.7,143.1 268.5,142.4 271.3,139.8 274.1,134.6 276.9,130.1 279.8,125.5 282.6,128.1 285.4,124.9 288.2,128.1 291.0,126.8 293.8,121.6 296.6,119.0 299.4,123.6 302.2,119.7 305.0,119.7 307.9,122.3 310.7,123.6 313.5,119.7 316.3,120.3 319.1,116.4 321.9,116.4 324.7,117.1 327.5,115.8 330.3,116.4 333.1,122.3 336.0,121.6 338.8,122.3 341.6,120.3 344.4,121.6 347.2,120.3 350.0,122.3 352.8,126.2 355.6,124.2 358.4,129.4 361.2,130.7 364.0,122.9 366.9,132.0 369.7,133.3 372.5,128.1 375.3,124.9 378.1,125.5 380.9,124.9 383.7,128.8 386.5,126.2 389.3,123.6 392.1,124.2 395.0,122.3 397.8,117.7 400.6,119.7 403.4,116.4 406.2,120.4 409.0,119.1 411.8,123.0 414.6,124.9 417.4,125.6 420.2,125.6 423.1,125.6 425.9,121.0 428.7,117.8 431.5,117.1 434.3,115.1 437.1,112.5 439.9,113.8 442.7,109.9 445.5,105.4 448.3,94.3 451.2,89.8 454.0,93.7 456.8,92.4 459.6,93.0 462.4,91.7 465.2,89.1 468.0,89.1 470.8,91.7 473.6,85.2 476.4,82.6 479.3,80.6 482.1,85.2 484.9,82.6 487.7,81.3 490.5,83.2 493.3,80.0 496.1,74.8 498.9,76.7 501.7,80.6 504.5,81.9 507.4,77.4 510.2,79.3 513.0,81.9 515.8,80.0 518.6,75.4 521.4,67.0 524.2,62.4 527.0,64.4 529.8,55.9 532.6,49.4 535.5,52.0 538.3,54.6 541.1,59.8 543.9,68.9 546.7,64.4 549.5,65.7 552.3,76.1 555.1,70.9 557.9,59.2 560.7,66.3 563.6,68.9 566.4,71.5 569.2,67.5 572.0,62.9 574.8,70.1 577.6,71.4 580.4,75.3 583.2,75.3 586.0,70.7 588.8,71.4 591.7,74.0 594.5,79.2 597.3,81.8 600.1,69.4 602.9,75.3 605.7,68.8 608.5,57.0 611.3,56.4 614.1,50.5 616.9,51.8 619.8,43.3 622.6,40.0 625.4,39.4 628.2,46.6 631.0,47.2 633.8,44.0 636.6,44.0 639.4,40.0 642.2,26.3 645.0,15.9 647.9,22.4 650.7,27.0 653.5,32.9 656.3,14.6 659.1,17.8 661.9,17.8 664.7,10.0 667.5,12.6 670.3,19.8 673.1,17.2 676.0,21.8 678.8,15.2 681.6,15.9 684.4,19.1 687.2,23.7 690.0,25.0"
+        fill="none" stroke="#f97316" stroke-width="2" stroke-linejoin="round"
+      />
+
+      <!-- 52W LOW marker -->
+      <circle cx="32.5" cy="190.0" r="4" fill="#ef4444" opacity="0.8"/>
+      <text x="38" y="204" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#ef4444">52W低 932</text>
+
+      <!-- 52W HIGH marker -->
+      <circle cx="664.7" cy="10.0" r="4" fill="#22c55e" opacity="0.8"/>
+      <text x="608" y="9" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#22c55e">52W高 2,310</text>
+
+      <!-- Current price marker -->
+      <circle cx="690.0" cy="25.0" r="4" fill="#f97316"/>
+      <text x="688" y="38" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#f97316" text-anchor="end">現 2,195</text>
+
+      <!-- X-axis date labels -->
+      <text x="10" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2025-05</text>
+      <text x="116" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2025-08</text>
+      <text x="233" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2025-11</text>
+      <text x="357" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2026-02</text>
+      <text x="474" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2026-04</text>
+      <text x="650" y="214" font-family="JetBrains Mono,monospace" font-size="8" fill="#aaa">2026-05</text>
+    </svg>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;font-family:'JetBrains Mono',monospace;">
+      橘線 = 收盤價 · 藍虛線 = MA50（~2,028）· 圖示：從 932 底部到 2,310 高點後回落至現價 2,195
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 4 — PRODUCTS DEEP DIVE
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="products">
+  <div class="section-eyebrow">CORE PRODUCT DEEP DIVE</div>
+  <h2 class="section-title">核心驅動產品深拆：<span class="accent">CoWoS + N2</span></h2>
+  <p class="section-desc">兩大 AI 代工引擎的現況、量級、護城河與展望（五欄完整分析）</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>維度</th>
+          <th>CoWoS（先進封裝）</th>
+          <th>N2（2nm 製程）</th>
+          <th>N3（3nm — 當前主力）</th>
+          <th>A16（1.6nm — 次世代）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>現況 / 規模</strong></td>
+          <td class="orange">US$9.6B（2025 全年）<br>為 InFO 的 2.5 倍</td>
+          <td>2026H2 量產爬坡中</td>
+          <td>量產運行中<br>主力客戶 Apple/Nvidia</td>
+          <td>2026 末風險試產</td>
+        </tr>
+        <tr>
+          <td><strong>主要客戶</strong></td>
+          <td>Nvidia（H/GB 系列 GPU）<br>AMD（MI 系列）</td>
+          <td>Apple A20（預期）<br>Nvidia 下代 GPU</td>
+          <td>Apple、Qualcomm<br>Nvidia（部分）</td>
+          <td>待定（試產客戶未公開）</td>
+        </tr>
+        <tr>
+          <td><strong>成長驅動</strong></td>
+          <td>AI 加速器需求爆發<br>2026 年繼續擴產</td>
+          <td>ASP 提升 + 良率爬坡<br>毛利率貢獻遞增</td>
+          <td>Apple 年度換代<br>AI 推論晶片滲透</td>
+          <td>下一輪製程節點<br>超越摩爾定律</td>
+        </tr>
+        <tr>
+          <td><strong>護城河</strong></td>
+          <td>唯一成熟量產<br>Samsung 無對等能力</td>
+          <td>GAA 架構領先<br>Samsung 2nm 良率落後</td>
+          <td>已商業規模化<br>穩定良率優勢</td>
+          <td>早期技術壁壘<br>專利佈局優勢</td>
+        </tr>
+        <tr>
+          <td><strong>財務貢獻</strong></td>
+          <td class="green">2025 已 US$9.6B<br>HPC 收入重要支柱</td>
+          <td>2026H2 拉升 ASP<br>毛利率改善預期</td>
+          <td>當前主要營收來源<br>穩定貢獻</td>
+          <td>2027+ 長期期待</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-2" style="margin-top:16px;">
+    <div class="status-card" style="border-left-color:var(--orange);">
+      <div class="metric-label">CoWoS 2025 關鍵數字</div>
+      <div class="metric">US$9.6B</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">較 InFO 成長 2.5 倍（96 億美元）；2026 年持續擴產以應對 Nvidia/AMD 需求。Apple 已非唯一 capex 驅動者，HPC（AI）主導封裝需求。</div>
+    </div>
+    <div class="status-card green-border">
+      <div class="metric-label">N2 量產時程</div>
+      <div class="metric">2026 H2</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">良率爬坡驅動 ASP 提升與毛利率改善。Samsung Foundry 2nm GAA 良率仍落後，競爭格局對台積電持續有利。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 5 — EARNINGS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="earnings">
+  <div class="section-eyebrow">最近法說會</div>
+  <h2 class="section-title">Q1 2026 法說會：<span class="accent">三大超預期 + 全年上修</span></h2>
+  <p class="section-desc">2026 年第一季法說會重點摘要與市場反應，數字以 context.md 為準。</p>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:2px;margin-bottom:4px;">Q1 2026 法說會重點</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">三大超預期亮點</div>
+      </div>
+      <span class="pill pill-green">全面超出市場預期</span>
+    </div>
+    <div class="card-grid-3">
+      <div style="padding:16px;background:#f8f7f4;border-radius:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);margin-bottom:6px;">亮點一</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;">毛利率 66.2% 破頂</div>
+        <div style="font-size:12px;color:var(--text-muted);">超出財測上緣 65%，顯示定價權強勁，海外廠稀釋影響低於預期</div>
+      </div>
+      <div style="padding:16px;background:#f8f7f4;border-radius:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);margin-bottom:6px;">亮點二</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;">Q2 指引 US$40.2B</div>
+        <div style="font-size:12px;color:var(--text-muted);">QoQ 再成長 +12.6%，AI 需求能見度高，訂單無降溫跡象</div>
+      </div>
+      <div style="padding:16px;background:#f8f7f4;border-radius:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);margin-bottom:6px;">亮點三</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;">全年 capex 上修</div>
+        <div style="font-size:12px;color:var(--text-muted);">管理層將全年 capex 上修至區間上緣，理由：多年期 AI 趨勢超出現有產能</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>財測項目</th>
+          <th>Q1 2026 實際</th>
+          <th>Q1 財測</th>
+          <th>Q2 2026 指引</th>
+          <th>達成狀況</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>營收</strong></td>
+          <td class="mono">US$35.71B</td>
+          <td class="mono">—</td>
+          <td class="mono orange">US$40.2B</td>
+          <td><span class="pill pill-green">超預期</span></td>
+        </tr>
+        <tr>
+          <td><strong>毛利率</strong></td>
+          <td class="mono">66.2%</td>
+          <td class="mono">63–65%</td>
+          <td class="mono">~65–67%（市場估）</td>
+          <td><span class="pill pill-green">大幅超出上緣</span></td>
+        </tr>
+        <tr>
+          <td><strong>YoY 成長</strong></td>
+          <td class="mono">+35.1%（NT$）</td>
+          <td class="mono">—</td>
+          <td class="mono">—</td>
+          <td><span class="pill pill-green">強勁</span></td>
+        </tr>
+        <tr>
+          <td><strong>海外廠毛利稀釋</strong></td>
+          <td class="mono">&lt; 2pp（Q1 初估）</td>
+          <td class="mono">~2pp</td>
+          <td class="mono">2026–2028 累積 3–4pp</td>
+          <td><span class="pill pill-orange">持續觀察</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:2px;margin-bottom:8px;">市場反應</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.7;">
+      法說會後市場正面反應，股價於 2026-04-27 觸及 52W 高 2,310 後開始回落，外資調節壓力浮現。
+      管理層語氣積極（AI 需求多年期超出產能），惟海外廠毛利稀釋風險仍受市場關注。
+      股癌（EP661/EP662）指出市場「無意願給更高估值」，視為防守性標的。
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 6 — SUPPLY CHAIN
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="supplychain">
+  <div class="section-eyebrow">SUPPLY CHAIN</div>
+  <h2 class="section-title">供應鏈流向：<span class="accent">ASML → 台積電 → 終端</span></h2>
+  <p class="section-desc">從上游 EUV 設備商到台積電，再到主要晶片客戶與終端市場的完整流向。</p>
+
+  <div class="supply-chain-flow" style="margin-bottom:24px;">
+    <div class="supply-node" style="border-left:3px solid #a855f7;">
+      <div class="supply-node-label" style="color:#a855f7;">上游設備</div>
+      <div class="supply-node-title">ASML</div>
+      <div class="supply-node-items">EUV 微影機<br>High-NA EUV（A16 用）<br>唯一供應商</div>
+    </div>
+    <div class="supply-arrow-wrap"><div class="supply-arrow">→</div></div>
+    <div class="supply-node" style="border-left:3px solid #f97316;">
+      <div class="supply-node-label">代工核心</div>
+      <div class="supply-node-title">台積電 TSMC</div>
+      <div class="supply-node-items">N3 量產 / N2 爬坡<br>CoWoS 先進封裝<br>A16 2026末試產</div>
+    </div>
+    <div class="supply-arrow-wrap"><div class="supply-arrow">→</div></div>
+    <div class="supply-node" style="border-left:3px solid #3b82f6;">
+      <div class="supply-node-label">AI 算力客戶</div>
+      <div class="supply-node-title">Nvidia / AMD</div>
+      <div class="supply-node-items">H100/H200/GB300<br>MI300/MI400 系列<br>CoWoS 需求主力</div>
+    </div>
+    <div class="supply-arrow-wrap"><div class="supply-arrow">→</div></div>
+    <div class="supply-node" style="border-left:3px solid #22c55e;">
+      <div class="supply-node-label">消費電子</div>
+      <div class="supply-node-title">Apple / Qualcomm</div>
+      <div class="supply-node-items">Apple A19（N2 預期）<br>Snapdragon 系列<br>年度換代驅動</div>
+    </div>
+    <div class="supply-arrow-wrap"><div class="supply-arrow">→</div></div>
+    <div class="supply-node" style="border-left:3px solid #f59e0b;">
+      <div class="supply-node-label">網路/資料中心</div>
+      <div class="supply-node-title">Broadcom</div>
+      <div class="supply-node-items">AI ASIC 客製晶片<br>XPU / TPU 代工<br>Google/Meta 需求</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:2px;margin-bottom:12px;">供應鏈關鍵洞察</div>
+    <div class="card-grid-2">
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;">雙重寡頭護城河</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">ASML 是唯一 EUV 供應商，台積電是唯一量產先進節點 + CoWoS 的代工廠，形成上下游雙重鎖定，無法替代。</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;">Apple 不再主導 Capex</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">2025 年 CoWoS US$9.6B 主要由 Nvidia/AMD 驅動，AI HPC 需求已超越消費電子成為成長主引擎。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG 供應鏈價值流向圖 -->
+  <div style="margin-top:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:2px;margin-bottom:16px;">SUPPLY CHAIN VALUE FLOW</div>
+    <svg viewBox="0 0 760 280" width="100%" style="display:block;min-height:250px;" preserveAspectRatio="xMidYMid meet" role="img" aria-label="台積電供應鏈價值流向圖">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+        </marker>
+      </defs>
+
+      <!-- Row 1 labels -->
+      <text x="60" y="24" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle" letter-spacing="1">上游設備</text>
+      <text x="230" y="24" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle" letter-spacing="1">代工核心</text>
+      <text x="430" y="24" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle" letter-spacing="1">AI 算力客戶</text>
+      <text x="630" y="24" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle" letter-spacing="1">終端市場</text>
+
+      <!-- ASML node -->
+      <rect x="10" y="36" width="100" height="80" rx="10" ry="10" fill="#f3f0ff" stroke="#a855f7" stroke-width="2"/>
+      <text x="60" y="62" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">ASML</text>
+      <text x="60" y="80" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">EUV 微影機</text>
+      <text x="60" y="96" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">唯一供應商</text>
+      <text x="60" y="112" font-family="JetBrains Mono,monospace" font-size="9" fill="#a855f7" text-anchor="middle">壟斷</text>
+
+      <!-- Arrow ASML → TSMC -->
+      <line x1="110" y1="76" x2="172" y2="76" stroke="#f97316" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="141" y="70" font-family="JetBrains Mono,monospace" font-size="9" fill="#f97316" text-anchor="middle">EUV</text>
+
+      <!-- TSMC node -->
+      <rect x="175" y="36" width="112" height="80" rx="10" ry="10" fill="#fff8f3" stroke="#f97316" stroke-width="2.5"/>
+      <text x="231" y="62" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">台積電</text>
+      <text x="231" y="78" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">N3/N2/A16</text>
+      <text x="231" y="94" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">CoWoS 封裝</text>
+      <text x="231" y="110" font-family="JetBrains Mono,monospace" font-size="9" fill="#f97316" text-anchor="middle">龍頭 · 不可替代</text>
+
+      <!-- Arrow TSMC → Nvidia/AMD -->
+      <line x1="287" y1="76" x2="352" y2="76" stroke="#f97316" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="320" y="70" font-family="JetBrains Mono,monospace" font-size="9" fill="#f97316" text-anchor="middle">晶片</text>
+
+      <!-- Nvidia/AMD node -->
+      <rect x="355" y="36" width="150" height="80" rx="10" ry="10" fill="#f0f9ff" stroke="#3b82f6" stroke-width="2"/>
+      <text x="430" y="60" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">Nvidia / AMD</text>
+      <text x="430" y="78" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">H/GB/MI 系列</text>
+      <text x="430" y="94" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">CoWoS 需求主力</text>
+      <text x="430" y="110" font-family="JetBrains Mono,monospace" font-size="9" fill="#3b82f6" text-anchor="middle">US$9.6B CoWoS</text>
+
+      <!-- Arrow Nvidia → Cloud -->
+      <line x1="505" y1="76" x2="565" y2="76" stroke="#f97316" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="535" y="70" font-family="JetBrains Mono,monospace" font-size="9" fill="#f97316" text-anchor="middle">GPU</text>
+
+      <!-- Cloud/End node -->
+      <rect x="568" y="36" width="132" height="80" rx="10" ry="10" fill="#f0fff4" stroke="#22c55e" stroke-width="2"/>
+      <text x="634" y="60" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">雲端 / AI</text>
+      <text x="634" y="78" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">AWS / Azure / GCP</text>
+      <text x="634" y="94" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">Meta / Google</text>
+      <text x="634" y="110" font-family="JetBrains Mono,monospace" font-size="9" fill="#22c55e" text-anchor="middle">AI Infra Capex</text>
+
+      <!-- Row 2: Apple/Qualcomm branch -->
+      <text x="231" y="160" font-family="JetBrains Mono,monospace" font-size="9" fill="#888" text-anchor="middle">↓ 消費電子</text>
+
+      <!-- Arrow TSMC → Apple -->
+      <line x1="231" y1="116" x2="231" y2="166" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Apple/Qualcomm node -->
+      <rect x="155" y="169" width="152" height="68" rx="10" ry="10" fill="#f0fff4" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="231" y="193" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">Apple / Qualcomm</text>
+      <text x="231" y="211" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">A19（N2 預期）</text>
+      <text x="231" y="227" font-family="JetBrains Mono,monospace" font-size="9" fill="#22c55e" text-anchor="middle">年度換代驅動</text>
+
+      <!-- Broadcom branch -->
+      <text x="430" y="160" font-family="JetBrains Mono,monospace" font-size="9" fill="#888" text-anchor="middle">↓ AI ASIC</text>
+      <line x1="430" y1="116" x2="430" y2="166" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <rect x="350" y="169" width="160" height="68" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="430" y="193" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">Broadcom</text>
+      <text x="430" y="211" font-family="JetBrains Mono,monospace" font-size="10" fill="#888" text-anchor="middle">XPU / TPU ASIC</text>
+      <text x="430" y="227" font-family="JetBrains Mono,monospace" font-size="9" fill="#f59e0b" text-anchor="middle">Google/Meta 客製</text>
+
+      <!-- Bottom legend -->
+      <line x1="30" y1="268" x2="60" y2="268" stroke="#f97316" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="68" y="272" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">主要訂單流向</text>
+      <line x1="200" y1="268" x2="230" y2="268" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="238" y="272" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">消費/ASIC 分支</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 7 — 股癌 SIGNALS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="gooaye">
+  <div class="section-eyebrow">股癌 GOOAYE 訊號時間軸</div>
+  <h2 class="section-title">EP624 → EP662：<span class="accent">看多 → 觀望進程</span></h2>
+  <p class="section-desc">股癌（孟恭）podcast 對台積電看法的演化路徑，來源：股癌 podcast 逐字稿整理（EP624–EP662）。</p>
+
+  <div class="timeline" style="margin-bottom:24px;">
+    <div class="tl-card">
+      <div class="tl-ep">EP624</div>
+      <div class="tl-date">早期看多起點</div>
+      <div class="tl-content">「台積電摸到 2000 我覺得是非常容易的」在股價 ~1,400–1,600 區間看多，2,000 為第一目標。</div>
+      <span class="pill pill-green">積極看多</span>
+    </div>
+    <div class="tl-card">
+      <div class="tl-ep">EP654</div>
+      <div class="tl-date">中期</div>
+      <div class="tl-content">台股重要權值股，訂單穩定即可預估價格與指數位置，加碼邏輯清晰。</div>
+      <span class="pill pill-green">看多 / 加碼</span>
+    </div>
+    <div class="tl-card">
+      <div class="tl-ep">EP657</div>
+      <div class="tl-date">近期</div>
+      <div class="tl-content">投信買盤進、外資賣壓大、股價承壓。「長期看好，目標價 2330 元非上限」心理目標首次明確。</div>
+      <span class="pill pill-orange">長期看好</span>
+    </div>
+    <div class="tl-card">
+      <div class="tl-ep">EP661</div>
+      <div class="tl-date">2026-05-13</div>
+      <div class="tl-content">市場無意願給更高估值，孟恭認為台積電是「防守性標的」，態度轉為中性觀望。</div>
+      <span class="pill pill-gray">觀望</span>
+    </div>
+    <div class="tl-card">
+      <div class="tl-ep">EP662</div>
+      <div class="tl-date">2026-05-16</div>
+      <div class="tl-content">短期毛利率下滑不必過度擔心，後面有機會回升。整體態度維持觀望，不急追。</div>
+      <span class="pill pill-gray">觀望</span>
+    </div>
+  </div>
+
+  <div class="thesis-box">
+    <div class="chain-label">股癌淨觀點（EP624→EP662 演化結論）</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.85);line-height:1.9;">
+      <strong style="color:var(--orange);">長期結構性看多：</strong>AI 代工龍頭、訂單能見度高、N2/CoWoS 驅動多年成長。<br>
+      <strong style="color:#60a5fa;">短期觀望：</strong>外資賣壓 + 毛利率雜訊 + 匯率逆風，市場目前無意願給更高估值。<br>
+      <strong style="color:var(--orange);">心理目標價：2,330 元（非上限）</strong>，現價 2,195 距此 +6.1%，逢回佈局優於急追。
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 8 — RISKS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="risks">
+  <div class="section-eyebrow">RISKS</div>
+  <h2 class="section-title">風險矩陣：<span class="accent">6 大風險 + 時間窗</span></h2>
+  <p class="section-desc">依嚴重度排序。紅 = 高風險、金 = 中等、藍 = 短期技術面。</p>
+
+  <!-- SVG 風險時間軸 -->
+  <div style="margin-bottom:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:2px;margin-bottom:16px;">RISK TIMELINE OVERVIEW</div>
+    <svg viewBox="0 0 720 270" width="100%" style="display:block;min-height:260px;" preserveAspectRatio="xMidYMid meet" role="img" aria-label="台積電六大風險時間窗示意圖">
+      <!-- Timeline axis -->
+      <line x1="80" y1="240" x2="700" y2="240" stroke="#e5e3de" stroke-width="2"/>
+      <!-- Arrow at end -->
+      <polygon points="700,236 710,240 700,244" fill="#e5e3de"/>
+
+      <!-- Time labels -->
+      <text x="80" y="258" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">現在</text>
+      <text x="220" y="258" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">3M</text>
+      <text x="360" y="258" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">6M</text>
+      <text x="500" y="258" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">12M</text>
+      <text x="640" y="258" font-family="JetBrains Mono,monospace" font-size="9" fill="#aaa" text-anchor="middle">18M+</text>
+      <!-- Tick marks -->
+      <line x1="80" y1="237" x2="80" y2="243" stroke="#aaa" stroke-width="1"/>
+      <line x1="220" y1="237" x2="220" y2="243" stroke="#aaa" stroke-width="1"/>
+      <line x1="360" y1="237" x2="360" y2="243" stroke="#aaa" stroke-width="1"/>
+      <line x1="500" y1="237" x2="500" y2="243" stroke="#aaa" stroke-width="1"/>
+      <line x1="640" y1="237" x2="640" y2="243" stroke="#aaa" stroke-width="1"/>
+
+      <!-- R05: 外資賣壓 / 技術面 (短期 1-2M) -->
+      <rect x="80" y="200" width="100" height="30" rx="6" ry="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="130" y="218" font-family="Inter,sans-serif" font-size="10" fill="#1e40af" text-anchor="middle" font-weight="600">R05 外資賣壓</text>
+      <line x1="130" y1="230" x2="130" y2="240" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- R06: 高基期估值 (短期 3-6M) -->
+      <rect x="200" y="200" width="160" height="30" rx="6" ry="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="280" y="218" font-family="Inter,sans-serif" font-size="10" fill="#1e40af" text-anchor="middle" font-weight="600">R06 高基期估值</text>
+      <line x1="280" y1="230" x2="280" y2="240" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- R01: NTD升值 (短中期) -->
+      <rect x="80" y="155" width="280" height="30" rx="6" ry="6" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+      <text x="220" y="174" font-family="Inter,sans-serif" font-size="11" fill="#991b1b" text-anchor="middle" font-weight="700">R01 新台幣升值（最直接影響）</text>
+      <line x1="220" y1="185" x2="220" y2="200" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- R02: 海外廠稀釋 (中長期) -->
+      <rect x="240" y="110" width="360" height="30" rx="6" ry="6" fill="#fef9c3" stroke="#f59e0b" stroke-width="2"/>
+      <text x="420" y="129" font-family="Inter,sans-serif" font-size="11" fill="#92400e" text-anchor="middle" font-weight="700">R02 海外廠毛利稀釋（2026–2028）</text>
+      <line x1="420" y1="140" x2="420" y2="155" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- R04: AI Capex循環 (中期) -->
+      <rect x="380" y="155" width="240" height="30" rx="6" ry="6" fill="#fef9c3" stroke="#f59e0b" stroke-width="2"/>
+      <text x="500" y="174" font-family="Inter,sans-serif" font-size="11" fill="#92400e" text-anchor="middle" font-weight="700">R04 AI Capex 循環風險</text>
+      <line x1="500" y1="185" x2="500" y2="200" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- R03: 地緣政治 (尾部, always) -->
+      <rect x="80" y="60" width="600" height="30" rx="6" ry="6" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="380" y="79" font-family="Inter,sans-serif" font-size="11" fill="#ef4444" text-anchor="middle" font-weight="600">R03 地緣政治尾部風險（低機率・高衝擊・隨時存在）</text>
+
+      <!-- Legend -->
+      <rect x="80" y="22" width="12" height="12" rx="2" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="98" y="33" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">高風險</text>
+      <rect x="160" y="22" width="12" height="12" rx="2" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="178" y="33" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">中風險</text>
+      <rect x="240" y="22" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="258" y="33" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">短期技術面</text>
+      <rect x="360" y="22" width="12" height="12" rx="2" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="378" y="33" font-family="JetBrains Mono,monospace" font-size="9" fill="#888">尾部風險</text>
+    </svg>
+  </div>
+
+  <div class="risk-grid">
+    <div class="risk-item">
+      <div class="risk-num">RISK 01 · 高</div>
+      <div class="risk-title">新台幣升值</div>
+      <div class="risk-desc">約 75% 營收以美元計價，NTD 走強直接壓縮毛利率與 EPS。為現階段最直接的獲利稀釋因子。</div>
+      <div class="risk-window">時間窗：短-中期 2025–2026</div>
+    </div>
+    <div class="risk-item medium">
+      <div class="risk-num">RISK 02 · 中</div>
+      <div class="risk-title">海外廠毛利稀釋</div>
+      <div class="risk-desc">Arizona/熊本/德國廠爬坡期初期稀釋 2pp，利用率提升後可累積至 3–4pp。長期影響。</div>
+      <div class="risk-window">時間窗：2026–2028 持續</div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">RISK 03 · 尾部</div>
+      <div class="risk-title">地緣政治</div>
+      <div class="risk-desc">台海情勢、美國對中出口管制波及。低機率但高影響，為台積電長期最大尾部風險。</div>
+      <div class="risk-window">時間窗：尾部風險，隨時</div>
+    </div>
+    <div class="risk-item medium">
+      <div class="risk-num">RISK 04 · 中</div>
+      <div class="risk-title">AI 資本支出循環</div>
+      <div class="risk-desc">營收高度連動雲端/AI capex。若超大型雲端商放緩 AI 投資，CoWoS 訂單首當其衝。</div>
+      <div class="risk-window">時間窗：2026H2–2027</div>
+    </div>
+    <div class="risk-item low">
+      <div class="risk-num">RISK 05 · 短期</div>
+      <div class="risk-title">外資賣壓 / 技術面</div>
+      <div class="risk-desc">股價在 MA50（~2,028）附近震盪，外資調節未止。短期動能偏弱，不宜急追。</div>
+      <div class="risk-window">時間窗：近期 1–2 個月</div>
+    </div>
+    <div class="risk-item low">
+      <div class="risk-num">RISK 06 · 短期</div>
+      <div class="risk-title">高基期估值</div>
+      <div class="risk-desc">12 個月 +128% 後，獲利了結與評價回檔風險。本益比 ~24–25x 已反映大部分正面預期。</div>
+      <div class="risk-window">時間窗：短期 3–6 個月</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 9 — CATALYSTS
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="catalysts">
+  <div class="section-eyebrow">CATALYSTS</div>
+  <h2 class="section-title">催化劑：<span class="accent">5 大命名事件 + 時程</span></h2>
+  <p class="section-desc">驗證多頭邏輯的關鍵事件節點，每個催化劑均有明確時程與觸發條件。</p>
+
+  <div class="catalyst-list">
+    <div class="catalyst-item">
+      <div class="catalyst-timing">2026 H2</div>
+      <div class="catalyst-body">
+        <div class="catalyst-name">N2（2nm）量產爬坡</div>
+        <div class="catalyst-desc">製程從試產轉正式量產，良率提升帶動 ASP 上升與毛利率改善。為最重要的中期財務催化劑，預計 2026 下半年開始顯著貢獻。</div>
+      </div>
+      <span class="pill pill-orange">關鍵</span>
+    </div>
+    <div class="catalyst-item">
+      <div class="catalyst-timing">2026 全年</div>
+      <div class="catalyst-body">
+        <div class="catalyst-name">CoWoS 產能持續擴張</div>
+        <div class="catalyst-desc">承接 Nvidia GB 系列及 AMD MI-next AI 加速器需求。2025 年已達 US$9.6B，2026 年擴產目標持續拉高上限。</div>
+      </div>
+      <span class="pill pill-green">持續</span>
+    </div>
+    <div class="catalyst-item">
+      <div class="catalyst-timing">~2026-07</div>
+      <div class="catalyst-body">
+        <div class="catalyst-name">Q2 2026 法說會</div>
+        <div class="catalyst-desc">驗證 US$40.2B 營收指引達成情況、全年 capex 是否再上修。毛利率是否維持 65%+ 為市場焦點，若超預期可成為短期股價催化劑。</div>
+      </div>
+      <span class="pill pill-blue">即將</span>
+    </div>
+    <div class="catalyst-item">
+      <div class="catalyst-timing">2026 末</div>
+      <div class="catalyst-body">
+        <div class="catalyst-name">A16（1.6nm）風險試產</div>
+        <div class="catalyst-desc">進入 1.6nm 節點確認技術路徑，鞏固「台積電製程永遠領先」敘事，提升長期估值天花板。</div>
+      </div>
+      <span class="pill pill-gray">長期</span>
+    </div>
+    <div class="catalyst-item">
+      <div class="catalyst-timing">2026 年度</div>
+      <div class="catalyst-body">
+        <div class="catalyst-name">全年 Capex 上修確認</div>
+        <div class="catalyst-desc">管理層確認全年資本支出再上修，反映 AI 產能擴張決心，為訂單能見度高的外部信號。</div>
+      </div>
+      <span class="pill pill-green">確認中</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECTION 10 — VALUATION & CONCLUSION
+═══════════════════════════════════════ -->
+<div class="section-divider"></div>
+<section id="valuation">
+  <div class="section-eyebrow">估值與結論</div>
+  <h2 class="section-title">三情境目標價：<span class="accent">保守 2,000 / 基準 2,330 / 樂觀 2,500</span></h2>
+  <p class="section-desc">以股癌淨觀點為基準情境，保守反映短期風險，樂觀反映 N2 + CoWoS 超預期情境。</p>
+
+  <div class="valuation-grid">
+    <div class="val-card">
+      <div class="val-label">保守情境</div>
+      <div class="val-price">2,000</div>
+      <div class="val-upside" style="color:var(--red);">-8.9% ↓</div>
+      <div class="val-assumption">外資持續調節 + NTD 升值侵蝕 EPS + AI 資本支出降溫信號。股價回測關鍵支撐 2,000 元整數關。</div>
+    </div>
+    <div class="val-card base">
+      <div class="val-label">基準情境（股癌心理目標）</div>
+      <div class="val-price">2,330</div>
+      <div class="val-upside">+6.1% ↑</div>
+      <div class="val-assumption">Q2 法說會驗證 US$40.2B、N2 爬坡順利、外資賣壓消化。股癌 EP657 明確提及「2,330 非上限」。</div>
+    </div>
+    <div class="val-card">
+      <div class="val-label">樂觀情境</div>
+      <div class="val-price">2,500</div>
+      <div class="val-upside" style="color:var(--green);">+13.9% ↑</div>
+      <div class="val-assumption">假設：N2 良率提前達標 + CoWoS 2026 突破 US$15B + 毛利率維持 67%+，市場給予更高估值溢價。</div>
+    </div>
+  </div>
+
+  <div class="verdict-box">
+    <div class="verdict-rating-block">
+      <div class="verdict-rating-eyebrow">投資評等</div>
+      <div class="verdict-rating-main">WATCH</div>
+      <div class="verdict-rating-sub">逢回累積<br>非空頭，非急追</div>
+      <div style="margin-top:12px;">
+        <span class="pill pill-orange">觀望</span>
+      </div>
+    </div>
+    <div class="verdict-divider"></div>
+    <div class="verdict-text">
+      <p>
+        台積電是 AI 超週期中<strong>唯一不可替代的代工平台</strong>。Q1 2026 毛利率 66.2% 超出財測上緣、淨利 NT$572.48B YoY +58%、Q2 指引 US$40.2B 再創高，基本面無懈可擊。
+      </p>
+      <p>
+        然而，12 個月 +128% 的超額回報已充分定價。外資賣壓、股價在 MA50（~2,028）附近震盪、新台幣升值壓力與海外廠毛利稀釋為短期主要負面因子。股癌（EP661/EP662）亦轉為「觀望，市場無意願給更高估值」。
+      </p>
+      <p>
+        <strong>操作邏輯：逢回至 2,000–2,100 區間分批累積，目標 2,330（股癌心理目標，非上限）。</strong>樂觀情境 2,500 需 N2 良率提前超預期 + CoWoS 訂單再加碼為前提。不建議在現價 2,195 急追，等待 Q2 法說會（~2026/7）確認後再加碼。
+      </p>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:20px;">
+    <table>
+      <thead>
+        <tr>
+          <th>資料類別</th>
+          <th>狀態</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Q1 2026 損益表</td><td><span class="pill pill-green">完整</span></td><td>市場資料即時數據</td></tr>
+        <tr><td>股癌 EP624–EP662 訊號</td><td><span class="pill pill-green">完整</span></td><td>股癌 podcast 逐字稿整理</td></tr>
+        <tr><td>12M 價格序列（243 日）</td><td><span class="pill pill-green">完整</span></td><td>市場資料，已繪製走勢圖 + MA50</td></tr>
+        <tr><td>P/E（官方）</td><td><span class="pill pill-gray">N/A</span></td><td>yfinance DNS 阻擋；推估 24–25x</td></tr>
+        <tr><td>Beta</td><td><span class="pill pill-gray">N/A</span></td><td>服務端受限</td></tr>
+        <tr><td>殖利率</td><td><span class="pill pill-gray">N/A</span></td><td>服務端受限</td></tr>
+        <tr><td>法人持股比例</td><td><span class="pill pill-gray">N/A</span></td><td>yfinance 無回應</td></tr>
+        <tr><td>Porter Five Forces（TW）</td><td><span class="pill pill-red">不採用</span></td><td>量化模型回傳資料不足，全 50 分無效</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:32px;padding:20px;background:#f8f7f4;border-radius:10px;font-size:12px;color:var(--text-muted);line-height:1.7;">
+    <strong style="color:var(--text);">免責聲明：</strong>本筆記為個人研究整理，<strong style="color:var(--text);">不構成任何投資建議</strong>。作者並非執業投資顧問（非執業投資顧問身分），本內容完全免費且不收費。
+    <br>所有投資決策及其風險由讀者<strong style="color:var(--text);">自行承擔風險</strong>，自行評估後做出決策。所有數字以公開資訊為唯一來源，資料缺口誠實標 N/A，未編造數字。
+    <br><br>
+    <strong style="color:var(--text);">NIM draft 修正清單（Stage 3 已校正）：</strong>
+    (1) Q1 2026 營收 NT$1,134.1B 即 1.13 兆（非億）；
+    (2) CoWoS 2025 US$9.6B（96 億美元，非 9.6 億）；
+    (3) Q2 財測 US$40.2B（非億）；
+    (4) 「TAM 1.86 萬億」已更正為市值估計 ~US$1.86T；
+    (5) 評等由「BUY」調整為「WATCH / 逢回累積」，對齊股癌淨觀點；
+    (6) 三情境目標價：保守 2,000 / 基準 2,330 / 樂觀 2,500。
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div style="background:#1a1a1a;padding:32px 40px;margin-top:0;">
+  <div style="max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#f97316;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;">AI RESEARCH TEAM</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);">2330 台積電個人研究筆記 · 2026-05-20</div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.25);text-align:right;line-height:1.7;">
+      來源：市場資料與量化訊號 · web search<br>
+      股癌 podcast EP624–EP662 · 個人研究筆記
+    </div>
+  </div>
+</div>
+
+<script>
+// Nav scroll progress
+window.addEventListener('scroll', function() {
+  var max = document.documentElement.scrollHeight - window.innerHeight;
+  var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+  document.getElementById('navProgress').style.width = pct + '%';
+});
+</script>
+</body>
+</html>

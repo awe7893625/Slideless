@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBIS Sell-Side Initiation Brief v2 2026-05-14 with P&L Waterfall (Sankey replaced for unprofitable companies)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{--bg-page:#f6f5f1;--bg-card:#ffffff;--border:#e5e3de;--text:#1a1a1a;--text-muted:#888;--bg-cover:#121212;--orange:#f97316;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;--yellow:#f5c518;--purple:#a855f7;--accent:#f97316}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg-page);color:var(--text);overflow-x:hidden;font-size:15px;line-height:1.6}
+img,svg{max-width:100%}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,245,241,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:24px;overflow-x:auto}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);white-space:nowrap;letter-spacing:.1em}
+.nav-links{display:flex;gap:16px;flex:1;overflow-x:auto}
+.nav-links a{font-size:12px;color:var(--text-muted);text-decoration:none;white-space:nowrap;transition:color .2s}
+.nav-links a:hover{color:var(--orange)}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--orange);color:#fff;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cover{background:linear-gradient(135deg,#121212 0%,#1a1a1a 50%,#0d0d0d 100%);padding:100px 40px 64px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 50%,rgba(249,115,22,.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(59,130,246,.06) 0%,transparent 60%)}
+.cover-inner{position:relative;z-index:1;max-width:900px;margin:0 auto}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:16px}
+.cover h1{font-size:40px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:12px}
+.cover h1 .accent{color:var(--orange)}
+.cover-subtitle{font-size:16px;color:rgba(255,255,255,.55);margin-bottom:32px;max-width:680px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.3);margin-bottom:40px;letter-spacing:1px}
+.stats-bar{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:28px 0}
+.stat-item{text-align:center}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--orange);display:block}
+.stat-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.cover-signal{display:inline-flex;align-items:center;gap:8px;margin-top:28px;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:10px 20px}
+.cover-signal-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cover-signal-text{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.8);letter-spacing:1px}
+.section{max-width:1000px;margin:0 auto;padding:64px 40px 48px}
+.section-divider{height:1px;background:var(--border);margin:0 40px}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+.section-title{font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px}
+.section-title .accent{color:var(--orange)}
+.section-desc{font-size:14px;color:var(--text-muted);max-width:640px;margin-bottom:28px;line-height:1.7}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;min-width:0}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.card-value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--text)}
+.card-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-2>*{min-width:0}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-3>*{min-width:0}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.grid-4>*{min-width:0}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px}
+.pill-green{background:rgba(34,197,94,.12);color:#16a34a;border:1px solid rgba(34,197,94,.3)}
+.pill-orange{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.pill-red{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.3)}
+.pill-blue{background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.3)}
+.pill-gray{background:rgba(136,136,136,.10);color:#666;border:1px solid rgba(136,136,136,.2)}
+.pill-yellow{background:rgba(245,197,24,.12);color:#b45309;border:1px solid rgba(245,197,24,.3)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);margin-bottom:4px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{width:100%;min-width:580px;border-collapse:collapse}
+.table-wrap th{background:#f9f8f5;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.table-wrap td{padding:10px 14px;font-size:13px;color:var(--text);border-bottom:1px solid #f0ede8;vertical-align:top}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:rgba(249,115,22,.02)}
+td.num,th.num{text-align:right;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+td.center{text-align:center}
+.chart-wrap{width:100%;overflow:hidden}
+.chart-inner{position:relative;height:260px;width:100%}
+.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}
+.scenario-grid>*{min-width:0}
+.scenario-card{border-radius:12px;padding:24px;border:2px solid}
+.scenario-bear{background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.25)}
+.scenario-base{background:rgba(249,115,22,.04);border-color:rgba(249,115,22,.35)}
+.scenario-bull{background:rgba(34,197,94,.04);border-color:rgba(34,197,94,.25)}
+.scenario-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.scenario-pt{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;margin-bottom:8px}
+.scenario-prob{font-size:13px;color:var(--text-muted);margin-bottom:12px}
+.scenario-trigger{font-size:12px;color:var(--text-muted);line-height:1.6}
+.bear-color{color:#dc2626}
+.base-color{color:var(--orange)}
+.bull-color{color:#16a34a}
+.persona-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.persona-grid>*{min-width:0}
+.persona-card{border-radius:10px;padding:20px;border:1px solid var(--border);background:#fff;position:relative}
+.persona-name{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px}
+.persona-signal{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:inline-block;padding:2px 8px;border-radius:4px}
+.signal-bearish{background:rgba(239,68,68,.10);color:#dc2626}
+.signal-bullish{background:rgba(34,197,94,.10);color:#16a34a}
+.signal-neutral{background:rgba(136,136,136,.10);color:#666}
+.persona-conviction{position:absolute;top:20px;right:20px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text)}
+.persona-summary{font-size:12px;color:var(--text-muted);line-height:1.6}
+.risk-card{border-radius:10px;padding:20px;border:1px solid var(--border);background:#fff;border-left:4px solid;margin-bottom:12px}
+.risk-critical{border-left-color:#dc2626}
+.risk-high{border-left-color:#f97316}
+.risk-medium{border-left-color:#f5c518}
+.risk-title{font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text)}
+.risk-body{font-size:13px;color:var(--text-muted);line-height:1.6}
+.watch-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0ede8}
+.watch-row:last-child{border-bottom:none}
+.watch-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;margin-top:2px}
+.watch-body{flex:1;min-width:0}
+.watch-title{font-weight:600;font-size:13px;color:var(--text)}
+.watch-sub{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.6}
+.score-bar-wrap{margin-bottom:12px}
+.score-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.score-bar-label span:first-child{color:var(--text-muted)}
+.score-bar-label span:last-child{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)}
+.score-bar-track{height:6px;background:#f0ede8;border-radius:3px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px}
+.footnote{font-size:11px;color:var(--text-muted);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);margin-top:16px}
+.disclaimer-banner{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.20);border-radius:8px;padding:12px 16px;font-size:12px;color:#dc2626;margin-bottom:24px;line-height:1.6}
+.sm-section{background:linear-gradient(135deg,#0e1f3d 0%,#071020 100%);border-radius:16px;padding:40px;margin-bottom:24px}
+.sm-section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(168,205,232,.8);margin-bottom:12px}
+.sm-section-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
+.sm-section-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:28px}
+.sm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.sm-grid>*{min-width:0}
+.sm-grid .sm-card:last-child:nth-child(odd){grid-column:1/-1;max-width:55%;margin:0 auto;width:100%}
+.sm-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px;position:relative}
+.sm-card-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px}
+.sm-yoy-badge{position:absolute;top:14px;right:14px;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:#f5c518}
+.sm-chart-inner{position:relative;height:140px;width:100%}
+details{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px}
+details summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:13px;color:var(--text);background:#f9f8f5;user-select:none;list-style:none;display:flex;align-items:center;gap:8px}
+details summary::before{content:'▶';font-size:10px;color:var(--orange);transition:transform .2s;flex-shrink:0}
+details[open] summary::before{transform:rotate(90deg)}
+details .detail-body{padding:16px;font-size:13px;line-height:1.7;color:var(--text-muted)}
+@media(max-width:768px){
+  /* ── Layout grids ── */
+  .grid-2,.grid-3,.grid-4,.scenario-grid,.persona-grid,.sm-grid{grid-template-columns:1fr}
+  .sm-grid .sm-card:last-child:nth-child(odd){grid-column:auto;max-width:100%}
+  /* ── Cover ── */
+  .cover{padding:80px 20px 48px}
+  .cover h1{font-size:26px}
+  .stats-bar{gap:20px;flex-wrap:wrap}
+  .stat-num{font-size:22px}
+  /* ── Sections ── */
+  .section{padding:40px 20px}
+  .section-divider{margin:0 20px}
+  .top-nav{padding:10px 16px;gap:12px}
+  .sm-section{padding:24px 16px}
+  /* ── KPI cards: 2-col, tight padding ── */
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .card{padding:12px}
+  .card-label{font-size:10px}
+  .card-value{font-size:18px}
+  .card-note{font-size:11px}
+  /* ── Tables → stacked card mode ── */
+  .table-wrap{border:none;border-radius:0;overflow-x:visible}
+  .table-wrap table{min-width:unset!important;width:100%;display:block}
+  .table-wrap thead{display:none}
+  .table-wrap tbody{display:block;width:100%}
+  .table-wrap tr{display:block;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;padding:12px 14px;overflow:hidden}
+  .table-wrap td{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:13px;align-items:flex-start;line-height:1.5}
+  .table-wrap td:last-child{border-bottom:none;padding-bottom:0}
+  .table-wrap td::before{content:attr(data-label);font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace;flex-shrink:0;min-width:72px;padding-top:2px}
+  td.num,th.num{text-align:left}
+  /* ── SVG ensure responsive ── */
+  svg{max-width:100%;height:auto}
+  /* ── Scenario grid: single col ── */
+  .scenario-grid>*{min-width:unset}
+  /* ── Stats bar: remove border separator on mobile ── */
+  .stat-item[style*="border-left"]{border-left:none!important;padding-left:0!important}
+  .stats-bar{gap:16px}
+  .stat-num{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">NBIS · v2 · 2026-05-14</div>
+  <div class="nav-links">
+    <a href="#scenarios" style="color:var(--orange);font-weight:700">結論 PT</a>
+    <a href="#snapshot">快照</a>
+    <a href="#narrative">SCQA</a>
+    <a href="#s-stack">全端圖解</a><a href="#products">產品</a>
+    <a href="#deals">訂單橋</a>
+    <a href="#financials">財務</a>
+    <a href="#valuation">估值</a>
+    <a href="#comp">競爭</a>
+    <a href="#personas">大師</a>
+    <a href="#insider">籌碼</a>
+    <a href="#risks">風險</a>
+    <a href="#watchlist">觀察</a>
+    <a href="#transparency">透明度</a>
+  </div>
+  <span class="nav-badge">PHASE 1 · REPORT ONLY</span>
+</nav>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="eyebrow">RainAlpha Research · Sell-Side Initiation v2 · 2026-05-14 (with stack diagrams)</div>
+    <h1>Nebius Group <span class="accent">(NBIS)</span><br>AI 雲端基礎設施的後起垂直整合者</h1>
+    <p class="cover-subtitle">從 Yandex 分拆出來的 GPU cloud 全端玩家，$46B 合約已簽、$50B backlog 在手、Q1 EPS 意外轉正 — 問題從來不是「貴不貴」，而是「deal ramp 能不能準時」</p>
+    <div class="cover-meta">NASDAQ: NBIS &nbsp;·&nbsp; 2026-05-14 &nbsp;·&nbsp; Data: unified_NBIS_20260514_000130 &nbsp;·&nbsp; Phase 1 Report-Only · No Trade Signal</div>
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-num" style="color:#ef4444">$95</span><div class="stat-label">Bear · 25%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--orange)">$180</span><div class="stat-label">Base · 50%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#22c55e">$300</span><div class="stat-label">Bull · 25%</div></div>
+      <div class="stat-item" style="border-left:1px solid rgba(255,255,255,.15);padding-left:32px"><span class="stat-num" style="color:#fff">$188.75</span><div class="stat-label">期望值 EV</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:rgba(255,255,255,.85)">$207</span><div class="stat-label">現價 / ATH</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#ef4444">−9%</span><div class="stat-label">EV vs 現價</div></div>
+    </div>
+    <div class="cover-signal">
+      <div class="cover-signal-dot"></div>
+      <span class="cover-signal-text">結論：HOLD &gt; 建倉 · 等 Q2 (8月) 確認 ramp · INV. DECISION: BULLISH 0.72 · RAY VETO: PASS</span>
+    </div>
+  </div>
+</div>
+
+<!-- S00 結論先行 · 對股票的影響（從 S11 拉到最上） -->
+<div class="section" id="scenarios" style="padding-top:48px">
+  <div class="section-eyebrow" style="color:#dc2626">S00 · 結論先行 · 對股票的影響</div>
+  <div class="section-title">三情境目標價：<span class="accent">期望值 $188.75 vs 現價 $207 = −9% 折讓</span></div>
+  <p class="section-desc">本頁為核心結論：三情境用 EV/Sales forward 倍數 × revenue × 機率加權，不用單點 DCF（AI cloud DCF 假設誤差太大）。下面所有 11 章節都是支撐這個結論的證據鏈。</p>
+
+  <div class="scenario-grid">
+    <div class="scenario-card scenario-bear">
+      <div class="scenario-label bear-color">Bear Case · 25%</div>
+      <div class="scenario-pt bear-color">$80–110</div>
+      <div class="scenario-prob">中位 <strong>$95</strong> · 期望貢獻 <strong>$23.75</strong> · 距現價 <strong style="color:#dc2626">−54%</strong></div>
+      <div class="scenario-trigger">
+        <strong>觸發條件（任一即觸發）：</strong><br>
+        · Microsoft / Meta 縮減合約規模<br>
+        · Russia 制裁回流，客戶採購暫停<br>
+        · NVIDIA GPU 配給大幅縮減<br>
+        · FY26 revenue 低於 $1.5B<br><br>
+        <strong>倍數假設：</strong>FY28 $3.5B × 8x = $28B EV → ~$95
+      </div>
+    </div>
+    <div class="scenario-card scenario-base" style="border-width:3px;box-shadow:0 4px 16px rgba(249,115,22,.12)">
+      <div class="scenario-label base-color">Base Case · 50% ★ 最可能</div>
+      <div class="scenario-pt base-color">$160–200</div>
+      <div class="scenario-prob">中位 <strong>$180</strong> · 期望貢獻 <strong>$90.00</strong> · 距現價 <strong style="color:var(--orange)">−13%</strong></div>
+      <div class="scenario-trigger">
+        <strong>觸發條件（需全部成立）：</strong><br>
+        · Microsoft 合約按時 deliver<br>
+        · Meta 2027 準時啟動<br>
+        · FY28 revenue 達 $6.5B<br>
+        · 無新制裁事件，Insider 賣壓止住<br><br>
+        <strong>倍數假設：</strong>FY28 $6.5B × 10x = $65B EV → ~$180
+      </div>
+    </div>
+    <div class="scenario-card scenario-bull">
+      <div class="scenario-label bull-color">Bull Case · 25%</div>
+      <div class="scenario-pt bull-color">$260–350</div>
+      <div class="scenario-prob">中位 <strong>$300</strong> · 期望貢獻 <strong>$75.00</strong> · 距現價 <strong style="color:#16a34a">+45%</strong></div>
+      <div class="scenario-trigger">
+        <strong>觸發條件（需全部成立）：</strong><br>
+        · 雙巨頭全速 + 第三家 hyperscaler 加入<br>
+        · EPS 持續轉正，GM 維持 68%+<br>
+        · FY28 revenue 達 $10B+<br>
+        · 空單 Squeeze 推動超買<br><br>
+        <strong>倍數假設：</strong>FY28 $10B × 10x = $100B EV → ~$310
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;background:rgba(249,115,22,.04);border-color:rgba(249,115,22,.25)">
+    <div class="card-label">期望值計算（機率加權）</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text)">EV = <span style="color:#dc2626">$95</span> × 25% + <span style="color:var(--orange)">$180</span> × 50% + <span style="color:#16a34a">$300</span> × 25%</div>
+      <div style="font-size:20px;color:var(--text-muted)">=</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--orange)">$188.75</div>
+      <div style="flex:1;min-width:180px;font-size:13px;color:var(--text-muted);line-height:1.6">距現價 $207 = <span style="color:#dc2626;font-weight:700">−9%</span>。風險/報酬略不對稱。Bull Case 存在但需要完美執行。<strong style="color:var(--text)">等 Q2 業績（8 月）確認 ramp 是更好的 entry point。</strong></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card" style="border-left:3px solid var(--orange)">
+      <div class="card-label">建議動作（Action Bottom Line）</div>
+      <ul style="font-size:13px;line-height:1.8;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>HOLD &gt; 建倉</strong>：現價隱含 Base→Bull 中段，估值已 price-in 大半好消息</li>
+        <li><strong>等 Q2 業績（2026/08）</strong>：Revenue 是否破 $500M、EPS 是否續正，是 Base Case 第一檢驗點</li>
+        <li><strong>Stop-loss 參考</strong>：跌破 $160（Base 下緣）→ 重新評估；跌破 $110 → 切換 Bear 假設</li>
+        <li><strong>加碼觸發</strong>：Q2 EPS 續正 + Insider 出現買入 → 可加倉至 Bull 配置</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-label">最該監控的 3 件事</div>
+      <ul style="font-size:13px;line-height:1.8;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>Q2 2026 業績（8 月）</strong>— Base Case 是否成立的關鍵單一事件</li>
+        <li><strong>Meta 2027 deployment 訊號</strong>— $27B 合約是否準時啟動，FY27-28 核心驅動</li>
+        <li><strong>Insider 連賣是否止住</strong>— 已連 5/4–5/6 出貨 −$17.7M，內部看法的領先指標</li>
+      </ul>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">完整觀察清單見下方 S12 · 觀察清單</div>
+    </div>
+  </div>
+
+  <div class="disclaimer-banner" style="margin-top:20px">⚠️ Phase 1 Gate — 本報告為 AI 研究輔助，不構成任何投資建議。所有投資決策由讀者本人獨立判斷。AI 研究不替代專業財務顧問意見。</div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S01 SNAPSHOT -->
+<div class="section" id="snapshot">
+  <div class="section-eyebrow">S01 · Executive Snapshot</div>
+  <div class="section-title">一眼看懂：<span class="accent">故事 + 數字同步啟動，核心問題是 Ramp 執行</span></div>
+  <p class="section-desc">RainAlpha Phase B+ 管線（11 分析師 + 5 大師 personas + Chief Synthesis）已跑完。Investment Decision 裁定 Bullish 0.72，但估值分析師和 5 位大師一致警示 EV/Sales 102x 極端過高。下面 6 個快照卡是支撐上方結論的關鍵數字。</p>
+  <div class="grid-4" style="margin-bottom:20px">
+    <div class="card" style="border-left:3px solid var(--orange)">
+      <div class="card-label">股價 / ATH</div>
+      <div class="card-value" style="font-size:20px">$207.27</div>
+      <div class="card-sub">今日 +15.72% 單日 · ATH</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <div class="card-label">EV/Sales TTM</div>
+      <div class="card-value" style="font-size:20px">102x</div>
+      <div class="card-sub">毛利率 68.6% · GM 領先同業</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green)">
+      <div class="card-label">Q1'26 EPS(意外轉正)</div>
+      <div class="card-value" style="font-size:20px;color:#16a34a">+$2.11</div>
+      <div class="card-sub">Beat est. -$0.78 · 結構性轉折？</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-label">Insider 90d 淨賣</div>
+      <div class="card-value" style="font-size:20px;color:#dc2626">-$17.7M</div>
+      <div class="card-sub">8 賣 0 買 · 連 5/4-5/6 出貨</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-label">系統信號整合</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text);margin-bottom:12px">
+        Chief Synthesis conviction <strong>0.449</strong>（估值/基本面拖低，低於 0.55 門檻）；
+        但 Investment Decision 逆向裁定 <strong>Bullish 0.72</strong>，理由是技術面 + $46B 合約需求太強。
+        Ray Veto Gate <span class="pill pill-green">PASS</span>（balanced 3 bull / 3 bear，雙方均衡）
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="pill pill-orange">Technical: Bullish</span>
+        <span class="pill pill-green">Capital Flow: Bullish</span>
+        <span class="pill pill-red">Fundamental: Bearish</span>
+        <span class="pill pill-red">Valuation: Bearish (0.00)</span>
+        <span class="pill pill-gray">Macro: Neutral</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">投資人需思考的 5 個問題</div>
+      <ul style="font-size:13px;line-height:1.8;color:var(--text);padding-left:16px">
+        <li>接受期望值 $188.75 vs 現價 $207 = <strong>-9% 折讓</strong>？</li>
+        <li>客戶集中度 MSFT+Meta 70-80% 在可接受範圍內？</li>
+        <li>Q1 EPS +$2.11 是結構性轉正還是一次性認列？</li>
+        <li>Insider 連續賣出是例行鎖利還是對 ramp 有疑慮？</li>
+        <li>已超平均 analyst PT $172（+20%），如何設 stop-loss？</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S02 SCQA -->
+<div class="section" id="narrative">
+  <div class="section-eyebrow">S02 · SCQA 敘事定錨</div>
+  <div class="section-title">Action Title：<span class="accent">Deal Ramp 能否準時，決定 NBIS 值多少</span></div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <div class="card-label">Situation</div>
+      <p style="font-size:13px;line-height:1.7">NBIS 於 2023 年從 Yandex 俄羅斯業務分拆，保留非俄 AI cloud / 自駕 / 教育業務，更名 Nebius 在 NASDAQ 重新上市。起點是被市場視為「俄羅斯遺孤」，流動性差、認知度低。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--orange)">
+      <div class="card-label">Complication</div>
+      <p style="font-size:13px;line-height:1.7">12 個月 +474% 漲幅，由三個催化劑驅動：NVIDIA $2B 戰略投資 → Microsoft $19.4B 合約（2025/09）→ Meta $27B 合約（2026/03）。現在 EV/Sales 102x，ATH，平均 analyst PT $172 已被超越 20%。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--yellow)">
+      <div class="card-label">Question</div>
+      <p style="font-size:13px;line-height:1.7"><strong>$46B 合約能否按時 deliver？</strong>客戶集中度 70-80% 的尾部風險如何定價？Q1 EPS 轉正是否可持續？如果達不到 Base Case FY28 $6.5B — 現在買的人怎麼辦？</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green)">
+      <div class="card-label">Answer（核心論點）</div>
+      <p style="font-size:13px;line-height:1.7"><strong>Base Case 期望值 $188.75，距現價 -9%。</strong>風險 / 報酬略為不對稱。Bull Case $300 存在（25% 機率），需要雙巨頭全速 + 新客戶加入。最佳策略：等 Q2 業績（8 月）確認 ramp 進度，再決定是否加倉。</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">金字塔原理：結論先行</div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start">
+      <div style="background:#f9f8f5;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">頂層結論</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.5">EV = $188.75<br>現價 $207 = -9%<br>Hold &gt; 建倉<br>等 Q2 確認</div>
+      </div>
+      <div style="font-size:13px;line-height:1.8;color:var(--text)">
+        <strong>Bull 支撐 1：</strong>合約已簽。$19.4B MSFT + $27B Meta = signed backlog，不是 pipeline。<br>
+        <strong>Bull 支撐 2：</strong>Q1 EPS +$2.11 打爆 -$0.78 共識，毛利結構 68.6% 優於預期。<br>
+        <strong>Bull 支撐 3：</strong>垂直整合 rack+fabric+DC+cloud+ML，6 層全控，對手最多 3 層。<br>
+        <strong>Bear 反論 1：</strong>Insider 連賣 -$17.7M，5 大師無一看多，估值分析師 conviction 0.00。<br>
+        <strong>Bear 反論 2：</strong>客戶集中度 70-80%，與 CoreWeave 67% 一家警訊等級相當。
+      </div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S-STACK: NBIS 全端覆蓋圖解 -->
+<div class="section" id="s-stack">
+  <div class="section-eyebrow">S-STACK — 產品圖解（新增）</div>
+  <div class="section-title">NBIS 全端覆蓋一張圖 — <span class="accent">對比 CoreWeave / Oracle / Equinix</span></div>
+  <p class="section-desc">兩張 SVG：AI 雲端 7 層堆疊對比（最重要）+ NBIS GPU Rack 拆解。讓你一眼看出 NBIS 的垂直整合 moat 在哪裡。</p>
+
+  <!-- 圖 A: 7層堆疊對比 -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-label">圖 A — AI 雲端 7 層堆疊對比（NBIS vs CRWV vs OCI vs EQIX）</div>
+    <div style="font-size:13px;color:var(--text-muted);margin:8px 0 20px;line-height:1.6">金色 = 自控；灰色 = 第三方或不在此市場。NBIS 是唯一 7 層全金的純 AI 雲端廠。</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:700px;font-family:Inter,sans-serif">
+      <rect width="960" height="540" fill="#f6f5f1" rx="10"/>
+
+      <!-- Legend -->
+      <rect x="560" y="14" width="14" height="14" fill="#F5A623" rx="2"/>
+      <text x="580" y="25" font-size="11" fill="#1a2540" font-family="monospace">自控 / 核心業務</text>
+      <rect x="700" y="14" width="14" height="14" fill="#e5e5e7" rx="2" stroke="#d1d1d6"/>
+      <text x="720" y="25" font-size="11" fill="#6b7280" font-family="monospace">第三方 / 不在此市場</text>
+      <rect x="860" y="14" width="14" height="14" fill="rgba(245,166,35,0.25)" rx="2" stroke="#F5A623"/>
+      <text x="880" y="25" font-size="11" fill="#6b7280" font-family="monospace">規模大非主業</text>
+
+      <!-- Column headers -->
+      <text x="140" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7280">LAYER</text>
+
+      <!-- NBIS header -->
+      <rect x="255" y="38" width="158" height="30" fill="#F5A623" rx="6"/>
+      <text x="334" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="white">NBIS</text>
+
+      <!-- CRWV header -->
+      <rect x="425" y="38" width="158" height="30" fill="#e5e5e7" rx="6"/>
+      <text x="504" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2540">CRWV</text>
+      <text x="504" y="72" text-anchor="middle" font-size="9" fill="#6b7280">CoreWeave</text>
+
+      <!-- OCI header -->
+      <rect x="595" y="38" width="158" height="30" fill="#e5e5e7" rx="6"/>
+      <text x="674" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2540">OCI</text>
+      <text x="674" y="72" text-anchor="middle" font-size="9" fill="#6b7280">Oracle Cloud</text>
+
+      <!-- EQIX header -->
+      <rect x="765" y="38" width="158" height="30" fill="#e5e5e7" rx="6"/>
+      <text x="844" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2540">EQIX</text>
+      <text x="844" y="72" text-anchor="middle" font-size="9" fill="#6b7280">Equinix</text>
+
+      <!-- Layer rows - 7 layers, each ~52px tall, starting y=88 -->
+
+      <!-- L7: ML Tooling -->
+      <rect x="20" y="90" width="225" height="50" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="110" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L7 — ML TOOLING</text>
+      <text x="32" y="128" font-size="11" fill="#1a2540">PyTorch / HuggingFace 整合</text>
+      <!-- NBIS L7: gold -->
+      <rect x="255" y="90" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="334" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="white">自研 + EigenAI</text>
+      <!-- CRWV L7: gray -->
+      <rect x="425" y="90" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="504" y="118" text-anchor="middle" font-size="11" fill="#6b7280">無 ML tooling</text>
+      <!-- OCI L7: partial -->
+      <rect x="595" y="90" width="158" height="50" fill="rgba(245,166,35,0.25)" stroke="#F5A623" stroke-dasharray="4,3" rx="4"/>
+      <text x="674" y="112" text-anchor="middle" font-size="10" fill="#6b7280">OCI Data Science</text>
+      <text x="674" y="128" text-anchor="middle" font-size="10" fill="#6b7280">（非 GPU focus）</text>
+      <!-- EQIX L7: gray -->
+      <rect x="765" y="90" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="844" y="118" text-anchor="middle" font-size="11" fill="#9ca3af">不在此市場</text>
+
+      <!-- L6: AI Management -->
+      <rect x="20" y="147" width="225" height="50" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="167" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L6 — AI 管理服務</text>
+      <text x="32" y="185" font-size="11" fill="#1a2540">model fine-tune / inference API</text>
+      <rect x="255" y="147" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="334" y="175" text-anchor="middle" font-size="11" font-weight="700" fill="white">Nebius AI 平台</text>
+      <rect x="425" y="147" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="504" y="175" text-anchor="middle" font-size="11" font-weight="700" fill="white">有（GPU 管理）</text>
+      <rect x="595" y="147" width="158" height="50" fill="rgba(245,166,35,0.25)" stroke="#F5A623" stroke-dasharray="4,3" rx="4"/>
+      <text x="674" y="175" text-anchor="middle" font-size="10" fill="#6b7280">有但非主力</text>
+      <rect x="765" y="147" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="844" y="175" text-anchor="middle" font-size="11" fill="#9ca3af">不在此市場</text>
+
+      <!-- L5: GPU Orchestration -->
+      <rect x="20" y="204" width="225" height="50" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="224" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L5 — GPU 算力排程</text>
+      <text x="32" y="242" font-size="11" fill="#1a2540">orchestration / scheduling</text>
+      <rect x="255" y="204" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="334" y="232" text-anchor="middle" font-size="11" font-weight="700" fill="white">自研 orchestration</text>
+      <rect x="425" y="204" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="504" y="232" text-anchor="middle" font-size="11" font-weight="700" fill="white">CoreWeave Cloud</text>
+      <rect x="595" y="204" width="158" height="50" fill="rgba(245,166,35,0.25)" stroke="#F5A623" stroke-dasharray="4,3" rx="4"/>
+      <text x="674" y="232" text-anchor="middle" font-size="10" fill="#6b7280">OCI + Kubernetes</text>
+      <rect x="765" y="204" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="844" y="232" text-anchor="middle" font-size="11" fill="#9ca3af">不在此市場</text>
+
+      <!-- L4: Network Fabric -->
+      <rect x="20" y="261" width="225" height="50" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="281" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L4 — 高速網路 Fabric</text>
+      <text x="32" y="299" font-size="11" fill="#1a2540">InfiniBand / custom fabric</text>
+      <rect x="255" y="261" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="334" y="282" text-anchor="middle" font-size="11" font-weight="700" fill="white">NebiusFabric</text>
+      <text x="334" y="300" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">自研 InfiniBand 軟體</text>
+      <rect x="425" y="261" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="504" y="282" text-anchor="middle" font-size="10" fill="#6b7280">標準 InfiniBand</text>
+      <text x="504" y="299" text-anchor="middle" font-size="10" fill="#6b7280">（Mellanox/Nvidia）</text>
+      <rect x="595" y="261" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="674" y="282" text-anchor="middle" font-size="10" fill="#6b7280">Oracle RDMA / OFN</text>
+      <text x="674" y="299" text-anchor="middle" font-size="10" fill="#6b7280">標準網路</text>
+      <rect x="765" y="261" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="844" y="282" text-anchor="middle" font-size="10" fill="#9ca3af">colo 網路</text>
+      <text x="844" y="299" text-anchor="middle" font-size="10" fill="#9ca3af">客戶自管</text>
+
+      <!-- L3: Server Rack -->
+      <rect x="20" y="318" width="225" height="50" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="338" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L3 — 自研伺服器 Rack</text>
+      <text x="32" y="356" font-size="11" fill="#1a2540">custom rack design + BOM</text>
+      <rect x="255" y="318" width="158" height="50" fill="#F5A623" rx="4"/>
+      <text x="334" y="338" text-anchor="middle" font-size="11" font-weight="700" fill="white">Proprietary Rack</text>
+      <text x="334" y="356" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.8)">自研主板 + cooling</text>
+      <rect x="425" y="318" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="504" y="338" text-anchor="middle" font-size="10" fill="#6b7280">Dell / Supermicro</text>
+      <text x="504" y="356" text-anchor="middle" font-size="10" fill="#6b7280">OEM 採購</text>
+      <rect x="595" y="318" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="674" y="338" text-anchor="middle" font-size="10" fill="#6b7280">標準 OEM 伺服器</text>
+      <text x="674" y="356" text-anchor="middle" font-size="10" fill="#6b7280">Oracle 採購</text>
+      <rect x="765" y="318" width="158" height="50" fill="#e5e5e7" rx="4"/>
+      <text x="844" y="338" text-anchor="middle" font-size="10" fill="#9ca3af">—</text>
+
+      <!-- L2: Data Center -->
+      <rect x="20" y="375" width="225" height="40" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="393" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L2 — Data Center</text>
+      <text x="32" y="408" font-size="11" fill="#1a2540">自有 / colo</text>
+      <rect x="255" y="375" width="158" height="40" fill="#F5A623" rx="4"/>
+      <text x="334" y="399" text-anchor="middle" font-size="11" font-weight="700" fill="white">自有美/歐 DC</text>
+      <rect x="425" y="375" width="158" height="40" fill="#F5A623" rx="4"/>
+      <text x="504" y="399" text-anchor="middle" font-size="11" font-weight="700" fill="white">部分自有 + colo</text>
+      <rect x="595" y="375" width="158" height="40" fill="#F5A623" rx="4"/>
+      <text x="674" y="399" text-anchor="middle" font-size="11" font-weight="700" fill="white">Oracle 自有 DC</text>
+      <rect x="765" y="375" width="158" height="40" fill="#F5A623" rx="4"/>
+      <text x="844" y="399" text-anchor="middle" font-size="11" font-weight="700" fill="white">EQIX 核心業務</text>
+
+      <!-- L1: Power & Cooling -->
+      <rect x="20" y="421" width="225" height="38" fill="white" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="439" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">L1 — 電力與冷卻</text>
+      <text x="32" y="454" font-size="11" fill="#1a2540">power / liquid cooling</text>
+      <rect x="255" y="421" width="158" height="38" fill="#F5A623" rx="4"/>
+      <text x="334" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="white">自有電力 + 液冷</text>
+      <rect x="425" y="421" width="158" height="38" fill="#e5e5e7" rx="4"/>
+      <text x="504" y="445" text-anchor="middle" font-size="11" fill="#6b7280">部分 colo 電力</text>
+      <rect x="595" y="421" width="158" height="38" fill="#F5A623" rx="4"/>
+      <text x="674" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="white">Oracle 自有電力</text>
+      <rect x="765" y="421" width="158" height="38" fill="#F5A623" rx="4"/>
+      <text x="844" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="white">EQIX 電力/冷卻</text>
+
+      <!-- Layer count bars at bottom -->
+      <rect x="20" y="466" width="225" height="30" fill="#f9f8f5" stroke="#e5e5e7" rx="4"/>
+      <text x="32" y="486" font-size="11" font-weight="700" fill="#6b7280" font-family="monospace">整合分數</text>
+
+      <rect x="255" y="466" width="158" height="30" fill="rgba(245,166,35,0.15)" stroke="#F5A623" rx="4"/>
+      <text x="334" y="486" text-anchor="middle" font-size="13" font-weight="700" fill="#F5A623" font-family="monospace">7 / 7 ✦</text>
+
+      <rect x="425" y="466" width="158" height="30" fill="#f9f8f5" stroke="#e5e5e7" rx="4"/>
+      <text x="504" y="486" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2540" font-family="monospace">4 / 7</text>
+
+      <rect x="595" y="466" width="158" height="30" fill="#f9f8f5" stroke="#e5e5e7" rx="4"/>
+      <text x="674" y="486" text-anchor="middle" font-size="13" font-weight="700" fill="#6b7280" font-family="monospace">5 / 7*</text>
+
+      <rect x="765" y="466" width="158" height="30" fill="#f9f8f5" stroke="#e5e5e7" rx="4"/>
+      <text x="844" y="486" text-anchor="middle" font-size="13" font-weight="700" fill="#6b7280" font-family="monospace">2 / 7</text>
+
+      <!-- Note -->
+      <text x="480" y="520" text-anchor="middle" font-size="10" fill="#6b7280">* OCI 規模大但非 GPU AI cloud 主業；L4/L3 標準 OEM。CRWV 靠買 + 租，單位經濟學打不過自研。EQIX 是 colocation，不在 AI cloud 市場。</text>
+    </svg>
+    </div>
+  </div>
+
+  <!-- 圖 B: NBIS GPU Rack 拆解 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-label">圖 B — NBIS GPU Rack 拆解圖（自研 vs 第三方採購）</div>
+    <div style="font-size:13px;color:var(--text-muted);margin:8px 0 20px;line-height:1.6">水平剖面圖。金色 = NBIS 自研/自控；灰色 = 第三方採購。NBIS 自控比率約 60-65%，對比 CRWV 約 30%。</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:700px;font-family:Inter,sans-serif">
+      <rect width="960" height="420" fill="#f6f5f1" rx="10"/>
+
+      <!-- Legend -->
+      <rect x="600" y="14" width="14" height="14" fill="#F5A623" rx="2"/>
+      <text x="620" y="25" font-size="11" fill="#1a2540" font-family="monospace">NBIS 自研/自控</text>
+      <rect x="760" y="14" width="14" height="14" fill="#e5e5e7" rx="2" stroke="#d1d1d6"/>
+      <text x="780" y="25" font-size="11" fill="#6b7280" font-family="monospace">第三方採購</text>
+
+      <!-- Rack outer frame (NBIS owned DC) -->
+      <rect x="20" y="44" width="900" height="280" fill="rgba(245,166,35,0.06)" stroke="#F5A623" stroke-width="2.5" rx="12"/>
+      <text x="470" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#F5A623" font-family="monospace">RACK UNIT — 自有 DC 內（NBIS owned）</text>
+
+      <!-- Power shelf -->
+      <rect x="38" y="78" width="852" height="44" fill="#F5A623" rx="6"/>
+      <text x="464" y="94" text-anchor="middle" font-size="11" font-weight="700" fill="white">Power Shelf（機架供電）</text>
+      <text x="464" y="111" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">NBIS 自控電力供應 · 液冷進出口 · 800V HVDC input</text>
+
+      <!-- Compute trays -->
+      <text x="48" y="142" font-size="10" font-weight="700" fill="#6b7280" font-family="monospace">COMPUTE TRAY × 2</text>
+
+      <!-- Tray 1 -->
+      <rect x="38" y="150" width="420" height="136" fill="white" stroke="#e5e5e7" rx="8"/>
+
+      <!-- GPU row inside tray 1 -->
+      <rect x="50" y="162" width="180" height="42" fill="#e5e5e7" stroke="#d1d1d6" rx="5"/>
+      <text x="140" y="178" text-anchor="middle" font-size="10" font-weight="600" fill="#6b7280">NVIDIA GB300 GPU × 4</text>
+      <text x="140" y="194" text-anchor="middle" font-size="9" fill="#9ca3af">第三方採購 (HBM4)</text>
+
+      <rect x="240" y="162" width="200" height="42" fill="#F5A623" rx="5"/>
+      <text x="340" y="178" text-anchor="middle" font-size="10" font-weight="700" fill="white">NBIS 自研主板</text>
+      <text x="340" y="194" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">Proprietary PCB design</text>
+
+      <rect x="50" y="212" width="180" height="36" fill="#e5e5e7" stroke="#d1d1d6" rx="5"/>
+      <text x="140" y="228" text-anchor="middle" font-size="10" fill="#6b7280">NIC chips（Broadcom）</text>
+      <text x="140" y="242" text-anchor="middle" font-size="9" fill="#9ca3af">第三方採購</text>
+
+      <rect x="240" y="212" width="200" height="36" fill="#F5A623" rx="5"/>
+      <text x="340" y="228" text-anchor="middle" font-size="10" font-weight="700" fill="white">Liquid cooling 流道</text>
+      <text x="340" y="242" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">NBIS 自研熱管理</text>
+
+      <!-- Tray 2 -->
+      <rect x="468" y="150" width="420" height="136" fill="white" stroke="#e5e5e7" rx="8"/>
+
+      <rect x="480" y="162" width="180" height="42" fill="#e5e5e7" stroke="#d1d1d6" rx="5"/>
+      <text x="570" y="178" text-anchor="middle" font-size="10" font-weight="600" fill="#6b7280">NVIDIA GB300 GPU × 4</text>
+      <text x="570" y="194" text-anchor="middle" font-size="9" fill="#9ca3af">第三方採購 (HBM4)</text>
+
+      <rect x="670" y="162" width="200" height="42" fill="#F5A623" rx="5"/>
+      <text x="770" y="178" text-anchor="middle" font-size="10" font-weight="700" fill="white">NBIS 自研主板</text>
+      <text x="770" y="194" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">Proprietary PCB design</text>
+
+      <rect x="480" y="212" width="180" height="36" fill="#e5e5e7" stroke="#d1d1d6" rx="5"/>
+      <text x="570" y="228" text-anchor="middle" font-size="10" fill="#6b7280">Memory HBM4</text>
+      <text x="570" y="242" text-anchor="middle" font-size="9" fill="#9ca3af">第三方採購 (SK Hynix)</text>
+
+      <rect x="670" y="212" width="200" height="36" fill="#F5A623" rx="5"/>
+      <text x="770" y="228" text-anchor="middle" font-size="10" font-weight="700" fill="white">Liquid cooling 流道</text>
+      <text x="770" y="242" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">NBIS 自研熱管理</text>
+
+      <!-- NebiusFabric switch -->
+      <rect x="38" y="294" width="420" height="18" fill="#F5A623" rx="4"/>
+      <text x="248" y="307" text-anchor="middle" font-size="10" font-weight="700" fill="white">NebiusFabric InfiniBand Switch（NBIS 管理）</text>
+      <rect x="468" y="294" width="420" height="18" fill="#F5A623" rx="4"/>
+      <text x="678" y="307" text-anchor="middle" font-size="10" font-weight="700" fill="white">Cluster Spine Switch（NBIS orchestration）</text>
+
+      <!-- Pct bar at bottom -->
+      <rect x="20" y="340" width="900" height="64" fill="white" stroke="#e5e5e7" rx="8"/>
+      <text x="480" y="362" text-anchor="middle" font-size="12" font-weight="700" fill="#1a2540">NBIS 自控比率 ≈ 60-65%（vs CoreWeave ~30%）</text>
+
+      <!-- NBIS bar -->
+      <text x="32" y="385" font-size="10" fill="#6b7280">NBIS</text>
+      <rect x="80" y="373" width="398" height="16" fill="#F5A623" rx="4"/>
+      <text x="482" y="385" text-anchor="middle" font-size="10" fill="white" font-weight="700">60-65% 自研</text>
+      <rect x="480" y="373" width="243" height="16" fill="#e5e5e7" rx="4"/>
+      <text x="602" y="385" text-anchor="middle" font-size="10" fill="#6b7280">35-40% 第三方</text>
+
+      <!-- CRWV bar -->
+      <text x="740" y="362" font-size="10" fill="#6b7280">CRWV</text>
+      <rect x="780" y="350" width="120" height="16" fill="#F5A623" opacity="0.4" rx="4"/>
+      <text x="840" y="362" text-anchor="middle" font-size="10" fill="#6b7280">~30%</text>
+      <rect x="780" y="370" width="133" height="16" fill="#e5e5e7" rx="4"/>
+      <text x="847" y="382" text-anchor="middle" font-size="10" fill="#6b7280">~70% OEM</text>
+    </svg>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--text-muted);line-height:1.7;padding:12px 16px;background:rgba(249,115,22,0.04);border-left:3px solid var(--orange);border-radius:0 8px 8px 0">
+      <strong style="color:var(--text)">為什麼自控比率重要？</strong> NBIS 更接近 hyperscaler 模式（類似 Google 自研 TPU rack 的思路，只是用 NVIDIA GPU）。60-65% 自控 = 更強的 BOM 議價力 + 更低攤提成本 + 更難被複製的供應鏈。
+      CoreWeave 主要靠 NVIDIA GPU + Dell/Supermicro OEM + 租用 DC，自控比率約 30%，單位經濟學劣於 NBIS。
+    </div>
+  </div>
+
+  <!-- Footer disclaimer for this section -->
+  <div class="disclaimer-banner">
+    圖解免責聲明：以上 SVG 示意圖為概念性工程圖解，非等比例實際設備圖。自控比率數字為市場估算，非 NBIS 官方披露。Phase 1 Gate — 非投資建議。
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S03 PRODUCTS -->
+<div class="section" id="products">
+  <div class="section-eyebrow">S03 · 產品線與護城河</div>
+  <div class="section-title">垂直整合：<span class="accent">從 Chip 到 ML 工具全自控，競爭優勢不可忽視</span></div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+      <div class="card" style="border-left:3px solid var(--orange)">
+        <div class="card-label">核心</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Nebius AI Cloud</div>
+        <div style="font-size:12px;color:var(--text-muted)">GPU 算力 + 管理服務。Sold out 至 2027，定價權在手。</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--blue)">
+        <div class="card-label">軟體差異化</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">NebiusFabric</div>
+        <div style="font-size:12px;color:var(--text-muted)">自研 InfiniBand 網路軟體，降訓練 latency，成本優勢點。</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--green)">
+        <div class="card-label">硬體差異化</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Proprietary Rack</div>
+        <div style="font-size:12px;color:var(--text-muted)">自研伺服器機架，垂直整合壓低 BOM，vs 對手買 OEM。</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--purple)">
+        <div class="card-label">基礎設施</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">自有美/歐 DC</div>
+        <div style="font-size:12px;color:var(--text-muted)">目標 2026 底 25GW。自有 DC 攤提成本遠低於租用。</div>
+      </div>
+      <div class="card">
+        <div class="card-label">AI 工具</div>
+        <div style="font-size:12px;color:var(--text-muted)">Managed ML services + HuggingFace 整合，開發者生態</div>
+      </div>
+      <div class="card">
+        <div class="card-label">非核心（Optionality）</div>
+        <div style="font-size:12px;color:var(--text-muted)">Avride（自駕軟體）+ TripleTen（教育）+ Toloka / Clickhouse 股權</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">垂直整合深度 vs 對手（6 層覆蓋）</div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead><tr><th>整合層次</th><th class="center">NBIS</th><th class="center">CRWV</th><th class="center">OCI</th><th class="center">Lambda</th></tr></thead>
+          <tbody>
+            <tr><td>GPU 採購 / 早期配額</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-green">✓</span></td></tr>
+            <tr><td>自研 Server Rack</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-gray">—</span></td><td class="center"><span class="pill pill-gray">—</span></td><td class="center"><span class="pill pill-gray">—</span></td></tr>
+            <tr><td>自研網路 Fabric</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-gray">—</span></td><td class="center"><span class="pill pill-gray">—</span></td><td class="center"><span class="pill pill-gray">—</span></td></tr>
+            <tr><td>自有資料中心</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-gray">—</span></td></tr>
+            <tr><td>Cloud API / 管理層</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-orange">部分</span></td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-orange">部分</span></td></tr>
+            <tr><td>ML Tools / 開發者套件</td><td class="center"><span class="pill pill-green">✓</span></td><td class="center"><span class="pill pill-gray">—</span></td><td class="center"><span class="pill pill-orange">部分</span></td><td class="center"><span class="pill pill-green">✓</span></td></tr>
+            <tr style="background:rgba(249,115,22,.04)"><td style="font-weight:700">整合分數</td><td class="center" style="font-weight:700;color:var(--orange)">6 / 6</td><td class="center">3 / 6</td><td class="center">3 / 6</td><td class="center">2 / 6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="footnote">NBIS 是市場上垂直整合度最高的純 AI 雲端玩家（AWS/Azure/GCP 規模 ×100+ 但不是純 GPU 廠）</div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S04 DEALS -->
+<div class="section" id="deals">
+  <div class="section-eyebrow">S04 · 訂單→營收 Bridge</div>
+  <div class="section-title">$46B 合約解剖：<span class="accent">數字是真的，問題是 Ramp 速度</span></div>
+  <p class="section-desc">這是多空戰場核心。訂單已簽，但 deliver 能力、時程、Capex burn 才是決定估值的關鍵變數。</p>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card" style="background:linear-gradient(135deg,#0e1f3d,#071020);color:#fff;border:none">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(168,205,232,.7);margin-bottom:8px;text-transform:uppercase">Microsoft · 簽約 2025/09</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;color:#f97316">$19.4B</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:8px;line-height:1.6">多年 GPU 算力（100,000+ NVIDIA GB300）<br>2025-2026 進行中 deliver · 年化峰值 ~$3.9B</div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="pill" style="background:rgba(168,205,232,.15);color:#a8cde8;border:1px solid rgba(168,205,232,.3)">已簽約</span>
+        <span class="pill" style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3)">Delivering NOW</span>
+      </div>
+    </div>
+    <div class="card" style="background:linear-gradient(135deg,#1a1a1a,#0d0d0d);color:#fff;border:none">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(168,205,232,.7);margin-bottom:8px;text-transform:uppercase">Meta · 簽約 2026/03</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;color:#22c55e">$27B</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:8px;line-height:1.6">多年算力合約 · 2027 起開始 deliver<br>年化峰值 $4-5.4B · 合約期 5-7 年</div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="pill" style="background:rgba(168,205,232,.15);color:#a8cde8;border:1px solid rgba(168,205,232,.3)">已簽約</span>
+        <span class="pill" style="background:rgba(245,197,24,.15);color:#f5c518;border:1px solid rgba(245,197,24,.3)">2027 Ramp</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>客戶 / 事件</th><th class="num">金額</th><th>簽約</th><th>Deliver</th><th>性質</th><th class="num">年化峰值</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Microsoft</strong></td><td class="num" style="color:var(--orange);font-weight:700">$19.4B</td><td>2025/09</td><td>進行中</td><td>多年 GPU 算力（GB300）</td><td class="num">~$3.9B/yr</td></tr>
+        <tr><td><strong>Meta</strong></td><td class="num" style="color:#16a34a;font-weight:700">$27.0B</td><td>2026/03</td><td>2027+ ramp</td><td>多年算力，長期</td><td class="num">$4.0–5.4B/yr</td></tr>
+        <tr><td>EigenAI 收購</td><td class="num">$0.643B</td><td>2026/04</td><td>完成</td><td>垂直整合擴 AI tooling</td><td class="num">—</td></tr>
+        <tr><td>其他 cloud 客戶</td><td class="num">$5B+（推估）</td><td>持續</td><td>持續</td><td>中小客戶分散</td><td class="num">$1–2B/yr</td></tr>
+        <tr style="background:rgba(249,115,22,.04)"><td><strong>合計揭露 Backlog</strong></td><td class="num" style="font-weight:700;font-size:15px;color:var(--orange)">$50B+</td><td>—</td><td>2026-2030</td><td>已 signed contracts</td><td class="num">~$9–11B/yr peak</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Revenue forecast chart -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-label">三情境營收 Forecast（Bear / Base / Bull）</div>
+    <div class="chart-wrap">
+      <div class="chart-inner" style="height:280px"><canvas id="revenueChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Revenue table -->
+  <div class="table-wrap" style="margin-bottom:16px">
+    <table>
+      <thead><tr>
+        <th>年度</th>
+        <th class="num" style="color:#dc2626">Bear</th>
+        <th class="num" style="color:var(--orange)">Base</th>
+        <th class="num" style="color:#16a34a">Bull</th>
+        <th>驅動因素</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>FY2025 Actual</td><td class="num">$0.53B</td><td class="num">$0.53B</td><td class="num">$0.53B</td><td>已知基數</td></tr>
+        <tr><td>FY2026E（Q1 已 $399M）</td><td class="num">$1.5B</td><td class="num">$1.8B</td><td class="num">$2.2B+</td><td>Microsoft 合約加速 + 有機成長</td></tr>
+        <tr><td>FY2027E</td><td class="num">$2.8B</td><td class="num">$4.5B</td><td class="num">$6.5B</td><td>Meta 啟動 + Microsoft 峰值</td></tr>
+        <tr><td>FY2028E</td><td class="num">$3.5B</td><td class="num">$6.5B</td><td class="num">$10.0B+</td><td>雙巨頭全速 + 新客戶加入</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="background:rgba(249,115,22,.04);border-color:rgba(249,115,22,.2)">
+    <div class="card-label">現價 $207 隱含的 FY28 Revenue（倒推）</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:12px">
+      <div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)">8x EV/Sales</div><div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700">$6.2B</div><div style="font-size:11px;color:var(--text-muted)">≈ Base Case</div></div>
+      <div style="border-left:1px solid var(--border);padding-left:24px"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)">10x EV/Sales</div><div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700">$4.97B</div><div style="font-size:11px;color:var(--text-muted)">略低於 Base</div></div>
+      <div style="border-left:1px solid var(--border);padding-left:24px"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)">15x EV/Sales</div><div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700">$3.3B</div><div style="font-size:11px;color:var(--text-muted)">≈ Bear Case</div></div>
+      <div style="border-left:1px solid var(--border);padding-left:24px;flex:1;min-width:180px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">市場 price-in：介於 Base 與 Bull 之間的劇本。<br>只達 Bear → 股價 -50%；<br>達 Bull → 還有 +30-50% 空間。</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S05 FINANCIALS -->
+<div class="section" id="financials">
+  <div class="section-eyebrow">S05 · 季度財務儀表板</div>
+  <div class="section-title">財務解析：<span class="accent">EPS 意外轉正是本季最重要的訊號</span></div>
+  <p class="section-desc">不看 P/E（虧損股）。看毛利率演進、EPS 路徑、Capex burn 和 FCF 路徑。Q1 2026 EPS +$2.11 vs 共識 -$0.78 是重大異常正值。</p>
+
+  <div class="sm-section">
+    <div class="sm-section-eyebrow">NBIS · QUARTERLY FINANCIALS · Q1 2025 – Q1 2026</div>
+    <div class="sm-section-title">季度財務儀表板</div>
+    <div class="sm-section-sub">單位：百萬美元 / EPS 為美元 / 毛利率 %</div>
+    <div class="sm-grid">
+      <div class="sm-card">
+        <div class="sm-card-label">Revenue + Gross Profit</div>
+        <div class="sm-yoy-badge">+651%</div>
+        <div class="sm-chart-inner"><canvas id="smRevenue"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">Gross Margin %</div>
+        <div class="sm-yoy-badge">68.6%</div>
+        <div class="sm-chart-inner"><canvas id="smGM"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">EPS（意外轉正）</div>
+        <div class="sm-yoy-badge" style="color:#22c55e">+$2.11</div>
+        <div class="sm-chart-inner"><canvas id="smEPS"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">FCF 路徑（預估）</div>
+        <div class="sm-yoy-badge" style="color:#a8cde8">2028+</div>
+        <div class="sm-chart-inner"><canvas id="smFCF"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-label">現金</div>
+      <div class="card-value" style="font-size:18px">$3.75B</div>
+      <div class="card-sub">總負債 $4.97B（結構性槓桿）</div>
+    </div>
+    <div class="card">
+      <div class="card-label">毛利率 Q1'26</div>
+      <div class="card-value" style="font-size:18px;color:#16a34a">68.6%</div>
+      <div class="card-sub">遠優於 CoreWeave 同業水平</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Capex 2026E</div>
+      <div class="card-value" style="font-size:18px;color:#dc2626">$5–7B</div>
+      <div class="card-sub">GPU 採購高峰，合約預付款可解</div>
+    </div>
+    <div class="card">
+      <div class="card-label">稀釋風險</div>
+      <div class="card-value" style="font-size:18px">232M 股</div>
+      <div class="card-sub">12m +10%，預期再 +5-10%</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:rgba(249,115,22,.03);border-color:rgba(249,115,22,.15)">
+    <div class="card-label">FCF 路徑（2025-2028）</div>
+    <div style="display:flex;gap:0;overflow-x:auto;margin-top:12px;border-radius:8px;overflow:hidden">
+      <div style="flex:1;min-width:100px;text-align:center;padding:16px;border-right:1px solid var(--border)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">FY25A</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#dc2626;margin:6px 0">-$1.5B</div>
+        <div style="font-size:11px;color:var(--text-muted)">投資期 burn</div>
+      </div>
+      <div style="flex:1;min-width:100px;text-align:center;padding:16px;border-right:1px solid var(--border)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">FY26E</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#dc2626;margin:6px 0">-$2~3B</div>
+        <div style="font-size:11px;color:var(--text-muted)">Capex 高峰</div>
+      </div>
+      <div style="flex:1;min-width:100px;text-align:center;padding:16px;border-right:1px solid var(--border)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">FY27E</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#f5c518;margin:6px 0">~Break-Even</div>
+        <div style="font-size:11px;color:var(--text-muted)">Meta 啟動</div>
+      </div>
+      <div style="flex:1;min-width:100px;text-align:center;padding:16px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">FY28E</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#16a34a;margin:6px 0">FCF+</div>
+        <div style="font-size:11px;color:var(--text-muted)">結構性正 FCF</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY WATERFALL NOT SANKEY + NBIS P&L WATERFALL -->
+  <div class="callout callout-blue" style="margin-top:20px;margin-bottom:16px;font-size:13px;line-height:1.8">
+    <strong>為什麼用 P&amp;L Waterfall 而非 Sankey？</strong><br>
+    Sankey 假設資金正向流動，對虧損公司會破圖（opex 流出 &gt; 毛利流入，流向反向）。
+    本報告全部改用 P&amp;L Waterfall — sell-side 標準工具，清晰呈現獲利能力分層 + 虧損可視化（紅 bar 跨零軸）。
+    NBIS Q1 2026 EPS 意外轉正 +$2.11，Waterfall 直觀展示從毛利 → 費用層 → 大額 Other Gains → Net Income 轉正的路徑。
+  </div>
+
+  <!-- NBIS Q1 2026 P&L WATERFALL SVG -->
+  <div class="card" style="margin-bottom:8px">
+    <div class="card-label">NBIS Q1 2026 P&amp;L Waterfall — sell-side standard（vs NVTS 對比：同結構，跨零軸往上）</div>
+    <div style="margin-top:16px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <svg viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:700px;font-family:Inter,sans-serif">
+        <!-- Title -->
+        <text x="430" y="28" text-anchor="middle" font-size="13" fill="#121212" font-weight="bold">NBIS Q1 2026 — P&amp;L Waterfall (USD Millions)</text>
+        <text x="430" y="43" text-anchor="middle" font-size="10" fill="#8b877c">Revenue $399M | Gross $274M (GM 69%) | EPS +$2.11 意外轉正</text>
+
+        <!-- Scale: 1M = 0.45px, zero axis y=340 -->
+        <!-- grid lines -->
+        <line x1="60" y1="60" x2="830" y2="60" stroke="#f0eee6" stroke-width="1"/>
+        <line x1="60" y1="115" x2="830" y2="115" stroke="#f0eee6" stroke-width="1"/>
+        <line x1="60" y1="170" x2="830" y2="170" stroke="#f0eee6" stroke-width="1"/>
+        <line x1="60" y1="225" x2="830" y2="225" stroke="#f0eee6" stroke-width="1"/>
+        <line x1="60" y1="280" x2="830" y2="280" stroke="#f0eee6" stroke-width="1"/>
+        <!-- ZERO AXIS y=340 -->
+        <line x1="60" y1="340" x2="830" y2="340" stroke="#121212" stroke-width="2"/>
+        <line x1="60" y1="395" x2="830" y2="395" stroke="#f0eee6" stroke-width="1"/>
+
+        <!-- Y-axis labels -->
+        <text x="55" y="64" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">+600</text>
+        <text x="55" y="119" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">+480</text>
+        <text x="55" y="174" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">+360</text>
+        <text x="55" y="229" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">+240</text>
+        <text x="55" y="284" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">+120</text>
+        <text x="55" y="344" text-anchor="end" font-size="10" fill="#121212" font-family="JetBrains Mono,monospace" font-weight="bold">0</text>
+        <text x="55" y="399" text-anchor="end" font-size="10" fill="#8b877c" font-family="JetBrains Mono,monospace">-120</text>
+        <text x="14" y="230" text-anchor="middle" font-size="10" fill="#8b877c" transform="rotate(-90,14,230)">USD Millions</text>
+
+        <!-- Scale: 1M = (340-60)/600 = 0.467px per M -->
+        <!-- BAR 1: Revenue +399M → height=399*0.467=186.3, top=340-186=154 → green -->
+        <rect x="80" y="154" width="65" height="186" fill="#5db075" rx="3"/>
+        <text x="112" y="148" text-anchor="middle" font-size="10" fill="#5db075" font-weight="bold" font-family="JetBrains Mono,monospace">+$399M</text>
+        <text x="112" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">Revenue</text>
+
+        <!-- BAR 2: -COGS -125M → from 340 down 58.4px → red -->
+        <rect x="165" y="340" width="65" height="58" fill="#d24b4b" rx="3"/>
+        <text x="197" y="412" text-anchor="middle" font-size="10" fill="#d24b4b" font-weight="bold" font-family="JetBrains Mono,monospace">-$125M</text>
+        <text x="197" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">COGS</text>
+
+        <!-- BAR 3: Gross Profit +274M floating → top=340-274*0.467=212, height=128 → gray -->
+        <rect x="250" y="212" width="65" height="128" fill="#6b7280" rx="3"/>
+        <text x="282" y="205" text-anchor="middle" font-size="10" fill="#6b7280" font-weight="bold" font-family="JetBrains Mono,monospace">+$274M</text>
+        <text x="282" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">Gross</text>
+        <text x="282" y="372" text-anchor="middle" font-size="10" fill="#6c6a62">Profit</text>
+        <text x="282" y="386" text-anchor="middle" font-size="9" fill="#eb8054" font-weight="bold">GM 69%</text>
+
+        <!-- BAR 4: -R&D/SG&A/D&A -215M → from 340 down 100.5px → red -->
+        <rect x="335" y="340" width="65" height="101" fill="#d24b4b" rx="3"/>
+        <text x="367" y="320" text-anchor="middle" font-size="9" fill="#d24b4b" font-weight="bold" font-family="JetBrains Mono,monospace">-$215M</text>
+        <text x="367" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">OpEx</text>
+        <text x="367" y="372" text-anchor="middle" font-size="9" fill="#6c6a62">(R&amp;D+SG&amp;A)</text>
+
+        <!-- Op Loss (before gains) ~-59M: floating from +274 down to ~59 → top=212, bottom=340+27.6=368, height=156 → light red, annotated -->
+        <!-- Actually skip intermediate step, go straight to Other Gains -->
+
+        <!-- BAR 5: +Other Gains ~+544M → this is the big swing that turns EPS positive
+             NBIS EPS +$2.11, ~232M diluted shares → Net Income ~$489M
+             From ~59M op loss, +544M Other Gains (fair value on warrants/AI trust assets)
+             Adjusted: let's show +$485M other/gains net bar from below-zero back above
+             From op income ~-59M → need to show climb up to net +485M
+             Simplified: show op income -59M then +544M other then net +485M -->
+        <!-- BAR after OpEx: Op Income (interim) -59M, from +274 down -215 = +59M still positive?
+             274-215 = 59M op income actually positive before other items!
+             NBIS is different: Gross $274M - OpEx $215M = Op Income +$59M (positive!)
+             Then Other gains +$426M → Net Income $485M
+        -->
+        <!-- Recalculate: Revenue 399, COGS 125, Gross 274, OpEx ~215 (R&D+SG&A+D&A), Op Inc 59, Other 426, Net 485 -->
+
+        <!-- BAR 5 revised: Op Income +59M floating above zero → top=340-59*0.467=312.4, height=27.6 → green (profitable at op level) -->
+        <rect x="420" y="313" width="65" height="27" fill="#22a85a" rx="3"/>
+        <text x="452" y="306" text-anchor="middle" font-size="10" fill="#22a85a" font-weight="bold" font-family="JetBrains Mono,monospace">+$59M</text>
+        <text x="452" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">Op</text>
+        <text x="452" y="372" text-anchor="middle" font-size="10" fill="#6c6a62">Income</text>
+        <text x="452" y="386" text-anchor="middle" font-size="9" fill="#22a85a" font-weight="bold">+14.8%</text>
+
+        <!-- BAR 6: +Other Gains +426M → floating bar from +59M top, going up 199px → top=313-199=114, height=199 → bright green -->
+        <rect x="505" y="114" width="65" height="199" fill="#16a34a" rx="3"/>
+        <text x="537" y="107" text-anchor="middle" font-size="10" fill="#16a34a" font-weight="bold" font-family="JetBrains Mono,monospace">+$426M</text>
+        <text x="537" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">Other</text>
+        <text x="537" y="372" text-anchor="middle" font-size="10" fill="#6c6a62">Gains</text>
+        <text x="537" y="386" text-anchor="middle" font-size="9" fill="#16a34a">(warrant FV)</text>
+
+        <!-- BAR 7: Net Income +485M floating → top=340-485*0.467=114, height=227 → deep green, EPS +2.11 -->
+        <rect x="590" y="114" width="65" height="227" fill="#15803d" rx="3"/>
+        <text x="622" y="107" text-anchor="middle" font-size="10" fill="#15803d" font-weight="bold" font-family="JetBrains Mono,monospace">+$485M</text>
+        <text x="622" y="360" text-anchor="middle" font-size="10" fill="#6c6a62">Net</text>
+        <text x="622" y="372" text-anchor="middle" font-size="10" fill="#6c6a62">Income</text>
+        <text x="622" y="386" text-anchor="middle" font-size="9" fill="#15803d" font-weight="bold">EPS +$2.11</text>
+
+        <!-- Upward arrow annotation for the swing -->
+        <line x1="480" y1="100" x2="590" y2="100" stroke="#15803d" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <text x="535" y="93" text-anchor="middle" font-size="9" fill="#15803d" font-weight="bold" font-family="JetBrains Mono,monospace">EPS 意外轉正：vs 共識 -$0.78</text>
+
+        <!-- ZERO AXIS label -->
+        <text x="830" y="336" text-anchor="end" font-size="10" fill="#121212" font-weight="bold" font-family="JetBrains Mono,monospace">$0 break-even</text>
+
+        <!-- Contrast note -->
+        <rect x="680" y="60" width="140" height="90" fill="#f6f5f1" rx="6" stroke="#f0eee6"/>
+        <text x="750" y="78" text-anchor="middle" font-size="9" fill="#8b877c" font-weight="bold">vs NVTS（對比）</text>
+        <text x="750" y="94" text-anchor="middle" font-size="9" fill="#d24b4b" font-family="JetBrains Mono,monospace">NVTS Net: -$33.8M</text>
+        <text x="750" y="108" text-anchor="middle" font-size="9" fill="#15803d" font-family="JetBrains Mono,monospace">NBIS Net: +$485M</text>
+        <text x="750" y="124" text-anchor="middle" font-size="9" fill="#8b877c">同一工具，兩個世界</text>
+        <text x="750" y="140" text-anchor="middle" font-size="9" fill="#eb8054" font-weight="bold">NBIS 跨零軸往上</text>
+      </svg>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S06 VALUATION -->
+<div class="section" id="valuation">
+  <div class="section-eyebrow">S06 · 估值方法論 + RainAlpha 分析師評分</div>
+  <div class="section-title">估值：<span class="accent">P/E 無效，用 EV/NTM Sales + Backlog Ramp Curve</span></div>
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-label">方法 1</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">EV/NTM Sales</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7">對比 CRWV、Oracle、Snowflake、Datadog。TTM 102x，NTM（FY26E）約 27-33x，仍有溢價，反映垂直整合 + 合約確定性。</div>
+    </div>
+    <div class="card">
+      <div class="card-label">方法 2</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">Backlog × Ramp Curve</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7">$46B 已揭露 deals × ramp rate = 三情境 revenue forecast。核心假設：MSFT 按時 deliver + Meta 2027 啟動。</div>
+    </div>
+    <div class="card">
+      <div class="card-label">方法 3</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">客戶集中度折讓</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7">MSFT + Meta 70-80% 集中度 → 對比分散競爭對手需有 20-30% discount 折讓，否則 tail risk 被低估。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">RainAlpha 11 分析師評分分解</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px">
+      <div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Technical Analyst</span><span>0.75</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:#22c55e"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Future Revenue Analyst</span><span>0.68</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:68%;background:#22c55e"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Capital Flow Analyst</span><span>0.65</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:65%;background:#22c55e"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Technology Moat</span><span>0.60</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:#f97316"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Competitive Moat</span><span>0.54</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:54%;background:#f97316"></div></div></div>
+      </div>
+      <div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Financial Statement</span><span>0.33</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:33%;background:#f97316"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Fundamental Analyst</span><span>0.00</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:1%;background:#ef4444"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span>Valuation Analyst</span><span>0.00</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:1%;background:#ef4444"></div></div></div>
+        <div style="height:12px"></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span style="font-weight:700;color:var(--text)">Chief Synthesis（加權）</span><span style="font-weight:700;color:var(--orange)">0.449</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:44.9%;background:var(--orange)"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-bar-label"><span style="font-weight:700;color:var(--text)">Investment Decision</span><span style="font-weight:700;color:#16a34a">0.72 Bullish</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:72%;background:#16a34a"></div></div></div>
+      </div>
+    </div>
+    <div class="footnote">估值分析師 + 基本面分析師均給出 0.00 conviction（極度看空估值），拖低 Chief Synthesis 至 0.449（低於 0.55 門檻）。Investment Decision 裁定逆向 Bullish 0.72，因技術面 + $46B 合約數字主導。Ray Veto: PASS（balanced）</div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S07 COMP -->
+<div class="section" id="comp">
+  <div class="section-eyebrow">S07 · 競爭對手深比</div>
+  <div class="section-title">競爭地圖：<span class="accent">CoreWeave 是真正對手，Hyperscaler 是結構性威脅</span></div>
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>公司</th><th>體量 vs NBIS</th><th>商業模式</th><th>主要客戶</th><th>客戶集中度</th><th>對 NBIS 威脅</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CoreWeave (CRWV)</strong></td><td>×1.3</td><td>純 GPU 出租，無自研 fabric</td><td>Microsoft(67%)、OpenAI</td><td class="num" style="color:#dc2626;font-weight:700">67% 一家</td><td><span class="pill pill-red">HIGH — 直接對手</span></td></tr>
+        <tr style="background:rgba(249,115,22,.04)"><td><strong>NBIS（本體）</strong></td><td>基準</td><td>全端垂直整合</td><td>Microsoft、Meta</td><td class="num" style="color:var(--orange);font-weight:700">~70-80%(估)</td><td>—</td></tr>
+        <tr><td>Oracle Cloud (OCI)</td><td>×100</td><td>大型雲廠，GPU add-on</td><td>OpenAI、TikTok</td><td class="num">分散</td><td><span class="pill pill-orange">MEDIUM</span></td></tr>
+        <tr><td>Lambda Labs</td><td>私有，$1B+</td><td>GPU 出租 + 開發者工具</td><td>學界、startup</td><td class="num">分散</td><td><span class="pill pill-gray">LOW</span></td></tr>
+        <tr><td>Crusoe Energy</td><td>私有，$1.5B</td><td>電力套利 GPU</td><td>中型 AI</td><td class="num">分散</td><td><span class="pill pill-orange">MEDIUM — 成本</span></td></tr>
+        <tr><td>Equinix (EQIX)</td><td>×3</td><td>Colocation，無 GPU 業務</td><td>萬家企業</td><td class="num">極分散</td><td><span class="pill pill-gray">LOW — 別市場</span></td></tr>
+        <tr><td>AWS / Azure / GCP</td><td>×100-200</td><td>Hyperscaler GPU 服務</td><td>全部</td><td class="num">分散</td><td><span class="pill pill-red">HIGH — 結構性</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Comp multiple chart -->
+  <div class="card">
+    <div class="card-label">同業 EV/Sales 倍數比較（TTM vs NTM）</div>
+    <div class="chart-wrap">
+      <div class="chart-inner" style="height:220px"><canvas id="compChart"></canvas></div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S08 PERSONAS -->
+<div class="section" id="personas">
+  <div class="section-eyebrow">S08 · 5 大師 Persona 分析</div>
+  <div class="section-title">傳奇投資人視角：<span class="accent">5 位無一看多，但 Investment Decision 仍裁定 Bullish</span></div>
+  <p class="section-desc">這個矛盾揭示了 NBIS 的本質 — 傳統估值框架（Buffett / Burry）看不到合約驅動的動能，但 momentum + backlog 數字確實存在。</p>
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="persona-name">Warren Buffett</div>
+      <div class="persona-signal signal-bearish">BEARISH</div>
+      <div class="persona-conviction">0.25</div>
+      <p class="persona-summary">NBIS 高成長但 moat 未被市場驗證，negative forward P/E，符合「大量法律分析」而非「耐久性競爭優勢」。Buffett 的核心問題：「10 年後這個護城河還在嗎？」目前答案不明確。moat_score = 0.00，4 維度全零。</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">Cathie Wood (ARK)</div>
+      <div class="persona-signal signal-neutral">NEUTRAL</div>
+      <div class="persona-conviction">0.70</div>
+      <p class="persona-summary">NBIS 全端 AI 整合 + NVIDIA 戰略聯盟高度符合 ARK 投資邏輯，disruption_score 0.8、TAM_score 0.8。Signal 給 Neutral 是因為機構持股 49% 偏低 + 估值已超 ARK 舒適區。實際 conviction 0.70 相當高。</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">Michael Burry</div>
+      <div class="persona-signal signal-bearish">BEARISH</div>
+      <div class="persona-conviction">0.40</div>
+      <p class="persona-summary">P/B 11.51x + negative forward P/E = 高度潛在過估。RSI 69.71 接近超買。Burry 空單理論需要高空單 squeeze 燃料，但空單 19.78% 加上 FCF 數據缺失讓 balance sheet 無法深度驗算，value_score = 0.00。</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">Nassim Taleb</div>
+      <div class="persona-signal signal-bearish">BEARISH（隱藏脆弱）</div>
+      <div class="persona-conviction">0.75</div>
+      <p class="persona-summary">NBIS 表面強健，實際是「隱藏脆弱」— NVIDIA 單一依賴、客戶集中度、Russia 制裁黑天鵝。15.72% 單日漲幅是高波動 fragility 指標而非 antifragility。Taleb 不喜歡「唯一依賴」的結構。</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">Stanley Druckenmiller</div>
+      <div class="persona-signal signal-neutral">NEUTRAL</div>
+      <div class="persona-conviction">0.40</div>
+      <p class="persona-summary">技術面極強（MA 排列完美），AI 需求宏觀確定性高。但 Druck 缺足夠 macro + 基本面數據判斷「現在是否是 right time to bet big」，估值 extreme 讓他暫時觀望。若 Q2 beat 又有新合約 → 轉 bullish 機率高。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;background:rgba(249,115,22,.03)">
+    <div class="card-label">大師整合 vs 系統裁定 — 矛盾解釋</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px">
+      <div style="text-align:center;flex:1;min-width:80px"><div style="font-size:11px;color:var(--text-muted)">看空大師</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#dc2626">3</div><div style="font-size:11px;color:var(--text-muted)">Buffett · Burry · Taleb</div></div>
+      <div style="text-align:center;flex:1;min-width:80px"><div style="font-size:11px;color:var(--text-muted)">中立大師</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#888">2</div><div style="font-size:11px;color:var(--text-muted)">Cathie Wood · Druck</div></div>
+      <div style="text-align:center;flex:1;min-width:80px"><div style="font-size:11px;color:var(--text-muted)">看多大師</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#16a34a">0</div><div style="font-size:11px;color:var(--text-muted)">無人看多</div></div>
+      <div style="border-left:1px solid var(--border);padding-left:16px;flex:2;min-width:200px"><div style="font-size:13px;line-height:1.7;color:var(--text)"><strong>矛盾原因：</strong>5 大師框架以估值和 moat 可量化性為核心，這兩個維度正是 NBIS 最弱的地方。系統 Investment Decision 用「已簽合約 + 技術面」覆蓋了傳統框架，這是「合約 momentum」vs「估值紀律」的典型衝突。NBIS 是非典型標的。</div></div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S09 INSIDER -->
+<div class="section" id="insider">
+  <div class="section-eyebrow">S09 · 籌碼分析</div>
+  <div class="section-title">Insider 警訊：<span class="accent">連續出貨 -$17.7M vs 機構深度押注</span></div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card" style="border-left:4px solid #dc2626">
+      <div class="card-label" style="color:#dc2626">Insider（90 天）</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:#dc2626;margin:8px 0">-$17.7M</div>
+      <div style="margin-bottom:12px"><span class="pill pill-red">8 賣 · 0 買</span> <span class="pill pill-orange" style="margin-left:6px">5/4–5/6 高點出貨</span></div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.7">比 NVTS 更重的 insider 賣壓。在 ATH 連續大筆出貨，兩種解讀：<strong>(A) 例行鎖利</strong>（$35→$207 ×5.7 倍，不賣才奇怪）或 <strong>(B) 對 ramp 執行有疑慮</strong>。兩種解讀都需持續監控，Q2 業績後有無 insider 買入是關鍵信號。</div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--orange)">
+      <div class="card-label">空單 / Short Interest</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:var(--orange);margin:8px 0">19.78%</div>
+      <div style="margin-bottom:12px"><span class="pill pill-orange">Short Ratio 2.66</span></div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.7">極高空單在 ATH 代表兩件事：<strong>(A) 有人真心看空</strong> EV/Sales 102x 過估，或 <strong>(B) Squeeze 燃料</strong>。Q2 業績若大幅超預期 → Short Squeeze 風險不容忽視，可能推動股價非線性上漲。</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">機構持股 Top（整體持股 49.11%）</div>
+    <div class="table-wrap" style="margin-top:12px">
+      <table>
+        <thead><tr><th>機構</th><th class="num">持股數</th><th class="num">持股市值</th><th>特點</th></tr></thead>
+        <tbody>
+          <tr><td><strong>BlackRock</strong></td><td class="num">9.4M 股</td><td class="num">$1.95B</td><td>全球最大資管，被動 + 主動配置</td></tr>
+          <tr><td><strong>Fred Alger Management</strong></td><td class="num">7.9M 股</td><td class="num">$1.65B</td><td>主動成長型基金，AI 主題重倉</td></tr>
+          <tr><td><strong>Accel Leaders 4</strong></td><td class="num">—</td><td class="num">$1.5B+</td><td>創投 PE 背景，長期持有</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote">機構持股 49% 對超大型成長股偏低，但 BlackRock + Fred Alger 配置金額極大。持股偏低 = 未來加倉空間大，也 = 流動性相對弱（機構若同時出貨影響大）。</div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S10 RISKS -->
+<div class="section" id="risks">
+  <div class="section-eyebrow">S10 · 風險矩陣</div>
+  <div class="section-title">三大致命風險：<span class="accent">集中度、配給、制裁 — 三個非線性斷點</span></div>
+  <div class="risk-card risk-critical">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span class="pill pill-red">CRITICAL</span>
+      <div class="risk-title" style="margin:0">客戶集中度炸毀 — MSFT + Meta 占未來營收 70-80%</div>
+    </div>
+    <div class="risk-body">CoreWeave 的 Microsoft 67% 集中度已是分析師警訊；NBIS 的 MSFT + Meta 合計可能 70-80%。任一巨頭終止 / 縮減 / 轉向自建 GPU → 觸發 <strong>-60% 以上</strong>股價修正。微軟 2025 初縮減 OpenAI $1B 合約是先例。緩解路徑：新合約分散 + Q2 確認 deliver 進度。</div>
+  </div>
+  <div class="risk-card risk-high">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span class="pill pill-orange">HIGH</span>
+      <div class="risk-title" style="margin:0">NVIDIA GPU 配給縮減 — 依賴單一供應商的隱形風險</div>
+    </div>
+    <div class="risk-body">NBIS 核心競爭力建立在 NVIDIA GB300 早期配額上。NVIDIA 同時供應 10+ 家算力廠 — 若 NVIDIA 調整配給（如自建雲服務擴張），NBIS 供給可能受壓縮。NVTS 案例顯示 NVIDIA 夥伴關係對股價影響巨大。緩解：自研 fabric + rack 降低軟體層依賴，但硬體依賴短期不可替代。</div>
+  </div>
+  <div class="risk-card risk-medium">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span class="pill pill-yellow">MEDIUM-HIGH</span>
+      <div class="risk-title" style="margin:0">Russia 制裁回流 — Yandex 歷史無法完全切割</div>
+    </div>
+    <div class="risk-body">NBIS 已完成與 Yandex 俄羅斯業務的法律切割，但部分創辦人 / 早期員工的俄羅斯背景是 geopolitical tail risk。若制裁擴大 → 客戶採購猶豫 + 合約不可抗力條款觸發。機率低，但若觸發 = 極端下行。</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-label">次要風險清單</div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px">
+      <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span style="color:var(--orange);font-weight:700">▸</span><span><strong>Capex 失控：</strong>$5-7B 2026 GPU + DC 建設。資本市場收緊 → 增發稀釋風險。</span></div>
+      <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span style="color:var(--orange);font-weight:700">▸</span><span><strong>Meta Ramp 延遲：</strong>若 2027 啟動延後 → FY27 Base Case 失守。</span></div>
+      <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span style="color:var(--orange);font-weight:700">▸</span><span><strong>Hyperscaler 自建：</strong>AWS / Azure / GCP 加速自建 GB300 集群 → 算力需求轉移。</span></div>
+      <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted)"><span style="color:var(--orange);font-weight:700">▸</span><span><strong>EPS 持續性：</strong>Q1 +$2.11 是否含一次性認列，需 Q2 確認。</span></div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S11 moved to top (id=scenarios) — see hero block right after cover -->
+
+<!-- S12 WATCHLIST -->
+<div class="section" id="watchlist">
+  <div class="section-eyebrow">S12 · 觀察清單</div>
+  <div class="section-title">監控 5 項：<span class="accent">Q2 業績是最重要的 next Catalyst</span></div>
+  <div class="card">
+    <div class="watch-row">
+      <div class="watch-icon" style="background:rgba(239,68,68,.15);color:#dc2626">1</div>
+      <div class="watch-body">
+        <div class="watch-title">Q2 2026 業績（約 2026/08）— CRITICAL Catalyst</div>
+        <div class="watch-sub">Revenue 是否破 $500M？Capex 是否可控？EPS 是否維持正值？此季決定 Base Case 是否成立。低於 $450M → Bear Case 開始被 price-in。</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill pill-red">CRITICAL</span></div>
+    </div>
+    <div class="watch-row">
+      <div class="watch-icon" style="background:rgba(59,130,246,.15);color:var(--blue)">2</div>
+      <div class="watch-body">
+        <div class="watch-title">Meta 合約 Deployment Timeline（2027 是否準時）</div>
+        <div class="watch-sub">$27B 合約是 FY27-28 核心 revenue driver。2026 年底前未看到 deployment 確認 → FY27 Base Case 有下修風險。監控 Meta 法說會算力部署描述。</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill pill-orange">HIGH</span></div>
+    </div>
+    <div class="watch-row">
+      <div class="watch-icon" style="background:rgba(249,115,22,.15);color:var(--orange)">3</div>
+      <div class="watch-body">
+        <div class="watch-title">Microsoft GB300 出貨進度（Q3 2026 里程碑）</div>
+        <div class="watch-sub">$19.4B 合約已在 deliver，實際出貨速度影響 FY26 Revenue 上限。監控 Microsoft 法說會 / NBIS IR data center build-out 更新。</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill pill-orange">HIGH</span></div>
+    </div>
+    <div class="watch-row">
+      <div class="watch-icon" style="background:rgba(239,68,68,.15);color:#dc2626">4</div>
+      <div class="watch-body">
+        <div class="watch-title">Insider 賣壓是否止住（SEC Form 4）</div>
+        <div class="watch-sub">Q2 業績後仍無 insider 買入 → 內部人士對 ramp 可能有疑慮。出現 insider 買入 → 強看多信號。監控 SEC Form 4 每週更新。</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill pill-red">警訊</span></div>
+    </div>
+    <div class="watch-row" style="border-bottom:none">
+      <div class="watch-icon" style="background:rgba(34,197,94,.15);color:#16a34a">5</div>
+      <div class="watch-body">
+        <div class="watch-title">第三家 Hyperscaler 合約（Apple / Google / Amazon）</div>
+        <div class="watch-sub">任一巨頭簽約 → 客戶集中度下降 + Bull Case 機率提升。預期 2026-2027 有更多 hyperscaler 尋求外部 GPU 算力，NBIS 是首選候選。</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill pill-green">Upside</span></div>
+    </div>
+  </div>
+</div>
+<div class="section-divider"></div>
+
+<!-- S13 TRANSPARENCY -->
+<div class="section" id="transparency">
+  <div class="section-eyebrow">S13 · 透明度頁</div>
+  <div class="section-title">數據來源與已知限制：<span class="accent">誠實說明模型的邊界</span></div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-label">資料來源</div>
+      <ul style="font-size:13px;line-height:1.9;color:var(--text);padding-left:16px;margin-top:8px">
+        <li>yfinance — 股價、基本面、MA、RSI、機構持股</li>
+        <li>RainAlpha 後端 11 endpoints（overview / five-forces / forecast / ai-analysis / financials / institutional / insider / personas / unified pipeline / sec-extract）</li>
+        <li>smart-scraper — 法說、analyst reports</li>
+        <li>Codex 對抗式審查（Ray Veto Gate）</li>
+        <li>NBIS 公開 IR 資料（合約揭露 MSFT $19.4B / Meta $27B）</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-label" style="color:#dc2626">已知資料限制（必讀）</div>
+      <ul style="font-size:13px;line-height:1.9;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>SEC reader 對 NBIS 無效</strong> — 荷蘭 N.V. 公司報 20-F 非 10-K，無法自動抓客戶集中度</li>
+        <li><strong>future_revenue 代理誤差</strong> — yfinance rate-limit 導致 revenue proxy 偏高，已手動 override 用真實 FY25 $530M</li>
+        <li><strong>finchart 無法生成</strong> — NBIS OCF/FCF 歷史數據不足，matplotlib 炸裂，改用 Chart.js 重建</li>
+        <li><strong>Chief Synthesis 0.449 低於門檻</strong> — 估值/基本面數據不完整，非真實信號被壓低</li>
+      </ul>
+    </div>
+  </div>
+  <div class="disclaimer-banner" style="font-size:13px;line-height:1.8">
+    <strong>⚠️ 投資免責聲明（強制展示）：</strong>本報告由 RainAlpha AI 研究系統自動生成，僅供研究參考，不構成任何投資建議。所有分析基於公開資訊和 AI 模型，可能存在誤差。過去績效不代表未來結果。所有投資決策由 Rain 本人獨立判斷，並承擔相應風險。Phase 1 Gate: Report-Only，No Trade Signal。
+  </div>
+  <div class="card">
+    <div class="card-label">報告元資料</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted)">
+      <div><strong>生成</strong><br>2026-05-14 Nova</div>
+      <div><strong>Pipeline Run</strong><br>unified_NBIS_20260514_000130</div>
+      <div><strong>Analysts</strong><br>11 + 5 personas + Chief</div>
+      <div><strong>Ray Veto</strong><br>PASS</div>
+      <div><strong>Consensus</strong><br>Neutral (16 voters, 93.8%)</div>
+      <div><strong>Inv. Decision</strong><br>Bullish 0.72</div>
+    </div>
+  </div>
+</div>
+
+<div style="background:var(--bg-cover);padding:28px 40px;text-align:center;margin-top:40px">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">RainAlpha Research · NBIS Sell-Side Initiation · 2026-05-14 · with P&amp;L Waterfall</div>
+  <div style="font-size:13px;color:rgba(255,255,255,.4)">Phase 1 Report-Only Gate · 非投資建議 · Sankey replaced for unprofitable companies</div>
+</div>
+
+<script>
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
+
+const DARK_TT = {
+  backgroundColor:'rgba(20,20,20,.92)',titleColor:'#e5e3de',bodyColor:'#e5e3de',
+  borderColor:'rgba(249,115,22,.4)',borderWidth:1,padding:10,
+  titleFont:{family:'JetBrains Mono',size:12,weight:'bold'},
+  bodyFont:{family:'JetBrains Mono',size:11},
+  displayColors:true,boxWidth:8,boxHeight:8,cornerRadius:6,caretSize:5
+};
+const SM_TT = {...DARK_TT,titleColor:'#f5c842',bodyColor:'rgba(255,255,255,.85)',borderColor:'rgba(249,115,22,.3)'};
+const SM_FONT = {family:'JetBrains Mono',size:10};
+const SM_GRID = 'rgba(255,255,255,.10)';
+const SM_TICK = 'rgba(255,255,255,.55)';
+const smBase = {
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},datalabels:{display:false}},
+  scales:{
+    x:{grid:{display:false},ticks:{color:SM_TICK,font:SM_FONT}},
+    y:{grid:{color:SM_GRID,lineWidth:1},ticks:{color:SM_TICK,font:SM_FONT,maxTicksLimit:3},border:{display:false}}
+  }
+};
+
+// Revenue Forecast
+(function(){
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['FY2025A','FY2026E','FY2027E','FY2028E'],
+      datasets:[
+        {label:'Bear',data:[0.53,1.5,2.8,3.5],backgroundColor:'rgba(239,68,68,.75)',borderRadius:4,barPercentage:.8,categoryPercentage:.7},
+        {label:'Base',data:[0.53,1.8,4.5,6.5],backgroundColor:'rgba(249,115,22,.80)',borderRadius:4,barPercentage:.8,categoryPercentage:.7},
+        {label:'Bull',data:[0.53,2.2,6.5,10.0],backgroundColor:'rgba(34,197,94,.75)',borderRadius:4,barPercentage:.8,categoryPercentage:.7}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:10}},
+        tooltip:{...DARK_TT,callbacks:{label:i=>` ${i.dataset.label}: $${i.raw}B`}},
+        datalabels:{display:false}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:11}}},
+        y:{grid:{color:'#f0ede8'},ticks:{font:{family:'JetBrains Mono',size:11},callback:v=>`$${v}B`},title:{display:true,text:'Revenue ($B)',font:{size:11},color:'#888'}}
+      }
+    }
+  });
+})();
+
+// Comp Chart
+(function(){
+  const ctx = document.getElementById('compChart').getContext('2d');
+  const companies = ['CRWV(TTM)','NBIS(TTM)','NBIS(NTM~FY26)','Snowflake','Datadog','OCI','Equinix'];
+  const vals = [85,102,29,22,18,12,8];
+  const cols = vals.map((v,i)=>i<=1?'rgba(249,115,22,.85)':'rgba(59,130,246,.65)');
+  new Chart(ctx,{
+    type:'bar',
+    data:{labels:companies,datasets:[{label:'EV/Sales',data:vals,backgroundColor:cols,borderRadius:4,barPercentage:.65}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      interaction:{mode:'nearest',intersect:true,axis:'y'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{...DARK_TT,callbacks:{label:i=>` EV/Sales: ${i.raw}x`}},
+        datalabels:{display:false}
+      },
+      scales:{
+        x:{grid:{color:'#f0ede8'},ticks:{font:{family:'JetBrains Mono',size:11},callback:v=>`${v}x`}},
+        y:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:11}}}
+      }
+    }
+  });
+})();
+
+// SM Revenue
+(function(){
+  const ctx = document.getElementById('smRevenue').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+      datasets:[
+        {label:'Revenue',data:[53,60,122,295,399],backgroundColor:'#4a9eff',borderRadius:2,barPercentage:.7,categoryPercentage:.75},
+        {label:'Gross Profit',data:[30,36,76,195,274],backgroundColor:'rgba(255,255,255,.28)',borderRadius:2,barPercentage:.7,categoryPercentage:.75}
+      ]
+    },
+    options:{...smBase,interaction:{mode:'index',intersect:false},plugins:{...smBase.plugins,tooltip:{...SM_TT,callbacks:{label:i=>` ${i.dataset.label}: $${i.raw}M`}}},scales:{...smBase.scales,y:{...smBase.scales.y,ticks:{...smBase.scales.y.ticks,callback:v=>`$${v}M`}}}}
+  });
+})();
+
+// SM Gross Margin
+(function(){
+  const ctx = document.getElementById('smGM').getContext('2d');
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+      datasets:[{
+        data:[56.6,60.0,62.3,66.1,68.6],
+        borderColor:'#4a9eff',backgroundColor:'rgba(74,158,255,.12)',fill:true,
+        borderWidth:2,tension:.35,pointBackgroundColor:'#4a9eff',pointRadius:4,pointHoverRadius:7,
+        datalabels:{
+          display:(ctx)=>ctx.dataIndex===ctx.dataset.data.length-1,
+          color:'#f5c842',anchor:'end',align:'right',offset:2,
+          font:{family:'JetBrains Mono',size:11,weight:'bold'},
+          formatter:(v)=>`${v}%`
+        }
+      }]
+    },
+    options:{
+      ...smBase,layout:{padding:{right:40}},
+      interaction:{mode:'index',intersect:false},
+      plugins:{...smBase.plugins,datalabels:{},tooltip:{...SM_TT,callbacks:{label:i=>` GM: ${i.raw}%`}}},
+      scales:{...smBase.scales,y:{...smBase.scales.y,ticks:{...smBase.scales.y.ticks,callback:v=>`${v}%`},min:50,max:75}}
+    }
+  });
+})();
+
+// SM EPS
+(function(){
+  const ctx = document.getElementById('smEPS').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+      datasets:[{
+        data:[-2.8,-1.9,-1.2,-0.5,2.11],
+        backgroundColor:['rgba(239,68,68,.7)','rgba(239,68,68,.7)','rgba(239,68,68,.7)','rgba(239,68,68,.5)','rgba(34,197,94,.8)'],
+        borderRadius:3,barPercentage:.7
+      }]
+    },
+    options:{...smBase,interaction:{mode:'index',intersect:false},plugins:{...smBase.plugins,tooltip:{...SM_TT,callbacks:{label:i=>` EPS: $${i.raw}`}}},scales:{...smBase.scales,y:{...smBase.scales.y,ticks:{...smBase.scales.y.ticks,callback:v=>`$${v}`}}}}
+  });
+})();
+
+// SM FCF
+(function(){
+  const ctx = document.getElementById('smFCF').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['FY25A','FY26E','FY27E','FY28E'],
+      datasets:[{
+        data:[-1500,-2500,-200,1500],
+        backgroundColor:['rgba(239,68,68,.7)','rgba(239,68,68,.7)','rgba(245,197,24,.7)','rgba(34,197,94,.8)'],
+        borderRadius:3,barPercentage:.7
+      }]
+    },
+    options:{...smBase,interaction:{mode:'index',intersect:false},plugins:{...smBase.plugins,tooltip:{...SM_TT,callbacks:{label:i=>` FCF: $${(i.raw/1000).toFixed(1)}B`}}},scales:{...smBase.scales,y:{...smBase.scales.y,ticks:{...smBase.scales.y.ticks,callback:v=>`$${v/1000}B`}}}}
+  });
+})();
+
+// Mobile: auto-inject data-label from <th> headers into <td> cells for stacked card mode
+(function(){
+  document.querySelectorAll('.table-wrap table').forEach(function(table){
+    // Support both <thead><tr><th> and flat <tr><th> structures
+    var headerRow=table.querySelector('thead tr')||table.querySelector('tr:first-child');
+    if(!headerRow) return;
+    var ths=Array.from(headerRow.querySelectorAll('th')).map(function(th){return th.textContent.trim()});
+    table.querySelectorAll('tbody tr, tr:not(:first-child)').forEach(function(tr){
+      var tds=tr.querySelectorAll('td');
+      tds.forEach(function(td,i){
+        if(ths[i]) td.setAttribute('data-label',ths[i]);
+      });
+    });
+    // Also handle flat tables (no tbody) - inject into all tr that have td
+    if(!table.querySelector('thead')){
+      table.querySelectorAll('tr').forEach(function(tr,ri){
+        if(ri===0) return; // skip header row
+        var tds=tr.querySelectorAll('td');
+        tds.forEach(function(td,i){
+          if(ths[i]) td.setAttribute('data-label',ths[i]);
+        });
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>

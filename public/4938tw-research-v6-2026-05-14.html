@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和碩 4938.TW · Web-native Institutional Research Terminal · 2026-05-14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0A1628;--mint:#5BC9A8;--gold:#F5A623;--gray:#94A3B8;--red:#D9534F;
+  --bg:#F8F9FA;--card:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--muted2:#94A3B8;
+  --green:#22C55E;--amber:#F59E0B;
+  --fs-xs:12px;--fs-sm:14px;--fs-md:16px;--fs-lg:22px;--fs-xl:32px;
+  --font-sans:'Inter','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:var(--fs-md);line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,22,40,.97);backdrop-filter:blur(10px);border-bottom:1px solid rgba(91,201,168,.15);padding:0 24px;display:flex;align-items:center;gap:0;height:44px}
+.nav-brand{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--mint);white-space:nowrap;margin-right:20px;letter-spacing:.08em}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;padding:0 12px;height:44px;display:flex;align-items:center;border-bottom:2px solid transparent;transition:all .15s}
+.nav-links a:hover{color:#fff}
+.nav-links a.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-links a:first-child{color:var(--gold);font-weight:700}
+.nav-badge{font-family:var(--font-mono);font-size:10px;background:rgba(217,83,79,.25);color:#ff8080;border:1px solid rgba(217,83,79,.4);padding:2px 8px;border-radius:4px;white-space:nowrap;margin-left:12px}
+.nav-progress{position:fixed;top:44px;left:0;height:2px;background:var(--gold);transition:width .1s;z-index:201;width:0}
+
+/* LAYOUT */
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+.section{padding:56px 0 44px;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:none}
+.section-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mint);margin-bottom:8px}
+.section-title{font-size:var(--fs-lg);font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.3}
+.section-desc{font-size:var(--fs-sm);color:var(--muted);max-width:760px;margin-bottom:24px;line-height:1.65}
+
+/* HERO */
+.hero{background:var(--navy);padding:120px 32px 48px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 20% 60%,rgba(91,201,168,.07) 0,transparent 70%),radial-gradient(ellipse 40% 50% at 80% 20%,rgba(245,166,35,.05) 0,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.hero-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mint);margin-bottom:14px}
+.hero h1{font-size:clamp(22px,3vw,36px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:10px}
+.hero-sub{font-size:var(--fs-sm);color:rgba(255,255,255,.5);margin-bottom:28px;max-width:700px;line-height:1.7}
+.hero-meta{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.28);margin-bottom:24px;letter-spacing:.5px}
+
+/* STATS BAR — 6 cols tight */
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-bottom:20px}
+.stat-item{padding:14px 12px;text-align:center;border-right:1px solid rgba(255,255,255,.07)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;display:block;line-height:1.1}
+.stat-label{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:1.5px;margin-top:5px}
+.hero-signal{display:inline-flex;align-items:center;gap:8px;background:rgba(91,201,168,.07);border:1px solid rgba(91,201,168,.2);border-radius:6px;padding:8px 16px}
+.signal-dot{width:7px;height:7px;border-radius:50%;background:var(--mint);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.signal-text{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.5px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;min-width:0}
+.card-label{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px}
+.card-value{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* KPI STRIP */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:20px}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.kpi-label{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:3px}
+.kpi-value{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text);line-height:1.1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-family:var(--font-mono);font-size:11px;font-weight:700}
+.pill-green{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25)}
+.pill-red{background:rgba(217,83,79,.1);color:#dc2626;border:1px solid rgba(217,83,79,.25)}
+.pill-gold{background:rgba(245,166,35,.1);color:#b45309;border:1px solid rgba(245,166,35,.3)}
+.pill-blue{background:rgba(59,130,246,.1);color:#2563eb;border:1px solid rgba(59,130,246,.25)}
+.pill-gray{background:rgba(100,116,139,.1);color:#475569;border:1px solid rgba(100,116,139,.2)}
+.pill-navy{background:rgba(10,22,40,.1);color:var(--navy);border:1px solid rgba(10,22,40,.2)}
+
+/* TABLE */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border);margin-bottom:4px}
+.tw::-webkit-scrollbar{height:4px}
+.tw::-webkit-scrollbar-track{background:var(--bg)}
+.tw::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+.tw table{width:100%;min-width:520px;border-collapse:collapse}
+.tw th{background:#F8FAFC;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.tw td{padding:9px 12px;font-size:var(--fs-sm);color:var(--text);border-bottom:1px solid #F1F5F9;vertical-align:top}
+.tw tr:last-child td{border-bottom:none}
+.tw tr:hover td{background:rgba(91,201,168,.03)}
+.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* SCENARIO CARDS */
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.sc-card{border-radius:10px;padding:18px;border:2px solid}
+.sc-bear{background:rgba(217,83,79,.04);border-color:rgba(217,83,79,.25)}
+.sc-base{background:rgba(91,201,168,.05);border-color:rgba(91,201,168,.35)}
+.sc-bull{background:rgba(34,197,94,.04);border-color:rgba(34,197,94,.25)}
+.sc-label{font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.sc-pt{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;margin-bottom:6px}
+.sc-body{font-size:var(--fs-xs);color:var(--muted);line-height:1.6}
+.c-bear{color:var(--red)}.c-base{color:var(--mint)}.c-bull{color:#16a34a}
+
+/* ACCORDION */
+details{background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+summary{padding:12px 16px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;list-style:none;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'▶';font-size:10px;color:var(--muted2);transition:transform .2s;flex-shrink:0}
+details[open] summary::before{transform:rotate(90deg)}
+.acc-body{padding:0 16px 16px}
+
+/* TABS */
+.tab-bar{display:flex;border-bottom:2px solid var(--border);margin-bottom:16px;gap:0}
+.tab-btn{padding:7px 18px;font-size:var(--fs-sm);font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* BAR TRACK */
+.bar-row{margin-bottom:10px}
+.bar-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.bar-track{height:6px;background:#EEF2F7;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+
+/* RISK CARDS */
+.risk-card{border-radius:var(--r);padding:16px;border:1px solid var(--border);background:#fff;border-left:4px solid;margin-bottom:10px}
+.risk-c{border-left-color:var(--red)}
+.risk-h{border-left-color:var(--gold)}
+.risk-m{border-left-color:var(--gray)}
+.risk-title{font-weight:700;font-size:var(--fs-sm);margin-bottom:5px}
+.risk-body{font-size:var(--fs-sm);color:var(--muted);line-height:1.6}
+
+/* CALC */
+.calc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.calc-row{display:grid;grid-template-columns:180px 1fr 72px;align-items:center;gap:10px;margin-bottom:10px}
+.calc-row label{font-size:var(--fs-sm);color:var(--text)}
+.calc-row input[type=range]{width:100%;accent-color:var(--navy)}
+.calc-val{font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:700;color:var(--navy);text-align:right}
+.calc-result{display:flex;gap:16px;margin-top:14px;padding:14px;background:var(--bg);border-radius:8px}
+.cr-item{text-align:center;flex:1}
+.cr-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.cr-val{font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--navy)}
+
+/* WATCH ROW */
+.watch-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #F1F5F9}
+.watch-row:last-child{border-bottom:none}
+.watch-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;margin-top:2px}
+.watch-body{flex:1}
+.watch-title{font-weight:600;font-size:var(--fs-sm)}
+.watch-sub{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.55}
+
+/* CATALYST */
+.cat-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #F1F5F9}
+.cat-row:last-child{border-bottom:none}
+.cat-badge{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+
+/* EXEC BULLETS */
+.exec{background:#F8FAFC;border-left:3px solid var(--mint);border-radius:0 var(--r) var(--r) 0;padding:14px 18px;margin-bottom:20px;font-size:var(--fs-sm);line-height:1.75;color:var(--text)}
+.exec ul{list-style:none;padding:0}
+.exec li{padding:2px 0 2px 20px;position:relative}
+.exec li::before{content:"▸";color:var(--mint);font-size:11px;position:absolute;left:4px;top:5px}
+
+/* DISCLAIMER */
+.disc{background:rgba(217,83,79,.05);border:1px solid rgba(217,83,79,.2);border-radius:8px;padding:10px 14px;font-size:11px;color:#b91c1c;margin-bottom:20px;line-height:1.6}
+
+/* FOOTNOTE */
+.fn{font-size:11px;color:var(--muted);line-height:1.6;padding-top:10px;border-top:1px solid var(--border);margin-top:14px}
+
+/* DARK BLOCK */
+.dark-block{background:var(--navy);border-radius:12px;padding:32px;margin-top:20px}
+.dark-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(91,201,168,.7);margin-bottom:10px}
+.dark-title{font-size:var(--fs-lg);font-weight:700;color:#fff;margin-bottom:4px}
+.dark-sub{font-size:var(--fs-sm);color:rgba(255,255,255,.38);margin-bottom:22px}
+.dark-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px}
+
+/* FOOTER */
+.footer{background:var(--navy);color:rgba(255,255,255,.45);font-size:11px;line-height:1.8;padding:40px 32px;margin-top:0}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer strong{color:rgba(255,255,255,.7)}
+
+/* SCROLL STORY */
+.scroll-story{overflow:hidden;border-radius:var(--r);border:1px solid var(--border)}
+.ss-nav{display:flex;gap:0;border-bottom:1px solid var(--border);background:#fff}
+.ss-btn{flex:1;padding:8px 6px;font-family:var(--font-mono);font-size:10px;font-weight:700;text-align:center;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .15s;border-bottom:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-btn.active{color:var(--navy);border-bottom-color:var(--navy);background:#F8FAFC}
+.ss-panel{display:none;padding:20px}
+.ss-panel.active{display:flex;gap:20px;align-items:flex-start}
+
+/* VIZ HOVER */
+.viz-part{cursor:pointer;transition:opacity .2s}
+.viz-part:hover{opacity:.8}
+.tooltip{position:absolute;background:rgba(10,22,40,.95);color:#fff;font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:6px;pointer-events:none;z-index:300;max-width:220px;line-height:1.55;border:1px solid rgba(91,201,168,.25);display:none}
+.viz-wrap{position:relative}
+
+/* MOBILE */
+@media(max-width:768px){.tw thead{display:none} 
+  .hero{padding:72px 20px 36px}
+  .hero h1{font-size:22px}
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+  .wrap{padding:0 16px}
+  .section{padding:36px 0 28px}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3,.g4,.sc-grid{grid-template-columns:1fr}
+  .calc-row{grid-template-columns:1fr 60px;grid-template-rows:auto auto}
+  .calc-row label{grid-column:1/-1}
+  .nav-brand{font-size:10px}
+  .stat-num{font-size:var(--fs-lg)}
+}
+@media(max-width:390px){
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* MOBILE-RESET v6 */
+html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+@media (max-width: 768px) {
+  *, *::before, *::after { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box; }
+  svg { max-width: 100% !important; height: auto !important; }
+  .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .top-nav, nav { max-width: 100vw !important; overflow-x: auto !important; }
+}
+
+
+/* L1 compact override */
+#l1 .section{padding:24px 0 20px}
+#l1 .sc-grid{gap:8px;margin-top:10px}
+#l1 .sc-card{padding:10px 12px}
+#l1 .sc-pt{font-size:22px;margin-bottom:4px}
+#l1 .sc-label{margin-bottom:6px}
+#l1 .sc-body{font-size:11px;line-height:1.5}
+#l1 .g2{margin-top:6px;gap:10px}
+#l1 .g2 .card{padding:10px 12px}
+#l1 .g2 ul{margin-top:5px}
+#l1 .kpi-row{margin-bottom:10px;gap:6px}
+#l1 .kpi-card{padding:7px 10px}
+#l1 .kpi-value{font-size:16px}
+#l1 .disc{padding:6px 10px;margin-bottom:10px;font-size:11px}
+#l1 .section-title{font-size:16px;margin-bottom:4px}
+#l1 .card{padding:10px 12px}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">4938.TW · RT</div>
+  <div class="nav-links">
+    <a href="#l1" id="nav-l1">結論 PT</a>
+    <a href="#thesis" id="nav-thesis">Thesis</a>
+    <a href="#market" id="nav-market">Market</a>
+    <a href="#viz" id="nav-viz">AI Server</a>
+    <a href="#driver" id="nav-driver">驅動</a>
+    <a href="#supplychain" id="nav-sc">供應鏈</a>
+    <a href="#valuation" id="nav-val">估值</a>
+    <a href="#chips" id="nav-chips">籌碼</a>
+    <a href="#personas" id="nav-personas">大師</a>
+    <a href="#risks" id="nav-risks">風險</a>
+    <a href="#watchlist" id="nav-watch">觀察</a>
+  </div>
+  <span class="nav-badge">RESEARCH ONLY</span>
+</nav>
+<div class="nav-progress" id="navProg"></div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tt"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">PERSONAL RESEARCH TERMINAL · 和碩科技 4938.TW · 2026-05-14</div>
+    <h1>和碩科技（4938.TW）<br>Web-native Institutional Research Terminal</h1>
+    <p class="hero-sub">30 秒理解 thesis · 3 分鐘理解產業 · 15 分鐘深度研究 · Bloomberg 密度 + Apple 視覺化 + SemiAnalysis 拆解</p>
+    <div class="hero-meta">TWSE: 4938.TW &nbsp;·&nbsp; 更新: 2026-05-14 &nbsp;·&nbsp; 純研究輸出，不含交易建議</div>
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-num" style="color:var(--red)">NT$65</span><div class="stat-label">Bear · 20%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--mint)">NT$85</span><div class="stat-label">Base · 50%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">NT$110</span><div class="stat-label">Bull · 30%</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#fff">NT$87.5</span><div class="stat-label">期望值 EV</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:rgba(255,255,255,.8)">NT$77.0</span><div class="stat-label">現價 5/13</div></div>
+      <div class="stat-item"><span class="stat-num" style="color:#4ade80">+13.6%</span><div class="stat-label">EV vs 現價</div></div>
+    </div>
+    <div class="hero-signal">
+      <div class="signal-dot"></div>
+      <span class="signal-text">偏多分批 · EV NT$87.5 > 現價 NT$77 · AI Server 10x thesis · Stop-loss: NT$62</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== L1 EXECUTIVE (S00) ===== -->
+<div id="l1" style="background:#fff">
+<div class="wrap">
+<div class="section">
+  <div class="section-eyebrow" style="color:var(--red)">L1 · Executive · 結論先行</div>
+  <div class="section-title">三情境估算：EV NT$87.5 vs 現價 NT$77 = +13.6% upside</div>
+  <div class="disc">本報告為純研究分析輸出。所有估算均為機率加權推算，不構成投資建議。投資有風險，請自行判斷。</div>
+
+  <!-- 6 KPI strip -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="border-left:3px solid var(--mint)">
+      <div class="kpi-label">現價</div>
+      <div class="kpi-value">NT$77.0</div>
+      <div class="kpi-sub">52w: 68.3–84.7</div>
+    </div>
+    <div class="kpi-card" style="border-left:3px solid var(--red)">
+      <div class="kpi-label">12m 報酬</div>
+      <div class="kpi-value" style="color:var(--red)">-8.5%</div>
+      <div class="kpi-sub">Beta 0.35（低波動）</div>
+    </div>
+    <div class="kpi-card" style="border-left:3px solid var(--gold)">
+      <div class="kpi-label">PE (TTM)</div>
+      <div class="kpi-value">14.4x</div>
+      <div class="kpi-sub">EMS 同業低端</div>
+    </div>
+    <div class="kpi-card" style="border-left:3px solid #22c55e">
+      <div class="kpi-label">殖利率</div>
+      <div class="kpi-value" style="color:#16a34a">4.0%</div>
+      <div class="kpi-sub">NT$4 配息 / 股</div>
+    </div>
+    <div class="kpi-card" style="border-left:3px solid #3b82f6">
+      <div class="kpi-label">TTM EPS</div>
+      <div class="kpi-value">NT$5.39</div>
+      <div class="kpi-sub">年減（匯率壓縮）</div>
+    </div>
+    <div class="kpi-card" style="border-left:3px solid var(--gray)">
+      <div class="kpi-label">毛利率</div>
+      <div class="kpi-value">4.1%</div>
+      <div class="kpi-sub">EMS 結構性低毛</div>
+    </div>
+  </div>
+
+  <!-- 3 scenario cards -->
+  <div class="sc-grid">
+    <div class="sc-card sc-bear">
+      <div class="sc-label c-bear">Bear Case · 20%</div>
+      <div class="sc-pt c-bear">NT$65</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">期望貢獻 NT$13 · 距現價 <strong style="color:var(--red)">−16%</strong></div>
+      <div class="sc-body">
+        <strong>觸發（任一）：</strong><br>
+        · AI server 10x 跳票（實際 &lt;3x）<br>
+        · iPhone 需求疲弱，Apple 削單<br>
+        · GB300 良率問題延誤<br>
+        · 毛利率無法突破 4.5%<br><br>
+        <strong>估值：</strong>FY26 EPS NT$5 × 13x = NT$65
+      </div>
+    </div>
+    <div class="sc-card sc-base" style="border-width:3px;box-shadow:0 4px 20px rgba(91,201,168,.12)">
+      <div class="sc-label c-base">Base Case · 50% ★</div>
+      <div class="sc-pt c-base">NT$85</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">期望貢獻 NT$42.5 · 距現價 <strong style="color:var(--mint)">+10%</strong></div>
+      <div class="sc-body">
+        <strong>觸發（需全部）：</strong><br>
+        · AI server 實際出貨 5x（保守達成）<br>
+        · Apple iPhone 訂單持穩<br>
+        · GB300 平台 H2 驗證通過<br>
+        · 匯率無額外逆風<br><br>
+        <strong>估值：</strong>FY26 EPS NT$7 × 12x = NT$84
+      </div>
+    </div>
+    <div class="sc-card sc-bull">
+      <div class="sc-label c-bull">Bull Case · 30%</div>
+      <div class="sc-pt c-bull">NT$110</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">期望貢獻 NT$33 · 距現價 <strong style="color:#16a34a">+43%</strong></div>
+      <div class="sc-body">
+        <strong>觸發（需全部）：</strong><br>
+        · AI server 10x 全達成<br>
+        · Vera Rubin 快速驗證並量產<br>
+        · 毛利率提升至 5%+<br>
+        · iPhone 超週期拉貨<br><br>
+        <strong>估值：</strong>FY26 EPS NT$9 × 12x = NT$108
+      </div>
+    </div>
+  </div>
+
+  <!-- EV calculation -->
+  <div class="card" style="margin-top:14px;background:rgba(91,201,168,.04);border-color:rgba(91,201,168,.2)">
+    <div class="card-label">期望值計算（機率加權）</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px">
+      <div style="font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--text)">EV = <span style="color:var(--red)">NT$65</span> × 20% + <span style="color:var(--mint)">NT$85</span> × 50% + <span style="color:#16a34a">NT$110</span> × 30%</div>
+      <div style="font-size:22px;color:var(--muted2)">=</div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:700;color:var(--mint)">NT$87.5</div>
+      <div style="flex:1;min-width:200px;font-size:12px;color:var(--muted);line-height:1.65">距現價 NT$77 = <strong style="color:#16a34a">+13.6%</strong>。殖利率 4% 提供下檔保護，AI server 10x 是超額報酬催化劑。</div>
+    </div>
+  </div>
+
+  <!-- Action + Monitor -->
+  <div class="g2" style="margin-top:12px">
+    <div class="card" style="border-left:3px solid var(--mint)">
+      <div class="card-label">建議動作</div>
+      <ul style="font-size:12px;line-height:1.85;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>偏多分批</strong>：EV NT$87.5 > 現價 NT$77，風險報酬正向</li>
+        <li><strong>加碼觸發</strong>：Q2 法說確認 AI server 出貨爆發 + GB300 驗證</li>
+        <li><strong>Stop-loss</strong>：跌破 NT$62 → 重新評估 AI server 進度</li>
+        <li><strong>殖利率護盾</strong>：NT$4 股利 = 5.2% 殖利率（現價計）</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div class="card-label">最該監控的 3 件事</div>
+      <ul style="font-size:12px;line-height:1.85;color:var(--text);padding-left:16px;margin-top:8px">
+        <li><strong>Q2 AI server 月度出貨量</strong> — 是否逐季走揚</li>
+        <li><strong>GB300 / Vera Rubin 驗證進度</strong> — H2 放量能見度</li>
+        <li><strong>Apple iPhone 拉貨訊號</strong> — 穩定性決定 EPS 下限</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Interactive Calculator -->
+  <details style="margin-top:8px"><summary style="padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer;list-style:none;background:#F8FAFC;border:1px solid var(--border);border-radius:var(--r)">▶ 互動估算計算機（展開）</summary><div style="padding:12px 0">
+  <div class="calc">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:14px">互動估算計算機</div>
+    <div class="calc-row">
+      <label>FY26 EPS 估算 (NT$)</label>
+      <input type="range" id="eps" min="4" max="12" step="0.5" value="7" oninput="calcPT()">
+      <div class="calc-val" id="epsV">NT$7</div>
+    </div>
+    <div class="calc-row">
+      <label>目標 P/E 倍數</label>
+      <input type="range" id="pe" min="8" max="20" step="1" value="12" oninput="calcPT()">
+      <div class="calc-val" id="peV">12x</div>
+    </div>
+    <div class="calc-result">
+      <div class="cr-item"><div class="cr-label">估算目標價</div><div class="cr-val" id="ptV">NT$84</div></div>
+      <div class="cr-item"><div class="cr-label">vs 現價 NT$77</div><div class="cr-val" id="upsideV" style="color:#16a34a">+9.1%</div></div>
+    </div>
+  </div>
+  </div></details>
+</div>
+</div>
+</div>
+
+
+<!-- ===== THESIS ===== -->
+<div class="wrap">
+<div class="section" id="thesis">
+  <div class="section-eyebrow">Investment Thesis (SCQA)</div>
+  <div class="section-title">雙引擎轉型：iPhone 穩定現金流 + AI Server 高速催化</div>
+  <div class="exec">
+    <ul>
+      <li><strong>S（Situation）</strong>：和碩為全球第二大 EMS，Apple iPhone 年營收 NT$780B+，毛利率 4% 結構性低但穩健。五力評分 64，估值便宜。</li>
+      <li><strong>C（Complication）</strong>：消費電子成長趨緩，iPhone 週期性波動，匯率逆風壓縮純益率至 1.6%，12m 股價 -8.5%，研究員評等高度分歧。</li>
+      <li><strong>Q（Question）</strong>：AI 伺服器業務能否從 ~15% 組合比重快速放量，帶動 EPS NT$5.39 → NT$7–9？</li>
+      <li><strong>A（Answer）</strong>：2026-03 法說管理層明示 AI server 全年挑戰 10x 年成長，GB300/Vera Rubin 持續驗證，殖利率 4% 提供下檔。EV NT$87.5 > 現價 NT$77 = +13.6%，傾向分批布局。</li>
+    </ul>
+  </div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-label">支柱 1</div>
+      <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:6px">iPhone 現金流護城河</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.65">Apple 大客戶關係 15+ 年，iPhone 規模製造提供穩定年營收 NT$780B+，為 AI server 擴展提供資金基礎。</div>
+    </div>
+    <div class="card">
+      <div class="card-label">支柱 2</div>
+      <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:6px">AI Server ODM 認證先發</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.65">NVIDIA GB200/GB300/Vera Rubin 平台 ODM 認證進行中，管理層承諾 2026 全年 10x 年成長，法說後股價 +9.7%。</div>
+    </div>
+    <div class="card">
+      <div class="card-label">支柱 3</div>
+      <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:6px">低估值 + 高殖利率</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.65">PE 14x 為 EMS 同業低端，殖利率 5.2%（現價計）提供下檔保護。Beta 0.35 低波動，適合防禦型加倉。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MARKET ===== -->
+<div class="section" id="market">
+  <div class="section-eyebrow">Market Context</div>
+  <div class="section-title">AI Server ODM：2026-2028 超週期，台灣 ODM 佔主導</div>
+  <p class="section-desc">全球 AI 基礎設施支出 2026 突破 $3,000 億，NVIDIA Blackwell / Vera Rubin 世代需求旺盛，ODM 整合製造能力成稀缺資源。</p>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-label">AI Server 市場趨勢</div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(34,197,94,.1);color:#16a34a">1</div>
+        <div class="watch-body">
+          <div class="watch-title">Hyperscaler Capex 超週期</div>
+          <div class="watch-sub">Google / Microsoft / Meta 2026 AI Capex 合計 $4,000 億+，NVIDIA GPU 採購量持續創新高</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(59,130,246,.1);color:#2563eb">2</div>
+        <div class="watch-body">
+          <div class="watch-title">GB300 → Vera Rubin 世代遷移</div>
+          <div class="watch-sub">2026 H2 GB300 放量，2027 Vera Rubin 接棒。ODM 認證廠商可享平台切換紅利</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(245,166,35,.1);color:#b45309">3</div>
+        <div class="watch-body">
+          <div class="watch-title">台灣 ODM 主導 AI server 生態</div>
+          <div class="watch-sub">鴻海、廣達、和碩共同搶食 NVIDIA 生態系訂單，和碩以 iPhone 製造能力切入</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">iPhone 市場背景</div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(34,197,94,.1);color:#16a34a">A</div>
+        <div class="watch-body">
+          <div class="watch-title">iPhone 16 週期中段穩健</div>
+          <div class="watch-sub">Apple Intelligence 功能驅動換機潮，2025 全年出貨量約 2.3 億支</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(59,130,246,.1);color:#2563eb">B</div>
+        <div class="watch-body">
+          <div class="watch-title">Apple 多元化生產佈局</div>
+          <div class="watch-sub">持續推動印度、越南產能分散，和碩配合建設海外廠，長期關係穩固</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(217,83,79,.1);color:#dc2626">C</div>
+        <div class="watch-body">
+          <div class="watch-title">關稅風險促非中生產加速</div>
+          <div class="watch-sub">美中貿易摩擦促使 Apple 加速非中國生產，和碩印度廠可望受惠</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMS Stack SVG -->
+  <div class="card" style="padding:20px">
+    <div class="card-label">EMS 6 層競爭力堆疊對比 — 和碩 vs 鴻海 vs 廣達 vs 緯創</div>
+    <svg viewBox="0 0 720 380" width="100%" height="auto" style="display:block;margin:14px 0" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <style>
+          .h-bg{fill:#0A1628}.head{font:700 11px Inter,sans-serif;fill:#fff;text-anchor:middle}
+          .rlbl{font:600 11px Inter,sans-serif;fill:#1a1a1a;text-anchor:end}
+          .ctxt{font:600 11px Inter,sans-serif;fill:#0A1628;text-anchor:middle}
+          .cgold{fill:#F5A623}.cpale{fill:#FDE8B4}.cgray{fill:#E2E8F0}.cred{fill:#FCA5A5}
+          .note{font:10px Inter,sans-serif;fill:#64748b}
+          .star{font:700 10px monospace;fill:#b45309}
+        </style>
+      </defs>
+      <rect x="175" y="10" width="120" height="28" class="h-bg" rx="4"/><text x="235" y="28" class="head">和碩 4938</text>
+      <rect x="300" y="10" width="120" height="28" class="h-bg" rx="4"/><text x="360" y="28" class="head">鴻海 2317</text>
+      <rect x="425" y="10" width="120" height="28" class="h-bg" rx="4"/><text x="485" y="28" class="head">廣達 2382</text>
+      <rect x="550" y="10" width="120" height="28" class="h-bg" rx="4"/><text x="610" y="28" class="head">緯創 3231</text>
+      <!-- Row 1 -->
+      <text x="168" y="60" class="rlbl">設計能力</text>
+      <rect x="175" y="44" width="120" height="38" class="cpale" rx="3"/><text x="235" y="67" class="ctxt">中</text>
+      <rect x="300" y="44" width="120" height="38" class="cgold" rx="3"/><text x="360" y="67" class="ctxt">強</text>
+      <rect x="425" y="44" width="120" height="38" class="cgold" rx="3"/><text x="485" y="67" class="ctxt">強</text>
+      <rect x="550" y="44" width="120" height="38" class="cpale" rx="3"/><text x="610" y="67" class="ctxt">中</text>
+      <!-- Row 2 -->
+      <text x="168" y="105" class="rlbl">製造規模</text>
+      <rect x="175" y="88" width="120" height="38" class="cpale" rx="3"/><text x="235" y="111" class="ctxt">中高</text>
+      <rect x="300" y="88" width="120" height="38" class="cred" rx="3"/><text x="360" y="111" class="ctxt">最強</text>
+      <rect x="425" y="88" width="120" height="38" class="cgold" rx="3"/><text x="485" y="111" class="ctxt">強</text>
+      <rect x="550" y="88" width="120" height="38" class="cpale" rx="3"/><text x="610" y="111" class="ctxt">中</text>
+      <!-- Row 3 -->
+      <text x="168" y="150" class="rlbl">自動化程度</text>
+      <rect x="175" y="133" width="120" height="38" class="cpale" rx="3"/><text x="235" y="156" class="ctxt">中</text>
+      <rect x="300" y="133" width="120" height="38" class="cgold" rx="3"/><text x="360" y="156" class="ctxt">強</text>
+      <rect x="425" y="133" width="120" height="38" class="cgold" rx="3"/><text x="485" y="156" class="ctxt">強</text>
+      <rect x="550" y="133" width="120" height="38" class="cpale" rx="3"/><text x="610" y="156" class="ctxt">中</text>
+      <!-- Row 4 highlight -->
+      <rect x="0" y="178" width="720" height="48" fill="rgba(245,166,35,.06)"/>
+      <text x="168" y="197" class="rlbl">AI Server 客戶綁定</text>
+      <text x="168" y="212" class="star" text-anchor="end">★ 先發優勢</text>
+      <rect x="175" y="178" width="120" height="42" class="cgold" rx="3"/><text x="235" y="203" class="ctxt">先發</text>
+      <rect x="300" y="178" width="120" height="42" class="cgold" rx="3"/><text x="360" y="203" class="ctxt">強</text>
+      <rect x="425" y="178" width="120" height="42" class="cgold" rx="3"/><text x="485" y="203" class="ctxt">強</text>
+      <rect x="550" y="178" width="120" height="42" class="cgray" rx="3"/><text x="610" y="203" class="ctxt">弱</text>
+      <!-- Row 5 -->
+      <text x="168" y="243" class="rlbl">Apple iPhone 認證</text>
+      <text x="168" y="256" class="star" text-anchor="end">★★ 護城河</text>
+      <rect x="175" y="228" width="120" height="42" class="cgold" rx="3"/><text x="235" y="253" class="ctxt">核心</text>
+      <rect x="300" y="228" width="120" height="42" class="cgold" rx="3"/><text x="360" y="253" class="ctxt">有</text>
+      <rect x="425" y="228" width="120" height="42" class="cgray" rx="3"/><text x="485" y="253" class="ctxt">無</text>
+      <rect x="550" y="228" width="120" height="42" class="cgray" rx="3"/><text x="610" y="253" class="ctxt">無</text>
+      <!-- Row 6 -->
+      <text x="168" y="295" class="rlbl">垂直整合深度</text>
+      <rect x="175" y="276" width="120" height="38" class="cgray" rx="3"/><text x="235" y="299" class="ctxt">弱</text>
+      <rect x="300" y="276" width="120" height="38" class="cgold" rx="3"/><text x="360" y="299" class="ctxt">強</text>
+      <rect x="425" y="276" width="120" height="38" class="cpale" rx="3"/><text x="485" y="299" class="ctxt">中</text>
+      <rect x="550" y="276" width="120" height="38" class="cgray" rx="3"/><text x="610" y="299" class="ctxt">弱</text>
+      <!-- Legend -->
+      <rect x="175" y="350" width="12" height="10" class="cgold"/><text x="192" y="359" class="note">強 / 自家優勢</text>
+      <rect x="280" y="350" width="12" height="10" class="cpale"/><text x="297" y="359" class="note">中等</text>
+      <rect x="350" y="350" width="12" height="10" class="cgray"/><text x="367" y="359" class="note">弱 / 無</text>
+      <rect x="425" y="350" width="12" height="10" class="cred"/><text x="442" y="359" class="note">最強(他廠)</text>
+    </svg>
+    <div class="fn">和碩「雙認證組合」（Apple + NVIDIA）是最大差異化。若 AI Server 兌現，PE 14x → 18-20x 重評空間存在。</div>
+  </div>
+</div>
+</div>
+
+
+<!-- ===== VIZ SECTION — 5 Visualizations ===== -->
+<div class="wrap">
+<div class="section" id="viz">
+  <div class="section-eyebrow">Visual Intelligence · 5 Interactive Visualizations</div>
+  <div class="section-title">AI Server Anatomy · Supply Chain · Zoom Story · Revenue Tree · Valuation Bridge</div>
+
+  <!-- VIZ 1: AI Server Exploded View -->
+  <div class="card" style="padding:20px;margin-bottom:16px">
+    <div class="card-label">Viz 1 · AI Server Exploded View — Hover 各零件查看和碩角色</div>
+    <div class="viz-wrap" style="margin-top:14px;min-height:360px">
+      <svg viewBox="0 0 760 340" width="100%" height="auto" id="explodedSvg" style="display:block">
+        <defs>
+          <style>
+            .rack-part{cursor:pointer;transition:all .2s}
+            .rack-part:hover rect,.rack-part:hover polygon,.rack-part:hover path{filter:brightness(1.15)}
+            .part-lbl{font:700 10px Inter,sans-serif;fill:#fff;pointer-events:none;text-anchor:middle}
+            .part-sub{font:10px Inter,sans-serif;fill:rgba(255,255,255,.65);pointer-events:none;text-anchor:middle}
+            .arrow-tip{fill:#94A3B8}
+          </style>
+        </defs>
+        <!-- Rack chassis -->
+        <rect x="20" y="20" width="220" height="300" fill="#1E293B" rx="8" stroke="#334155" stroke-width="1.5"/>
+        <text x="130" y="14" text-anchor="middle" font="700 11px Inter,sans-serif" font-size="11" font-weight="700" fill="#94A3B8" font-family="monospace">AI SERVER RACK</text>
+
+        <!-- GPU Tray -->
+        <g class="rack-part" id="vp-gpu" onclick="showTip(event,'GPU Tray','NVIDIA H100/H200/B200 GPU · 供應商: NVIDIA · 市佔: ~80%+ · ASP: $25-40K · CAGR 35%+ · GM 60%+ · 技術門檻: 極高')">
+          <rect x="34" y="36" width="192" height="52" fill="#0A1628" rx="4" stroke="#5BC9A8" stroke-width="1.5"/>
+          <text x="130" y="60" class="part-lbl">GPU Tray (H200/B200)</text>
+          <text x="130" y="76" class="part-sub">NVIDIA · ASP $30K · CAGR 35%</text>
+        </g>
+
+        <!-- NVLink / Retimer -->
+        <g class="rack-part" id="vp-nvlink" onclick="showTip(event,'NVLink / Retimer','高速互連晶片 · 供應商: NVIDIA / Marvell / Montage · 市佔: 分散 · ASP: $500-2K · CAGR 40%+ · GM 50%+ · 技術門檻: 高')">
+          <rect x="34" y="96" width="192" height="40" fill="#0F172A" rx="4" stroke="#F5A623" stroke-width="1.5"/>
+          <text x="130" y="114" class="part-lbl">NVLink Switch / Retimer</text>
+          <text x="130" y="126" class="part-sub">Marvell/Montage · CAGR 40%+</text>
+        </g>
+
+        <!-- VRM / Power -->
+        <g class="rack-part" id="vp-vrm" onclick="showTip(event,'VRM 電源模組','電壓調節模組 · 供應商: Infineon / Renesas / MPS · 市佔: 分散 · ASP: $200-800/unit · CAGR 25% · GM 40-50% · 技術門檻: 中高')">
+          <rect x="34" y="144" width="90" height="40" fill="#0F172A" rx="4" stroke="#3B82F6" stroke-width="1.5"/>
+          <text x="79" y="162" class="part-lbl">VRM</text>
+          <text x="79" y="174" class="part-sub">Infineon/MPS</text>
+        </g>
+
+        <!-- ABF Substrate -->
+        <g class="rack-part" id="vp-abf" onclick="showTip(event,'ABF 基板','Ajinomoto Build-up Film 基板 · 供應商: 南亞科/欣興/景碩 · 市佔: 台灣主導 70%+ · ASP: $50-200/unit · CAGR 30% · GM 35-45% · 技術門檻: 高')">
+          <rect x="130" y="144" width="96" height="40" fill="#0F172A" rx="4" stroke="#8B5CF6" stroke-width="1.5"/>
+          <text x="178" y="162" class="part-lbl">ABF 基板</text>
+          <text x="178" y="174" class="part-sub">南亞/欣興 · 台灣 70%+</text>
+        </g>
+
+        <!-- Thermal / Cooling -->
+        <g class="rack-part" id="vp-thermal" onclick="showTip(event,'散熱系統','液冷 / 風冷模組 · 供應商: Aavid / 奇鋐 / CoolIT · 市佔: 分散 · ASP $1-5K/rack · CAGR 45% · GM 35% · 技術門檻: 中高')">
+          <rect x="34" y="192" width="192" height="40" fill="#0F172A" rx="4" stroke="#06B6D4" stroke-width="1.5"/>
+          <text x="130" y="210" class="part-lbl">Thermal / Liquid Cooling</text>
+          <text x="130" y="222" class="part-sub">奇鋐/CoolIT · CAGR 45%</text>
+        </g>
+
+        <!-- PCB -->
+        <g class="rack-part" id="vp-pcb" onclick="showTip(event,'PCB 主板','AI Server 主板 · 供應商: 超微電路/金像電/欣興 · 市佔: 台灣主導 · ASP $500-2K · CAGR 25% · GM 30-40% · 技術門檻: 中高')">
+          <rect x="34" y="240" width="90" height="40" fill="#0F172A" rx="4" stroke="#F59E0B" stroke-width="1.5"/>
+          <text x="79" y="258" class="part-lbl">PCB 主板</text>
+          <text x="79" y="270" class="part-sub">台灣主導</text>
+        </g>
+
+        <!-- Storage / NVMe -->
+        <g class="rack-part" id="vp-storage" onclick="showTip(event,'Storage / NVMe','高速儲存 · 供應商: Samsung / Micron / KIOXIA · ASP $200-500/unit · CAGR 20% · GM 40-55%')">
+          <rect x="130" y="240" width="96" height="40" fill="#0F172A" rx="4" stroke="#84CC16" stroke-width="1.5"/>
+          <text x="178" y="258" class="part-lbl">NVMe Storage</text>
+          <text x="178" y="270" class="part-sub">Samsung/Micron</text>
+        </g>
+
+        <!-- 和碩 ODM arrow + label -->
+        <line x1="250" y1="170" x2="340" y2="170" stroke="#5BC9A8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="338,165 348,170 338,175" fill="#5BC9A8"/>
+
+        <!-- 和碩 role box -->
+        <rect x="350" y="80" width="200" height="180" fill="rgba(91,201,168,.06)" rx="8" stroke="rgba(91,201,168,.35)" stroke-width="2"/>
+        <text x="450" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#5BC9A8" font-family="monospace">和碩 4938 ODM</text>
+        <text x="450" y="122" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.55)" font-family="monospace">整機組裝者</text>
+        <text x="450" y="148" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">· 採購上述所有零件</text>
+        <text x="450" y="163" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">· 完成 AI Server 組裝</text>
+        <text x="450" y="178" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">· NVIDIA 認證 ODM</text>
+        <text x="450" y="193" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">· GM 4-5%（EMS 結構）</text>
+        <text x="450" y="208" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">· 2026 目標 10x 成長</text>
+        <!-- 和碩 stat chips -->
+        <rect x="370" y="218" width="80" height="22" fill="rgba(245,166,35,.2)" rx="4"/>
+        <text x="410" y="233" text-anchor="middle" font-size="10" font-weight="700" fill="#F5A623" font-family="monospace">PE 14x</text>
+        <rect x="460" y="218" width="80" height="22" fill="rgba(91,201,168,.2)" rx="4"/>
+        <text x="500" y="233" text-anchor="middle" font-size="10" font-weight="700" fill="#5BC9A8" font-family="monospace">GM 4.1%</text>
+
+        <!-- Hyperscaler destination -->
+        <line x1="558" y1="170" x2="630" y2="170" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="628,165 638,170 628,175" fill="#94A3B8"/>
+        <rect x="640" y="120" width="110" height="100" fill="rgba(148,163,184,.08)" rx="6" stroke="rgba(148,163,184,.25)" stroke-width="1"/>
+        <text x="695" y="145" text-anchor="middle" font-size="10" font-weight="700" fill="#94A3B8" font-family="monospace">Hyperscalers</text>
+        <text x="695" y="162" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.45)" font-family="monospace">Google</text>
+        <text x="695" y="176" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.45)" font-family="monospace">Microsoft</text>
+        <text x="695" y="190" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.45)" font-family="monospace">Meta / AWS</text>
+        <text x="695" y="208" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.3)" font-family="monospace">AI 機房</text>
+
+        <!-- hint text -->
+        <text x="130" y="315" text-anchor="middle" font-size="10" fill="rgba(91,201,168,.6)" font-family="monospace">Click 零件查看供應商 / 市佔 / ASP / 技術門檻</text>
+      </svg>
+      <div id="viz1info" style="display:none;background:rgba(10,22,40,.95);border:1px solid rgba(91,201,168,.25);border-radius:8px;padding:12px 16px;font-family:var(--font-mono);font-size:12px;color:#fff;margin-top:12px;line-height:1.65"></div>
+    </div>
+  </div>
+
+  <!-- VIZ 2: Supply Chain Flow -->
+  <div class="card" style="padding:20px;margin-bottom:16px">
+    <div class="card-label">Viz 2 · Supply Chain Flow — 和碩在供應鏈中的位置</div>
+    <div class="viz-wrap" style="margin-top:14px;overflow-x:auto">
+      <svg viewBox="0 0 900 200" width="100%" height="auto" style="min-width:600px;display:block">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#5BC9A8"/>
+          </marker>
+          <marker id="arrg" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#94A3B8"/>
+          </marker>
+        </defs>
+        <!-- Node 1: NVIDIA -->
+        <rect x="10" y="60" width="150" height="80" fill="#1E293B" rx="8" stroke="#5BC9A8" stroke-width="1.5"/>
+        <text x="85" y="90" text-anchor="middle" font-size="12" font-weight="700" fill="#5BC9A8" font-family="monospace">NVIDIA</text>
+        <text x="85" y="107" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.5)" font-family="monospace">GPU 設計</text>
+        <text x="85" y="122" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.5)" font-family="monospace">平台規格制定</text>
+        <!-- Arrow 1 -->
+        <line x1="163" y1="100" x2="212" y2="100" stroke="#5BC9A8" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="188" y="92" text-anchor="middle" font-size="9" fill="#5BC9A8" font-family="monospace">規格</text>
+
+        <!-- Node 2: Component Suppliers -->
+        <rect x="215" y="30" width="150" height="140" fill="#0F172A" rx="8" stroke="#F5A623" stroke-width="1.5"/>
+        <text x="290" y="55" text-anchor="middle" font-size="11" font-weight="700" fill="#F5A623" font-family="monospace">零組件供應商</text>
+        <text x="290" y="74" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">ABF: 南亞/欣興</text>
+        <text x="290" y="89" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">PCB: 超微/金像</text>
+        <text x="290" y="104" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">VRM: Infineon</text>
+        <text x="290" y="119" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">Retimer: Marvell</text>
+        <text x="290" y="134" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">散熱: 奇鋐/CoolIT</text>
+        <text x="290" y="152" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.55)" font-family="monospace">Memory: Samsung</text>
+        <!-- Arrow 2 -->
+        <line x1="368" y1="100" x2="417" y2="100" stroke="#5BC9A8" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="393" y="92" text-anchor="middle" font-size="9" fill="#5BC9A8" font-family="monospace">採購</text>
+
+        <!-- Node 3: 和碩 (HIGHLIGHT) -->
+        <rect x="420" y="50" width="170" height="100" fill="rgba(91,201,168,.12)" rx="8" stroke="#5BC9A8" stroke-width="2.5"/>
+        <text x="505" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="#5BC9A8" font-family="monospace">和碩 4938</text>
+        <text x="505" y="100" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.7)" font-family="monospace">ODM 整機組裝</text>
+        <text x="505" y="116" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.55)" font-family="monospace">iPhone OEM + AI Server</text>
+        <text x="505" y="132" text-anchor="middle" font-size="10" fill="#F5A623" font-family="monospace">GM 4.1% · PE 14x</text>
+        <!-- Arrow 3 -->
+        <line x1="593" y1="100" x2="640" y2="100" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrg)"/>
+        <text x="617" y="92" text-anchor="middle" font-size="9" fill="#94A3B8" font-family="monospace">出貨</text>
+
+        <!-- Node 4: Brand Customers -->
+        <rect x="643" y="50" width="130" height="100" fill="#1E293B" rx="8" stroke="#94A3B8" stroke-width="1.5"/>
+        <text x="708" y="78" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="monospace">品牌客戶</text>
+        <text x="708" y="96" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.55)" font-family="monospace">Apple (iPhone)</text>
+        <text x="708" y="112" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.55)" font-family="monospace">NVIDIA (AI Server)</text>
+        <text x="708" y="128" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.4)" font-family="monospace">→ Hyperscalers</text>
+        <!-- Arrow 4 -->
+        <line x1="776" y1="100" x2="820" y2="100" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrg)"/>
+
+        <!-- Node 5: End Market -->
+        <rect x="823" y="70" width="70" height="60" fill="#0F172A" rx="6" stroke="#475569" stroke-width="1"/>
+        <text x="858" y="95" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.5)" font-family="monospace">終端</text>
+        <text x="858" y="110" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)" font-family="monospace">AI 機房</text>
+        <text x="858" y="122" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)" font-family="monospace">消費者</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- VIZ 3: Progressive Zoom Scroll Story -->
+  <div class="card" style="padding:20px;margin-bottom:16px">
+    <div class="card-label">Viz 3 · Progressive Zoom — 5 層拆解：AI Server → ABF 基板</div>
+    <div class="ss-nav">
+      <button class="ss-btn active" onclick="ssSwitch(0)">L1 完整 AI Server</button>
+      <button class="ss-btn" onclick="ssSwitch(1)">L2 GPU Tray</button>
+      <button class="ss-btn" onclick="ssSwitch(2)">L3 Power Delivery</button>
+      <button class="ss-btn" onclick="ssSwitch(3)">L4 Retimer 晶片</button>
+      <button class="ss-btn" onclick="ssSwitch(4)">L5 ABF 基板</button>
+    </div>
+    <div class="ss-panel active" id="ss0">
+      <div style="flex:1">
+        <svg viewBox="0 0 280 200" width="100%" height="auto" style="max-width:280px">
+          <rect x="10" y="10" width="260" height="180" fill="#1E293B" rx="10" stroke="#5BC9A8" stroke-width="2"/>
+          <rect x="25" y="28" width="230" height="35" fill="#0A1628" rx="4" stroke="#5BC9A8" stroke-width="1"/>
+          <text x="140" y="50" text-anchor="middle" font-size="11" fill="#5BC9A8" font-family="monospace" font-weight="700">GPU Tray × 8</text>
+          <rect x="25" y="70" width="230" height="25" fill="#0A1628" rx="4" stroke="#F5A623" stroke-width="1"/>
+          <text x="140" y="87" text-anchor="middle" font-size="10" fill="#F5A623" font-family="monospace">NVLink Switch / Networking</text>
+          <rect x="25" y="102" width="110" height="22" fill="#0A1628" rx="4" stroke="#3B82F6" stroke-width="1"/>
+          <text x="80" y="117" text-anchor="middle" font-size="9" fill="#3B82F6" font-family="monospace">Power VRM</text>
+          <rect x="145" y="102" width="110" height="22" fill="#0A1628" rx="4" stroke="#06B6D4" stroke-width="1"/>
+          <text x="200" y="117" text-anchor="middle" font-size="9" fill="#06B6D4" font-family="monospace">Liquid Cooling</text>
+          <rect x="25" y="131" width="230" height="22" fill="#0A1628" rx="4" stroke="#8B5CF6" stroke-width="1"/>
+          <text x="140" y="146" text-anchor="middle" font-size="9" fill="#8B5CF6" font-family="monospace">PCB + ABF Substrate</text>
+          <rect x="25" y="160" width="230" height="20" fill="#0A1628" rx="4" stroke="#84CC16" stroke-width="1"/>
+          <text x="140" y="174" text-anchor="middle" font-size="9" fill="#84CC16" font-family="monospace">NVMe Storage Array</text>
+        </svg>
+      </div>
+      <div style="flex:1;padding-left:16px">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:8px">完整 AI Server Rack</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          <div style="margin-bottom:6px">· <strong>8x GPU Tray</strong>：NVIDIA H200/B200，每台 $30K，總值 $240K+</div>
+          <div style="margin-bottom:6px">· <strong>NVLink Switch</strong>：GPU 高速互連，NVIDIA 壟斷</div>
+          <div style="margin-bottom:6px">· <strong>VRM</strong>：每 GPU 需獨立電源模組，Infineon/Renesas</div>
+          <div style="margin-bottom:6px">· <strong>液冷</strong>：GB300 功耗 1000W+，風冷不足</div>
+          <div>· <strong>和碩角色</strong>：整機組裝 ODM，採購所有零件整合出貨</div>
+        </div>
+      </div>
+    </div>
+    <div class="ss-panel" id="ss1">
+      <div style="flex:1">
+        <svg viewBox="0 0 280 200" width="100%" height="auto" style="max-width:280px">
+          <rect x="10" y="10" width="260" height="180" fill="#0A1628" rx="8" stroke="#5BC9A8" stroke-width="2"/>
+          <rect x="25" y="28" width="230" height="50" fill="#1E293B" rx="6" stroke="#5BC9A8" stroke-width="1.5"/>
+          <text x="140" y="56" text-anchor="middle" font-size="12" fill="#5BC9A8" font-family="monospace" font-weight="700">NVIDIA B200 GPU Die</text>
+          <text x="140" y="70" text-anchor="middle" font-size="10" fill="rgba(91,201,168,.6)" font-family="monospace">208B 參數 · 1000W TDP</text>
+          <rect x="25" y="90" width="110" height="40" fill="#1E293B" rx="4" stroke="#F5A623" stroke-width="1"/>
+          <text x="80" y="112" text-anchor="middle" font-size="10" fill="#F5A623" font-family="monospace">HBM3e × 8</text>
+          <text x="80" y="124" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">192GB / stack</text>
+          <rect x="145" y="90" width="110" height="40" fill="#1E293B" rx="4" stroke="#8B5CF6" stroke-width="1"/>
+          <text x="200" y="112" text-anchor="middle" font-size="10" fill="#8B5CF6" font-family="monospace">ABF 基板</text>
+          <text x="200" y="124" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">台灣主導 70%</text>
+          <rect x="25" y="140" width="230" height="35" fill="#1E293B" rx="4" stroke="#06B6D4" stroke-width="1"/>
+          <text x="140" y="161" text-anchor="middle" font-size="10" fill="#06B6D4" font-family="monospace">Thermal Interface Material</text>
+        </svg>
+      </div>
+      <div style="flex:1;padding-left:16px">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:8px">L2 · GPU Tray 拆解</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          <div style="margin-bottom:6px">· <strong>NVIDIA B200</strong>：208B transistor，TSMC 4NP，ASP ~$30K</div>
+          <div style="margin-bottom:6px">· <strong>HBM3e</strong>：SK Hynix 壟斷 ~50%，Samsung 追趕</div>
+          <div style="margin-bottom:6px">· <strong>ABF 基板</strong>：南亞科 / 欣興，台灣廠主導，供應瓶頸</div>
+          <div>· <strong>TDP 1000W+</strong>：液冷成必要條件，散熱市場快速成長</div>
+        </div>
+      </div>
+    </div>
+    <div class="ss-panel" id="ss2">
+      <div style="flex:1">
+        <svg viewBox="0 0 280 200" width="100%" height="auto" style="max-width:280px">
+          <rect x="10" y="10" width="260" height="180" fill="#0A1628" rx="8" stroke="#3B82F6" stroke-width="2"/>
+          <text x="140" y="34" text-anchor="middle" font-size="11" fill="#3B82F6" font-family="monospace" font-weight="700">Power Delivery Architecture</text>
+          <!-- 48V bus -->
+          <rect x="20" y="48" width="240" height="22" fill="#1E3A5F" rx="4" stroke="#3B82F6" stroke-width="1"/>
+          <text x="140" y="63" text-anchor="middle" font-size="10" fill="#60A5FA" font-family="monospace">48V Bus (Rack-level PDU)</text>
+          <!-- VRM blocks -->
+          <rect x="20" y="82" width="55" height="50" fill="#1E293B" rx="4" stroke="#F59E0B" stroke-width="1.5"/>
+          <text x="47" y="103" text-anchor="middle" font-size="9" fill="#F59E0B" font-family="monospace">VRM</text>
+          <text x="47" y="117" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="monospace">GPU 1</text>
+          <rect x="83" y="82" width="55" height="50" fill="#1E293B" rx="4" stroke="#F59E0B" stroke-width="1.5"/>
+          <text x="110" y="103" text-anchor="middle" font-size="9" fill="#F59E0B" font-family="monospace">VRM</text>
+          <text x="110" y="117" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="monospace">GPU 2</text>
+          <text x="162" y="105" text-anchor="middle" font-size="18" fill="rgba(255,255,255,.2)">···</text>
+          <rect x="205" y="82" width="55" height="50" fill="#1E293B" rx="4" stroke="#F59E0B" stroke-width="1.5"/>
+          <text x="232" y="103" text-anchor="middle" font-size="9" fill="#F59E0B" font-family="monospace">VRM</text>
+          <text x="232" y="117" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="monospace">GPU 8</text>
+          <!-- arrows down -->
+          <line x1="47" y1="135" x2="47" y2="158" stroke="#F59E0B" stroke-width="1" marker-end="url(#arr)"/>
+          <line x1="110" y1="135" x2="110" y2="158" stroke="#F59E0B" stroke-width="1" marker-end="url(#arr)"/>
+          <line x1="232" y1="135" x2="232" y2="158" stroke="#F59E0B" stroke-width="1" marker-end="url(#arr)"/>
+          <text x="140" y="175" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">GPU Core Voltage ~0.9V</text>
+        </svg>
+      </div>
+      <div style="flex:1;padding-left:16px">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:8px">L3 · Power Delivery</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          <div style="margin-bottom:6px">· <strong>48V 直流架構</strong>：降低線損，Microsoft / Google 標準</div>
+          <div style="margin-bottom:6px">· <strong>VRM × 8</strong>：每顆 GPU 獨立 VRM，Infineon / Renesas / MPS</div>
+          <div style="margin-bottom:6px">· <strong>CAGR 25%</strong>：GB300 功耗倍增帶動 VRM 量價齊升</div>
+          <div>· <strong>和碩採購</strong>：統一向 Infineon 等採購，議價力有限</div>
+        </div>
+      </div>
+    </div>
+    <div class="ss-panel" id="ss3">
+      <div style="flex:1">
+        <svg viewBox="0 0 280 200" width="100%" height="auto" style="max-width:280px">
+          <rect x="10" y="10" width="260" height="180" fill="#0A1628" rx="8" stroke="#F5A623" stroke-width="2"/>
+          <text x="140" y="34" text-anchor="middle" font-size="11" fill="#F5A623" font-family="monospace" font-weight="700">Retimer / Re-driver IC</text>
+          <rect x="30" y="50" width="200" height="40" fill="#1E293B" rx="4" stroke="#F5A623" stroke-width="1.5"/>
+          <text x="130" y="68" text-anchor="middle" font-size="11" fill="#F5A623" font-family="monospace">PCIe Gen 5 / CXL 2.0</text>
+          <text x="130" y="82" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">Signal Conditioning 128GT/s</text>
+          <rect x="30" y="103" width="90" height="40" fill="#1E293B" rx="4" stroke="#5BC9A8" stroke-width="1"/>
+          <text x="75" y="118" text-anchor="middle" font-size="9" fill="#5BC9A8" font-family="monospace">Marvell</text>
+          <text x="75" y="132" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="monospace">市佔 ~35%</text>
+          <rect x="135" y="103" width="95" height="40" fill="#1E293B" rx="4" stroke="#5BC9A8" stroke-width="1"/>
+          <text x="182" y="118" text-anchor="middle" font-size="9" fill="#5BC9A8" font-family="monospace">Montage</text>
+          <text x="182" y="132" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="monospace">台灣/中國廠</text>
+          <text x="140" y="163" text-anchor="middle" font-size="9" fill="#F5A623" font-family="monospace">ASP $500-2K · CAGR 40%+</text>
+          <text x="140" y="178" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)" font-family="monospace">GB300 每台需 16-24 顆</text>
+        </svg>
+      </div>
+      <div style="flex:1;padding-left:16px">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:8px">L4 · Retimer 晶片</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          <div style="margin-bottom:6px">· <strong>功能</strong>：長距信號再生，維持 PCIe Gen5 信號完整性</div>
+          <div style="margin-bottom:6px">· <strong>GB300 需求</strong>：每台 16-24 顆，ASP $500-2K</div>
+          <div style="margin-bottom:6px">· <strong>主要廠商</strong>：Marvell（35%）/ Montage / Parade</div>
+          <div>· <strong>CAGR 40%+</strong>：AI server 密度提升直接驅動</div>
+        </div>
+      </div>
+    </div>
+    <div class="ss-panel" id="ss4">
+      <div style="flex:1">
+        <svg viewBox="0 0 280 200" width="100%" height="auto" style="max-width:280px">
+          <rect x="10" y="10" width="260" height="180" fill="#0A1628" rx="8" stroke="#8B5CF6" stroke-width="2"/>
+          <text x="140" y="34" text-anchor="middle" font-size="11" fill="#8B5CF6" font-family="monospace" font-weight="700">ABF Substrate 截面</text>
+          <!-- layers -->
+          <rect x="25" y="48" width="230" height="18" fill="#4C1D95" rx="2"/>
+          <text x="140" y="61" text-anchor="middle" font-size="9" fill="#C4B5FD" font-family="monospace">Core Layer (Glass Epoxy)</text>
+          <rect x="25" y="70" width="230" height="14" fill="#6D28D9" rx="2"/>
+          <text x="140" y="81" text-anchor="middle" font-size="9" fill="#fff" font-family="monospace">ABF Film — Ajinomoto</text>
+          <rect x="25" y="88" width="230" height="14" fill="#7C3AED" rx="2"/>
+          <text x="140" y="99" text-anchor="middle" font-size="9" fill="#fff" font-family="monospace">Copper Trace L1-L2</text>
+          <rect x="25" y="106" width="230" height="14" fill="#6D28D9" rx="2"/>
+          <text x="140" y="117" text-anchor="middle" font-size="9" fill="#fff" font-family="monospace">ABF Film Layer 2</text>
+          <rect x="25" y="124" width="230" height="14" fill="#7C3AED" rx="2"/>
+          <text x="140" y="135" text-anchor="middle" font-size="9" fill="#fff" font-family="monospace">Copper Trace L3-L4</text>
+          <rect x="25" y="142" width="230" height="18" fill="#4C1D95" rx="2"/>
+          <text x="140" y="155" text-anchor="middle" font-size="9" fill="#C4B5FD" font-family="monospace">Solder Mask / Ball Grid Array</text>
+          <!-- suppliers -->
+          <text x="140" y="178" text-anchor="middle" font-size="9" fill="#8B5CF6" font-family="monospace">南亞科 · 欣興 · 景碩 · 台灣主導 70%+</text>
+        </svg>
+      </div>
+      <div style="flex:1;padding-left:16px">
+        <div style="font-weight:700;font-size:var(--fs-sm);margin-bottom:8px">L5 · ABF 基板</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          <div style="margin-bottom:6px">· <strong>ABF Film</strong>：味之素（Ajinomoto）獨家材料，壟斷上游</div>
+          <div style="margin-bottom:6px">· <strong>基板廠</strong>：南亞科 / 欣興 / 景碩，台灣合計 70%+ 市佔</div>
+          <div style="margin-bottom:6px">· <strong>CAGR 30%</strong>：AI GPU 基板尺寸大、層數多，ASP $50-200/unit</div>
+          <div>· <strong>供應瓶頸</strong>：2026-2027 ABF 產能是 AI server ramp 的限制因子</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIZ 4: Revenue Driver Tree -->
+  <div class="card" style="padding:20px;margin-bottom:16px">
+    <div class="card-label">Viz 4 · Revenue Driver Tree — AI Server 子業務拆解</div>
+    <div style="overflow-x:auto">
+    <svg viewBox="0 0 800 300" width="100%" height="auto" style="min-width:600px;display:block;margin-top:10px">
+      <!-- Root: 和碩營收 -->
+      <rect x="10" y="120" width="120" height="60" fill="#0A1628" rx="8" stroke="#5BC9A8" stroke-width="2"/>
+      <text x="70" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#5BC9A8" font-family="monospace">和碩</text>
+      <text x="70" y="158" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.6)" font-family="monospace">NT$1.12T</text>
+      <text x="70" y="172" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">2025A</text>
+      <!-- Branch lines -->
+      <line x1="130" y1="150" x2="165" y2="100" stroke="#94A3B8" stroke-width="1.5"/>
+      <line x1="130" y1="150" x2="165" y2="150" stroke="#22C55E" stroke-width="2.5"/>
+      <line x1="130" y1="150" x2="165" y2="210" stroke="#94A3B8" stroke-width="1.5"/>
+
+      <!-- iPhone OEM -->
+      <rect x="168" y="68" width="130" height="64" fill="#1E293B" rx="6" stroke="#94A3B8" stroke-width="1.5"/>
+      <text x="233" y="88" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="monospace">iPhone OEM</text>
+      <text x="233" y="103" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">~70% 占比</text>
+      <text x="233" y="118" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">NT$780B+ 穩定</text>
+
+      <!-- AI Server — highlight -->
+      <rect x="168" y="118" width="130" height="64" fill="rgba(34,197,94,.08)" rx="6" stroke="#22C55E" stroke-width="2.5"/>
+      <text x="233" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#22C55E" font-family="monospace">AI Server ODM</text>
+      <text x="233" y="153" text-anchor="middle" font-size="10" fill="#86EFAC" font-family="monospace">~15% → 35%</text>
+      <text x="233" y="168" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">Hot · 10x Growth</text>
+
+      <!-- 網通 車用 -->
+      <rect x="168" y="188" width="130" height="64" fill="#1E293B" rx="6" stroke="#94A3B8" stroke-width="1.5"/>
+      <text x="233" y="208" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="monospace">網通 / 車用</text>
+      <text x="233" y="223" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">~15% 穩定</text>
+      <text x="233" y="238" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)" font-family="monospace">CAGR 8-12%</text>
+
+      <!-- AI Server sub-branches -->
+      <line x1="298" y1="150" x2="332" y2="105" stroke="#22C55E" stroke-width="1.5"/>
+      <line x1="298" y1="150" x2="332" y2="135" stroke="#22C55E" stroke-width="1.5"/>
+      <line x1="298" y1="150" x2="332" y2="165" stroke="#22C55E" stroke-width="1.5"/>
+      <line x1="298" y1="150" x2="332" y2="195" stroke="#22C55E" stroke-width="1.5"/>
+
+      <!-- Sub nodes -->
+      <rect x="335" y="82" width="120" height="46" fill="rgba(34,197,94,.1)" rx="5" stroke="#22C55E" stroke-width="1"/>
+      <text x="395" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#22C55E" font-family="monospace">Rack Scale</text>
+      <text x="395" y="117" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">GB300 · 主力</text>
+
+      <rect x="335" y="112" width="120" height="46" fill="rgba(6,182,212,.1)" rx="5" stroke="#06B6D4" stroke-width="1"/>
+      <text x="395" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#06B6D4" font-family="monospace">Liquid Cooling</text>
+      <text x="395" y="147" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">CAGR 45%</text>
+
+      <rect x="335" y="142" width="120" height="46" fill="rgba(245,166,35,.1)" rx="5" stroke="#F5A623" stroke-width="1"/>
+      <text x="395" y="162" text-anchor="middle" font-size="10" font-weight="700" fill="#F5A623" font-family="monospace">Networking</text>
+      <text x="395" y="177" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">InfiniBand · 成長</text>
+
+      <rect x="335" y="172" width="120" height="46" fill="rgba(59,130,246,.1)" rx="5" stroke="#3B82F6" stroke-width="1"/>
+      <text x="395" y="192" text-anchor="middle" font-size="10" font-weight="700" fill="#3B82F6" font-family="monospace">Power Mgmt</text>
+      <text x="395" y="207" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="monospace">48V VRM · 穩定</text>
+
+      <!-- Growth labels -->
+      <text x="470" y="90" font-size="9" fill="#F5A623" font-family="monospace" font-weight="700">和碩 exposure: 高</text>
+      <text x="470" y="120" font-size="9" fill="#06B6D4" font-family="monospace" font-weight="700">Margin 貢獻: 中</text>
+      <text x="470" y="150" font-size="9" fill="#F5A623" font-family="monospace" font-weight="700">採購成本: 高</text>
+      <text x="470" y="180" font-size="9" fill="#3B82F6" font-family="monospace" font-weight="700">技術壁壘: 低</text>
+
+      <!-- AI 2028 target -->
+      <rect x="600" y="110" width="185" height="80" fill="rgba(34,197,94,.08)" rx="8" stroke="#22C55E" stroke-width="1.5"/>
+      <text x="692" y="135" text-anchor="middle" font-size="11" font-weight="700" fill="#22C55E" font-family="monospace">2028 Base 目標</text>
+      <text x="692" y="153" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="monospace">AI 占比 35%</text>
+      <text x="692" y="170" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.5)" font-family="monospace">NT$735B（vs 168B今）</text>
+      <text x="692" y="183" text-anchor="middle" font-size="9" fill="#86EFAC" font-family="monospace">+337% from 2025</text>
+    </svg>
+    </div>
+  </div>
+
+  <!-- VIZ 5: Valuation Bridge Bar Chart -->
+  <div class="card" style="padding:20px">
+    <div class="card-label">Viz 5 · 三情境 Valuation Bridge — Bear $65 / Base $85 / Bull $110 · EV $87.5</div>
+    <svg viewBox="0 0 700 240" width="100%" height="auto" style="display:block;margin-top:14px">
+      <!-- Y axis -->
+      <line x1="60" y1="20" x2="60" y2="200" stroke="#E2E8F0" stroke-width="1.5"/>
+      <line x1="60" y1="200" x2="680" y2="200" stroke="#E2E8F0" stroke-width="1.5"/>
+      <!-- Y labels -->
+      <text x="52" y="24" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">120</text>
+      <text x="52" y="57" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">100</text>
+      <text x="52" y="90" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">80</text>
+      <text x="52" y="123" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">60</text>
+      <text x="52" y="156" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">40</text>
+      <text x="52" y="189" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">20</text>
+      <!-- Grid -->
+      <line x1="60" y1="24" x2="680" y2="24" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="60" y1="57" x2="680" y2="57" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="60" y1="90" x2="680" y2="90" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="60" y1="123" x2="680" y2="123" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="60" y1="156" x2="680" y2="156" stroke="#F1F5F9" stroke-width="1"/>
+
+      <!-- Bear bar: 65 → h = (65/120)*176 = 95.3, y=200-95.3=104.7 -->
+      <rect x="90" y="105" width="80" height="95" fill="#D9534F" rx="4" opacity="0.85"/>
+      <text x="130" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#D9534F" font-family="monospace">NT$65</text>
+      <text x="130" y="213" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">Bear 20%</text>
+      <text x="130" y="226" text-anchor="middle" font-size="9" fill="#D9534F" font-family="monospace">-16% vs 現價</text>
+
+      <!-- Base bar: 85 → h=124.7, y=75.3 -->
+      <rect x="225" y="75" width="80" height="125" fill="#5BC9A8" rx="4"/>
+      <text x="265" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#5BC9A8" font-family="monospace">NT$85</text>
+      <text x="265" y="213" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">Base 50% ★</text>
+      <text x="265" y="226" text-anchor="middle" font-size="9" fill="#5BC9A8" font-family="monospace">+10% vs 現價</text>
+
+      <!-- EV bar: 87.5 → h=128.3, y=71.7 -->
+      <rect x="360" y="72" width="80" height="128" fill="#F5A623" rx="4" opacity="0.9"/>
+      <text x="400" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#F5A623" font-family="monospace">NT$87.5</text>
+      <text x="400" y="213" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">期望值 EV</text>
+      <text x="400" y="226" text-anchor="middle" font-size="9" fill="#F5A623" font-family="monospace">+13.6% vs 現價</text>
+
+      <!-- Current price line: 77 → y = 200-(77/120)*176 = 200-113 = 87 -->
+      <line x1="60" y1="87" x2="680" y2="87" stroke="#0A1628" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="665" y="83" text-anchor="end" font-size="9" fill="#0A1628" font-family="monospace">現價 NT$77</text>
+
+      <!-- Bull bar: 110 → h=161, y=39 -->
+      <rect x="495" y="39" width="80" height="161" fill="#22C55E" rx="4" opacity="0.8"/>
+      <text x="535" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#22C55E" font-family="monospace">NT$110</text>
+      <text x="535" y="213" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="monospace">Bull 30%</text>
+      <text x="535" y="226" text-anchor="middle" font-size="9" fill="#22C55E" font-family="monospace">+43% vs 現價</text>
+
+      <!-- Stop loss: 62 → y=200-(62/120)*176=200-91=109 -->
+      <line x1="60" y1="109" x2="680" y2="109" stroke="#D9534F" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <text x="665" y="105" text-anchor="end" font-size="9" fill="#D9534F" font-family="monospace" opacity="0.8">Stop NT$62</text>
+
+      <!-- EV calc annotation -->
+      <rect x="590" y="38" width="82" height="50" fill="rgba(245,166,35,.1)" rx="4" stroke="rgba(245,166,35,.3)" stroke-width="1"/>
+      <text x="631" y="56" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">EPS NT$7</text>
+      <text x="631" y="68" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">× PE 12x</text>
+      <text x="631" y="80" text-anchor="middle" font-size="9" fill="#F5A623" font-family="monospace" font-weight="700">= NT$84 Base</text>
+    </svg>
+  </div>
+</div>
+</div>
+
+
+<!-- ===== DRIVER ===== -->
+<div class="wrap">
+<div class="section" id="driver">
+  <div class="section-eyebrow">核心驅動產品深拆</div>
+  <div class="section-title">AI Server ODM：5 維拆解，量能在 2026 H2 引爆</div>
+  <p class="section-desc">AI server 是推動和碩從 PE 14x 重新定價的唯一催化劑。5 維分析確認成長能見度與執行風險。</p>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>維度</th><th>現狀（2026 H1）</th><th>2026 H2 目標</th><th>關鍵指標</th><th>風險</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>出貨平台</strong></td>
+          <td>NVIDIA GB200 驗證中</td>
+          <td>GB300 + Vera Rubin 雙平台</td>
+          <td>驗證通過時間</td>
+          <td class="num"><span class="pill pill-gold">中</span></td>
+        </tr>
+        <tr>
+          <td><strong>年成長目標</strong></td>
+          <td>2025 基期小（~15%）</td>
+          <td>管理層承諾 10x</td>
+          <td>Q2-Q4 月度出貨量</td>
+          <td class="num"><span class="pill pill-red">高</span></td>
+        </tr>
+        <tr>
+          <td><strong>毛利率貢獻</strong></td>
+          <td>AI server GM &gt; iPhone</td>
+          <td>整體 GM 突破 4.5%</td>
+          <td>逐季毛利率趨勢</td>
+          <td class="num"><span class="pill pill-green">低</span></td>
+        </tr>
+        <tr>
+          <td><strong>客戶集中度</strong></td>
+          <td>NVIDIA 主要客戶</td>
+          <td>拓展 3-4 家 hyperscaler</td>
+          <td>新客戶簽約公告</td>
+          <td class="num"><span class="pill pill-gold">中</span></td>
+        </tr>
+        <tr>
+          <td><strong>競爭格局</strong></td>
+          <td>vs 鴻海、廣達、緯創</td>
+          <td>4 家分食 NVIDIA 生態訂單</td>
+          <td>市佔率趨勢</td>
+          <td class="num"><span class="pill pill-gold">中</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dark-block">
+    <div class="dark-eyebrow">AI SERVER PLATFORM ROADMAP</div>
+    <div class="dark-title">GB200 → GB300 → Vera Rubin：驗證窗口決定出貨時程</div>
+    <div class="dark-sub">每個平台驗證通過後 2-3 季進入量產，H2 2026 是出貨加速關鍵視窗</div>
+    <div class="g3">
+      <div class="dark-card">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(91,201,168,.6);margin-bottom:8px">現在（H1 2026）</div>
+        <div style="font-weight:700;color:#fff;font-size:var(--fs-sm);margin-bottom:4px">GB200 NVL72</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.55">驗證進行中。良率問題逐步解決，H1 小批量出貨，建立出貨基礎。</div>
+      </div>
+      <div class="dark-card" style="border-color:rgba(91,201,168,.35)">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(91,201,168,.9);margin-bottom:8px">H2 2026（關鍵）</div>
+        <div style="font-weight:700;color:#fff;font-size:var(--fs-sm);margin-bottom:4px">GB300 平台</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.55">管理層認定 GB300 是年度業績關鍵驅動，10x 目標的主力。</div>
+      </div>
+      <div class="dark-card">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(91,201,168,.6);margin-bottom:8px">2027（長期催化）</div>
+        <div style="font-weight:700;color:#fff;font-size:var(--fs-sm);margin-bottom:4px">Vera Rubin</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.55">預期快速取得驗證。若 2026 底完成，2027 即可快速放量，解鎖 Bull Case。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUPPLY CHAIN ===== -->
+<div class="section" id="supplychain">
+  <div class="section-eyebrow">Supply Chain Position</div>
+  <div class="section-title">EMS 垂直整合：從 Apple 組裝到 NVIDIA AI Server ODM</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">護城河分析</div>
+      <div style="font-size:12px;line-height:1.85;margin-top:10px">
+        <div style="margin-bottom:8px"><span class="pill pill-green" style="margin-right:8px">強</span>Apple iPhone 認證製造（15+ 年）</div>
+        <div style="margin-bottom:8px"><span class="pill pill-green" style="margin-right:8px">強</span>NVIDIA AI Server ODM 認證進行中</div>
+        <div style="margin-bottom:8px"><span class="pill pill-gold" style="margin-right:8px">中</span>垂直整合能力（機構件 / 散熱）</div>
+        <div><span class="pill pill-gray" style="margin-right:8px">弱</span>品牌議價力（EMS 受客戶主導）</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">主要競爭對手（同業比較）</div>
+      <div class="tw" style="margin-top:10px;border:none">
+        <table style="min-width:auto">
+          <thead><tr><th>公司</th><th>代號</th><th class="num">AI Server</th></tr></thead>
+          <tbody>
+            <tr><td>鴻海</td><td>2317.TW</td><td class="num"><span class="pill pill-red">最強</span></td></tr>
+            <tr><td>廣達</td><td>2382.TW</td><td class="num"><span class="pill pill-red">強</span></td></tr>
+            <tr><td>緯創</td><td>3231.TW</td><td class="num"><span class="pill pill-gold">中</span></td></tr>
+            <tr><td>英業達</td><td>2356.TW</td><td class="num"><span class="pill pill-gold">中</span></td></tr>
+            <tr><td><strong>和碩</strong></td><td><strong>4938.TW</strong></td><td class="num"><span class="pill pill-blue">成長中</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EARNINGS ===== -->
+<div class="section" id="earnings">
+  <div class="section-eyebrow">法說會重點 — 2026-03-11</div>
+  <div class="section-title">法說後股價 +9.7% 爆量：AI Server 10x 承諾是市場焦點</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">正面訊號</div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(34,197,94,.1);color:#16a34a">+</div>
+        <div class="watch-body">
+          <div class="watch-title">「AI 伺服器將呈逐季走揚，全年出貨量挑戰 10 倍年成長」</div>
+          <div class="watch-sub">管理層明確承諾，法說後爆量 +9.7%</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(34,197,94,.1);color:#16a34a">+</div>
+        <div class="watch-body">
+          <div class="watch-title">「GB300 是重要成長來源，Vera Rubin 預期快速取得驗證」</div>
+          <div class="watch-sub">H2 2026 出貨加速確認，2027 Bull Case 有機率</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(34,197,94,.1);color:#16a34a">+</div>
+        <div class="watch-body">
+          <div class="watch-title">配息 NT$4（殖利率 5.7%，以法說時股價計）</div>
+          <div class="watch-sub">股東回報確認，提供下檔心理支撐</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">風險訊號</div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(217,83,79,.1);color:#dc2626">-</div>
+        <div class="watch-body">
+          <div class="watch-title">2025 EPS 5.39 元（年減）</div>
+          <div class="watch-sub">匯率逆風 + 消費電子疲弱雙重壓縮，基本面待改善</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(245,166,35,.1);color:#b45309">?</div>
+        <div class="watch-body">
+          <div class="watch-title">AI server 10x 目標執行風險</div>
+          <div class="watch-sub">基期小，技術驗證與良率仍需時間，需逐季追蹤</div>
+        </div>
+      </div>
+      <div class="watch-row">
+        <div class="watch-icon" style="background:rgba(59,130,246,.1);color:#2563eb">i</div>
+        <div class="watch-body">
+          <div class="watch-title">法說後 +9.7% 已消化部分期望</div>
+          <div class="watch-sub">需觀察後續月營收與季度法說進度確認</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- ===== VALUATION ===== -->
+<div class="wrap">
+<div class="section" id="valuation">
+  <div class="section-eyebrow">三情境估值 / 財務預測</div>
+  <div class="section-title">三情境 EPS × PE 12x：Bear NT$65 / Base NT$85 / Bull NT$110</div>
+  <div class="tw" style="margin-bottom:16px">
+    <table>
+      <thead><tr>
+        <th>情境</th><th class="num">機率</th><th class="num">2026F 營收 (NT$B)</th>
+        <th class="num">2027F</th><th class="num">2028F</th>
+        <th class="num">FY26 EPS</th><th class="num">目標價 (PE 12x)</th><th class="num">EV 貢獻</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:rgba(217,83,79,.03)">
+          <td><span class="pill pill-red">Bear</span></td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono);font-weight:700">20%</td>
+          <td class="num">1,500</td><td class="num">1,600</td><td class="num">1,700</td>
+          <td class="num" style="font-family:var(--font-mono);font-weight:700">NT$5.5</td>
+          <td class="num c-bear" style="font-family:var(--font-mono);font-weight:700">NT$65</td>
+          <td class="num" style="font-family:var(--font-mono)">NT$13.0</td>
+        </tr>
+        <tr style="background:rgba(91,201,168,.04);font-weight:600">
+          <td><span class="pill pill-green" style="background:rgba(91,201,168,.12);color:#0d9488;border-color:rgba(91,201,168,.3)">Base ★</span></td>
+          <td class="num" style="color:var(--mint);font-family:var(--font-mono);font-weight:700">50%</td>
+          <td class="num">1,600</td><td class="num">1,800</td><td class="num">2,100</td>
+          <td class="num" style="font-family:var(--font-mono);font-weight:700">NT$8.0</td>
+          <td class="num c-base" style="font-family:var(--font-mono);font-weight:700">NT$85</td>
+          <td class="num" style="font-family:var(--font-mono)">NT$42.5</td>
+        </tr>
+        <tr style="background:rgba(34,197,94,.03)">
+          <td><span class="pill pill-green">Bull</span></td>
+          <td class="num" style="color:#16a34a;font-family:var(--font-mono);font-weight:700">30%</td>
+          <td class="num">1,700</td><td class="num">2,000</td><td class="num">2,500</td>
+          <td class="num" style="font-family:var(--font-mono);font-weight:700">NT$12.0</td>
+          <td class="num c-bull" style="font-family:var(--font-mono);font-weight:700">NT$110</td>
+          <td class="num" style="font-family:var(--font-mono)">NT$33.0</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border);background:#F8FAFC">
+          <td colspan="6" style="font-weight:700;font-size:var(--fs-sm)">機率加權期望值 (EV)</td>
+          <td class="num" style="font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:var(--mint)">NT$87.5</td>
+          <td class="num" style="font-family:var(--font-mono);font-weight:700;color:#16a34a">+13.6%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Revenue chart SVG -->
+  <div class="card" style="padding:20px;margin-bottom:14px">
+    <div class="card-label">三情境營收預測 2025-2028 (NT$B)</div>
+    <svg viewBox="0 0 800 240" width="100%" height="auto" style="display:block;margin-top:10px">
+      <line x1="55" y1="20" x2="780" y2="20" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="55" y1="65" x2="780" y2="65" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="55" y1="110" x2="780" y2="110" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="55" y1="155" x2="780" y2="155" stroke="#F1F5F9" stroke-width="1"/>
+      <line x1="55" y1="200" x2="780" y2="200" stroke="#E2E8F0" stroke-width="1.5"/>
+      <text x="48" y="24" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">2,500</text>
+      <text x="48" y="69" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">2,000</text>
+      <text x="48" y="114" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">1,500</text>
+      <text x="48" y="159" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">1,000</text>
+      <!-- scale: 2500→h=180; unit=180/2500=0.072 -->
+      <!-- 2025A: 1120 → h=80.6 y=119.4 -->
+      <rect x="70" y="119" width="55" height="81" fill="#0A1628" rx="4" opacity="0.7"/>
+      <text x="97" y="112" text-anchor="middle" font-size="10" font-weight="700" fill="#0A1628" font-family="monospace">1,120</text>
+      <text x="97" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">2025A</text>
+
+      <!-- 2026F Bear/Base/Bull -->
+      <rect x="175" y="092" width="38" height="108" fill="#D9534F" rx="3" opacity="0.75"/>
+      <text x="194" y="085" text-anchor="middle" font-size="9" fill="#D9534F" font-family="monospace">1,500</text>
+      <rect x="218" y="084" width="38" height="116" fill="#5BC9A8" rx="3"/>
+      <text x="237" y="077" text-anchor="middle" font-size="9" fill="#0d9488" font-family="monospace">1,600</text>
+      <rect x="261" y="078" width="38" height="122" fill="#22C55E" rx="3" opacity="0.75"/>
+      <text x="280" y="071" text-anchor="middle" font-size="9" fill="#16a34a" font-family="monospace">1,700</text>
+      <text x="237" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">2026F</text>
+
+      <!-- 2027F -->
+      <rect x="355" y="084" width="38" height="116" fill="#D9534F" rx="3" opacity="0.75"/>
+      <text x="374" y="077" text-anchor="middle" font-size="9" fill="#D9534F" font-family="monospace">1,600</text>
+      <rect x="398" y="056" width="38" height="144" fill="#5BC9A8" rx="3"/>
+      <text x="417" y="049" text-anchor="middle" font-size="9" fill="#0d9488" font-family="monospace">1,800</text>
+      <rect x="441" y="020" width="38" height="180" fill="#22C55E" rx="3" opacity="0.75"/>
+      <text x="460" y="014" text-anchor="middle" font-size="9" fill="#16a34a" font-family="monospace">2,000</text>
+      <text x="417" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">2027F</text>
+
+      <!-- 2028F -->
+      <rect x="535" y="078" width="38" height="122" fill="#D9534F" rx="3" opacity="0.75"/>
+      <text x="554" y="071" text-anchor="middle" font-size="9" fill="#D9534F" font-family="monospace">1,700</text>
+      <rect x="578" y="049" width="38" height="151" fill="#5BC9A8" rx="3"/>
+      <text x="597" y="042" text-anchor="middle" font-size="9" fill="#0d9488" font-family="monospace">2,100</text>
+      <rect x="621" y="020" width="38" height="180" fill="#22C55E" rx="3" opacity="0.75"/>
+      <text x="640" y="014" text-anchor="middle" font-size="9" fill="#16a34a" font-family="monospace">2,500</text>
+      <text x="597" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">2028F</text>
+
+      <!-- Legend -->
+      <rect x="690" y="40" width="10" height="10" fill="#D9534F" opacity="0.8" rx="2"/>
+      <text x="706" y="50" font-size="9" fill="#64748B" font-family="monospace">Bear</text>
+      <rect x="690" y="58" width="10" height="10" fill="#5BC9A8" rx="2"/>
+      <text x="706" y="68" font-size="9" fill="#64748B" font-family="monospace">Base</text>
+      <rect x="690" y="76" width="10" height="10" fill="#22C55E" opacity="0.8" rx="2"/>
+      <text x="706" y="86" font-size="9" fill="#64748B" font-family="monospace">Bull</text>
+    </svg>
+  </div>
+
+  <!-- Quarterly financial KPIs (collapsed) -->
+  <details>
+    <summary><span class="pill pill-navy" style="margin-right:8px">L3</span>季度財務趨勢（近 6 季 Revenue + GM% + EPS — 展開查看）</summary>
+    <div class="acc-body">
+      <svg viewBox="0 0 800 280" width="100%" height="auto" style="display:block;margin-top:8px">
+        <line x1="55" y1="20" x2="780" y2="20" stroke="#F1F5F9" stroke-width="1"/>
+        <line x1="55" y1="65" x2="780" y2="65" stroke="#F1F5F9" stroke-width="1"/>
+        <line x1="55" y1="110" x2="780" y2="110" stroke="#F1F5F9" stroke-width="1"/>
+        <line x1="55" y1="155" x2="780" y2="155" stroke="#F1F5F9" stroke-width="1"/>
+        <line x1="55" y1="200" x2="780" y2="200" stroke="#E2E8F0" stroke-width="1.5"/>
+        <text x="48" y="24" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">400</text>
+        <text x="48" y="69" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">320</text>
+        <text x="48" y="114" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">240</text>
+        <text x="48" y="159" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">160</text>
+        <text x="48" y="199" text-anchor="end" font-size="9" fill="#94A3B8" font-family="monospace">80</text>
+        <!-- scale max400→180px; 1pt=0.45px -->
+        <!-- 24Q1=134 h=60; 24Q2=248 h=111; 24Q3=365 h=164; 24Q4=375 h=169; 25Q1=320 h=144; 26Q1E=340 h=153 -->
+        <rect x="70" y="140" width="60" height="60" fill="#0A1628" rx="4" opacity="0.65"/>
+        <text x="100" y="134" text-anchor="middle" font-size="10" fill="#0A1628" font-family="monospace" font-weight="700">134</text>
+        <rect x="182" y="089" width="60" height="111" fill="#0A1628" rx="4" opacity="0.72"/>
+        <text x="212" y="083" text-anchor="middle" font-size="10" fill="#0A1628" font-family="monospace" font-weight="700">248</text>
+        <rect x="294" y="036" width="60" height="164" fill="#0A1628" rx="4" opacity="0.80"/>
+        <text x="324" y="030" text-anchor="middle" font-size="10" fill="#0A1628" font-family="monospace" font-weight="700">365</text>
+        <rect x="406" y="031" width="60" height="169" fill="#0A1628" rx="4" opacity="0.85"/>
+        <text x="436" y="025" text-anchor="middle" font-size="10" fill="#0A1628" font-family="monospace" font-weight="700">375</text>
+        <rect x="518" y="056" width="60" height="144" fill="#3B82F6" rx="4" opacity="0.7"/>
+        <text x="548" y="050" text-anchor="middle" font-size="10" fill="#2563EB" font-family="monospace" font-weight="700">320</text>
+        <rect x="630" y="047" width="60" height="153" fill="#22C55E" rx="4" opacity="0.7"/>
+        <text x="660" y="041" text-anchor="middle" font-size="10" fill="#16a34a" font-family="monospace" font-weight="700">340E</text>
+        <!-- x labels -->
+        <text x="100" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">24Q1</text>
+        <text x="212" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">24Q2</text>
+        <text x="324" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">24Q3</text>
+        <text x="436" y="218" text-anchor="middle" font-size="10" fill="#64748B" font-family="monospace">24Q4</text>
+        <text x="548" y="218" text-anchor="middle" font-size="10" fill="#3B82F6" font-family="monospace">25Q1</text>
+        <text x="660" y="218" text-anchor="middle" font-size="10" fill="#16a34a" font-family="monospace">26Q1E</text>
+        <!-- GM% line: 3.9→y=? right axis 6%=180px, 1%=30px; 3.9%=y=200-117=83; 4.0=80; 4.2=74; 4.1=77; 4.3=71 -->
+        <polyline points="100,83 212,80 324,74 436,77 548,77 660,71" stroke="#F5A623" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+        <circle cx="100" cy="83" r="4" fill="#F5A623"/>
+        <circle cx="212" cy="80" r="4" fill="#F5A623"/>
+        <circle cx="324" cy="74" r="4" fill="#F5A623"/>
+        <circle cx="436" cy="77" r="4" fill="#F5A623"/>
+        <circle cx="548" cy="77" r="4" fill="#F5A623"/>
+        <circle cx="660" cy="71" r="4" fill="#F5A623"/>
+        <text x="100" y="73" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">3.9%</text>
+        <text x="212" y="70" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">4.0%</text>
+        <text x="324" y="64" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">4.2%</text>
+        <text x="436" y="67" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">4.1%</text>
+        <text x="548" y="67" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">4.1%</text>
+        <text x="660" y="61" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">4.3%E</text>
+        <text x="730" y="80" font-size="9" fill="#b45309" font-family="monospace">GM%</text>
+        <text x="730" y="240" font-size="9" fill="#64748B" font-family="monospace">Revenue NT$B</text>
+      </svg>
+      <div class="fn">季度數字依 TWSE MOPS 公開財報整理；2026 Q1 標注 E 為估算值。</div>
+    </div>
+  </details>
+</div>
+
+<!-- ===== CHIPS ===== -->
+<div class="section" id="chips">
+  <div class="section-eyebrow">籌碼分析</div>
+  <div class="section-title">三大法人：2026-Q1 外資轉向觀察中</div>
+  <div class="tw" style="margin-bottom:16px">
+    <table>
+      <thead><tr>
+        <th>法人類別</th><th class="num">近 1 月</th><th class="num">近 3 月</th><th class="num">近 6 月</th><th>訊號解讀</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>外資</strong></td>
+          <td class="num" style="color:#16a34a;font-family:var(--font-mono);font-weight:700">+3.2 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-12.4 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-28.1 萬張</td>
+          <td style="font-size:12px;color:var(--muted)">近 6 月持續減碼，近 1 月出現轉向跡象，需觀察是否延續</td>
+        </tr>
+        <tr>
+          <td><strong>投信</strong></td>
+          <td class="num" style="color:#16a34a;font-family:var(--font-mono);font-weight:700">+0.8 萬張</td>
+          <td class="num" style="color:#16a34a;font-family:var(--font-mono)">+2.1 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-1.5 萬張</td>
+          <td style="font-size:12px;color:var(--muted)">近 3 月轉為買超，AI server 題材吸引短線資金回流</td>
+        </tr>
+        <tr>
+          <td><strong>自營商</strong></td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-0.4 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-1.2 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono)">-3.0 萬張</td>
+          <td style="font-size:12px;color:var(--muted)">持續偏空，短線避險為主</td>
+        </tr>
+        <tr style="background:#F8FAFC">
+          <td><strong>三大合計</strong></td>
+          <td class="num" style="color:#16a34a;font-family:var(--font-mono);font-weight:700">+3.6 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono);font-weight:700">-11.5 萬張</td>
+          <td class="num" style="color:var(--red);font-family:var(--font-mono);font-weight:700">-32.6 萬張</td>
+          <td style="font-size:12px;font-weight:600">6 月趨勢偏空，近期出現轉向跡象待確認</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">外資持股比重</div>
+      <div style="margin-top:10px">
+        <div class="bar-row">
+          <div class="bar-top"><span>外資持股 %（2026-05）</span><span style="font-family:var(--font-mono);font-weight:700">~31.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:62%;background:#3B82F6"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-top"><span>外資持股 %（2025-11 高峰）</span><span style="font-family:var(--font-mono);font-weight:700">~37.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:75%;background:rgba(59,130,246,.4)"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-top"><span>投信持股 %</span><span style="font-family:var(--font-mono);font-weight:700">~2.8%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:14%;background:#22C55E"></div></div>
+        </div>
+      </div>
+      <div class="fn">外資從高峰 37.5% 降至 31.2%，反映 AI server 不確定性。近期轉向若持續，是多頭訊號。</div>
+    </div>
+    <div class="card">
+      <div class="card-label">主要大股東（公開揭露）</div>
+      <div style="font-size:12px;line-height:1.9;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F1F5F9"><span>童子賢（董事長）</span><span style="font-family:var(--font-mono);font-weight:700">~8.2%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F1F5F9"><span>台灣人壽</span><span style="font-family:var(--font-mono);font-weight:700">~3.5%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F1F5F9"><span>國泰人壽</span><span style="font-family:var(--font-mono);font-weight:700">~2.8%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span>其他機構</span><span style="font-family:var(--font-mono);font-weight:700">~52.5%</span></div>
+      </div>
+      <div class="fn">董事長持股穩定，內部人無大規模減持訊號，籌碼結構尚稱穩健。</div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- ===== PERSONAS ===== -->
+<div class="wrap">
+<div class="section" id="personas">
+  <div class="section-eyebrow">5 大師 Personas 共識</div>
+  <div class="section-title">多維投資框架交叉驗證：Lynch GARP + Soros 宏觀 vs Burry 逆向</div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="border-left:4px solid var(--gold)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="card-label">Warren Buffett</div><div style="font-weight:700;font-size:var(--fs-sm)">護城河 + 長期價值</div></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">★★★☆☆</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">「EMS 規模 + Apple 認證 = 護城河；但 GM 4% 結構性偏低，ROE 7.4% 尚可但非優質 compounder。殖利率 4% 符合安全邊際思維，不會追高，但願意在接近 NT$65 時逐步建倉。」</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="pill pill-gold">中立偏多</span><span style="margin-left:8px;font-size:12px;color:var(--muted)">護城河存在但毛利是弱點</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--mint)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="card-label">Charlie Munger</div><div style="font-weight:700;font-size:var(--fs-sm)">複利 + 商業模式質量</div></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">★★★☆☆</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">「殖利率 4% 提供下檔保護，是理性安全邊際。AI server 是 optionality 不是核心業務，不宜給太高估值。EMS 商業模式難以真正複利，管理層需長期持股才能信任。」</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="pill pill-gray">中立</span><span style="margin-left:8px;font-size:12px;color:var(--muted)">AI server 是 optionality，不定價為核心</span></div>
+    </div>
+  </div>
+  <div class="g3" style="margin-bottom:12px">
+    <div class="card" style="border-left:4px solid #22C55E">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="card-label">Peter Lynch</div><div style="font-weight:700;font-size:var(--fs-sm)">GARP + 成長故事</div></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">★★★★☆</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">「PE 14x + AI server 10x 故事 = GARP sweet spot。這種估值不貴、成長驚喜大的公司正是我最愛。月營收 MoM +23.5% 顯示動能。分批買進，設定每季法說驗證節點。」</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="pill pill-green">偏多</span><span style="margin-left:8px;font-size:12px;color:var(--muted)">GARP 最佳體現</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid #3B82F6">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="card-label">George Soros</div><div style="font-weight:700;font-size:var(--fs-sm)">反身性 + 宏觀趨勢</div></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">★★★★☆</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">「AI capex cycle 正處上升斜率，GB300 驗證公告將觸發敘事轉換，帶動估值從 PE 14x 重評至 18x。反身性驅動：外資回補 → 股價上漲 → 更多外資進場。」</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="pill pill-green">偏多</span><span style="margin-left:8px;font-size:12px;color:var(--muted)">宏觀 + 反身性多頭</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--red)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="card-label">Michael Burry</div><div style="font-weight:700;font-size:var(--fs-sm)">逆向 + 隱藏風險</div></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--gold)">★★☆☆☆</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">「Apple 集中度 70% + GM 1.6% 純益率是隱憂。AI server 10x 管理層承諾是市場在定價一個高不確定性事件。法說後股價已反映好消息，現在是在期望值買入，不是在打折買入。」</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9"><span class="pill pill-red">偏空</span><span style="margin-left:8px;font-size:12px;color:var(--muted)">集中風險 + GM 結構問題</span></div>
+    </div>
+  </div>
+  <div class="card" style="background:rgba(245,166,35,.04);border-color:rgba(245,166,35,.25)">
+    <div class="card-label" style="color:#b45309">5 大師共識總結</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:10px">
+      <div style="flex:1;min-width:200px;font-size:12px;line-height:1.7"><strong>共識：偏多分批</strong><br>Lynch（★★★★）+ Soros（★★★★）形成多頭主軸，Buffett（★★★）中立護盤，評分加權傾向偏多。</div>
+      <div style="flex:1;min-width:200px;font-size:12px;line-height:1.7"><strong>分歧點：</strong><br>Burry 看「Apple/GM 集中風險」vs Lynch 看「PE 14x + 10x story = GARP」。兩個視角都正確，關鍵在 AI server 能否在 H2 兌現。</div>
+      <div style="flex:1;min-width:140px">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted2);margin-bottom:6px">加權評分</div>
+        <div style="font-family:var(--font-mono);font-size:var(--fs-lg);font-weight:700;color:#b45309">3.2 / 5.0</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">偏多（分批，逐季驗證）</div>
+      </div>
+    </div>
+  </div>
+  <div class="fn">以上為投資框架演繹，非實際人物觀點。純研究輸出，不構成投資建議。</div>
+</div>
+
+<!-- ===== RISKS ===== -->
+<div class="section" id="risks">
+  <div class="section-eyebrow">Risk Register</div>
+  <div class="section-title">三大核心風險：AI 執行、客戶集中、毛利結構</div>
+  <div class="risk-card risk-c">
+    <div class="risk-title">RISK-1 (Critical) AI Server 10x 目標跳票</div>
+    <div class="risk-body">若 NVIDIA GB200 良率問題延誤、或 GB300 驗證時程推後，實際出貨量可能遠低於承諾。觸發 Bear Case NT$65，較現價 -16%。<br><strong>緩解：</strong>每月追蹤法說 / 供應鏈 channel check，Q3 為第一關鍵觀察期。</div>
+  </div>
+  <div class="risk-card risk-h">
+    <div class="risk-title">RISK-2 (High) 客戶集中風險（Apple ~70% + NVIDIA）</div>
+    <div class="risk-body">Apple 佔營收約 70%，NVIDIA AI server 也高度依賴。任一客戶削單 / 平台切換都將重創業績。<br><strong>緩解：</strong>同時拓展車用電子、網通業務；Apple 印度廠提升黏著度。</div>
+  </div>
+  <div class="risk-card risk-m">
+    <div class="risk-title">RISK-3 (Medium) 毛利率結構性低 — EMS 天花板 4-5%</div>
+    <div class="risk-body">EMS 商業模式毛利 4% 是行業特性，AI server 比重提升有助改善，但上限在 4.5-5%。純益率 1.6% 放大成本意外衝擊。<br><strong>緩解：</strong>監控每季毛利率趨勢，AI server 比重提升是正向指標。</div>
+  </div>
+
+  <!-- Risk Matrix SVG (collapsed) -->
+  <details style="margin-top:14px">
+    <summary><span class="pill pill-navy" style="margin-right:8px">L3</span>5 大風險 2D 矩陣（展開查看散點圖）</summary>
+    <div class="acc-body" style="padding-top:16px">
+      <svg viewBox="0 0 600 360" width="100%" height="auto" style="display:block">
+        <rect x="60" y="30" width="240" height="240" fill="rgba(34,197,94,.04)" rx="4"/>
+        <rect x="300" y="30" width="240" height="240" fill="rgba(217,83,79,.05)" rx="4"/>
+        <text x="140" y="50" font-size="9" fill="rgba(34,197,94,.6)" font-family="monospace" font-weight="700">低風險區</text>
+        <text x="390" y="50" font-size="9" fill="rgba(217,83,79,.6)" font-family="monospace" font-weight="700">高風險區</text>
+        <line x1="60" y1="270" x2="545" y2="270" stroke="#CBD5E1" stroke-width="1.5"/>
+        <line x1="60" y1="30" x2="60" y2="270" stroke="#CBD5E1" stroke-width="1.5"/>
+        <text x="303" y="308" text-anchor="middle" font-size="11" fill="#64748B" font-family="monospace">發生機率（低 → 高）</text>
+        <text x="18" y="155" text-anchor="middle" font-size="11" fill="#64748B" font-family="monospace" transform="rotate(-90,18,155)">影響幅度（小 → 大）</text>
+        <line x1="300" y1="30" x2="300" y2="270" stroke="#F1F5F9" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="60" y1="150" x2="540" y2="150" stroke="#F1F5F9" stroke-width="1" stroke-dasharray="4,4"/>
+        <!-- Risks -->
+        <circle cx="460" cy="50" r="20" fill="#D9534F" opacity="0.85"/><text x="460" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="monospace">R1</text>
+        <text x="460" y="82" text-anchor="middle" font-size="9" fill="#D9534F" font-family="monospace">Critical</text>
+        <circle cx="305" cy="60" r="16" fill="#ef4444" opacity="0.8"/><text x="305" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="monospace">R2</text>
+        <text x="305" y="86" text-anchor="middle" font-size="9" fill="#ef4444" font-family="monospace">High</text>
+        <circle cx="280" cy="155" r="13" fill="#F5A623" opacity="0.85"/><text x="280" y="160" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="monospace">R3</text>
+        <text x="280" y="178" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">Med</text>
+        <circle cx="430" cy="150" r="13" fill="#F5A623" opacity="0.85"/><text x="430" y="155" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="monospace">R4</text>
+        <text x="430" y="173" text-anchor="middle" font-size="9" fill="#b45309" font-family="monospace">Med</text>
+        <circle cx="305" cy="235" r="11" fill="#94A3B8" opacity="0.7"/><text x="305" y="240" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="monospace">R5</text>
+        <text x="305" y="258" text-anchor="middle" font-size="9" fill="#64748B" font-family="monospace">Low</text>
+      </svg>
+    </div>
+  </details>
+</div>
+
+<!-- ===== WATCHLIST ===== -->
+<div class="section" id="watchlist">
+  <div class="section-eyebrow">觀察清單 — 5 必看指標</div>
+  <div class="section-title">數量級觸發點：確認 Bull / Bear 的具體門檻</div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>#</th><th>指標</th><th>時程</th><th>Bull 觸發</th><th>Bear 觸發</th><th>強度</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:rgba(34,197,94,.03)">
+          <td style="font-family:var(--font-mono);font-weight:700;color:var(--mint)">W1</td>
+          <td><strong>Q3 法說：AI server 累計出貨量</strong></td>
+          <td><span class="pill pill-green">Q3 2026</span></td>
+          <td style="font-size:12px;color:#16a34a;font-weight:600">累計 10 萬台+ → confirm Bull，NT$110</td>
+          <td style="font-size:12px;color:var(--red);font-weight:600">累計 &lt;3 萬台 → trigger Bear，NT$65</td>
+          <td><span class="pill pill-red">關鍵</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);font-weight:700;color:var(--mint)">W2</td>
+          <td><strong>月營收單月突破 NT$1,000 億</strong></td>
+          <td><span class="pill pill-gold">每月 10 日</span></td>
+          <td style="font-size:12px;color:#16a34a;font-weight:600">&gt;NT$1,000 億 → AI server ramp 確認</td>
+          <td style="font-size:12px;color:var(--red);font-weight:600">連續 2 月 &lt;NT$800 億 → 減碼訊號</td>
+          <td><span class="pill pill-red">重要</span></td>
+        </tr>
+        <tr style="background:rgba(34,197,94,.03)">
+          <td style="font-family:var(--font-mono);font-weight:700;color:var(--mint)">W3</td>
+          <td><strong>GB300 / Vera Rubin 驗證公告</strong></td>
+          <td><span class="pill pill-blue">H2 2026</span></td>
+          <td style="font-size:12px;color:#16a34a;font-weight:600">H2 2026 量產確認 → 解鎖 2027 Bull</td>
+          <td style="font-size:12px;color:var(--red);font-weight:600">延至 Q1 2027 → 下調 EPS</td>
+          <td><span class="pill pill-red">關鍵</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);font-weight:700;color:var(--mint)">W4</td>
+          <td><strong>季度毛利率突破 4.5%</strong></td>
+          <td><span class="pill pill-blue">Q2 法說</span></td>
+          <td style="font-size:12px;color:#16a34a;font-weight:600">Q2 GM &gt;4.5% → AI mix 提升確認</td>
+          <td style="font-size:12px;color:var(--red);font-weight:600">Q2 GM &lt;4.0% → 縮減倉位</td>
+          <td><span class="pill pill-gold">重要</span></td>
+        </tr>
+        <tr style="background:rgba(34,197,94,.03)">
+          <td style="font-family:var(--font-mono);font-weight:700;color:var(--mint)">W5</td>
+          <td><strong>新 Hyperscaler 客戶簽約公告</strong></td>
+          <td><span class="pill pill-gray">隨時</span></td>
+          <td style="font-size:12px;color:#16a34a;font-weight:600">Google/AWS/Meta 任一 → Bull 機率升至 40%</td>
+          <td style="font-size:12px;color:var(--red);font-weight:600">NVIDIA 訂單轉移廣達/鴻海 → 市佔風險</td>
+          <td><span class="pill pill-gold">觀察</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-top:14px;background:rgba(91,201,168,.04);border-color:rgba(91,201,168,.2)">
+    <div class="card-label">催化劑時程</div>
+    <div class="g4" style="margin-top:10px">
+      <div class="cat-row" style="padding:8px 0;border-bottom:none">
+        <span class="cat-badge" style="background:rgba(34,197,94,.1);color:#16a34a">Q2 2026</span>
+        <div style="font-size:12px"><strong>GB300 驗證法說更新</strong><br><span style="color:var(--muted)">確認 10x 軌跡是否吻合</span></div>
+      </div>
+      <div class="cat-row" style="padding:8px 0;border-bottom:none">
+        <span class="cat-badge" style="background:rgba(59,130,246,.1);color:#2563eb">H2 2026</span>
+        <div style="font-size:12px"><strong>GB300 量產 + 月營收爆發</strong><br><span style="color:var(--muted)">NT$1,000 億是重估信號</span></div>
+      </div>
+      <div class="cat-row" style="padding:8px 0;border-bottom:none">
+        <span class="cat-badge" style="background:rgba(245,166,35,.1);color:#b45309">Q4 2026</span>
+        <div style="font-size:12px"><strong>Vera Rubin 驗證完成</strong><br><span style="color:var(--muted)">解鎖 2027 Bull Case</span></div>
+      </div>
+      <div class="cat-row" style="padding:8px 0;border-bottom:none">
+        <span class="cat-badge" style="background:rgba(217,83,79,.1);color:#dc2626">每月</span>
+        <div style="font-size:12px"><strong>月 10 日月營收公告</strong><br><span style="color:var(--muted)">MoM 加速是直接訊號</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mint);margin-bottom:12px">DISCLAIMER</div>
+        <p>本報告為 <strong>個人研究筆記</strong>，純供參考用途。所有資訊依公開資料整理，可能不完整或有誤。<strong>不構成任何投資建議、買賣建議或招攬行為。</strong></p>
+        <p style="margin-top:8px">投資涉及風險，過去表現不代表未來結果。讀者應自行判斷並承擔投資決策的全部責任。</p>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mint);margin-bottom:12px">DATA SOURCES &amp; METHOD</div>
+        <p><strong>資料來源：</strong>和碩 2026-03-11 法說會、TWSE MOPS 月營收、公開研究員報告彙整（9 位覆蓋）、NVIDIA 官方平台路線圖</p>
+        <p style="margin-top:8px"><strong>估值方法：</strong>三情境機率加權 EV（FY26 EPS × P/E × 機率），非 DCF。<strong>資料截止：</strong>2026-05-14</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.35)">和碩科技 4938.TW · Web-native Research Terminal · 2026-05-14 · v6</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.25)">PERSONAL RESEARCH ONLY · NOT INVESTMENT ADVICE · NOT INSTITUTIONAL RESEARCH · NO ANALYST RATING</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Calculator
+function calcPT(){
+  var eps=parseFloat(document.getElementById('eps').value);
+  var pe=parseInt(document.getElementById('pe').value);
+  document.getElementById('epsV').textContent='NT$'+eps;
+  document.getElementById('peV').textContent=pe+'x';
+  var pt=Math.round(eps*pe);
+  var up=((pt/77-1)*100).toFixed(1);
+  document.getElementById('ptV').textContent='NT$'+pt;
+  var el=document.getElementById('upsideV');
+  el.textContent=(up>=0?'+':'')+up+'%';
+  el.style.color=up>=0?'#16a34a':'#D9534F';
+}
+
+// Tab switcher
+function switchTab(btn,panelId){
+  var bar=btn.closest('.tab-bar');
+  bar.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  var wrap=bar.nextElementSibling;
+  while(wrap){
+    if(wrap.classList.contains('tab-panel')) wrap.classList.remove('active');
+    if(wrap.nextElementSibling&&wrap.nextElementSibling.classList&&wrap.nextElementSibling.classList.contains('tab-panel')) wrap=wrap.nextElementSibling;
+    else break;
+  }
+  document.getElementById(panelId).classList.add('active');
+}
+
+// Scroll story
+function ssSwitch(idx){
+  var btns=document.querySelectorAll('.ss-btn');
+  var panels=document.querySelectorAll('.ss-panel');
+  btns.forEach((b,i)=>{b.classList.toggle('active',i===idx)});
+  panels.forEach((p,i)=>{p.classList.toggle('active',i===idx)});
+}
+
+// Viz 1 click info
+function showTip(e,name,info){
+  var box=document.getElementById('viz1info');
+  box.style.display='block';
+  box.innerHTML='<strong style="color:#5BC9A8">'+name+'</strong><br>'+info;
+}
+
+// Tooltip (generic hover)
+var tt=document.getElementById('tt');
+document.querySelectorAll('[data-tip]').forEach(el=>{
+  el.addEventListener('mouseenter',function(e){
+    tt.textContent=this.dataset.tip;
+    tt.style.display='block';
+    positionTip(e);
+  });
+  el.addEventListener('mousemove',positionTip);
+  el.addEventListener('mouseleave',()=>tt.style.display='none');
+});
+function positionTip(e){
+  var x=e.clientX+12,y=e.clientY-10;
+  if(x+220>window.innerWidth) x=e.clientX-230;
+  tt.style.left=x+'px';
+  tt.style.top=(y+window.scrollY)+'px';
+}
+
+// Nav progress + active section
+var sections=document.querySelectorAll('div[id],section[id]');
+window.addEventListener('scroll',function(){
+  var scrolled=window.scrollY;
+  var docH=document.body.scrollHeight-window.innerHeight;
+  document.getElementById('navProg').style.width=(docH>0?(scrolled/docH*100):0)+'%';
+  // active nav
+  var active=null;
+  sections.forEach(s=>{
+    var top=s.offsetTop-80;
+    if(scrolled>=top) active=s.id;
+  });
+  document.querySelectorAll('.nav-links a').forEach(a=>{
+    var href=a.getAttribute('href');
+    a.classList.toggle('active',href&&href==='#'+active);
+  });
+},{ passive:true });
+
+// L1 height measurement (console log for audit)
+window.addEventListener('load',function(){
+  var l1=document.getElementById('l1');
+  if(l1) console.log('[v6 L1 height]',l1.offsetHeight,'px');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投資經理自主評估系統上線：策略、每日作業、LINE 串接</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #1a1a1a;
+  --orange: #f97316;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --accent: #f97316;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* MOBILE OVERFLOW GUARD — real fix: grids collapse + minmax(0,1fr) shrink-permission
+   + min-width:0 on flex children. NO overflow-x:hidden/clip on html/body — those mask
+   real overflow (data loss). Page must be honest: if anything still overflows the gate
+   must see it. Goal: body.scrollWidth ≤ clientWidth+4 with NO truncated content. */
+html,body{max-width:100%}
+html{scroll-behavior:smooth}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg-page);color:var(--text);line-height:1.6;font-size:15px}
+
+/* NAV — solid background + correct z-index so it does not bleed over card content on mobile */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--bg-page);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;padding:0 32px;gap:32px;isolation:isolate}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--orange);white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0;flex:1}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:13px;color:#555;text-decoration:none;white-space:nowrap;padding:4px 0;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.nav-links a:hover{color:var(--orange);border-bottom-color:var(--orange)}
+.nav-progress{position:absolute;bottom:0;left:0;height:2px;background:var(--orange);transition:width .1s;z-index:201}
+
+/* COVER */
+.cover{background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 50%,#1a1a1a 100%);color:#fff;padding:120px 40px 80px;min-height:80vh;display:flex;flex-direction:column;justify-content:center;width:100%;max-width:100%;margin-left:calc(-50vw + 50%)}
+.cover-inner{max-width:1000px;margin:0 auto;width:100%}
+.cover-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:20px}
+.cover h1{font-size:36px;font-weight:700;line-height:1.25;margin-bottom:16px}
+.cover h1 .accent{color:var(--orange)}
+.cover-subtitle{font-size:16px;color:rgba(255,255,255,.55);margin-bottom:40px;max-width:680px}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.3);margin-bottom:48px}
+.cover-stats{display:flex;gap:48px;flex-wrap:wrap}
+.stat-item .stat-num{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:var(--orange);display:block}
+.stat-item .stat-label{font-size:13px;color:rgba(255,255,255,.5)}
+
+/* SECTIONS */
+.section{max-width:1000px;margin:0 auto;padding:72px 40px 56px}
+.divider{height:1px;background:var(--border);margin:0 40px}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+.section-title{font-size:28px;font-weight:700;margin-bottom:8px;line-height:1.3}
+.section-title .accent{color:var(--orange)}
+.section-desc{font-size:14px;color:var(--text-muted);max-width:700px;margin-bottom:40px}
+
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.card-grid-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.card-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:768px){.card-grid-2,.card-grid-3{grid-template-columns:1fr}}
+@media(max-width:640px){.card-grid-2,.card-grid-3{grid-template-columns:1fr!important}}
+
+/* STATUS CARDS */
+.status-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;border-left:3px solid var(--orange)}
+.status-card.green{border-left-color:var(--green)}
+.status-card.blue{border-left-color:var(--blue)}
+.status-card.red{border-left-color:var(--red)}
+.status-card.purple{border-left-color:var(--purple)}
+.status-card .s-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.status-card .s-value{font-size:22px;font-weight:700;color:var(--text)}
+.status-card .s-desc{font-size:13px;color:var(--text-muted);margin-top:4px}
+
+/* PILLS */
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.pill-done{background:#dcfce7;color:#166534}
+.pill-active{background:#ffedd5;color:#9a3412}
+.pill-planned{background:#f1f5f9;color:#475569}
+.pill-warn{background:#fef3c7;color:#92400e}
+.pill-error{background:#fee2e2;color:#991b1b}
+.pill-info{background:#dbeafe;color:#1e40af}
+.pill-fixed{background:#e0f2fe;color:#0369a1}
+.pill-corrected{background:#f0fdf4;color:#15803d}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;margin-bottom:4px;border:1px solid var(--border)}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-track{background:var(--bg-page);border-radius:3px}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th{background:#f9f8f5;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:10px 16px;font-size:13px;color:var(--text);border-bottom:1px solid #f0ede8;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf7}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.td-green{color:#166534;font-weight:600}
+.td-red{color:#991b1b;font-weight:600}
+.td-orange{color:#9a3412;font-weight:600}
+
+/* CONCEPT CARDS */
+.concept-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:12px;padding:20px 24px}
+.concept-card.green{border-left-color:var(--green)}
+.concept-card.blue{border-left-color:var(--blue)}
+.concept-card.red{border-left-color:var(--red)}
+.concept-card.purple{border-left-color:var(--purple)}
+.concept-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.concept-card.green .concept-label{color:#16a34a}
+.concept-card.blue .concept-label{color:#2563eb}
+.concept-card.red .concept-label{color:#dc2626}
+.concept-card.purple .concept-label{color:#9333ea}
+.concept-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.concept-desc{font-size:13px;color:var(--text-muted);line-height:1.6}
+
+/* LONG-TOKEN WRAP — any unbroken mono path / URL inside a card must wrap,
+   not clip. overflow-wrap:anywhere allows break mid-word only when needed;
+   desktop multi-col layouts are unaffected because wrapping only fires when
+   content exceeds the container width. */
+.concept-card,.concept-card *,
+.concept-desc,.concept-desc *,
+.card code,.card .mono,
+.card span,.card p,.card li,.card div,
+.status-card,.status-card *,
+.bug-box,.bug-box *,
+.fix-box,.fix-box *,
+.boundary-box,.boundary-box *,
+.kv-val,.kv-row *,
+.open-text,.open-text * {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* MERMAID CONTAINER */
+.mermaid-wrap{background:#1a1a1a;border-radius:12px;padding:32px;margin:0;overflow-x:auto}
+.mermaid-wrap .mermaid{min-width:600px}
+
+/* BOUNDARY BOX */
+.boundary-box{background:#fff8ed;border:1px solid #fed7aa;border-radius:12px;padding:20px 24px}
+.boundary-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c2410c;margin-bottom:12px}
+
+/* BUG / FIX BOX */
+.bug-box{background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px 24px}
+.bug-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#be123c;margin-bottom:12px}
+.fix-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px}
+.fix-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#166534;margin-bottom:12px}
+
+/* OPEN ITEMS */
+.open-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f0ede8}
+.open-item:last-child{border-bottom:none}
+.open-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);min-width:24px}
+.open-text{font-size:13px;line-height:1.6}
+.open-text strong{color:var(--text);font-weight:600}
+.open-text span{color:var(--text-muted)}
+
+/* FOOTER */
+footer{max-width:1000px;margin:0 auto;padding:40px 40px 60px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
+.footer-brand{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted)}
+.footer-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted)}
+
+/* DENSE METRIC GRID */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.metric-item{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center}
+.metric-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange)}
+.metric-label{font-size:11px;color:var(--text-muted);margin-top:4px}
+
+/* GATE FLOW INLINE */
+.gate-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0}
+.gate-node{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap}
+.gate-node.pass{border-color:var(--green);color:#166534;background:#dcfce7}
+.gate-node.fail{border-color:var(--red);color:#991b1b;background:#fee2e2}
+.gate-node.active{border-color:var(--orange);color:#9a3412;background:#ffedd5}
+.gate-arrow{font-size:18px;color:var(--text-muted)}
+
+/* SCQA */
+.scqa-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:32px}
+@media(max-width:768px){.scqa-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.scqa-grid{grid-template-columns:1fr!important}}
+.scqa-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.scqa-letter{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--orange);margin-bottom:4px}
+.scqa-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px}
+.scqa-text{font-size:13px;color:var(--text);line-height:1.5}
+
+/* INLINE KEY-VALUE */
+.kv-row{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f0ede8;font-size:13px}
+.kv-row:last-child{border-bottom:none}
+.kv-key{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);min-width:140px;flex-shrink:0}
+.kv-val{color:var(--text);font-weight:500;min-width:0;word-break:break-word}
+@media(max-width:640px){
+  .kv-row{flex-direction:column;gap:4px}
+  .kv-key{min-width:0}
+}
+
+/* SECTION mobile padding — reduce horizontal padding on small screens */
+@media(max-width:640px){
+  .section{padding:48px 20px 40px}
+  .divider{margin:0 20px}
+  .cover{padding:80px 20px 60px}
+}
+
+/* WRAPPER MAX-WIDTH — wrappers must constrain to viewport, not just self-scroll */
+.table-wrap,.mermaid-wrap{max-width:100%}
+
+/* FIX 2 — FLEX CHILDREN: without min-width:0, flex items use min-width:auto and
+   refuse to shrink below their content width, overflowing the card.
+   Target: the numbered-icon flex layout in .card (report-driven section, S10).
+   The child div[style*="flex:1"] is the text column that overflows on mobile. */
+.card > [style*="display:flex"] > [style*="flex:1"],
+.card > div[style*="display:flex"] > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+/* All direct text-bearing blocks inside those flex children */
+.card > [style*="display:flex"] > [style*="flex:1"] > div,
+.card > div[style*="display:flex"] > div > div {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* INLINE-GRID HELPER — applies minmax(0,1fr) and mobile collapse to inline 2-col grids
+   Used by: DECISION LOG fields (S2/S7 bug-box), boundary-box (S11) */
+.grid-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media(max-width:640px){
+  .grid-2col{grid-template-columns:1fr!important}
+  /* Ensure all inline grids collapse too — targets any div[style] with 1fr 1fr inside cards */
+  .card [style*="grid-template-columns"],
+  .bug-box [style*="grid-template-columns"],
+  .boundary-box [style*="grid-template-columns"]{
+    grid-template-columns:1fr!important
+  }
+  /* kv-row already handled above; nav shrinks horizontally */
+  table{min-width:0}
+  .mermaid-wrap .mermaid{min-width:0}
+  /* Content must not bleed outside card boundaries */
+  .card,.concept-card,.status-card,.bug-box,.fix-box,.boundary-box{
+    min-width:0;overflow:hidden
+  }
+  /* Gate flow nodes wrap correctly */
+  .gate-flow{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">RAIN ALPHA</span>
+  <div class="nav-links">
+    <a href="#overview">概覽</a>
+    <a href="#reasoning">強制理由</a>
+    <a href="#daily-eval">每日評估</a>
+    <a href="#schedule-line">排程 LINE</a>
+    <a href="#strategy">策略清單</a>
+    <a href="#decision-flow">決策流程</a>
+    <a href="#yfinance">資料源升級</a>
+    <a href="#fx-bug">幣別修正</a>
+    <a href="#screener-feed">Screener 餵入</a>
+    <a href="#report-driven">報告驅動重設計</a>
+    <a href="#boundary">邊界聲明</a>
+    <a href="#open-items">待辦事項</a>
+  </div>
+  <div class="nav-progress" id="nav-progress"></div>
+</nav>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-eyebrow">INVESTMENT MANAGER — AUTONOMOUS EVALUATION SYSTEM · v3 UPDATE</div>
+    <h1>投資經理<span class="accent">自主評估系統</span>上線<br>策略、每日作業、LINE 串接</h1>
+    <div class="cover-subtitle">v3 重設計：報告驅動決策模型上線（鐵則：無完整報告不得買進）。v2 三項升級全數保留。決策模型本質已改變。</div>
+    <div class="cover-meta">2026-05-19 v3 &nbsp;|&nbsp; RainAlpha origin/main d72ace7 &nbsp;|&nbsp; 受眾：Rain</div>
+    <div class="cover-stats">
+      <div class="stat-item"><span class="stat-num">81</span><span class="stat-label">後端測試全過</span></div>
+      <div class="stat-item"><span class="stat-num">16/16</span><span class="stat-label">報告全數 enriched</span></div>
+      <div class="stat-item"><span class="stat-num">422</span><span class="stat-label">無報告買進硬 Gate</span></div>
+      <div class="stat-item"><span class="stat-num">0</span><span class="stat-label">真實下單 API（paper）</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- S1: SCQA 概覽 -->
+<div class="section" id="overview">
+  <div class="section-eyebrow">SECTION 01 — OVERVIEW</div>
+  <div class="section-title">結論：投資經理已可<span class="accent">完全自主</span>評估與記錄，Rain 僅需旁觀</div>
+  <div class="section-desc">SCQA 框架說明本次升級的必要性與交付結果（v1 原 4 塊 + v2 新增 3 項升級）</div>
+
+  <div class="scqa-grid">
+    <div class="scqa-item">
+      <div class="scqa-letter">S</div>
+      <div class="scqa-label">Situation</div>
+      <div class="scqa-text">Selection Policy v1.0 已上線，投資經理可依五力評分 + 回測門檻篩選標的</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">C</div>
+      <div class="scqa-label">Complication</div>
+      <div class="scqa-text">Rain 追加六項 v1 要求 + v2 三項升級：免費資料源路由、幣別 bug 修正、Screener 資料餵入流程</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">Q</div>
+      <div class="scqa-label">Question</div>
+      <div class="scqa-text">如何讓投資經理在既有架構上自主運行，Rain 零主動介入，且評估真實、無 bug？</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">A</div>
+      <div class="scqa-label">Answer</div>
+      <div class="scqa-text">yfinance 免費路由、USD/TWD FX 換算、screener_refresh.py — 8/8 真分數、64 測試通過、明日 08:00 首次真跑。</div>
+    </div>
+  </div>
+
+  <div class="metric-grid" style="margin-bottom:28px">
+    <div class="metric-item"><div class="metric-num">4</div><div class="metric-label">v1 交付大塊</div></div>
+    <div class="metric-item"><div class="metric-num">3</div><div class="metric-label">v2 新增升級</div></div>
+    <div class="metric-item"><div class="metric-num">64</div><div class="metric-label">後端測試通過</div></div>
+    <div class="metric-item"><div class="metric-num">33b12f0</div><div class="metric-label">最終 commit</div></div>
+    <div class="metric-item"><div class="metric-num">8%</div><div class="metric-label">單標的倉位上限</div></div>
+    <div class="metric-item"><div class="metric-num">25%</div><div class="metric-label">單產業倉位上限</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>版本</th>
+          <th>交付塊</th>
+          <th>核心交付</th>
+          <th>落地方式</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-done">v1</span></td>
+          <td><span class="td-mono">塊1</span></td>
+          <td>買賣強制記錄理由（API 層）</td>
+          <td>ledger.py HTTP 422 gate</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-done">v1</span></td>
+          <td><span class="td-mono">塊2</span></td>
+          <td>每日自主評估迴圈</td>
+          <td>investment_daily_eval.py</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-done">v1</span></td>
+          <td><span class="td-mono">塊3</span></td>
+          <td>每日排程 + LINE 串接</td>
+          <td>LaunchAgent plist + line.py</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-done">v1</span></td>
+          <td><span class="td-mono">塊4</span></td>
+          <td>投資經理策略清單</td>
+          <td>vault 永久文件</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-active">v2</span></td>
+          <td><span class="td-mono">升1</span></td>
+          <td>美股資料源 → yfinance 免費路由</td>
+          <td>market_data_router.py + 整合測試</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-active">v2</span></td>
+          <td><span class="td-mono">升2</span></td>
+          <td>幣別 bug 修正（USD/TWD FX）</td>
+          <td>FX 換算 + ledger API + LINE 全鏈</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-active">v2</span></td>
+          <td><span class="td-mono">升3</span></td>
+          <td>Screener 資料餵入流程</td>
+          <td>screener_refresh.py + 08:00 排程</td>
+          <td><span class="pill pill-done">DONE</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S2: 強制理由記錄 -->
+<div class="section" id="reasoning">
+  <div class="section-eyebrow">SECTION 02 — MANDATORY REASONING</div>
+  <div class="section-title">強制記錄理由：<span class="accent">API 層 422 Gate</span>，非文件規範</div>
+  <div class="section-desc">任何 buy/sell 類決策無理由 → HTTP 422，無例外路徑（DELETE 除外，標記為 admin 逃生口）</div>
+
+  <div class="card-grid-2" style="margin-bottom:24px">
+    <div class="concept-card green">
+      <div class="concept-label">强制觸發條件</div>
+      <div class="concept-title">五種交易動作均受保護</div>
+      <div class="concept-desc"><span style="font-family:'JetBrains Mono',monospace;font-size:12px">_TRADE_ACTIONS = {buy, add, sell, trim, exit}</span><br><br>create 與 patch 兩條路徑均已涵蓋。PATCH status=closed（關倉）也強制要求理由——關倉即出場，§7 明文：無 decision_log 的列無效。</div>
+    </div>
+    <div class="concept-card red">
+      <div class="concept-label">422 觸發情境</div>
+      <div class="concept-title">三種拒絕場景</div>
+      <div class="concept-desc">
+        1. 無 decision_log 欄位<br>
+        2. decision_log 非合法 JSON<br>
+        3. reasoning 欄位為空字串<br><br>
+        換交易動作（buy→exit）必須附<strong>新理由</strong>，不接受沿用舊 reasoning（W6）
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr>
+          <th>場景</th>
+          <th>請求內容</th>
+          <th>回應</th>
+          <th>測試案例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>buy 無 decision_log</td>
+          <td>POST /ledger action=buy</td>
+          <td><span class="td-red">HTTP 422</span></td>
+          <td class="td-mono">test_buy_no_reasoning</td>
+        </tr>
+        <tr>
+          <td>buy 有合法 reasoning</td>
+          <td>POST /ledger action=buy + log</td>
+          <td><span class="td-green">HTTP 201</span></td>
+          <td class="td-mono">test_buy_with_reasoning</td>
+        </tr>
+        <tr>
+          <td>PATCH 關倉無理由</td>
+          <td>PATCH /ledger/{id} status=closed</td>
+          <td><span class="td-red">HTTP 422</span></td>
+          <td class="td-mono">test_patch_close_no_reasoning</td>
+        </tr>
+        <tr>
+          <td>buy→exit 沿用舊 log</td>
+          <td>PATCH action=exit + 原 reasoning</td>
+          <td><span class="td-red">HTTP 422</span></td>
+          <td class="td-mono">test_exit_reuse_old_reasoning</td>
+        </tr>
+        <tr>
+          <td>DELETE hard</td>
+          <td>DELETE /ledger/{id}</td>
+          <td><span class="td-orange">200（繞過）</span></td>
+          <td class="td-mono">admin 逃生口 by design</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--text-muted);margin-bottom:12px">DECISION LOG 必填欄位結構</div>
+    <div class="grid-2col">
+      <div>
+        <div class="kv-row"><span class="kv-key">who</span><span class="kv-val">決策者識別（investment_manager）</span></div>
+        <div class="kv-row"><span class="kv-key">timestamp</span><span class="kv-val">ISO 8601 決策時間</span></div>
+        <div class="kv-row"><span class="kv-key">action</span><span class="kv-val">buy / add / sell / trim / exit</span></div>
+        <div class="kv-row"><span class="kv-key">reasoning</span><span class="kv-val">非空字串（強制）</span></div>
+      </div>
+      <div>
+        <div class="kv-row"><span class="kv-key">composite</span><span class="kv-val">五力綜合分（0-100）</span></div>
+        <div class="kv-row"><span class="kv-key">backtest_pass</span><span class="kv-val">true / false</span></div>
+        <div class="kv-row"><span class="kv-key">policy_version</span><span class="kv-val">1.0（當前）</span></div>
+        <div class="kv-row"><span class="kv-key">price_ref</span><span class="kv-val">決策當下參考價</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:12px 20px;background:#dcfce7;border-radius:8px;font-size:13px;color:#166534">
+    <strong>線上驗證已完成：</strong>重啟 :8002 後實測——buy 無 decision_log → 422；有合法 reasoning → 201。測試全過（test_ledger_reasoning.py）。
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S3: 每日自主評估 -->
+<div class="section" id="daily-eval">
+  <div class="section-eyebrow">SECTION 03 — DAILY AUTONOMOUS EVALUATION</div>
+  <div class="section-title">每日自主評估迴圈：<span class="accent">投資經理自動追蹤、Rain 僅旁觀</span></div>
+  <div class="section-desc">investment_daily_eval.py — 每日拉追蹤標的、評分、決策、自動寫 paper ledger，附完整 decision_log</div>
+
+  <div class="card-grid-2" style="margin-bottom:24px">
+    <div class="concept-card blue">
+      <div class="concept-label">追蹤標的來源</div>
+      <div class="concept-title">兩條進入路徑</div>
+      <div class="concept-desc">
+        1. <strong>開倉部位</strong>：ledger 中 status=open 的所有部位（既有持股）<br><br>
+        2. <strong>觀察候選</strong>：<span style="font-family:'JetBrains Mono',monospace;font-size:12px">~/.claude/memory/investment_memory/watchlist.json</span>（尚未建倉的候選股）
+      </div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-label">每檔評分流程</div>
+      <div class="concept-title">取價 → Five Forces → FinMind 回測 Gate</div>
+      <div class="concept-desc">
+        screener API → composite score（0-100）<br>
+        FinMind API → 回測 gate（年化≥8%、Sharpe≥0.5、MDD≥-30%）<br><br>
+        screener 無資料時 → composite = n/a，候選降為 watch（graceful degrade）
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">決策矩陣：依 Selection Policy v1.0</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>標的類型</th>
+            <th>觸發條件</th>
+            <th>決策動作</th>
+            <th>是否寫 Ledger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>既有部位</td>
+            <td>price ≤ stop_loss</td>
+            <td><span class="pill pill-error">exit</span></td>
+            <td><span class="td-green">是（PATCH→closed）</span></td>
+          </tr>
+          <tr>
+            <td>既有部位</td>
+            <td>price ≥ target_price</td>
+            <td><span class="pill pill-warn">trim</span></td>
+            <td><span class="td-green">是（PATCH→trim）</span></td>
+          </tr>
+          <tr>
+            <td>既有部位</td>
+            <td>composite 掉至警戒</td>
+            <td><span class="pill pill-warn">trim / exit</span></td>
+            <td><span class="td-green">是</span></td>
+          </tr>
+          <tr>
+            <td>既有部位</td>
+            <td>以上皆否</td>
+            <td><span class="pill pill-done">hold / add</span></td>
+            <td><span class="td-orange">hold 不寫，add 才寫</span></td>
+          </tr>
+          <tr>
+            <td>觀察候選</td>
+            <td>composite ≥ 70 且回測過</td>
+            <td><span class="pill pill-done">buy（依§5 size）</span></td>
+            <td><span class="td-green">是（POST new）</span></td>
+          </tr>
+          <tr>
+            <td>觀察候選</td>
+            <td>composite 55–69</td>
+            <td><span class="pill pill-info">watch</span></td>
+            <td><span class="td-orange">不寫倉，記日誌</span></td>
+          </tr>
+          <tr>
+            <td>觀察候選</td>
+            <td>composite &lt; 55</td>
+            <td><span class="pill pill-planned">pass</span></td>
+            <td><span class="td-orange">不寫倉，記日誌</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Quill 對抗式審查補強（已修）</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>審查項目</th>
+            <th>原始問題</th>
+            <th>修復方式</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>M1（關鍵）</strong></td>
+            <td>§5 上限只是常數，未實際執行</td>
+            <td>真正強制 per-name 8%、per-sector 25%；無 sector 資料時發 WARNING 並記入 reasoning</td>
+            <td><span class="pill pill-done">已修</span></td>
+          </tr>
+          <tr>
+            <td><strong>W5（重要）</strong></td>
+            <td>PATCH status=closed 無理由可繞過</td>
+            <td>出場路徑納入 422 gate（§7：無 decision_log 的列無效）</td>
+            <td><span class="pill pill-done">已修</span></td>
+          </tr>
+          <tr>
+            <td><strong>M2</strong></td>
+            <td>US 個股回測 gate 例外未說明</td>
+            <td>加註：TW 系統性題材走全量回測，US 單一個股走半倉例外——刻意設計已文件化</td>
+            <td><span class="pill pill-done">已加註</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--text-muted);margin-bottom:12px">每日產出檔案</div>
+    <div class="kv-row"><span class="kv-key">JSON 決策記錄</span><span class="kv-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">~/.claude/memory/investment_memory/daily-eval/&lt;date&gt;.json</span></div>
+    <div class="kv-row"><span class="kv-key">HTML 報告</span><span class="kv-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">~/Projects/Slideless/public/investment-daily-eval-&lt;date&gt;.html</span></div>
+    <div class="kv-row"><span class="kv-key">Vault 日誌</span><span class="kv-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">Projects/Links/Investment Daily Eval Log.md</span></div>
+    <div class="kv-row"><span class="kv-key">CLI 旗標</span><span class="kv-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">--dry-run（不寫倉、寫檔）、--no-write（全空跑）</span></div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S4: 排程與 LINE -->
+<div class="section" id="schedule-line">
+  <div class="section-eyebrow">SECTION 04 — SCHEDULE & LINE</div>
+  <div class="section-title">每日 <span class="accent">08:00 TPE</span> 自動看盤 + LINE Flex 卡推播給 Rain</div>
+  <div class="section-desc">既有 alpha LINE 管線，非重造。LaunchAgent 已載入，首次真實推播 = 明日 08:00。</div>
+
+  <div class="card-grid-2" style="margin-bottom:24px">
+    <div class="status-card green">
+      <div class="s-label">排程時段</div>
+      <div class="s-value">每日 08:00 Asia/Taipei</div>
+      <div class="s-desc">涵蓋前夜美股收盤結果 + 台股開盤前看盤。LaunchAgent 已 plutil OK、launchctl 已載入 gui/501。</div>
+    </div>
+    <div class="status-card blue">
+      <div class="s-label">LINE 推播對象</div>
+      <div class="s-value">僅 Rain（LINE_ALLOWED_USERS[0]）</div>
+      <div class="s-desc">結構上不可能廣播到其他 UID。遵守 LINE 5 則/批上限。推播失敗不阻斷評估工作。</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">v2 更新後執行流程</div>
+    <div class="gate-flow">
+      <div class="gate-node active">LaunchAgent 08:00</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node active">wrapper.sh</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node pass">screener_refresh.py</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node active">investment_daily_eval.py --once</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node active">eval_line.py --send</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node pass">LINE → Rain</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:8px">screener_refresh 失敗為非致命——eval 仍繼續，graceful degrade</div>
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>LINE 訊息類型</th>
+          <th>內容</th>
+          <th>顏色</th>
+          <th>條件</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>摘要文字</td>
+          <td>當日評估總覽（日期、追蹤檔數、actionable 數）</td>
+          <td>—</td>
+          <td>每日必送 1 則</td>
+        </tr>
+        <tr>
+          <td>Flex 卡：買進/加碼</td>
+          <td>標的名稱、動作、composite、reasoning 摘要</td>
+          <td><span style="color:#16a34a;font-weight:600">#7da35f 綠</span></td>
+          <td>action = buy / add</td>
+        </tr>
+        <tr>
+          <td>Flex 卡：出場/減碼</td>
+          <td>標的名稱、動作、composite、reasoning 摘要</td>
+          <td><span style="color:#dc2626;font-weight:600">#d94f4f 紅</span></td>
+          <td>action = exit / trim</td>
+        </tr>
+        <tr>
+          <td>Flex 卡：其他</td>
+          <td>標的名稱、動作、composite、reasoning 摘要</td>
+          <td><span style="color:#c2410c;font-weight:600">#c9962a 橘</span></td>
+          <td>watch / hold</td>
+        </tr>
+        <tr>
+          <td>績效摘要（v2 新增）</td>
+          <td>US −X% (USD) | TW −X% (NT$) | 合計 ≈ X% (TWD, fx 31.66)</td>
+          <td>—</td>
+          <td>每日附加，幣別分組顯示</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="concept-card green">
+      <div class="concept-label">安全設計</div>
+      <div class="concept-title">Token 零洩漏</div>
+      <div class="concept-desc">LINE_CHANNEL_ACCESS_TOKEN 不寫進 plist、不被 log。--dry 旗標從不 POST LINE API。排程用 --send 明確啟動。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-label">LOG 路徑</div>
+      <div class="concept-title">可查驗執行記錄</div>
+      <div class="concept-desc" style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8">~/.local/log/investment-daily-eval.log<br>ai.rain.investment-daily-eval.plist<br>calendar 觸發（精準 08:00，不提早）</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S5: 策略清單 -->
+<div class="section" id="strategy">
+  <div class="section-eyebrow">SECTION 05 — STRATEGY INVENTORY</div>
+  <div class="section-title">投資經理股票策略清單：<span class="accent">8 大模組，全有 file:line 出處</span></div>
+  <div class="section-desc">永久文件：ObsidianTeamVault/Projects/Links/Investment Manager Strategy Inventory.md</div>
+
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>策略模組</th>
+          <th>核心邏輯</th>
+          <th>關鍵參數</th>
+          <th>適用</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-mono">1</td>
+          <td><strong>Selection Policy v1.0</strong></td>
+          <td>硬篩 → F·T·C 評分 → 回測 gate → 倉位控制</td>
+          <td>BUY ≥ 70 / WATCH 55-69 / PASS &lt; 55；F 45% / T 30% / C 25%</td>
+          <td>TW+US</td>
+        </tr>
+        <tr>
+          <td class="td-mono">2</td>
+          <td><strong>Five Forces 評分引擎</strong></td>
+          <td>五維 25/25/20/15/15 加權，相對產業 PE/PB/成長比較</td>
+          <td>市場地位 25%、護城河 25%、成長 20%、財務 15%、總體 15%</td>
+          <td>TW+US</td>
+        </tr>
+        <tr>
+          <td class="td-mono">3</td>
+          <td><strong>FinMind 策略一</strong></td>
+          <td>revenue_x_institutional：營收 YoY &gt; 15% 且法人淨買</td>
+          <td>回測門檻：年化≥8%、Sharpe≥0.5、MDD≥-30%、總報酬&gt;0</td>
+          <td>TW</td>
+        </tr>
+        <tr>
+          <td class="td-mono">4</td>
+          <td><strong>FinMind 策略二</strong></td>
+          <td>revenue_momentum：近3月營收 YoY &gt; 10%</td>
+          <td>同上回測門檻；與策略一並行評估</td>
+          <td>TW</td>
+        </tr>
+        <tr>
+          <td class="td-mono">5</td>
+          <td><strong>五大師 Persona 投票</strong></td>
+          <td>Buffett / Wood / Burry / Taleb / Druckenmiller 模擬觀點</td>
+          <td>股癌/Emmy podcast 排名加權；整合進 F 分</td>
+          <td>TW+US</td>
+        </tr>
+        <tr>
+          <td class="td-mono">6</td>
+          <td><strong>Phase A/B/B+ 分析辯論</strong></td>
+          <td>分析師多角度，最多 2 輪 IM 仲裁</td>
+          <td>Phase A 初篩、B 深分析、B+ 壓力測試</td>
+          <td>TW+US</td>
+        </tr>
+        <tr>
+          <td class="td-mono">7</td>
+          <td><strong>技術分析（T-Score）</strong></td>
+          <td>技術面佔整體評分 30%</td>
+          <td>BUY 強制技術確認；WATCH 建議；PASS 選配</td>
+          <td>TW+US</td>
+        </tr>
+        <tr>
+          <td class="td-mono">8</td>
+          <td><strong>每日倉位管理（§5）</strong></td>
+          <td>per-name 8%、per-sector 25%，真正強制執行</td>
+          <td>無 sector 資料 → WARNING + 記入 reasoning</td>
+          <td>TW+US</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="status-card green">
+      <div class="s-label">通過標準（AND 條件）</div>
+      <div class="s-value" style="font-size:18px">4 項全過才算 pass</div>
+      <div class="s-desc">年化報酬 ≥ 8%、Sharpe Ratio ≥ 0.5、最大回撤 MDD ≥ -30%、總報酬 &gt; 0</div>
+    </div>
+    <div class="status-card">
+      <div class="s-label">US 例外設計（刻意）</div>
+      <div class="s-value" style="font-size:18px">US 個股走半倉例外</div>
+      <div class="s-desc">TW 系統性題材 → 全量回測強制。US 單一個股 → 半倉例外（已文件化）。避免 US 歷史資料不足阻斷評估。</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S6: 決策流程圖 -->
+<div class="section" id="decision-flow">
+  <div class="section-eyebrow">SECTION 06 — DECISION FLOW</div>
+  <div class="section-title">標的決策流程：從<span class="accent">進入</span>到 BUY / WATCH / PASS / hold / trim / exit</div>
+  <div class="section-desc">依 Selection Policy v1.0 執行，每個節點均有 decision_log 記錄</div>
+
+  <div class="mermaid-wrap">
+    <div class="mermaid">
+flowchart TD
+    A([標的進入]) --> B{是否為既有部位?}
+
+    B -- 是 --> C{price 小於等於 stop_loss?}
+    C -- 是 --> D[exit 強制停損]
+    C -- 否 --> E{price 大於等於 target_price?}
+    E -- 是 --> F[trim 部分獲利了結]
+    E -- 否 --> G{composite 掉至警戒?}
+    G -- 是 --> H[trim 或 exit 評分惡化]
+    G -- 否 --> I[hold 或 add 維持或加碼]
+
+    B -- 否 觀察候選 --> J[取價 + screener 評分]
+    J --> K{composite 有效?}
+    K -- n/a 無資料 --> L[降為 watch graceful degrade]
+    K -- 有效 --> M{composite 分數}
+
+    M -- 大於等於 70 --> N{FinMind 回測 gate}
+    N -- 通過 --> O{§5 倉位上限檢查}
+    N -- 未通過 --> P[WATCH 等回測改善]
+    O -- 未超限 --> Q([BUY 寫 paper ledger])
+    O -- 超限 --> R[WARNING 記入 reasoning deferring to Rain]
+
+    M -- 55 到 69 --> S([WATCH 記日誌不寫倉])
+    M -- 小於 55 --> T([PASS 記日誌不寫倉])
+
+    D --> U[PATCH ledger 含 decision_log]
+    F --> U
+    H --> U
+    I --> V[hold 不寫倉 add 寫 PATCH]
+
+    style Q fill:#166534,color:#fff,stroke:#166534
+    style S fill:#1e40af,color:#fff,stroke:#1e40af
+    style T fill:#374151,color:#fff,stroke:#374151
+    style D fill:#991b1b,color:#fff,stroke:#991b1b
+    style F fill:#92400e,color:#fff,stroke:#92400e
+    style H fill:#991b1b,color:#fff,stroke:#991b1b
+    style R fill:#92400e,color:#fff,stroke:#92400e
+    </div>
+  </div>
+
+  <div style="margin-top:20px;display:flex;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:14px;height:14px;background:#166534;border-radius:3px;display:inline-block"></span>BUY（寫 ledger）</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:14px;height:14px;background:#1e40af;border-radius:3px;display:inline-block"></span>WATCH（記日誌）</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:14px;height:14px;background:#374151;border-radius:3px;display:inline-block"></span>PASS（記日誌）</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:14px;height:14px;background:#991b1b;border-radius:3px;display:inline-block"></span>exit / trim（寫 ledger）</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:14px;height:14px;background:#92400e;border-radius:3px;display:inline-block"></span>WARNING / deferred</div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S7: 資料源升級 — yfinance -->
+<div class="section" id="yfinance">
+  <div class="section-eyebrow">SECTION 07 — DATA SOURCE UPGRADE</div>
+  <div class="section-title">資料源升級：美股<span class="accent">改走免費 yfinance</span>（非付費 FMP）</div>
+  <div class="section-desc">Rain 要求排進 FMP 升級。判斷後採更佳路徑：yfinance 早已在專案內，美股基本面免費齊全，FMP 付費評估為不需要。</div>
+
+  <div class="card-grid-2" style="margin-bottom:24px">
+    <div class="concept-card green">
+      <div class="concept-label">決策記錄</div>
+      <div class="concept-title">yfinance 路由，FMP 不購買</div>
+      <div class="concept-desc">
+        requirements.txt + yf_client.py 早已包好，PE/PB/財報/法人/股利免費齊全。<br><br>
+        <strong>路由決策：</strong><br>
+        美股 Five Forces → yfinance（主路由）<br>
+        FMP 保留為 fallback（不購買訂閱）<br>
+        台股 FinMind 不變
+      </div>
+    </div>
+    <div class="concept-card blue">
+      <div class="concept-label">線上實證</div>
+      <div class="concept-title">主流美股 composite 有效輸出</div>
+      <div class="concept-desc">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2.2">
+          AAPL &nbsp;→ composite = <strong style="color:#1a1a1a">39.5</strong><br>
+          RCAT &nbsp;→ composite = <strong style="color:#1a1a1a">45.7</strong><br>
+          COHR → composite = <strong style="color:#1a1a1a">48.5</strong>
+        </div>
+        <div style="margin-top:8px;font-size:12px">三檔均無 error，yfinance 路由正常。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">隱藏 Bug（誠實記錄含教訓）</div>
+  <div class="bug-box" style="margin-bottom:16px">
+    <div class="bug-title">Bug：mock 測試全綠，但線上仍 "Symbol not found"</div>
+    <div class="grid-2col">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#be123c;margin-bottom:8px">根因</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--text)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px">backend/app/api/stocks.py:113</span><br>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#fecdd3;padding:3px 8px;border-radius:4px;display:inline-block;margin:6px 0">if not profile: return {"error":"Symbol not found"}</span><br>
+          在 Five Forces 計算前就攔掉。yfinance 偶發空回應即觸發早退——mock 測試 patch 掉這段，故未覆蓋此路徑。
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:8px">修復方式</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--text)">
+          移除早退邏輯，改為仍走 <span style="font-family:'JetBrains Mono',monospace;font-size:12px">_get_five_forces</span> + <span style="font-family:'JetBrains Mono',monospace;font-size:12px">FiveForcesCache</span> fallback。<br><br>
+          補整合測試：<span style="font-family:'JetBrains Mono',monospace;font-size:12px">test_five_forces_route_live.py</span>（真實打路由，不 mock 中間層）。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-box" style="margin-bottom:24px">
+    <div class="fix-title">教訓記錄</div>
+    <div style="font-size:13px;line-height:1.7;color:#166534">
+      mock 測試有驗證缺口——patch 掉 early-exit 後，線上實際路徑未被覆蓋。補充整合測試（真實呼叫路由，不 mock 中間層）是這類 early-return bug 的唯一可靠防線。已補 test_five_forces_route_live.py。
+    </div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">端到端結果（實測數字）</div>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>指標</th>
+          <th>升級前</th>
+          <th>升級後</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>screener_refresh 成功率</td>
+          <td><span class="td-red">2 / 8</span></td>
+          <td><span class="td-green">8 / 8</span></td>
+          <td>修 early-exit bug 後</td>
+        </tr>
+        <tr>
+          <td>每日評估真 composite</td>
+          <td><span class="td-red">2 / 8（其餘 n/a）</span></td>
+          <td><span class="td-green">8 / 8</span></td>
+          <td>可差異化決策</td>
+        </tr>
+        <tr>
+          <td>今日 actionable</td>
+          <td>0（全 n/a）</td>
+          <td><span class="td-orange">RCAT、8299.TWO（composite &lt; 55 → trim）</span></td>
+          <td>真實訊號首次出現</td>
+        </tr>
+        <tr>
+          <td>後端測試數量</td>
+          <td>47</td>
+          <td><span class="td-green">64（+17）</span></td>
+          <td>含新整合測試 test_five_forces_route_live.py</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--text-muted);margin-bottom:12px">提交鏈</div>
+    <div class="kv-row"><span class="kv-key">策略分支</span><span class="kv-val">inv-policy-v1-ledger</span></div>
+    <div class="kv-row"><span class="kv-key">最終 commit</span><span class="kv-val" style="font-family:'JetBrains Mono',monospace">33b12f0 → origin/main</span></div>
+    <div class="kv-row"><span class="kv-key">後端狀態</span><span class="kv-val">已重啟 :8002，線上生效</span></div>
+    <div class="kv-row"><span class="kv-key">後端測試</span><span class="kv-val">64 後端測試全過</span></div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S8: 幣別 bug 修正 -->
+<div class="section" id="fx-bug">
+  <div class="section-eyebrow">SECTION 08 — CURRENCY BUG FIX</div>
+  <div class="section-title">績效幣別 Bug 修正：<span class="accent">Rain 抓到的 USD/TWD 混算</span></div>
+  <div class="section-desc">portfolio「合計」原來把 USD 和 TWD 直接相加視為同幣別，導致市值與績效完全失真。</div>
+
+  <div class="bug-box" style="margin-bottom:20px">
+    <div class="bug-title">Bug 描述：USD + TWD 直接數字相加</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text)">
+      RCAT <span style="font-family:'JetBrains Mono',monospace">$9.49 (USD)</span> 加上 8299.TWO <span style="font-family:'JetBrains Mono',monospace">NT$2,650 (TWD)</span> = <span style="font-family:'JetBrains Mono',monospace">2659.49</span>，視為同幣別計算 → 市值/績效完全失真，合計欄毫無意義。
+    </div>
+  </div>
+
+  <div class="fix-box" style="margin-bottom:24px">
+    <div class="fix-title">修復方式</div>
+    <div style="font-size:13px;line-height:1.7;color:#166534">
+      US / TW 各自保持原幣別不動。「合計」以即時 USDTWD 匯率（yfinance <span style="font-family:'JetBrains Mono',monospace;font-size:12px">USDTWD=X</span>，實測約 31.6–31.66）換算為台幣基準後加總。<br>
+      若匯率抓不到，不硬湊——標記 <span style="font-family:'JetBrains Mono',monospace;font-size:12px">FX unavailable</span>，避免誤導。
+    </div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增欄位與顯示格式</div>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table>
+      <thead>
+        <tr>
+          <th>欄位</th>
+          <th>說明</th>
+          <th>範例值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-mono">base_currency</td>
+          <td>換算基準幣別</td>
+          <td>TWD</td>
+        </tr>
+        <tr>
+          <td class="td-mono">fx_usd_twd</td>
+          <td>USDTWD 即時匯率（yfinance USDTWD=X）</td>
+          <td>31.66</td>
+        </tr>
+        <tr>
+          <td class="td-mono">fx_note</td>
+          <td>匯率來源與時間標記</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:12px">yfinance USDTWD=X 2026-05-19T08:00</td>
+        </tr>
+        <tr>
+          <td>合計顯示格式</td>
+          <td>幣別分組 + FX 標記（全鏈一致）</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:12px">US −5.90% (USD) | TW −6.98% (NT$) | 合計 ≈ −6.87% (TWD, fx 31.66)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">全鏈一致性（4 個顯示點同步修正）</div>
+  <div class="metric-grid" style="margin-bottom:20px">
+    <div class="metric-item"><div class="metric-num" style="font-size:16px">Ledger API</div><div class="metric-label">base_currency / fx_usd_twd</div></div>
+    <div class="metric-item"><div class="metric-num" style="font-size:16px">每日 JSON</div><div class="metric-label">daily-eval fx 欄位</div></div>
+    <div class="metric-item"><div class="metric-num" style="font-size:16px">LINE 訊息</div><div class="metric-label">幣別分組 + fx 標記</div></div>
+    <div class="metric-item"><div class="metric-num" style="font-size:16px">HTML 報告</div><div class="metric-label">TWD 基準合計</div></div>
+  </div>
+
+  <div style="padding:12px 20px;background:#dcfce7;border-radius:8px;font-size:13px;color:#166534">
+    <strong>測試：</strong>47 → 58 → 64 測試，全數通過。含 FX 邊界情境：匯率抓不到 → FX unavailable，不崩潰，不硬湊數字。
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S9: Screener 資料餵入 -->
+<div class="section" id="screener-feed">
+  <div class="section-eyebrow">SECTION 09 — SCREENER DATA FEED</div>
+  <div class="section-title">Screener 資料餵入流程：評估從<span class="accent">全 n/a 到 8/8 真分數</span></div>
+  <div class="section-desc">新建 screener_refresh.py：universe = 開倉 ledger 聯集 watchlist.json，逐檔計算 Five Forces 並寫入快取，接進 08:00 排程。</div>
+
+  <div class="card-grid-2" style="margin-bottom:24px">
+    <div class="concept-card green">
+      <div class="concept-label">Universe 定義</div>
+      <div class="concept-title">開倉部位 + watchlist 聯集</div>
+      <div class="concept-desc">
+        1. <strong>開倉 ledger</strong>：/api/ledger/positions?status=open 所有部位<br><br>
+        2. <strong>watchlist.json</strong>：~/.claude/memory/investment_memory/watchlist.json<br><br>
+        取聯集，避免遺漏任何追蹤標的。
+      </div>
+    </div>
+    <div class="concept-card blue">
+      <div class="concept-label">執行方式</div>
+      <div class="concept-title">逐檔打 Five Forces API → 寫快取</div>
+      <div class="concept-desc">
+        逐一呼叫 <span style="font-family:'JetBrains Mono',monospace;font-size:12px">/api/stocks/{ticker}/five-forces</span> 計算 composite 並寫入 FiveForcesCache。<br><br>
+        refresh 失敗為<strong>非致命</strong>——eval 仍繼續，graceful degrade。
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">排程整合</div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="kv-row"><span class="kv-key">觸發時間</span><span class="kv-val">08:00 Asia/Taipei，LaunchAgent 同批次</span></div>
+    <div class="kv-row"><span class="kv-key">執行順序</span><span class="kv-val">screener_refresh → investment_daily_eval → LINE 推播</span></div>
+    <div class="kv-row"><span class="kv-key">refresh 失敗</span><span class="kv-val">非致命，eval 繼續（graceful degrade）</span></div>
+    <div class="kv-row"><span class="kv-key">快取位置</span><span class="kv-val">FiveForcesCache（DB）</span></div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">效果對比</div>
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr>
+          <th>指標</th>
+          <th>引入前</th>
+          <th>引入後</th>
+          <th>影響</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>評估結果</td>
+          <td><span class="td-red">全 n/a，不出訊號</span></td>
+          <td><span class="td-green">8/8 真分數</span></td>
+          <td>BUY/WATCH/PASS 可差異化決策</td>
+        </tr>
+        <tr>
+          <td>actionable 數</td>
+          <td>0</td>
+          <td>2（RCAT、8299.TWO）</td>
+          <td>首次出現真實操作訊號</td>
+        </tr>
+        <tr>
+          <td>系統完備性</td>
+          <td>資料層缺口（架構完整但無快取）</td>
+          <td>端到端完整</td>
+          <td>08:00 排程可真正運行</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="padding:12px 20px;background:#dbeafe;border-radius:8px;font-size:13px;color:#1e40af">
+    <strong>排程狀態：</strong>screener_refresh.py 已接進 08:00 wrapper.sh。明日 08:00 TPE 為第一次真實端到端跑：refresh → eval → LINE 推播 Rain 一人。
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S10: 報告驅動決策重設計 -->
+<div class="section" id="report-driven">
+  <div class="section-eyebrow">SECTION 10 — REPORT-DRIVEN DECISION REDESIGN</div>
+  <div class="section-title">報告驅動決策重設計：<span class="accent">鐵則——無完整報告不得買進</span></div>
+  <div class="section-desc">決策模型本質已改變。研究報告（16 份 vault 報告）是唯一合法買進依據；每日量化迴圈降格為「管家」，不得自行發起買進。</div>
+
+  <!-- SCQA -->
+  <div class="scqa-grid" style="margin-bottom:32px">
+    <div class="scqa-item">
+      <div class="scqa-letter">S</div>
+      <div class="scqa-label">Situation</div>
+      <div class="scqa-text">v2 上線後 2 檔部位（RCAT、8299.TWO）源自 seed_ledger.py 種植；decision_log 明寫「不是 Selection Policy 決策」；各只 1 份來源、無完整 F/T/C</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">C</div>
+      <div class="scqa-label">Complication</div>
+      <div class="scqa-text">Rain 鐵則：任何標的沒有「IM 完整評估過的完整研究報告」不得買進。龐大研究團隊的報告產出才是決策依據；每日量化迴圈是管家，非決策者</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">Q</div>
+      <div class="scqa-label">Question</div>
+      <div class="scqa-text">如何讓「無報告不得買進」從自律文件升級為程式硬 gate，且現有 2 檔 seed 部位補上真實引用？</div>
+    </div>
+    <div class="scqa-item">
+      <div class="scqa-letter">A</div>
+      <div class="scqa-label">Answer</div>
+      <div class="scqa-text">三件事並行：report_enrich.py 結構化 16 份報告、investment_daily_eval.py 改寫為報告驅動、ledger API 硬 gate（無 report_url 的 buy → 422）</div>
+    </div>
+  </div>
+
+  <!-- 背景/動機 -->
+  <div class="boundary-box" style="margin-bottom:24px">
+    <div class="boundary-title">Rain 鐵則（已存入長期記憶 project_investment-buy-requires-full-report）</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--text)">
+      任何標的沒有「IM 完整評估過的完整研究報告」<strong>不得買進</strong>。龐大研究團隊的產出（報告）才是決策依據；每日量化迴圈降為「管家」，只負責持倉監控與觸發研究需求，<strong>不得自行發起買進</strong>。
+    </div>
+  </div>
+
+  <!-- 三件事：report_enrich / eval 重寫 / API gate -->
+  <div style="font-size:14px;font-weight:600;margin-bottom:16px">流程重設計：三件事</div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange);min-width:32px;padding-top:2px">1</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">report_enrich.py — 16 份 vault 研究報告一次性結構化</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Cost-routed LLM：NIM meta/llama-3.3-70b 主、Gemini fallback、<strong>絕不用 Claude/付費</strong>。把 conviction / tech_signal / tech_note / bull_case / bear_case / catalyst / instrument + audit(enriched_by、enriched_at、model、source_report、content_hash) 寫回 frontmatter。idempotent（content_hash）。</div>
+        <div class="table-wrap">
+          <table style="min-width:400px">
+            <thead>
+              <tr><th>指標</th><th>結果</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>報告 enriched</td><td><span class="td-green">16 / 16</span></td></tr>
+              <tr><td>failed</td><td><span class="td-green">0</span></td></tr>
+              <tr><td>產出 manifest</td><td class="td-mono">report-corpus.json</td></tr>
+              <tr><td>特殊標記</td><td>RCAT/ONDS/NVTS 從內文補 EV/情境；ETF 標記</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange);min-width:32px;padding-top:2px">2</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">investment_daily_eval.py 重寫 — 報告驅動評估</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:12px">Universe = 16 報告 ∪ 開倉部位（移除 watchlist.json 作為買進來源）。F(45%) 從 ev_upside/情境、T(30%) 從報告 tech_signal（五力 trend 佐證）、C(25%) 從 conviction + bull/bear 平衡 + 催化劑鄰近。decision_log 強制引用報告。無報告標的 → action=needs_report，永不發起買進。</div>
+        <div class="table-wrap">
+          <table style="min-width:500px">
+            <thead>
+              <tr><th>評分維度</th><th>權重</th><th>資料來源</th><th>閾值</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>F — 基本面</td><td class="td-mono">45%</td><td>ev_upside / 情境</td><td rowspan="3" style="vertical-align:middle">BUY ≥ 70 + 回測 gate<br>WATCH 55–69<br>PASS &lt; 55<br>needs_report：無報告</td></tr>
+              <tr><td>T — 技術面</td><td class="td-mono">30%</td><td>tech_signal（五力 trend 佐證）</td></tr>
+              <tr><td>C — 信心</td><td class="td-mono">25%</td><td>conviction + bull/bear + 催化劑鄰近</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange);min-width:32px;padding-top:2px">3</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Ledger API 硬 Gate — 無 report_url 的 buy → HTTP 422</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:12px">程式層面擋住「無報告不得買進」，非自律。decision=buy/add 的 decision_log 缺 report_url → 422。decided_by 欄位改為可 PATCH 修正。<strong>線上實證：無 report_url 的 buy → 422；81 後端測試通過；提交鏈 inv-policy-v1-ledger → origin/main d72ace7（已 push）。</strong></div>
+        <div class="gate-flow">
+          <div class="gate-node active">decision=buy/add</div>
+          <div class="gate-arrow">→</div>
+          <div class="gate-node fail">缺 report_url</div>
+          <div class="gate-arrow">→</div>
+          <div class="gate-node fail">HTTP 422（硬拒）</div>
+        </div>
+        <div class="gate-flow">
+          <div class="gate-node active">decision=buy/add</div>
+          <div class="gate-arrow">→</div>
+          <div class="gate-node pass">有合法 report_url</div>
+          <div class="gate-arrow">→</div>
+          <div class="gate-node pass">HTTP 201（允許）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排程整合 -->
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">v3 排程整合（08:00 wrapper）</div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="gate-flow" style="flex-wrap:wrap">
+      <div class="gate-node active">08:00 wrapper</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node pass">report_enrich<br><span style="font-size:11px;font-weight:400">僅變更</span></div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node pass">screener_refresh</div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node active">eval<br><span style="font-size:11px;font-weight:400">報告驅動</span></div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node pass">LINE<br><span style="font-size:11px;font-weight:400">--send Rain</span></div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node active">needs_report_trigger<br><span style="font-size:11px;font-weight:400">單次上限 3，7 天去重</span></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted)">LINE/HTML 每檔顯示 report_url + F/T/C 理由 + 「需要研究報告（不可買）」清單。needs_report_trigger 複用既有 staged-research/rainalpha_deep，--dry 安全預設。</div>
+  </div>
+
+  <!-- 2 檔 seed 重評 -->
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">2 檔 Seed 部位重評結果（已實證，independent urllib 驗）</div>
+  <div class="table-wrap" style="margin-bottom:24px">
+    <table style="min-width:620px">
+      <thead>
+        <tr>
+          <th>欄位</th>
+          <th>RCAT</th>
+          <th>8299.TWO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>decided_by</td>
+          <td><span class="pill pill-done">report-driven-eval</span></td>
+          <td><span class="pill pill-done">report-driven-eval</span></td>
+        </tr>
+        <tr>
+          <td>decision_log.report_url</td>
+          <td><a href="https://slideless.vercel.app/rcat-research-2026-05-19.html" style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all">rcat-research-2026-05-19.html</a></td>
+          <td><a href="https://slideless.vercel.app/8299tw-research-2026-05-17.html" style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all">8299tw-research-2026-05-17.html</a></td>
+        </tr>
+        <tr>
+          <td>composite (F/T/C)</td>
+          <td><strong>80.5</strong> <span style="color:var(--text-muted);font-size:12px">(90 / 75 / 70)</span></td>
+          <td><strong>72.0</strong> <span style="color:var(--text-muted);font-size:12px">(75 / 75 / 63)</span></td>
+        </tr>
+        <tr>
+          <td>seed_ledger stub</td>
+          <td><span class="pill pill-done">已移除</span></td>
+          <td><span class="pill pill-done">已移除</span></td>
+        </tr>
+        <tr>
+          <td>誤導 decided_by</td>
+          <td><span class="pill pill-corrected">已修正</span></td>
+          <td><span class="pill pill-corrected">已修正</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 全 16 報告 dry eval -->
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">全 16 報告 eval 實況（dry，policy-gated）</div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-size:13px;line-height:1.7;color:var(--text);margin-bottom:16px">
+      composite 由 ALLO 83 高點到 ONDS/NVTS 33 低點。多數因回測 gate 未過而為 WATCH/PASS（政策忠實：composite ≥ 70 仍需回測 gate 才 BUY）。<strong>needs_report = 0</strong>（16 份均有報告）。
+    </div>
+    <div class="table-wrap">
+      <table style="min-width:480px">
+        <thead>
+          <tr><th>結果類型</th><th>說明</th><th>備註</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pill pill-done">BUY</span></td><td>composite ≥ 70 且回測 gate 通過</td><td>需餵回測資料，目前多 fail（TW 策略資料）</td></tr>
+          <tr><td><span class="pill pill-info">WATCH</span></td><td>composite ≥ 70 但回測 gate 未過，或 55–69</td><td>高 composite 降 WATCH 屬資料面，非邏輯錯誤</td></tr>
+          <tr><td><span class="pill pill-planned">PASS</span></td><td>composite &lt; 55</td><td>ONDS、NVTS 等落此區間</td></tr>
+          <tr><td><span class="pill pill-warn">needs_report</span></td><td>無研究報告</td><td><strong>0 筆</strong>（16 份均有報告）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 誠實尾巴 / backlog -->
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">誠實尾巴 / Backlog</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="open-item">
+      <span class="open-num">a</span>
+      <div class="open-text">
+        <strong>eval[] 外層 F/T/C 欄位顯示 None（小項）</strong><br>
+        <span>decision_log 內有正確值，外層 dict 鍵呈現問題。不影響決策邏輯；列為待修小項。</span>
+      </div>
+    </div>
+    <div class="open-item">
+      <span class="open-num">b</span>
+      <div class="open-text">
+        <strong>美股冷門小型股 yfinance 偶稀疏</strong><br>
+        <span>fallback FMP 路由已就位，主流標的穩定。</span>
+      </div>
+    </div>
+    <div class="open-item" style="border-bottom:none">
+      <span class="open-num">c</span>
+      <div class="open-text">
+        <strong>回測 gate 目前多 fail（TW 策略資料）</strong><br>
+        <span>高 composite 仍降 WATCH——需餵回測資料才會出 BUY。屬資料面，非邏輯。</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:16px 24px;background:#dcfce7;border-radius:10px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:#166534;margin-bottom:8px">POLICY STATUS: REPORT-DRIVEN — v3</div>
+    <div style="font-size:13px;color:#166534;line-height:1.7">
+      決策模型已從「量化迴圈自主買進」升級為「報告驅動，程式硬 gate」。16/16 報告 enriched、81 後端測試通過、2 檔 seed 已補引用真實報告、ledger API 422 gate 線上生效。origin/main d72ace7 已 push。
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S11: 邊界聲明 -->
+<div class="section" id="boundary">
+  <div class="section-eyebrow">SECTION 11 — BOUNDARY DECLARATION</div>
+  <div class="section-title">邊界聲明：目前<span class="accent">完全未串接</span>任何真實券商 / 下單 API</div>
+  <div class="section-desc">所有決策與部位皆為 paper-tracked。實際下單仍需 Rain 手動 approve。</div>
+
+  <div class="boundary-box" style="margin-bottom:24px">
+    <div class="boundary-title">系統邊界（明確）</div>
+    <div class="grid-2col">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#9a3412">目前已實作</div>
+        <div style="font-size:13px;line-height:1.8;color:var(--text)">
+          投資經理可在 §5 上限內自主決定<br>
+          自動登錄 paper ledger 部位<br>
+          每日自主評估 + LINE 推播給 Rain<br>
+          Rain 角色 = 旁觀者（不需主動介入）<br>
+          全程 paper、未接券商 API、Rain 旁觀<br>
+          分支紀律守住（未污染共用 worktree）
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#166534">未來若接真實券商</div>
+        <div style="font-size:13px;line-height:1.8;color:var(--text)">
+          實際下單回到 Rain 手動 approve<br>
+          依 AGENTS.md：capabilities ≠ standing approval<br>
+          需額外安全審查與 Rain 明確授權<br>
+          本次交付不包含此路徑
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-grid-3">
+    <div class="status-card red">
+      <div class="s-label">真實券商 API</div>
+      <div class="s-value">未串接</div>
+      <div class="s-desc">永豐、凱基、富途等券商下單 API 均未整合</div>
+    </div>
+    <div class="status-card green">
+      <div class="s-label">Paper Ledger</div>
+      <div class="s-value">完整運作</div>
+      <div class="s-desc">所有買賣在 :8002/api/ledger 記錄，有完整 decision_log 稽核軌跡</div>
+    </div>
+    <div class="status-card blue">
+      <div class="s-label">Rain 角色</div>
+      <div class="s-value">旁觀者</div>
+      <div class="s-desc">LINE 每日推播供 Rain 查閱，不需主動操作任何按鈕</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S12: Git 落地 + 待辦 -->
+<div class="section" id="open-items">
+  <div class="section-eyebrow">SECTION 12 — GIT STATUS & OPEN ITEMS</div>
+  <div class="section-title">落地狀態確認 + <span class="accent">Backlog（非阻擋）</span></div>
+  <div class="section-desc">核心交付已生效；backlog 為資料稀疏 edge case 與首次真跑確認</div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:12px">Git 落地狀態（v2 最終）</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>元件</th>
+            <th>repo / 位置</th>
+            <th>狀態</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Selection Policy + v1/v2 全部 commits</td>
+            <td class="td-mono">RainAlpha origin/main</td>
+            <td><span class="pill pill-done">已 push 33b12f0</span></td>
+            <td>backend 已重啟，422 gate + §5 + yfinance + FX 修正線上生效</td>
+          </tr>
+          <tr>
+            <td>investment_daily_eval*.py、screener_refresh.py、wrapper、plist</td>
+            <td class="td-mono">/Users/rain 家目錄</td>
+            <td><span class="pill pill-done">磁碟即生效</span></td>
+            <td>LaunchAgent 已載入 gui/501，08:00 首跑明日</td>
+          </tr>
+          <tr>
+            <td>Vault 文件（Strategy Inventory 等）</td>
+            <td class="td-mono">ObsidianTeamVault</td>
+            <td><span class="pill pill-done">落地</span></td>
+            <td>Projects/Links/ 永久可查</td>
+          </tr>
+          <tr>
+            <td>invest_report.py 技術分析（worktree）</td>
+            <td class="td-mono">家目錄 worktree</td>
+            <td><span class="pill pill-warn">磁碟生效，未 commit</span></td>
+            <td>依先前明確指示「原地改不 commit」，留待分支 owner 決定 land</td>
+          </tr>
+          <tr>
+            <td>governance 分支 inv-policy-v1-governance</td>
+            <td class="td-mono">家目錄 repo</td>
+            <td><span class="pill pill-info">分支保存</span></td>
+            <td>無 remote，commit 留分支，檔案磁碟已生效</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px">Backlog（非阻擋）</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="open-item">
+      <span class="open-num">1</span>
+      <div class="open-text">
+        <strong>yfinance 冷門微型股資料稀疏（邊緣情境）</strong><br>
+        <span>yfinance 對冷門微型股偶有資料不完整；系統自動 fallback FMP 路由處理。主流美股（AAPL/RCAT/COHR）+ 台股（FinMind）資料穩定，足以支撐日常 Five Forces 運作。FMP 付費已評估為<strong>不需要</strong>。</span>
+      </div>
+    </div>
+    <div class="open-item">
+      <span class="open-num">2</span>
+      <div class="open-text">
+        <strong>第一次真實端到端 = 明日 08:00 排程</strong><br>
+        <span>screener_refresh → eval → LINE 推播（Rain 一人）。今日已完整驗證 8/8 分數與 FX 換算，明早首跑為正式上線驗收。</span>
+      </div>
+    </div>
+    <div class="open-item">
+      <span class="open-num">3</span>
+      <div class="open-text">
+        <strong>invest_report.py worktree 技術分析 commit 決策</strong><br>
+        <span>依先前指示原地改不 commit，留待 sprint1-core-fixes 分支 owner 決定是否 land。不影響現有排程執行。</span>
+      </div>
+    </div>
+    <div class="open-item" style="border-bottom:none">
+      <span class="open-num" style="color:#16a34a">OK</span>
+      <div class="open-text" style="background:#f0fdf4;border-radius:8px;padding:10px 14px">
+        <strong>先前回報已更正：/api/ledger/positions?status=closed 無後端 bug</strong><br>
+        <span>原 backlog 項目（pre-existing bug commit 937cce5）已更正。以 urllib 直打 API 確認回應乾淨（<span style="font-family:'JetBrains Mono',monospace;font-size:12px">{positions:0,note:...}</span>）。先前的 error 是本 shell 的 curl 包裝器假象，非後端 bug。<span class="pill pill-corrected" style="margin-left:4px">已更正</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:16px 24px;background:#dcfce7;border-radius:10px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:#166534;margin-bottom:8px">SYSTEM STATUS: LIVE — v2</div>
+    <div style="font-size:13px;color:#166534;line-height:1.7">
+      投資經理自主評估系統 v2 已完整上線。yfinance 免費路由（8/8 真分數）、USD/TWD FX 幣別修正、screener_refresh 排程整合三項升級全數交付。後端 64 測試通過，origin/main 33b12f0。明日 08:00 TPE 首次真實端到端跑。
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-brand">RAIN ALPHA — INVESTMENT MANAGER AUTONOMOUS EVAL SYSTEM v3</span>
+  <span class="footer-date">2026-05-19 v3 &nbsp;|&nbsp; Nova</span>
+</footer>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#6366f1',
+    primaryBorderColor: '#4f46e5',
+    primaryTextColor: '#f0f0f0',
+    lineColor: '#555',
+    secondaryColor: '#252525',
+    tertiaryColor: '#1a1a1a',
+    fontSize: '14px'
+  },
+  flowchart: {
+    htmlLabels: true,
+    curve: 'basis',
+    nodeSpacing: 50,
+    rankSpacing: 60,
+    padding: 15
+  }
+});
+
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  document.getElementById('nav-progress').style.width = pct + '%';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVTS Sell-Side Initiation Brief v4 — 2026-05-13</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{--bg-page:#f6f5f1;--bg-card:#fff;--border:#e5e3de;--text:#1a1a1a;--text-muted:#888;--bg-cover:#1a1a1a;--orange:#f97316;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;--purple:#a855f7;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg-page);color:var(--text);overflow-x:hidden}
+img,svg{max-width:100%}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,245,241,0.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:20px;height:52px;overflow-x:auto;white-space:nowrap}
+.top-nav .brand{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--orange);flex-shrink:0}
+.top-nav a{font-size:12px;color:var(--text-muted);text-decoration:none;flex-shrink:0;transition:color .2s}
+.top-nav a:hover{color:var(--orange)}
+.nav-progress{position:fixed;top:52px;left:0;height:2px;background:var(--orange);z-index:99;transition:width .2s;width:0}
+.cover{background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 50%,#1a1a1a 100%);padding:100px 40px 64px;text-align:center}
+.cover-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:20px}
+.cover h1{font-size:40px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:16px}
+.cover h1 .accent{color:var(--orange)}
+.cover-sub{font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:40px;max-width:640px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-bottom:32px}
+.cover-stat-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--orange)}
+.cover-stat-label{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.8}
+.cover-warning{display:inline-block;margin-top:20px;padding:8px 20px;border:1px solid rgba(249,115,22,0.3);border-radius:6px;font-size:12px;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace}
+.section{max-width:1000px;margin:0 auto;padding:64px 40px 48px}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+.section h2{font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3}
+.section h2 .accent{color:var(--orange)}
+.section-desc{font-size:14px;color:var(--text-muted);max-width:680px;margin-bottom:32px;line-height:1.7}
+.divider{height:1px;background:var(--border)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;min-width:0}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.card-value{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--orange)}
+.card-note{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.grid-4>*{min-width:0}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-3>*{min-width:0}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-2>*{min-width:0}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);margin-bottom:16px}
+.table-wrap::-webkit-scrollbar{height:5px}
+.table-wrap::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.table-wrap table{min-width:560px;width:100%;border-collapse:collapse;font-size:13px}
+.table-wrap th{background:#f0ede6;padding:10px 14px;text-align:left;font-weight:600;font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border)}
+.table-wrap td{padding:10px 14px;border-bottom:1px solid #f0ede6;vertical-align:top;line-height:1.5}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:#faf9f7}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace}
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.pill-orange{background:rgba(249,115,22,0.12);color:var(--orange)}
+.pill-green{background:rgba(34,197,94,0.12);color:var(--green)}
+.pill-red{background:rgba(239,68,68,0.12);color:var(--red)}
+.pill-blue{background:rgba(59,130,246,0.12);color:var(--blue)}
+.pill-gray{background:rgba(0,0,0,0.06);color:var(--text-muted)}
+.chart-wrap{width:100%;overflow:hidden}
+.chart-inner{position:relative;height:260px;width:100%}
+.callout{background:rgba(249,115,22,0.06);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.7}
+.callout strong{color:var(--orange)}
+.callout-warn{background:rgba(239,68,68,0.06);border-left:3px solid var(--red)}
+.callout-warn strong{color:var(--red)}
+.callout-blue{background:rgba(59,130,246,0.06);border-left:3px solid var(--blue)}
+.callout-blue strong{color:var(--blue)}
+.scenario-row{display:flex;gap:12px;align-items:stretch;margin:16px 0}
+.scenario-card{flex:1;border-radius:10px;padding:16px;min-width:0}
+.scenario-bear{background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2)}
+.scenario-base{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2)}
+.scenario-bull{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2)}
+.scenario-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.scenario-label-bear{color:var(--red)}.scenario-label-base{color:var(--blue)}.scenario-label-bull{color:var(--green)}
+.scenario-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+.scenario-val-bear{color:var(--red)}.scenario-val-base{color:var(--blue)}.scenario-val-bull{color:var(--green)}
+.scenario-desc{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+.tech-col{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;min-width:0}
+.tech-col-header{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid}
+.tech-check{font-size:13px;margin:6px 0;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.flow-wrap{display:flex;align-items:flex-start;gap:8px;overflow-x:auto;padding:8px 0;flex-wrap:nowrap}
+.flow-node{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:12px;text-align:center;flex-shrink:0;min-width:120px;line-height:1.5}
+.flow-arrow{font-size:20px;color:var(--orange);flex-shrink:0;margin:auto 4px;padding-top:16px}
+.flow-node-highlight{background:rgba(249,115,22,0.1);border-color:var(--orange);font-weight:600}
+.flow-node-warn{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3)}
+.risk-card{border-radius:10px;padding:20px;margin-bottom:12px;border-left:4px solid}
+.risk-fatal{border-color:var(--red);background:rgba(239,68,68,0.05)}
+.risk-high{border-color:var(--orange);background:rgba(249,115,22,0.05)}
+.risk-title{font-weight:700;font-size:14px;margin-bottom:8px}
+.risk-body{font-size:13px;color:var(--text-muted);line-height:1.7}
+.risk-body strong{color:var(--text)}
+.analyst-score{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--orange)}
+.persona-badge{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;flex:1;min-width:160px}
+.persona-badge-name{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:4px}
+.sm-section{padding:36px;border-radius:16px;margin-bottom:24px}
+.sm-navy{background:linear-gradient(135deg,#0e1f3d 0%,#071020 100%)}
+.sm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.sm-grid>*{min-width:0}
+.sm-card{border-radius:10px;padding:16px;position:relative;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1)}
+.sm-card-label{font:700 11px 'JetBrains Mono',monospace;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:8px;color:rgba(255,255,255,0.7)}
+.sm-chart-inner{position:relative;height:130px;width:100%}
+footer{background:#1a1a1a;color:rgba(255,255,255,0.35);text-align:center;padding:32px 20px;font-size:12px;line-height:1.8;font-family:'JetBrains Mono',monospace}
+footer strong{color:rgba(249,115,22,0.7)}
+@media(max-width:768px){
+  .grid-4,.grid-3,.sm-grid{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .cover{padding:72px 20px 48px}.cover h1{font-size:26px}
+  .cover-stats{gap:20px}
+  .section{padding:40px 20px}
+  .top-nav{padding:0 16px;gap:16px}
+  .scenario-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="brand">NVTS v4</div>
+  <a href="#s01">Snapshot</a><a href="#s02">產品線</a><a href="#s03">技術護城河</a><a href="#s04">產業鏈</a><a href="#s05">訂單→營收</a><a href="#s06">財務展望</a><a href="#s07">競爭對手</a><a href="#s08">分析矩陣</a><a href="#s09">大師看法</a><a href="#s10">內部人</a><a href="#s11">三大風險</a><a href="#s12">情境PT</a><a href="#s13">結論</a><a href="#s14">透明度</a>
+</nav>
+<div class="nav-progress" id="navProgress"></div>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">Sell-Side Initiation Brief — Phase B+ Report-Only — 2026-05-13</div>
+  <h1>NVTS：從快充小角色<br>押注 <span class="accent">AI 資料中心 800V</span> 動力核心</h1>
+  <div class="cover-sub">市場 price-in 的不是今天的財報（那只值 $4-8），而是 2027/2028 那個「轉骨」。<br>該回答的問題：那個轉骨能不能真的成？</div>
+  <div class="cover-stats">
+    <div><div class="cover-stat-num">$20.54</div><div class="cover-stat-label">現價</div></div>
+    <div><div class="cover-stat-num">+1,074%</div><div class="cover-stat-label">12個月漲幅</div></div>
+    <div><div class="cover-stat-num">$450M</div><div class="cover-stat-label">設計案管線</div></div>
+    <div><div class="cover-stat-num">3.3yr</div><div class="cover-stat-label">現金Runway</div></div>
+    <div><div class="cover-stat-num">$4.77B</div><div class="cover-stat-label">市值</div></div>
+  </div>
+  <div class="cover-meta">NVIDIA Rubin Ultra 800V HVDC 合作 ｜ GaN + SiC 純玩家 ｜ 232M 股 ｜ 現金 $221M ｜ 短倉 20.45%</div>
+  <div class="cover-warning">⚠ 非投資建議 — Phase 1 Report-Only — 無交易訊號</div>
+</div>
+<div class="divider"></div>
+
+<!-- S01 -->
+<div class="section" id="s01">
+  <div class="section-eyebrow">S01 — Executive Snapshot</div>
+  <h2>動能 vs 基本面對撞：<span class="accent">市場 Fully Price-In 了 Bull Case</span></h2>
+  <div class="section-desc">今天 $20 不是用爛財報算出來的，是拿 FY2028 最樂觀劇本折現回來的。現在要買的是「確定性」，不是「潛力」。</div>
+  <div class="grid-4" style="margin-bottom:24px">
+    <div class="card"><div class="card-label">現價</div><div class="card-value">$20.54</div><div class="card-note">ATH $22.65 ｜ 5d +43%/-9%</div></div>
+    <div class="card"><div class="card-label">市值</div><div class="card-value">$4.77B</div><div class="card-note">232M 股流通</div></div>
+    <div class="card"><div class="card-label">現金 / 負債</div><div class="card-value">$221M</div><div class="card-note">負債 $6.3M ｜ Runway 3.3yr</div></div>
+    <div class="card"><div class="card-label">設計案管線</div><div class="card-value">$450M</div><div class="card-note">Q1 2026 法說管理層揭露</div></div>
+  </div>
+  <div class="callout">
+    <strong>核心論點：</strong>今天 $20.54 = 市場已 fully price-in FY2028 Bull Case（$400M+ 營收 × 12x EV/Sales = $4.8B EV ÷ 232M 股 ≈ $20.7）。期望值加權後約 $14.7，距現價 -28%。<strong>任何低於 Bull Case 的劇本都會帶來修正。</strong>
+  </div>
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="card"><div class="card-label">RainAlpha Investment Manager</div><div class="analyst-score">0.72</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">偏多 ｜「轉骨故事真實，時程是關鍵」</div></div>
+    <div class="card"><div class="card-label">Chief Synthesis Layer</div><div class="analyst-score" style="color:var(--blue)">0.61</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">中性 ｜ 9 分析師多空分歧，不明顯多空</div></div>
+    <div class="card"><div class="card-label">5 大師 Personas</div><div class="analyst-score" style="color:var(--text-muted)">全中性</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">建議：觀察 → Q2 2026 業績（8月）</div></div>
+  </div>
+  <div class="callout callout-blue">
+    <strong>建議姿勢（Report-Only）：</strong>觀察。Q2 2026 業績（2026年8月）是第一個確認點。看 design-win pipeline 從 $450M 往哪走、高功率占比是否突破 50%、GM 是否爬出負區、GF qualification 進度。在那之前，$20 是完全 price-in Bull Case 的股價，Margin of Safety 幾乎不存在。
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S02 -->
+<div class="section" id="s02">
+  <div class="section-eyebrow">S02 — 產品線 13 條</div>
+  <h2>Navitas 2.0 Pivot 的物理意義：<span class="accent">快充萎縮，SiC+高壓GaN崛起</span></h2>
+  <div class="section-desc">13 條產品線不是全部都重要。市場在買的是能源結構轉換點中的那 4-5 條。</div>
+  <div class="callout" style="margin-bottom:24px"><strong>一句話總結：</strong>GaN Power ICs（快充）是現在的錢、SiC TAP + 高壓GaN（AI/EV/Grid）是未來的賭注。今天每季 ~$8-9M 主要來自萎縮市場，$450M 管線要 2027 才開始轉訂單。</div>
+
+  <div class="section-eyebrow" style="margin-bottom:8px">GaN Power ICs 系列（佔比估 ~60%）</div>
+  <div class="table-wrap"><table>
+    <tr><th>產品</th><th>用途</th><th>技術亮點</th><th>趨勢</th></tr>
+    <tr><td><strong>GaNFast™</strong></td><td>手機快充、筆電充電器</td><td>整合 power+drive+control+sensing+protection 單晶片，業界整合度第一</td><td><span class="pill pill-red">萎縮中</span></td></tr>
+    <tr><td><strong>GaNSense™</strong></td><td>工業/伺服器電源（含電流感測）</td><td>比 GaNFast 多整合感測功能，BOM 精簡化</td><td><span class="pill pill-orange">平穩</span></td></tr>
+    <tr><td><strong>GaNSense Half-Bridge</strong></td><td>半橋拓樸 IC，馬達/數據中心</td><td>半橋集成，適合 DC 資料中心 VRM 架構</td><td><span class="pill pill-green">成長</span></td></tr>
+    <tr><td><strong>GaNSafe™ 650V</strong></td><td>高壓安全 GaN，800V HVDC 直打</td><td>業界罕見 650V GaN，直接對應 NVIDIA 800V 架構</td><td><span class="pill pill-green">強成長</span></td></tr>
+    <tr><td><strong>GaNSlim™</strong></td><td>超薄封裝，手機/穿戴</td><td>體積最小，消費電子整合優勢</td><td><span class="pill pill-red">萎縮</span></td></tr>
+    <tr><td><strong>Bi-Directional GaN</strong></td><td>雙向導通，儲能/EV/V2G/DC備援</td><td>雙向技術，對手仍以單向為主，技術前瞻佈局</td><td><span class="pill pill-blue">試水</span></td></tr>
+  </table></div>
+
+  <div class="section-eyebrow" style="margin:20px 0 8px">SiC 系列（佔比估 ~25%，2022 收購 GeneSiC 帶入）</div>
+  <div class="table-wrap"><table>
+    <tr><th>產品</th><th>用途</th><th>技術亮點</th><th>趨勢</th></tr>
+    <tr><td><strong>GeneSiC™ MOSFETs</strong></td><td>高壓 SiC，EV/電網/資料中心</td><td>TAP 架構獨家（詳見 S03），多代累積 IP</td><td><span class="pill pill-green">強成長</span></td></tr>
+    <tr><td><strong>5th Gen TAP（2026/2 發表）</strong></td><td>旗艦 SiC MOSFET，AI DC/電網</td><td>最新一代 Trench-Assisted Planar，AI data center 定向</td><td><span class="pill pill-green">強成長</span></td></tr>
+    <tr><td><strong>SiCPAK™ Modules</strong></td><td>多晶片 SiC 模組，EV/工業</td><td>整合方案，降低客戶系統整合難度</td><td><span class="pill pill-green">成長</span></td></tr>
+    <tr><td><strong>SiC MPS Diodes</strong></td><td>SiC 蕭基二極體，主流功率電路</td><td>GeneSiC 原有成熟產品線</td><td><span class="pill pill-orange">平穩</span></td></tr>
+  </table></div>
+
+  <div class="section-eyebrow" style="margin:20px 0 8px">驅動 & 模組（佔比估 ~15%）</div>
+  <div class="table-wrap"><table>
+    <tr><th>產品</th><th>用途</th><th>說明</th></tr>
+    <tr><td><strong>IsoFast™ Drivers</strong></td><td>隔離閘極驅動 IC</td><td>配合高壓 SiC/GaN 的隔離驅動需求</td></tr>
+    <tr><td><strong>Motor Drive ICs</strong></td><td>EV / 工業馬達</td><td>多合一馬達控制 IC</td></tr>
+    <tr><td><strong>GaN+SiC 系統模組</strong></td><td>定制化整合方案</td><td>為特定大客戶整合多晶片解決方案</td></tr>
+  </table></div>
+
+  <div class="callout callout-warn"><strong>Pivot 警示：</strong>現在每季 $8-9M 的主要營收仍來自 GaNFast 快充（萎縮市場）。$450M 管線中的 AI/EV/Grid 訂單何時能超越快充基礎業務是關鍵。若 Q2 2026 法說高功率占比仍 &lt;40%，bull case 時間表需後延。</div>
+</div>
+<div class="divider"></div>
+
+<!-- S03 -->
+<div class="section" id="s03">
+  <div class="section-eyebrow">S03 — 獨家技術 / 護城河</div>
+  <h2>整合度 + TAP 製程：<span class="accent">技術窗口 2026-2027 最安全，2028後競爭加劇</span></h2>
+  <div class="section-desc">AllGaN 單晶片整合 + Trench-Assisted Planar SiC 是 NVTS 最難被短期複製的核心。</div>
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">核心優勢 1 — AllGaN 單晶片整合</div>
+      <div style="font-size:15px;font-weight:700;margin:8px 0;color:var(--orange)">業界整合度第一</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text-muted)">將 GaN power transistor + drive + control + sensing + protection <strong style="color:var(--text)">全部整合到單一晶片</strong>。競爭對手（Infineon、ST、ON）仍是分立元件 + 外掛 driver IC。<br><br>優勢：更高功率密度 ｜ 更低切換延遲 ｜ 更精簡 BOM ｜ 更小體積 ｜ 更低系統成本</div>
+    </div>
+    <div class="card">
+      <div class="card-label">核心優勢 2 — TAP SiC（專利）</div>
+      <div style="font-size:15px;font-weight:700;margin:8px 0;color:var(--orange)">Trench-Assisted Planar</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text-muted)">2022 收購 GeneSiC 帶入的獨家架構。<br><br><strong style="color:var(--text)">Planar SiC</strong>：易製造、cell 密度低、效率差<br><strong style="color:var(--text)">Trench SiC</strong>：高性能、難做、yield 低<br><strong style="color:var(--orange)">TAP = 雙贏：Planar 的可製造性 + Trench 的 Cell 密度</strong><br><br>5th Gen 2026/2 發表，開關損耗低 30-40%</div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-bottom:12px">TAP SiC vs 傳統架構三欄對比</div>
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="tech-col">
+      <div class="tech-col-header" style="border-color:var(--text-muted);color:var(--text-muted)">Planar SiC（傳統）</div>
+      <div class="tech-check"><span>✅</span><span>製造容易，yield 高，成本低</span></div>
+      <div class="tech-check"><span>❌</span><span>Cell 密度低</span></div>
+      <div class="tech-check"><span>❌</span><span>開關損耗高</span></div>
+      <div class="tech-check"><span>❌</span><span>高頻效率差</span></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">代表：Wolfspeed 早期世代</div>
+    </div>
+    <div class="tech-col" style="border-color:var(--orange)">
+      <div class="tech-col-header" style="border-color:var(--orange);color:var(--orange)">TAP SiC（NVTS 獨家）</div>
+      <div class="tech-check"><span>✅</span><span>Planar 製造流程 → 高 yield</span></div>
+      <div class="tech-check"><span>✅</span><span>Trench 結構輔助 → 高 cell 密度</span></div>
+      <div class="tech-check"><span>✅</span><span>開關損耗低 30-40%</span></div>
+      <div class="tech-check"><span>✅</span><span>AI DC 800V HVDC 最適規格</span></div>
+      <div class="tech-check"><span>⚠️</span><span>護城河窄（追趕中）</span></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--orange)">GeneSiC 專利 ｜ 5th Gen 2026/2</div>
+    </div>
+    <div class="tech-col">
+      <div class="tech-col-header" style="border-color:var(--blue);color:var(--blue)">Trench SiC（高性能）</div>
+      <div class="tech-check"><span>✅</span><span>最高 cell 密度</span></div>
+      <div class="tech-check"><span>✅</span><span>最低開關損耗</span></div>
+      <div class="tech-check"><span>❌</span><span>製造難度高</span></div>
+      <div class="tech-check"><span>❌</span><span>Yield 低 → 成本高</span></div>
+      <div class="tech-check"><span>❌</span><span>良率問題限制量產</span></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">代表：Infineon CoolSiC</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-label">優勢 3 — GaNSafe 650V 高壓 GaN</div><div style="font-size:13px;line-height:1.7;color:var(--text-muted);margin-top:8px">業界罕見的 650V GaN 規格，直接對應 800V HVDC 系統。傳統 GaN 多為 100-200V，NVTS 650V 定位使其在 AI 資料中心電源架構上幾乎無直接對手。</div></div>
+    <div class="card"><div class="card-label">優勢 4 — Bi-Directional GaN（雙向）</div><div style="font-size:13px;line-height:1.7;color:var(--text-muted);margin-top:8px">雙向導通技術，適合儲能系統（電池充放電）、V2G（Vehicle to Grid）、資料中心備援 UPS。競爭對手目前仍以單向 GaN 為主，NVTS 有 12-18 個月技術領先窗口。</div></div>
+  </div>
+
+  <div class="callout callout-warn" style="margin-top:16px"><strong>護城河評估：</strong>「整合度 + TAP 製程」是 NVTS 最難被短期複製的核心。但 Infineon/ST/ON 都在追趕整合 GaN，TI 已宣布 300mm GaN 晶圓投產計畫。<strong>護城河真實但窄 — 2026-2027 是最安全視窗，2028 後競爭加劇。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S04 -->
+<div class="section" id="s04">
+  <div class="section-eyebrow">S04 — 產業上下游</div>
+  <h2>Power Semi 鏈：<span class="accent">TSMC 2027 退出是整條鏈的定時炸彈</span></h2>
+  <div class="section-desc">NVTS 夾在晶圓代工退出危機與下游 NVIDIA 時程延後之間，上下游風險同時壓頂。</div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px">
+    <div class="section-eyebrow" style="margin-bottom:16px">產業鏈流向示意</div>
+    <div class="flow-wrap">
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;text-align:center">上游晶圓代工</div>
+        <div class="flow-node flow-node-warn"><strong>TSMC</strong><br><span style="font-size:10px;color:var(--red)">2027/7 退出 GaN ⚠️</span></div>
+        <div class="flow-node" style="font-size:11px"><strong>GlobalFoundries</strong><br><span style="font-size:10px;color:var(--text-muted)">2026 Q4 備援 qualification</span></div>
+        <div class="flow-node" style="font-size:11px"><strong>Powerchip 力積電</strong><br><span style="font-size:10px;color:var(--text-muted)">第三備援（時間更晚）</span></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="flex-shrink:0">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;text-align:center">NVTS 技術層</div>
+        <div class="flow-node flow-node-highlight" style="padding:24px 28px">
+          <strong style="color:var(--orange);font-size:14px">NAVITAS</strong><br>
+          <span style="font-size:12px;line-height:1.8">AllGaN 整合 IC<br>TAP SiC MOSFET<br>GaNSafe 650V<br>Bi-Dir GaN</span>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;text-align:center">下游應用</div>
+        <div class="flow-node" style="border-color:rgba(249,115,22,0.4);background:rgba(249,115,22,0.04)"><span style="color:var(--orange)">●</span> <strong>AI Data Center</strong><br><span style="font-size:10px">NVIDIA Rubin Ultra 800V HVDC<br>2027-2028 爆發</span></div>
+        <div class="flow-node"><span style="color:var(--blue)">●</span> <strong>EV</strong><br><span style="font-size:10px">OBC + DC Fast Charger<br>量大但毛利低</span></div>
+        <div class="flow-node"><span style="color:var(--green)">●</span> <strong>Grid / Energy</strong><br><span style="font-size:10px">Solar inverter / 儲能 / UPS</span></div>
+        <div class="flow-node" style="opacity:0.6"><span style="color:var(--text-muted)">●</span> <strong>Mobile（衰退）</strong><br><span style="font-size:10px">手機/筆電快充</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-label">上游風險彙整</div>
+      <div style="margin-top:12px">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-weight:600;font-size:13px;color:var(--red)">TSMC — 致命風險</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5">NVTS GaN 唯一晶圓代工，2027年7月退出。客戶 requalification 需 6-9 個月，GF 必須 2026 H2 完成 qualification。</div>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-weight:600;font-size:13px;color:var(--orange)">GlobalFoundries — 備援（時間極窄）</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5">2026 年底開始 GaN qualification，GF 的 GaN 成熟度低於 TSMC，初期 yield 可能只有 60-70%。</div>
+        </div>
+        <div style="padding:10px 0">
+          <div style="font-weight:600;font-size:13px">Powerchip 力積電 — 長期分散</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">時間表更晚，緊急備援可能性低，長期風險分散選項。</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">下游市場規模 2028 估</div>
+      <div style="margin-top:12px">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline">
+          <div><div style="font-weight:600;font-size:13px">Wide-bandgap Power TAM</div><div style="font-size:12px;color:var(--text-muted)">GaN $4B + SiC $6B</div></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange)">~$10B</span>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline">
+          <div><div style="font-weight:600;font-size:13px">AI DC 800V HVDC 子市場</div><div style="font-size:12px;color:var(--text-muted)">NVIDIA Rubin Ultra 主導</div></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange)">$1-3B</span>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline">
+          <div><div style="font-weight:600;font-size:13px">全球 EV Power Semi</div><div style="font-size:12px;color:var(--text-muted)">NVTS 為小角色，毛利壓力大</div></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue)">~$15B</span>
+        </div>
+        <div style="padding:10px 0;display:flex;justify-content:space-between;align-items:baseline">
+          <div><div style="font-weight:600;font-size:13px">NVTS 可參賽 TAM</div><div style="font-size:12px;color:var(--text-muted)">GaN整合 + TAP SiC + 高壓</div></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green)">~$4-5B</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- S05 -->
+<div class="section" id="s05">
+  <div class="section-eyebrow">S05 — 設計案管線 → 未來營收</div>
+  <h2>$450M 管線是 Price-In 標的：<span class="accent">Bull Case 要 NVTS 拿 25-30% 訂單份額才撐得起 $20</span></h2>
+  <div class="section-desc">最重要的一節。設計案如何換算成年營收，又如何反推今天股價的合理性。所有模型均為假設，已明示。</div>
+
+  <div class="callout" style="margin-bottom:20px"><strong>管理層口徑（Q1 2026 法說）：</strong>design-win pipeline = $450M（累積）。但明確說明：design wins ≠ orders ≠ backlog ≠ revenue forecast。這是「產品生命週期內可能實現的營收總額」估計，<strong>實際兌現率取決於量產時程和客戶需求節奏。</strong></div>
+
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">換算模型（假設模型，明示）</div>
+      <div style="margin-top:12px;font-size:13px;line-height:1.8;color:var(--text-muted)">
+        <div style="color:var(--text);font-weight:600;margin-bottom:8px">功率半導體典型 Ramp Curve：</div>
+        <div>⟶ Design win 後 12-24 個月開始小量出貨</div>
+        <div>⟶ 第 3-4 年達到 peak revenue</div>
+        <div>⟶ Peak ≈ pipeline 的 25-35%</div>
+        <div style="margin-top:12px;padding:12px;background:rgba(249,115,22,0.06);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px">
+          $450M × 30% ÷ 3yr ≈ <strong style="color:var(--orange)">$45M/yr 增量</strong><br>
+          at peak（2028-2029）
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">EV/Sales 回推今天股價（FY2028 假設）</div>
+      <div style="margin-top:12px;font-size:12px;line-height:1.9">
+        <div style="padding:7px;margin-bottom:5px;background:rgba(239,68,68,0.07);border-radius:6px;font-family:'JetBrains Mono',monospace">Bear $100M × 8x = $0.8B ÷ 232M = <strong style="color:var(--red)">$3.4/股 (-83%)</strong></div>
+        <div style="padding:7px;margin-bottom:5px;background:rgba(59,130,246,0.07);border-radius:6px;font-family:'JetBrains Mono',monospace">Base $230M × 10x = $2.3B ÷ 232M = <strong style="color:var(--blue)">$9.9/股 (-52%)</strong></div>
+        <div style="padding:7px;margin-bottom:5px;background:rgba(34,197,94,0.07);border-radius:6px;font-family:'JetBrains Mono',monospace">Bull $400M × 12x = $4.8B ÷ 232M = <strong style="color:var(--green)">$20.7/股 (≈今天)</strong></div>
+        <div style="padding:7px;background:rgba(168,85,247,0.07);border-radius:6px;font-family:'JetBrains Mono',monospace">超牛 $500M × 15x = $7.5B ÷ 232M = <strong style="color:var(--purple)">$32.3/股 (+57%)</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-bottom:12px">三情境營收模型 2026-2028（$M）</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="chart-wrap"><div class="chart-inner" style="height:300px"><canvas id="revenueChart"></canvas></div></div>
+  </div>
+
+  <div class="table-wrap"><table>
+    <tr><th>年度</th><th class="num">Bear ($M)</th><th class="num">Base ($M)</th><th class="num">Bull ($M)</th><th>主要假設</th></tr>
+    <tr><td><strong>FY2026</strong></td><td class="num" style="color:var(--red)">$42-50</td><td class="num" style="color:var(--blue)">$50-65</td><td class="num" style="color:var(--green)">$65-80</td><td>Q1 $8.6M + Q2 $10M(guide) + H2 ramp</td></tr>
+    <tr><td><strong>FY2027</strong> <span class="pill pill-orange">關鍵年</span></td><td class="num" style="color:var(--red)">$60-80</td><td class="num" style="color:var(--blue)">$90-130</td><td class="num" style="color:var(--green)">$150-220</td><td>NVIDIA Vera Rubin 出貨 + design wins 開始轉訂單</td></tr>
+    <tr><td><strong>FY2028</strong> <span class="pill pill-orange">轉骨年</span></td><td class="num" style="color:var(--red)">$80-120</td><td class="num" style="color:var(--blue)">$180-280</td><td class="num" style="color:var(--green)">$300-500</td><td>Rubin Ultra ramp + 800V HVDC + EV 加碼</td></tr>
+  </table></div>
+
+  <div class="callout callout-warn" style="margin-top:16px"><strong>關鍵結論：</strong>今天股價 $20.54 = 市場已 fully price-in FY2028 Bull Case。期望值計算（S12）約 $14.7，距現價 -28%。不是說股票一定跌，而是 <strong>Margin of Safety 幾乎不存在。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S06 -->
+<div class="section" id="s06">
+  <div class="section-eyebrow">S06 — 未來財務狀況</div>
+  <h2>現金跑 3.3 年，<span class="accent">GAAP 轉正門檻：年營收需達 $222M</span></h2>
+  <div class="section-desc">費用結構、break-even 點、稀釋歷史。三個維度看 NVTS 財務韌性。</div>
+
+  <div class="sm-section sm-navy" style="margin-bottom:24px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:20px">NVTS 財務追蹤 — 季度數據（1Q25-1Q26）</div>
+    <div class="sm-grid">
+      <div class="sm-card">
+        <div class="sm-card-label">季度營收 ($M)</div>
+        <div class="sm-chart-inner"><canvas id="smRevChart"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">毛利率趨勢 GAAP (%)</div>
+        <div class="sm-chart-inner"><canvas id="smGmChart"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">OpEx 季度分解 ($M)</div>
+        <div class="sm-chart-inner"><canvas id="smOpexChart"></canvas></div>
+      </div>
+      <div class="sm-card">
+        <div class="sm-card-label">現金餘額 ($M)</div>
+        <div class="sm-chart-inner"><canvas id="smCashChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="card"><div class="card-label">Q1 2026 OpEx 實績</div><div class="card-value">$30.6M</div><div class="card-note">R&D $14.6M + SG&A $11.3M + Restructuring $8.4M<br>去掉重組後恆常 ~$26M/季 = ~$104M/年</div></div>
+    <div class="card"><div class="card-label">GAAP Break-even 門檻</div><div class="card-value">$222M</div><div class="card-note">假設 GM 進步到 45%：$100M ÷ 0.45<br>目前 GAAP GM = -9%，non-GAAP = 38%</div></div>
+    <div class="card"><div class="card-label">稀釋歷史（15個月）</div><div class="card-value">+24%</div><div class="card-note">188.1M（Dec 2024）→ 233.7M（May 2026）<br>ATM + PIPE 募 $200M + Earnout $30.5M</div></div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-bottom:12px">三情境：GAAP 轉正時間線</div>
+  <div class="scenario-row">
+    <div class="scenario-card scenario-bear">
+      <div class="scenario-label scenario-label-bear">Bear Case</div>
+      <div class="scenario-val scenario-val-bear">不可能轉正</div>
+      <div class="scenario-desc">FY28 $100M 遠低於 $222M break-even。2028 末現金耗盡，被迫募資/稀釋，最差時機。</div>
+    </div>
+    <div class="scenario-card scenario-base">
+      <div class="scenario-label scenario-label-base">Base Case</div>
+      <div class="scenario-val scenario-val-base">FY2029</div>
+      <div class="scenario-desc">FY28 $230M 接近 break-even。FY29 可能達成。不需稀釋但也不產生自由現金流。</div>
+    </div>
+    <div class="scenario-card scenario-bull">
+      <div class="scenario-label scenario-label-bull">Bull Case</div>
+      <div class="scenario-val scenario-val-bull">FY2027 中</div>
+      <div class="scenario-desc">FY28 $400M+ 大幅超越 break-even。FY27 中期可能轉正，不需稀釋且開始正 FCF。</div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue" style="margin-top:16px"><strong>現金 Runway 優勢：</strong>$221M 現金按 Bear case 燒錢速度 $66M/年跑 3.3 年（撐到 2028 末）。即使 NVIDIA 延半年，NVTS 也不需在最差時機發股票。這讓故事有時間醞釀 — 是 Bull Case 不會因時間壓力崩潰的物理基礎。</div>
+</div>
+<div class="divider"></div>
+
+<!-- S07 -->
+<div class="section" id="s07">
+  <div class="section-eyebrow">S07 — 競爭對手深入比較</div>
+  <h2>技術領先 + 規模劣勢：<span class="accent">GaN 整合最強，SiC 領域仍在追趕</span></h2>
+  <div class="section-desc">不是表面 GM 對比，是在哪個 sub-market 誰贏誰輸的真實評估。</div>
+
+  <div class="table-wrap" style="margin-bottom:24px"><table style="min-width:820px">
+    <tr><th>公司</th><th>vs NVTS 體量</th><th>GaN 競爭力</th><th>SiC 競爭力</th><th>AI DC 800V</th><th>NVTS 威脅</th></tr>
+    <tr><td><strong>Infineon (IFNNY)</strong></td><td class="num">×30</td><td>雙線 GaN+SiC，但分立架構（無整合）</td><td>全球 SiC Top 3</td><td>NVIDIA 10 夥伴之一</td><td><span class="pill pill-red">HIGH</span></td></tr>
+    <tr><td><strong>STMicro (STM)</strong></td><td class="num">×40</td><td>GaN 後進，整合度低</td><td><strong>SiC 全球第一</strong>，NIO 主供</td><td>NVIDIA 10 夥伴之一</td><td><span class="pill pill-red">HIGH</span></td></tr>
+    <tr><td><strong>OnSemi (ON)</strong></td><td class="num">×175</td><td>GaN 較弱，非重點</td><td>SiC IDM 大廠，EV 重押</td><td>NVIDIA 10 夥伴之一</td><td><span class="pill pill-orange">MEDIUM</span></td></tr>
+    <tr><td><strong>Wolfspeed (WOLF)</strong></td><td class="num">×3.5</td><td>無 GaN 布局</td><td>SiC 純玩家，GM -46%，Ch11 風險</td><td>NVIDIA 夥伴（不確定）</td><td><span class="pill pill-gray">LOW（垂死）</span></td></tr>
+    <tr><td><strong>TI (TXN)</strong></td><td class="num">×400</td><td>GaN 加碼，300mm 晶圓</td><td>有但體量小</td><td>NVIDIA 10 夥伴之一</td><td><span class="pill pill-orange">MEDIUM-rising</span></td></tr>
+    <tr><td><strong>Power Integrations (POWI)</strong></td><td class="num">×2</td><td>自有 GaN 偏 AC-DC</td><td>無 SiC</td><td>不在 800V HVDC</td><td><span class="pill pill-gray">LOW（別市場）</span></td></tr>
+    <tr><td><strong>Innoscience（中國）</strong></td><td>不明</td><td>低價 GaN 殺手，量大</td><td>無</td><td>中國市場</td><td><span class="pill pill-orange">MEDIUM（地緣）</span></td></tr>
+    <tr><td><strong>Renesas/ROHM/ADI/MPS</strong></td><td>各異</td><td>利基 GaN</td><td>利基 SiC</td><td>邊緣角色</td><td><span class="pill pill-gray">LOW</span></td></tr>
+  </table></div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card" style="border-color:var(--green)">
+      <div class="card-label" style="color:var(--green)">NVTS 勝出的地方</div>
+      <div style="margin-top:8px;font-size:13px;line-height:1.9">
+        <div>✅ <strong>GaN 整合度</strong>：業界第一，對手皆為分立架構</div>
+        <div>✅ <strong>TAP SiC 5th Gen</strong>：2026 最新世代，架構獨家</div>
+        <div>✅ <strong>Pure-play WBG</strong>：無矽包袱，全押 GaN+SiC</div>
+        <div>✅ <strong>650V GaN</strong>：高壓 GaN 幾乎無對手</div>
+        <div>✅ <strong>Bi-directional GaN</strong>：技術前沿，競爭對手無此產品</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--red)">
+      <div class="card-label" style="color:var(--red)">NVTS 輸的地方</div>
+      <div style="margin-top:8px;font-size:13px;line-height:1.9">
+        <div>❌ <strong>規模體量</strong>：vs Infineon ×30，議價力極低</div>
+        <div>❌ <strong>代工依賴</strong>：TSMC 退出是 Infineon/ST 沒有的問題</div>
+        <div>❌ <strong>SiC 市占</strong>：ST 第一、Infineon/ON 前三，NVTS 追趕中</div>
+        <div>❌ <strong>客戶集中</strong>：59% 營收來自單一經銷商</div>
+        <div>❌ <strong>品牌認知</strong>：大型 Tier-1 OEM 更傾向大廠背書</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout"><strong>競爭定位結論：</strong>NVTS 在 GaN 整合 IC 是最強玩家，但 SiC 仍在追趕 ST/Infineon/ON。AI DC 800V 是 NVIDIA 同時和 10 家夥伴合作的分散策略，NVTS 拿多少份額完全取決於 NVIDIA 的配額決策。<strong>這是「技術領先 + 規模劣勢」的典型 small-cap 飆股設定。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S08 -->
+<div class="section" id="s08">
+  <div class="section-eyebrow">S08 — Phase B+ 分析矩陣</div>
+  <h2>9 分析師 × 整合層 × Ray Veto：<span class="accent">多空分歧，非共識標的</span></h2>
+  <div class="section-desc">RainAlpha 內部 Phase B+ 多智能體分析管線完整輸出。</div>
+
+  <div class="table-wrap" style="margin-bottom:20px"><table>
+    <tr><th>分析師角色</th><th class="num">評分</th><th>立場</th><th>核心觀點</th></tr>
+    <tr><td><strong>Fundamental Analyst</strong></td><td class="num">0.35</td><td><span class="pill pill-red">偏空</span></td><td>FY26 Q1 虧損擴大，GAAP GM -9%，基本面無法支撐 $20</td></tr>
+    <tr><td><strong>Technical Analyst</strong></td><td class="num">0.68</td><td><span class="pill pill-orange">中偏多</span></td><td>12m +1,074% 動能強，RSI 過熱但趨勢完整</td></tr>
+    <tr><td><strong>Industry Analyst</strong></td><td class="num">0.72</td><td><span class="pill pill-green">偏多</span></td><td>800V HVDC AI DC 市場 2027-2028 爆發，NVTS 技術定位正確</td></tr>
+    <tr><td><strong>Risk Analyst</strong></td><td class="num">0.28</td><td><span class="pill pill-red">偏空</span></td><td>TSMC 退出 + NVIDIA 延後 + 客戶集中，三重風險疊加</td></tr>
+    <tr><td><strong>Catalyst Analyst</strong></td><td class="num">0.75</td><td><span class="pill pill-green">偏多</span></td><td>NVIDIA Rubin Ultra 合作公告是明確催化劑，$450M 管線揭露</td></tr>
+    <tr><td><strong>Valuation Analyst</strong></td><td class="num">0.22</td><td><span class="pill pill-red">強烈偏空</span></td><td>EV/Sales 60x+，任何合理估值方法都指向大幅高估</td></tr>
+    <tr><td><strong>Macro Analyst</strong></td><td class="num">0.55</td><td><span class="pill pill-gray">中性</span></td><td>AI 資本支出週期支撐，但利率環境對高估值不利</td></tr>
+    <tr><td><strong>Sentiment Analyst</strong></td><td class="num">0.80</td><td><span class="pill pill-green">強烈偏多</span></td><td>Reddit/X 熱度爆表，散戶追高動能強</td></tr>
+    <tr><td><strong>Supply Chain Analyst</strong></td><td class="num">0.45</td><td><span class="pill pill-gray">中性偏空</span></td><td>TSMC 退出可管理，但 timing 窗口極窄</td></tr>
+    <tr style="background:#faf9f7"><td><strong>Chief Synthesis Layer</strong></td><td class="num" style="color:var(--blue)">0.61</td><td><span class="pill pill-blue">中性整合</span></td><td>多空均有力論點，不確定性主導；建議觀察 Q2 催化劑</td></tr>
+    <tr style="background:#faf9f7"><td><strong>Investment Manager</strong></td><td class="num" style="color:var(--orange)">0.72</td><td><span class="pill pill-orange">偏多觀察</span></td><td>故事真實，risk/reward 在 $17-19 更好；$20+ 全 price-in</td></tr>
+  </table></div>
+
+  <div class="callout callout-warn"><strong>Ray Veto 架構審查 — APPROVED（有條件）：</strong>Phase B+ 管線產出通過架構驗證。Ray 標記的盲點：(1) 分析師矩陣未充分考慮 Innoscience 中國低價 GaN 衝擊；(2) NVIDIA 夥伴份額分配機制（10 家中如何決定）資訊不足；(3) GF qualification 進度需定期更新。三點已併入 S03/S07/S11 正文。</div>
+  <div class="callout callout-blue" style="margin-top:12px"><strong>Codex Adversarial Review 盲點補充（v3 → v4 已修復）：</strong>(1) finchart name truncation — 圖表欄位截斷已修；(2) unified pipeline kwargs 7 處 mismatch 已修；(3) industry-chains catalog 查詢失敗，已切換備援 endpoint；(4) 設計案管線說明未區分 design win vs backlog vs revenue — 本版 S05 已補全。</div>
+</div>
+<div class="divider"></div>
+
+<!-- S09 -->
+<div class="section" id="s09">
+  <div class="section-eyebrow">S09 — 5 大師 Personas + Sell-Side 共識</div>
+  <h2>買方全中性，<span class="accent">賣方 PT $13.59 vs 現價 $20.54（Gap -33.8%）</span></h2>
+  <div class="section-desc">五種投資哲學框架下的評估，以及 8 位 sell-side 分析師最新共識。</div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+    <div class="persona-badge">
+      <div class="persona-badge-name">Warren Buffett 式</div>
+      <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">中性 / 觀察</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">護城河窄、財報虧損、無法用 DCF 估值。不在能力圈，不買。等業務可見利潤後再評估。</div>
+    </div>
+    <div class="persona-badge">
+      <div class="persona-badge-name">Peter Lynch 式</div>
+      <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">中性 / 小倉觀察</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">故事邏輯清晰，快充轉 AI 是大趨勢。但要等 Q2 確認 design wins 轉訂單才考慮加碼。</div>
+    </div>
+    <div class="persona-badge">
+      <div class="persona-badge-name">George Soros 式</div>
+      <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">中性 / 短線警戒</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">反身性已到危險區。$20+ 預期自我強化，任何負面消息都有崩塌風險。短線不追。</div>
+    </div>
+    <div class="persona-badge">
+      <div class="persona-badge-name">Jim Simons 式</div>
+      <div style="font-weight:600;margin-bottom:4px;color:var(--text-muted)">中性 / 量化無訊號</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">5d +43% 後波動率過高，統計 edge 不明。等波動率回落後看動能因子是否持續。</div>
+    </div>
+    <div class="persona-badge">
+      <div class="persona-badge-name">Michael Burry 式</div>
+      <div style="font-weight:600;margin-bottom:4px;color:var(--red)">中性 / 做空候選</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">EV/Sales 60x、GAAP 虧損、三重風險 — 理論上做空標的，但 20% 空倉 + 動能強，時機不確定。</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card"><div class="card-label">Sell-Side 共識目標價</div><div class="card-value">$13.59</div><div class="card-note">8 位分析師 ｜ 過去 4 個月共識「凍結」未調整<br>vs 現價 $20.54 = -33.8% 下行空間</div></div>
+    <div class="card">
+      <div class="card-label">評等分布（8位）</div>
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Buy / Strong Buy</span><span style="font-family:'JetBrains Mono',monospace;color:var(--green)">3 位</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Hold / Neutral</span><span style="font-family:'JetBrains Mono',monospace;color:var(--text-muted)">4 位</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Sell / Underperform</span><span style="font-family:'JetBrains Mono',monospace;color:var(--red)">1 位</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn"><strong>共識凍結警訊：</strong>賣方 PT $13.59 在過去 4 個月股價從 ~$2 漲到 $20 的過程中幾乎沒更新。要麼賣方模型有問題，要麼在等 Q2 data 才敢大幅上調。<strong>$13.59 vs $20.54 是市場共識與市場定價之間最大的矛盾點。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <div class="section-eyebrow">S10 — 內部人 + 機構持股</div>
+  <h2>Insider 淨賣 -$4.97M，<span class="accent">機構按兵不動：沒人加碼也沒人砍</span></h2>
+  <div class="section-desc">聰明錢對 $20 的保留態度。</div>
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--red)"><div class="card-label" style="color:var(--red)">90天 Insider 淨買賣</div><div class="card-value" style="color:var(--red)">-$4.97M</div><div class="card-note">0 買入 ｜ 4 次賣出<br>無一位 insider 在 $20 附近買入</div></div>
+    <div class="card"><div class="card-label">機構持股 Top 7</div><div class="card-value">$1.16B</div><div class="card-note">持股變化 = 0%<br>從 $10 → $20 過程中無機構加碼</div></div>
+    <div class="card" style="border-color:var(--orange)"><div class="card-label">空倉比例</div><div class="card-value" style="color:var(--orange)">20.45%</div><div class="card-note">Short Squeeze 潛力 vs 聰明錢偏空<br>兩種解讀（見下）</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card" style="border-color:var(--green)">
+      <div class="card-label" style="color:var(--green)">20% 空倉 — 多方解讀</div>
+      <div style="margin-top:8px;font-size:13px;line-height:1.7;color:var(--text-muted)">20% 空倉 = 大量需回補的部位。若 Q2 法說超預期，空倉被迫回補 → 短期 <strong style="color:var(--text)">short squeeze 加速上漲</strong>。過去 5 天 +43% 很可能包含 short squeeze 成分。</div>
+    </div>
+    <div class="card" style="border-color:var(--red)">
+      <div class="card-label" style="color:var(--red)">20% 空倉 — 空方解讀</div>
+      <div style="margin-top:8px;font-size:13px;line-height:1.7;color:var(--text-muted)">20% 空倉 = 大量聰明錢認為股價高估並主動做空。Insider 4 人賣出無人買入、機構不加碼 — 都是同一訊號：知情者在 $20 附近離場。</div>
+    </div>
+  </div>
+  <div class="callout callout-warn"><strong>綜合讀法：</strong>Insider 賣出 + 機構觀望 + 賣方 PT $13.59，三個訊號同指「$20 已超過知情者願意持有的價格」。但 short squeeze 動能可以短期無視基本面，這是散戶主導市場的常見現象。Q2 法說（8月）是知情者評估要不要更新看法的節點。</div>
+</div>
+<div class="divider"></div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <div class="section-eyebrow">S11 — 三大致命風險</div>
+  <h2>三個風險同時壓頂：<span class="accent">踩任一就破局，疊加機率 15-20%</span></h2>
+  <div class="section-desc">這三個風險不是獨立的 — NVIDIA 延後讓 TSMC 轉廠更緊迫，兩者疊加讓窗口更窄。</div>
+
+  <div class="risk-card risk-fatal">
+    <div class="risk-title" style="color:var(--red)">風險 1 — NVIDIA Rubin Ultra 時程延後（致命）</div>
+    <div class="risk-body">
+      <strong>已知問題：</strong>HBM4E yield 問題、heatspreader 設計、warpage（翹曲）問題。Rubin Ultra 從 2027 H2 推遲到 2028 的機率非零。<br><br>
+      <strong>對 NVTS 的影響：</strong>Bull case 所有 FY2028 的 800V HVDC 訂單後移一年 → 市場重新定價 → 股價修正 30-40%（從 $20 回到 $12-14）。<br><br>
+      <strong>觀察指標：</strong>NVIDIA GTC/SC25 硬體更新 ｜ NVDA 法說 Rubin Ultra 出貨 guidance ｜ HBM4E 供應商（SK Hynix/Micron）生產進度
+    </div>
+  </div>
+
+  <div class="risk-card risk-fatal">
+    <div class="risk-title" style="color:var(--red)">風險 2 — TSMC GaN 2027/7 退出 × GF Qualification（致命）</div>
+    <div class="risk-body">
+      <strong>硬時程：</strong>TSMC 2027年7月退出 GaN。客戶 requalification 最少 6-9 個月。代表 GlobalFoundries 必須在 2026 年 12 月前完成 GaN qualification，否則 2027 無貨可賣。<br><br>
+      <strong>GF 的問題：</strong>GF 的 GaN 製程成熟度明顯低於 TSMC，初期 yield 可能只有 60-70%，製造成本更高 → 毛利壓力。GF 在 GaN 的 track record 有限，客戶信任需要時間。<br><br>
+      <strong>觀察指標：</strong>NVTS Q2/Q3 2026 法說 GF qualification milestone ｜ 是否有客戶開始 requalification 流程
+    </div>
+  </div>
+
+  <div class="risk-card risk-high">
+    <div class="risk-title" style="color:var(--orange)">風險 3 — 客戶集中度 59%（高度警戒）</div>
+    <div class="risk-body">
+      <strong>現況：</strong>Q1 2026 一個經銷商佔 59% 季度營收。主要服務中國消費電子市場（快充/手機）。<br><br>
+      <strong>風險：</strong>中美貿易關係惡化、匯率波動、或 Innoscience 搶走份額，都可能讓這個經銷商砍單 -50% 以上。<br><br>
+      <strong>觀察指標：</strong>Q2 2026 這個經銷商占比是否下降（分散 = 好事）｜絕對金額是否增長（需求真實）
+    </div>
+  </div>
+
+  <div class="callout callout-warn"><strong>風險疊加效應：</strong>若 NVIDIA 延後，NVTS 需要更多時間完成 GF qualification；若 GF 卡關，即使 NVIDIA 準時出貨 NVTS 也沒貨；若同時 59% 經銷商砍單，FY2026 全年現金消耗加速 → 2028 才不需稀釋的假設提前崩潰。<strong>三個風險疊加機率約 15-20%，一旦發生股價可能回到 $3-5 區間。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S12 -->
+<div class="section" id="s12">
+  <div class="section-eyebrow">S12 — 三情境 PT 與機率</div>
+  <h2>期望值 $14.7：<span class="accent">距現價 -28%，市場已 Fully Price-In Bull Case</span></h2>
+  <div class="section-desc">三情境概率加權期望值，以及每個情境的觸發條件。</div>
+
+  <div class="scenario-row" style="margin-bottom:24px">
+    <div class="scenario-card scenario-bear">
+      <div class="scenario-label scenario-label-bear">Bear Case — 30%</div>
+      <div class="scenario-val scenario-val-bear">$4 - $8</div>
+      <div class="scenario-desc"><strong>觸發：</strong>NVIDIA 延後 + TSMC 卡關 + 經銷商斷，任一發生<br><strong>FY28 營收：</strong>$80-120M<br><strong>EV/Sales：</strong>8x<br><strong>概率：</strong>30%</div>
+    </div>
+    <div class="scenario-card scenario-base">
+      <div class="scenario-label scenario-label-base">Base Case — 45%</div>
+      <div class="scenario-val scenario-val-base">$10 - $14</div>
+      <div class="scenario-desc"><strong>觸發：</strong>NVIDIA 準時，NVTS 拿 10% 份額<br><strong>FY28 營收：</strong>$180-280M<br><strong>EV/Sales：</strong>10x<br><strong>概率：</strong>45%（對應賣方共識 $13.59）</div>
+    </div>
+    <div class="scenario-card scenario-bull">
+      <div class="scenario-label scenario-label-bull">Bull Case — 25%</div>
+      <div class="scenario-val scenario-val-bull">$25 - $35</div>
+      <div class="scenario-desc"><strong>觸發：</strong>NVIDIA 順利 + NVTS 拿 25-30% + EV 加碼<br><strong>FY28 營收：</strong>$300-500M<br><strong>EV/Sales：</strong>12x<br><strong>概率：</strong>25%（今天股價 fully price-in 的情境）</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="section-eyebrow" style="margin-bottom:12px">FY28 營收 → 目標股價（不同 EV/Sales Multiple）</div>
+    <div class="chart-wrap"><div class="chart-inner" style="height:280px"><canvas id="ptChart"></canvas></div></div>
+  </div>
+
+  <div class="card" style="background:rgba(249,115,22,0.04);border-color:var(--orange)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--orange);margin-bottom:12px">期望值計算</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2.2">
+      EV = $6 × 30% + $12 × 45% + $30 × 25%<br>
+      EV = $1.8 + $5.4 + $7.5<br>
+      <strong>期望值 EV ≈ $14.7</strong>（各情境中位數）<br><br>
+      現價 $20.54 / EV $14.7 = <strong style="color:var(--red)">40% 溢價於期望值</strong><br>
+      隱含下行風險 = <strong style="color:var(--red)">-28%</strong>（回到期望值）
+    </div>
+  </div>
+
+  <div class="callout callout-warn" style="margin-top:16px"><strong>重要說明：</strong>期望值 $14.7 不是「一定跌到 $14.7」。短期動能、short squeeze、散戶 FOMO 可讓股價長時間偏離理論值。NVTS 就是這樣的標的。<strong>建議：觀察，在動能主導時不追高，等 Q2 法說確認基本面方向再決策。</strong></div>
+</div>
+<div class="divider"></div>
+
+<!-- S13 -->
+<div class="section" id="s13">
+  <div class="section-eyebrow">S13 — 結論與觀察清單</div>
+  <h2>故事真實，<span class="accent">但時程是一切：1年延後 = Bull 翻 Base</span></h2>
+  <div class="section-desc">三條核心結論 + Q2 2026 業績（8月）的五個確認指標。</div>
+
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="card" style="border-top:3px solid var(--orange)">
+      <div class="card-label">結論 1</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:8px;line-height:1.4">Navitas 2.0 Pivot 敘事真實，但 2027-2028 才是驗證窗口</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6">GaNSafe 650V + 5th Gen TAP SiC 定位正確，NVIDIA 800V HVDC 合作是真實催化劑。但實際訂單要 2027 H2 才開始 ramp，今天買的是 18-24 個月後的故事。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green)">
+      <div class="card-label">結論 2</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:8px;line-height:1.4">3.3 年現金 Runway = 不被迫稀釋的時間緩衝</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6">$221M 現金 / $6.3M 負債。即使 NVIDIA 延半年，NVTS 不需在最差時機籌資。這讓故事有時間醞釀，是 Bear case 不會立即發生的原因。</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div class="card-label">結論 3</div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:8px;line-height:1.4">$20 已 Fully Price-In Bull Case，MOS 幾乎為零</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6">期望值 $14.7，現價 $20.54，40% 溢價。不是「貴不貴」的問題，是「能不能兌現 Bull Case」的問題。任何低於 Bull 的劇本都會修正。</div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-bottom:16px">Q2 2026 業績（2026年8月）— 五個必看確認指標</div>
+  <div class="table-wrap"><table>
+    <tr><th>指標</th><th>Bull 確認門檻</th><th>Base 訊號</th><th>Bear 警訊</th></tr>
+    <tr><td><strong>Design-win Pipeline</strong></td><td style="color:var(--green)">$550M+（+$100M）</td><td style="color:var(--blue)">$480-520M</td><td style="color:var(--red)">$420M 以下（停滯）</td></tr>
+    <tr><td><strong>高功率營收占比</strong></td><td style="color:var(--green)">&gt;50%</td><td style="color:var(--blue)">40-50%</td><td style="color:var(--red)">&lt;35%</td></tr>
+    <tr><td><strong>GM GAAP</strong></td><td style="color:var(--green)">&gt;10%（爬出負區）</td><td style="color:var(--blue)">0-10%</td><td style="color:var(--red)">仍負（繼續惡化）</td></tr>
+    <tr><td><strong>GF Qualification 進度</strong></td><td style="color:var(--green)">正式 tape-out / 客戶開始 requalify</td><td style="color:var(--blue)">進行中，有里程碑</td><td style="color:var(--red)">無進度更新</td></tr>
+    <tr><td><strong>客戶集中度</strong></td><td style="color:var(--green)">59% → &lt;45%（分散）</td><td style="color:var(--blue)">55-59%（維持）</td><td style="color:var(--red)">&gt;65%（更集中）</td></tr>
+  </table></div>
+</div>
+<div class="divider"></div>
+
+<!-- S14 -->
+<div class="section" id="s14">
+  <div class="section-eyebrow">S14 — 透明度頁</div>
+  <h2>資料來源、Bug 修復、分析限制：<span class="accent">完整方法論揭露</span></h2>
+  <div class="section-desc">RainAlpha Phase B+ 系統產出透明度聲明。</div>
+
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">使用的 RainAlpha Endpoints（9個）</div>
+      <div style="margin-top:12px;font-size:12px;line-height:2;font-family:'JetBrains Mono',monospace;color:var(--text-muted)">
+        1. /api/stock/quote — 即時報價<br>
+        2. /api/stock/financials — 財務數據<br>
+        3. /api/stock/insider — 內部人交易<br>
+        4. /api/stock/institutional — 機構持股<br>
+        5. /api/stock/analyst — 分析師評等<br>
+        6. /api/industry/chains — 產業鏈查詢<br>
+        7. /api/research/unified-pipeline — 多智能體分析<br>
+        8. /api/visualization/finchart — 財報圖表（v2 修正版）<br>
+        9. /api/visualization/sankey — Sankey 流向圖
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">v3 → v4 已修復問題</div>
+      <div style="margin-top:12px;font-size:13px;line-height:1.9;color:var(--text-muted)">
+        <div>✅ finchart name truncation：欄位截斷已修，使用 /tmp/nvts-v2/ 版本</div>
+        <div>✅ unified pipeline kwargs 7 處 mismatch 已修復</div>
+        <div>✅ industry-chains catalog 查詢失敗，已切換備援 endpoint</div>
+        <div>✅ 圖表歪掉：Chart.js maintainAspectRatio:false + height 固定</div>
+        <div>✅ 設計案管線 S05 補全 design win vs backlog vs revenue 區分</div>
+        <div>✅ 故事主軸 SCQA 重寫，每 section 呼應核心論點</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-label">NVTS Dashboard 圖（v2 修正版）</div>
+      <div style="margin-top:12px"><img src="NVTS-dashboard-v4.png" alt="NVTS Dashboard" style="width:100%;border-radius:8px;border:1px solid var(--border)"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">NVTS Sankey 流向圖（v2 修正版）</div>
+      <div style="margin-top:12px"><img src="NVTS-sankey-v4.png" alt="NVTS Sankey" style="width:100%;border-radius:8px;border:1px solid var(--border)"></div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn" style="margin-bottom:16px">
+    <strong>已知分析限制：</strong>(1) NVIDIA 夥伴份額分配機制未公開；(2) GF qualification 進度只能從法說間接得知；(3) Innoscience 中國廠商 pricing 和 spec 資料有限；(4) $450M pipeline 的終端市場拆分比例未揭露
+  </div>
+
+  <div class="card" style="background:#1a1a1a;color:rgba(255,255,255,0.5);font-size:12px;line-height:1.9;font-family:'JetBrains Mono',monospace">
+    <div style="color:var(--orange);margin-bottom:8px;font-weight:700">⚠ 免責聲明（必讀）</div>
+    本報告由 RainAlpha AI 投資研究系統 Phase B+ 自動生成，僅供研究和教育用途。本報告不構成任何投資建議、買賣推薦或投資邀約。所有數據均來自公開資料，可能存在延遲或誤差。投資涉及風險，請諮詢專業投資顧問。<br>
+    Phase 1 Report-Only — 無交易訊號 — Nova Report Engine v4 — Design System v4.2
+  </div>
+</div>
+
+<footer>
+  <div><strong>NVTS Sell-Side Initiation Brief v4</strong> — 2026-05-13</div>
+  <div>RainAlpha Phase B+ ｜ Nova Report Engine ｜ Design System v4.2 ｜ 14 Sections</div>
+  <div style="margin-top:8px">⚠ 非投資建議 — 僅供研究用途 — Phase 1 Report-Only，無交易訊號</div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  const pct=(d.scrollTop/(d.scrollHeight-d.clientHeight))*100;
+  document.getElementById('navProgress').style.width=pct+'%';
+});
+
+Chart.defaults.responsive=true;
+Chart.defaults.maintainAspectRatio=false;
+Chart.register(ChartDataLabels);
+
+const DARK_TT={
+  backgroundColor:'rgba(20,20,20,0.92)',titleColor:'#e5e3de',bodyColor:'#e5e3de',
+  borderColor:'rgba(249,115,22,0.4)',borderWidth:1,padding:10,
+  titleFont:{family:'JetBrains Mono',size:12,weight:'bold'},
+  bodyFont:{family:'JetBrains Mono',size:11},
+  displayColors:true,boxWidth:8,boxHeight:8,cornerRadius:6,caretSize:5
+};
+
+// Revenue chart
+new Chart(document.getElementById('revenueChart').getContext('2d'),{
+  type:'bar',
+  data:{
+    labels:['FY26 Bear','FY26 Base','FY26 Bull','FY27 Bear','FY27 Base','FY27 Bull','FY28 Bear','FY28 Base','FY28 Bull'],
+    datasets:[{
+      label:'三情境營收',
+      data:[46,57,72,70,110,185,100,230,400],
+      backgroundColor:['rgba(239,68,68,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)','rgba(239,68,68,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)','rgba(239,68,68,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)'],
+      borderRadius:4,
+      datalabels:{display:true,color:'#fff',font:{family:'JetBrains Mono',size:10,weight:'bold'},anchor:'end',align:'top',offset:2,formatter:v=>'$'+v+'M'}
+    }]
+  },
+  options:{
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{...DARK_TT},datalabels:{display:true}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#888'}},
+      y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{font:{family:'JetBrains Mono',size:10},color:'#888',callback:v=>'$'+v+'M'},border:{display:false}}
+    },
+    layout:{padding:{top:24}}
+  }
+});
+
+// PT chart
+new Chart(document.getElementById('ptChart').getContext('2d'),{
+  type:'line',
+  data:{
+    labels:['$80M','$120M','$180M','$230M','$300M','$400M','$500M'],
+    datasets:[
+      {label:'8x EV/Sales',data:[2.76,4.14,6.21,7.93,10.34,13.79,17.24],borderColor:'rgba(239,68,68,.8)',backgroundColor:'transparent',borderWidth:2,tension:.3,pointRadius:3,pointHoverRadius:6,datalabels:{display:false}},
+      {label:'10x EV/Sales',data:[3.45,5.17,7.76,9.91,12.93,17.24,21.55],borderColor:'rgba(59,130,246,.8)',backgroundColor:'transparent',borderWidth:2,tension:.3,pointRadius:3,pointHoverRadius:6,datalabels:{display:false}},
+      {label:'12x EV/Sales',data:[4.14,6.21,9.31,11.9,15.52,20.69,25.86],borderColor:'rgba(34,197,94,.8)',backgroundColor:'transparent',borderWidth:2,tension:.3,pointRadius:3,pointHoverRadius:6,datalabels:{display:false}},
+      {label:'15x EV/Sales',data:[5.17,7.76,11.64,14.87,19.4,25.86,32.33],borderColor:'rgba(168,85,247,.8)',backgroundColor:'transparent',borderWidth:2,tension:.3,pointRadius:3,pointHoverRadius:6,datalabels:{display:false}}
+    ]
+  },
+  options:{
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:true,position:'top',labels:{font:{size:11,family:'JetBrains Mono'},boxWidth:12}},
+      tooltip:{...DARK_TT,callbacks:{title:i=>'FY28 Revenue: '+i[0].label,label:i=>` ${i.dataset.label}: $${i.parsed.y.toFixed(1)}/股`}},
+      datalabels:{display:false}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#888'},title:{display:true,text:'FY2028 年營收',color:'#888',font:{size:11}}},
+      y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{font:{family:'JetBrains Mono',size:10},color:'#888',callback:v=>'$'+v},border:{display:false},title:{display:true,text:'目標股價(USD)',color:'#888',font:{size:11}}}
+    }
+  }
+});
+
+// SM charts
+const SMF={family:'JetBrains Mono',size:10};
+const SMG='rgba(255,255,255,.10)';
+const SMT='rgba(255,255,255,.55)';
+const smBase={
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},datalabels:{display:false}},
+  scales:{
+    x:{grid:{display:false},ticks:{color:SMT,font:SMF}},
+    y:{grid:{color:SMG,lineWidth:1},ticks:{color:SMT,font:SMF,maxTicksLimit:3},border:{display:false}}
+  }
+};
+
+new Chart(document.getElementById('smRevChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+    datasets:[{data:[5.3,6.1,7.4,8.9,8.6],backgroundColor:'rgba(100,160,255,.85)',borderRadius:3,barPercentage:.7,categoryPercentage:.75,datalabels:{display:false}}]},
+  options:{...smBase}
+});
+
+new Chart(document.getElementById('smGmChart').getContext('2d'),{
+  type:'line',
+  data:{labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+    datasets:[{data:[-28,-22,-15,-8,-9],borderColor:'rgba(100,160,255,.9)',backgroundColor:'transparent',borderWidth:2,tension:.35,pointBackgroundColor:'rgba(100,160,255,.9)',pointRadius:4,
+      datalabels:{display:ctx=>ctx.dataIndex===ctx.dataset.data.length-1,color:'#f5c842',anchor:'end',align:'right',offset:4,font:{family:'JetBrains Mono',size:11,weight:'bold'},formatter:v=>v+'%'}}]},
+  options:{...smBase,layout:{padding:{right:40}}}
+});
+
+new Chart(document.getElementById('smOpexChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+    datasets:[
+      {label:'R&D',data:[12,13,13.5,14,14.6],backgroundColor:'rgba(100,160,255,.8)',borderRadius:2,barPercentage:.8,categoryPercentage:.7,datalabels:{display:false}},
+      {label:'SG&A',data:[9,9.5,10,10.5,11.3],backgroundColor:'rgba(255,255,255,.3)',borderRadius:2,barPercentage:.8,categoryPercentage:.7,datalabels:{display:false}}
+    ]},
+  options:{...smBase,scales:{...smBase.scales,x:{...smBase.scales.x,stacked:true},y:{...smBase.scales.y,stacked:true}}}
+});
+
+new Chart(document.getElementById('smCashChart').getContext('2d'),{
+  type:'line',
+  data:{labels:['1Q25','2Q25','3Q25','4Q25','1Q26'],
+    datasets:[{data:[280,265,248,235,221],borderColor:'rgba(100,160,255,.9)',backgroundColor:'rgba(100,160,255,.18)',fill:true,borderWidth:2,tension:.35,pointBackgroundColor:'rgba(100,160,255,.9)',pointRadius:4,
+      datalabels:{display:ctx=>ctx.dataIndex===ctx.dataset.data.length-1,color:'#f5c842',anchor:'end',align:'right',offset:4,font:{family:'JetBrains Mono',size:11,weight:'bold'},formatter:v=>'$'+v+'M'}}]},
+  options:{...smBase,layout:{padding:{right:50}}}
+});
+</script>
+</body>
+</html>
