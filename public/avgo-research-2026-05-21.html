@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVGO — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">AVGO</div>
+    <div class="sidebar-name">Broadcom Inc.</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">417.76 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$480</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$476.00</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: AVGO · 2026-05-21</div>
+    <h1 class="ph-title">Broadcom — AI ASIC + VMware 整合，雙引擎重估週期</h1>
+    <p class="ph-lead">VMware 整合完成後軟體 ARR 貢獻加速，AI ASIC（XPU — Google TPU / Meta 自研）季增速 70%+；TTM Revenue $68B、毛利率 76.7%；估值 81× PE 偏高但 AI XPU 成長可見度高。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" data-count="68.28" data-suffix="B" style="color:var(--c-green)">$68B</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2025（10月底）+18% YoY</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">$12.2B+</span><span class="stat-label">AI XPU Revenue</span><div class=card-sub>Q1 FY2025 +77% YoY，年化 $30B+ 路徑</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">76.7%</span><span class="stat-label">Gross Margin</span><div class=card-sub>TTM，半導體 IP + 軟體高毛利</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$1978B</span><span class="stat-label">Market Cap</span><div class=card-sub>全球第五大半導體公司</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">偏多觀察（估值偏高，等 AI XPU 確認）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$380–$400</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">$310</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">$480</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$600</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q1 FY2026 法說（3 月）</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">AI XPU 增速降至 30% 以下連 2 季</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$476.00</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 417.76 USD → <strong>+13.9%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$310x20% + $$480x55% + $$600x25%<br>= $62.00 + $264.00 + $150.00 = <strong>$476.00</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">$310</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AI XPU 增速低於預期 / VMware 整合失敗<br><strong>Rev FY2026E $68-72B · GM GM 72-74%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">$480</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AI XPU $25-30B / VMware ARR $10B / 整體 OM 50%+<br><strong>Rev FY2026E $80-88B · GM GM 75-77%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$600</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AI XPU $40B+ / Apple XPU 大單 / VMware ARR $15B<br><strong>Rev FY2026E $95B+ · GM GM 77-78%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AI XPU（Google TPU / Meta 自研晶片代工設計）季增速 70%+，FY2026 貢獻 $30B+</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>VMware 整合完成後軟體 ARR 持續成長，訂閱轉換率超預期</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>HBM + CoWoS 先進封裝需求，與 TSMC 深度合作</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>股利率 1.3%，持續增長；回購 + 股利合計股東回饋 $20B+</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Custom AI ASIC 業務擴展至 Apple / ByteDance，客戶多元化</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>估值 81× PE 偏高，AI XPU 增速若不達預期，倍數壓縮風險大</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>VMware 整合風險：企業客戶抗拒訂閱化，可能流失至 Nutanix / Citrix</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Google / Meta 長期可能自行設計所有 XPU，減少 AVGO 依賴</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>網路晶片業務（FC SAN / Ethernet）成熟，增速放緩</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>大量收購債務（VMware $69B），財務槓桿率高</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · AI XPU 季收入增速是否維持 50%+ + VMware ARR 轉換率
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — AVGO 是 AI 自研晶片浪潮的設計服務壟斷者</h2>
+    <p class="ph-lead">AI XPU 業務 FY2026E $25-30B + VMware 軟體 ARR $10B+；Base PT 個人估算 $480（vs 現價 +15%），EV $459（+10%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Google、Meta、Apple、ByteDance 等超大型科技公司不滿 NVIDIA 的高價格和固定架構，正在自研 AI 訓練 / 推理晶片（XPU）。但設計超先進 AI ASIC 需要頂尖的類比設計 + SerDes + HBM 介面專業知識，這正是 AVGO 的核心能力。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">市場擔憂：(1) 客戶自研晶片成熟後，是否不再需要 AVGO？(2) VMware 整合債務 $69B，財務壓力大。(3) 估值 81× PE，若 AI XPU 增速放緩，倍數壓縮風險巨大。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Broadcom 的 AI XPU 業務是否能從 FY2025 $12.2B+ 成長至 FY2026 $25-30B，同時 VMware 訂閱 ARR 能否達 $10B+？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：Google TPU v5 + Meta MTIA v2 均由 AVGO 參與設計，FY2026 AI XPU 貢獻 $25-30B；VMware 企業訂閱轉換率超預期 → 軟體 ARR 加速 → 整體毛利率擴張至 77%+，FY2026 Revenue $80-88B，PT $480。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>AI XPU 爆發 — Google TPU v5 / Meta MTIA v2 量產，AVGO 是主要設計夥伴，FY2025 Q1 AI XPU +77% YoY</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>VMware 整合完成 — 企業雲端訂閱 ARR 從 $5B 增至 $10B+，軟體毛利率 85%+ 提升整體 GM</td><td style="font-family:var(--font-mono);font-size:11px">2024-2026</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>Apple AI XPU 傳聞 — Apple Intelligence Server XPU 設計外包 AVGO 可能性，若確認則增加 $10B+ 潛在 Revenue</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">AI 半導體 + 企業軟體 — Custom ASIC 設計的最大機會</h2>
+    <p class="ph-lead">AI ASIC 市場（Custom XPU）2025 估 $50B+，CAGR 50%+；AVGO 是 Google / Meta Custom XPU 的主要設計夥伴，市場份額 70%+。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Broadcom AI ASIC 生態位 — 供應鏈位置</div><svg viewBox='0 0 800 340' style='width:100%;display:block;min-height:280px' aria-label='Broadcom AI ASIC position'><title>Broadcom ASIC Position</title><rect x='10' y='10' width='780' height='44' rx='6' fill='#1B3A5E'/><text x='400' y='37' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>終端用戶 · AI Training / Inference Datacenter（Google / Meta / Apple / ByteDance）</text><rect x='10' y='62' width='380' height='44' rx='6' fill='#F5A623'/><text x='200' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>★ AVGO Custom AI XPU 設計服務</text><rect x='400' y='62' width='390' height='44' rx='6' fill='#6B7280'/><text x='595' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11'>NVIDIA H100/B200（標準品）／AMD MI325</text><rect x='10' y='114' width='380' height='44' rx='6' fill='#F5A623'/><text x='200' y='140' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>★ VMware Enterprise Software ARR</text><rect x='400' y='114' width='390' height='44' rx='6' fill='#2D5A8E'/><text x='595' y='140' text-anchor='middle' fill='white' font-family='monospace' font-size='11'>Networking（FC SAN / Ethernet Switching）</text><rect x='10' y='166' width='780' height='44' rx='6' fill='#374151'/><text x='400' y='192' text-anchor='middle' fill='#F5A623' font-family='monospace' font-size='12' font-weight='700'>★ TSMC 先進製程 (3nm / 2nm) + CoWoS 封裝（製造外包）</text><rect x='10' y='218' width='380' height='44' rx='6' fill='#4B5563'/><text x='200' y='244' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='11'>SK Hynix / Samsung HBM 記憶體 — XPU 必需</text><rect x='400' y='218' width='390' height='44' rx='6' fill='#4B5563'/><text x='595' y='244' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='11'>SerDes / 高速 IO 設計（AVGO 核心 IP）</text><rect x='10' y='280' width='780' height='44' rx='6' fill='#6B7280'/><text x='400' y='306' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='11'>Calix / Arista（網路設備）/ 5G 射頻（小基站晶片）</text></svg></div>
+    <div class='qblock reveal' style='border-left-color:var(--c-blue);margin-bottom:24px'><p class='q-text'><strong style='color:var(--c-blue)'>投資邏輯：</strong>AVGO 是 AI 時代「Custom ASIC」的最大受益者，服務超大型客戶（Google / Meta / Apple）設計下一代 AI 晶片。與 NVIDIA 互補（非取代）：Hyperscaler 同時採購 NVDA 標準品 + AVGO Custom XPU。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>Custom AI ASIC（XPU）設計</td><td class="num">$50B+ (2025E)</td><td class="num">50%+</td><td><span class="pill pill-gray">70%+ 份額</span></td><td><span class="pill pill-green">直接</span></td><td>Google TPU / Meta MTIA / Apple XPU</td></tr><tr><td>企業虛擬化軟體（VMware）</td><td class="num">$30B (2025E)</td><td class="num">15%</td><td><span class="pill pill-gray">市場領導者</span></td><td><span class="pill pill-green">直接</span></td><td>VMware 訂閱轉換加速</td></tr><tr><td>資料中心網路晶片（FC SAN）</td><td class="num">$15B (2025E)</td><td class="num">10%</td><td><span class="pill pill-gray">第一大</span></td><td><span class="pill pill-green">直接</span></td><td>成熟市場，穩定現金牛</td></tr><tr><td>5G 射頻 / 基帶晶片</td><td class="num">$20B (2025E)</td><td class="num">8%</td><td><span class="pill pill-gray">第二大</span></td><td><span class="pill pill-green">直接</span></td><td>Apple iPhone RF 晶片</td></tr><tr><td>工業 + IoT 嵌入式</td><td class="num">$10B (2025E)</td><td class="num">12%</td><td><span class="pill pill-gray">利基市場</span></td><td><span class="pill pill-gold">間接</span></td><td>穩定貢獻</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Broadcom Inc. — Custom ASIC 設計 + 企業軟體複合巨頭</h2>
+    <p class="ph-lead">2018 年更名後的 Broadcom（從 Avago 與舊 Broadcom 合併）；2023 年以 $69B 收購 VMware 完成軟體業務佈局；總部加州聖荷西，40,000+ 員工。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>半導體業務</strong></td><td>AI XPU / FC SAN / 5G RF / 網路晶片</td><td class="num">62%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>VMware 軟體業務</strong></td><td>vSphere / NSX / vSAN 訂閱 ARR</td><td class="num">38%</td><td><span class="pill pill-gray">快增（訂閱轉換）</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Custom XPU 設計能力（SerDes + HBM 介面）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">VMware 企業虛擬化壟斷地位</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">與 TSMC 先進製程深度合作</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Apple iPhone RF 晶片長期合約</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">VMware 整合債務 $69B，財務槓桿高</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶自研成熟後 XPU 依賴度降低風險</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Apple 佔半導體業務 20%+，客戶集中度高</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">估值 81× PE，倍數壓縮空間大</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">AVGO</strong></td><td class="num">$1978B</td><td class="num">$68B (TTM)</td><td class="num">76.7%</td><td class="num">28×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI XPU 設計 No.1</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gold">偏多觀察</span></td></tr><tr ><td><strong >NVIDIA (NVDA)</strong></td><td class="num">$5.4T</td><td class="num">$216B</td><td class="num">71.1%</td><td class="num">25×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI GPU 標準品 No.1</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">互補非替代</span></td></tr><tr ><td><strong >Marvell (MRVL)</strong></td><td class="num">$163B</td><td class="num">$8.2B</td><td class="num">51%</td><td class="num">20×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI ASIC 追趕者</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">AVGO 規模差距大</span></td></tr><tr ><td><strong >Intel (INTC)</strong></td><td class="num">$598B</td><td class="num">$53.8B</td><td class="num">37.2%</td><td class="num">11×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">Gaudi 3，份額低</span></td><td><span class="pill pill-gray">中（轉型中）</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">代工廠定位</span></td></tr><tr ><td><strong >Qualcomm (QCOM)</strong></td><td class="num">~$260B</td><td class="num">~$40B</td><td class="num">57%</td><td class="num">6.5×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">手機 / IoT 晶片</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">不同細分市場</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>AI XPU（Google TPU v6 / Meta MTIA v3）</strong></td><td>TPU v5 / MTIA v2 量產</td><td>下一代 3nm 設計導入</td><td>XPU 業務 $40B+</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>VMware vSphere 8 訂閱版</strong></td><td>訂閱轉換 ARR $7B+</td><td>ARR $10B</td><td>ARR $15B（成熟期）</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>Apple AI XPU（傳聞）</strong></td><td>未確認，傳聞談判中</td><td>若確認：$5B+ 年收入</td><td>iPhone AI Server XPU</td><td><span class="pill pill-gray">重要（待確認）</span></td></tr><tr><td><strong>5G mmWave 射頻晶片</strong></td><td>iPhone 16 系列供貨</td><td>iPhone 17 延續</td><td>穩定現金牛</td><td><span class="pill pill-gray">穩定</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">AI XPU + VMware — 雙引擎推動 AVGO 進入 $2T 市值競爭</h2>
+    <p class="ph-lead">AI XPU 是 AVGO 未來 3 年的核心成長引擎：Google TPU v5 已大規模量產，Meta MTIA v2 導入中，FY2025 Q1 AI XPU Revenue $12.2B（年化 $30B+）。VMware 訂閱 ARR 是第二條跑道。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>AI XPU 設計服務</strong></td><td>客製化 TPU / XPU 設計，整合 HBM 介面 + SerDes + NVLink-equivalent 互連</td><td>NVDA 標準品 B200：固定架構，客戶無法自訂</td><td>高度客製化，替換成本極高（設計週期 2-3 年）</td><td><span class="pill pill-gray">關鍵差異</span></td></tr><tr><td><strong>VMware vSphere 訂閱</strong></td><td>企業虛擬化平台，訂閱 ARR 轉換中，毛利率 85%+</td><td>Nutanix / Citrix 替代方案存在但規模小</td><td>企業 IT 基礎設施深度整合，遷移成本高</td><td><span class="pill pill-green">強護城河</span></td></tr><tr><td><strong>SerDes IP（高速互連）</strong></td><td>112G / 224G SerDes，資料中心高速連線核心 IP</td><td>Marvell 也有 SerDes，但 AVGO 歷史最悠久</td><td>20 年累積 IP 組合，市場份額 60%+</td><td><span class="pill pill-green">強護城河</span></td></tr><tr><td><strong>FC SAN 網路晶片</strong></td><td>光纖通道存儲區域網路晶片，企業存儲必需</td><td>市場 No.1，競品份額 &lt;10%</td><td>成熟市場壟斷，客戶替換風險低</td><td><span class="pill pill-gray">穩定現金牛</span></td></tr><tr><td><strong>5G 射頻晶片（RF）</strong></td><td>iPhone 主供應商（RF 前端模組），年合約 $8B+</td><td>Qorvo / Skyworks 競品，但 Apple 偏好 AVGO</td><td>Apple 長期合約，轉換成本高</td><td><span class="pill pill-gray">穩定貢獻</span></td></tr><tr><td><strong>乙太網路交換晶片（Tomahawk）</strong></td><td>資料中心 400G/800G Ethernet 交換晶片</td><td>Marvell Prestera / Intel Tofino</td><td>AVGO Tomahawk 系列市場份額 60%+</td><td><span class="pill pill-gray">領先</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI XPU 設計能力</span><span>AVGO: 9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">VMware 企業軟體護城河</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">SerDes IP 技術積累</span><span>9.0/10，20 年 IP 優勢</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶多元化（Google / Meta / Apple）</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="75%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">財務槓桿（VMware 債務）</span><span>5.0/10，$69B 債務</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">估值合理性</span><span>4.5/10，81× PE 偏高</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Apple 客戶集中度風險</span><span>6.0/10，佔 20%+</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Fabless 供應鏈靈活性</span><span>8.0/10，TSMC 深度合作</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · FY2025 Q1 法說重點（2025-03-06）</div>
+    <h2 class="ph-title">FY2025 Q1 Revenue $14.92B · +25% YoY — AI XPU +77%，VMware ARR 加速</h2>
+    <p class="ph-lead">Broadcom FY2025 Q1（截至 2025-02-02）Revenue $14.92B（+25% YoY）；AI XPU $4.1B（+77% YoY）；VMware 軟體業務 $6.7B（+47% YoY，訂閱轉換加速）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q1 FY2025 Revenue</div><div class="card-value" style="color:var(--c-green)">$14.9B</div><div class=card-sub>+25% YoY，AI XPU 最快增長</div></div><div class="card"><div class="card-label">AI XPU Revenue</div><div class="card-value" style="color:var(--c-green)">$4.1B</div><div class=card-sub>+77% YoY，年化 $16B+</div></div><div class="card"><div class="card-label">VMware ARR</div><div class="card-value" style="color:var(--c-green)">$7.7B+</div><div class=card-sub>訂閱轉換超預期，ARR 年化加速</div></div><div class="card"><div class="card-label">Non-GAAP EPS</div><div class="card-value" style="color:var(--c-)">$1.60</div><div class=card-sub>+25% YoY，符合預期</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"In the first quarter, AI revenue grew 77 percent year-over-year to $4.1 billion, driven by strong demand from our hyperscale customers for custom AI accelerators and networking."</div><div class="q-attr">— Hock Tan · FY2025 Q1 Earnings · 2025-03-06 · Source: Broadcom IR</div></div><div class="qblock"><div class="q-text">"We are seeing accelerating demand from our two largest hyperscale customers for next-generation XPU clusters. We expect AI revenue to exceed $4.4 billion in the second quarter."</div><div class="q-attr">— Hock Tan · FY2025 Q1 Earnings · 2025-03-06</div></div><div class="qblock"><div class="q-text">"VMware's successful transition to a subscription model has resulted in $7.7 billion in annualized booking value. This provides exceptional visibility into our software revenue for the next three years."</div><div class="q-attr">— CFO Kirsten Spears · FY2025 Q1 Earnings · 2025-03-06 · Source: Broadcom IR</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>AI XPU 何時突破 $30B 年化？</td><td>FY2025 全年 AI Revenue $30B 目標，Q1 已達 $4.1B（年化 $16B），需後半年加速</td><td><span class="pill pill-gray">目標有壓，但 Q2 guidance $4.4B 正面</span> 若 Q3/Q4 達 $5-6B，則 $30B 目標可行</td></tr><tr><td>VMware 流失率如何？</td><td>訂閱轉換率超 95%，客戶留存高，但部分中小企業反對漲價</td><td><span class="pill pill-gray">整體正面但有分歧</span> 大客戶（Fortune 500）幾乎 100% 轉訂閱</td></tr><tr><td>Google / Meta 以外的第三大 XPU 客戶？</td><td>公司未點名，但市場預測為 Apple 或 ByteDance</td><td><span class="pill pill-gray">待確認，若是 Apple 則 $10B+ 潛力</span> Hock Tan 提及 3 個超大型客戶，只公開 2 個</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">FY2025 Q1 業績後（2025-03-06），AVGO 股價上漲 5-8%，AI XPU +77% 超預期是主因。2026-05-21 現報 $417.76，接近 52 週高點 $442.36。1 年漲幅 83.3%。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $68B · GM 76.7% · VMware 整合提升利潤率</h2>
+    <p class="ph-lead">Broadcom TTM Revenue $68B（FY2025 估）；毛利率 76.7%（VMware 軟體高毛利拉升）；Operating Margin ~50%；FCF $22B+。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2022（10月）</td><td class="num pos">$33.2</td><td class="num">$22.2</td><td class="num pos">66.8%</td><td class="num">$5.8</td><td class="num neg">$16.4</td><td class="num">$12.3</td></tr><tr ><td>FY2023（10月）</td><td class="num pos">$35.8</td><td class="num">$23.6</td><td class="num pos">65.9%</td><td class="num">$6.5</td><td class="num neg">$17.9</td><td class="num">$14.2</td></tr><tr ><td>FY2024（10月）</td><td class="num pos">$51.6</td><td class="num">$33.4</td><td class="num pos">64.7%</td><td class="num">$8.5</td><td class="num neg">$22.8</td><td class="num">$9.8</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>TTM / FY2025E</td><td class="num pos">$68.3</td><td class="num">$52.4</td><td class="num pos">76.7%</td><td class="num">~$12</td><td class="num neg">~$38</td><td class="num">~$10B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >FY2023</td><td class="num">+4.73B（VMware 股票換股）</td><td class="num">$69B VMware 收購</td><td class="num">換股 + 現金</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Broadcom 10-K FY2024（SEC CIK 1730168）/ FY2025 Q1 8-K / Broadcom IR</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$9.8B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$1.8B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$15.2B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$11.2B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$4.0B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$167.0B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$36.7B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Broadcom 10-K FY2024（SEC CIK 1730168）/ FY2025 Q1 8-K / Broadcom IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>R&amp;D</td><td class="num">$6.2</td><td class="num">$4.9</td><td class="num">$4.7</td><td class="num">+26.5%</td><td>AI XPU 設計 + VMware 研發</td></tr><tr><td>Sales &amp; Marketing</td><td class="num">$2.8</td><td class="num">$1.5</td><td class="num">$1.3</td><td class="num">+87%</td><td>VMware 銷售力擴充</td></tr><tr><td>G&amp;A</td><td class="num">$1.5</td><td class="num">$0.8</td><td class="num">$0.7</td><td class="num">+87.5%</td><td>VMware 合規 + 整合成本</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$12.0</td><td class="num">$8.5</td><td class="num">$6.5</td><td class="num">+41%</td><td>VMware 整合帶動費用上升，但毛利率也上升</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Broadcom 10-K FY2024（SEC CIK 1730168）/ FY2025 Q1 8-K / Broadcom IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF $22B+ · 槓桿率高但現金流充裕 — VMware 整合後去槓桿路徑</h2>
+    <p class="ph-lead">Broadcom FY2024 FCF ~$19-22B；VMware 整合帶來大量長期負債（$68B+），但訂閱 ARR 現金流強勁，管理層目標 FY2027 將淨負債降至 $40B 以下。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">~$22B (FY2025E)</div><div class="card-sub">半導體 + VMware 軟體訂閱 ARR 雙引擎，OCF Margin 32%+</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex ~$0.5B</div><div class="card-sub">Fabless 模型，幾乎無 Capex；收購已完成（VMware FY2024）</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">債務還款 $5-8B/年</div><div class="card-sub">VMware 收購融資 $68B+，管理層計畫快速去槓桿；股利 $1.3% / 維持每股成長</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">$11.5</td><td class="num">$2.1</td><td class="num">$(0.4)</td><td class="num neg">$16.9</td><td class="num">$12.3</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2023</td><td class="num neg">$14.1</td><td class="num">$2.5</td><td class="num">$(0.4)</td><td class="num neg">$18.7</td><td class="num">$14.2</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2024</td><td class="num neg">$5.9</td><td class="num">$3.2</td><td class="num">$(0.6)</td><td class="num neg">$19.9</td><td class="num">$9.8</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利（含 VMware 整合費用）</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025E</td><td class="num neg">~$20-22</td><td class="num">~$3.5</td><td class="num">~$(0.5)</td><td class="num neg">~$22-24</td><td class="num">~$12B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">強勁盈利，去槓桿加速</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FCF = OCF - Capex。FY2024 FCF 包含 VMware 整合成本。去槓桿目標：FY2027 Net Debt &lt;$40B（現 ~$60B+）。數據來源：Broadcom FY2024 10-K（SEC CIK 1730168）。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$9.8B</td><td class="num pos">$9.8B</td><td class="num neg">FCF +$22B/yr</td><td class="num">∞</td><td class="num">∞</td><td>FCF 遠超資本需求，無流動性問題</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>Broadcom 財務最大風險是 VMware 整合債務（~$60B 淨負債），但 FCF $22B+ 意味 3 年內可大幅去槓桿。信用評級 BBB+，債券市場信心充足。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>淨負債</td><td class="num">~$60B+</td><td class="num">—</td><td><span class="pill pill-gray">高（VMware 收購）</span></td><td>VMware $69B 收購融資；FCF 覆蓋去槓桿</td></tr><tr><td>Interest Coverage</td><td class="num">~4×</td><td class="num">&gt;3×</td><td><span class="pill pill-gray">合理</span></td><td>EBIT ~$38B ÷ 利息 ~$8B</td></tr><tr><td>Debt/EBITDA</td><td class="num">~3.5×</td><td class="num">&lt;4×</td><td><span class="pill pill-gray">可控</span></td><td>VMware 整合後下行趨勢</td></tr><tr><td>流動比率</td><td class="num">1.36×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">合理</span></td><td>Current Assets $15.2B ÷ Liab $11.2B</td></tr><tr><td>FCF Margin</td><td class="num">~32%</td><td class="num">~20%（半導體業平均）</td><td><span class="pill pill-gray">優異</span></td><td>Fabless + 軟體混合模式的高 FCF 特性</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Fabless + 軟體 — 輕資產模型，核心依賴 TSMC + 大客戶</h2>
+    <p class="ph-lead">AVGO 是 Fabless 模型，製造 100% 外包 TSMC（AI XPU 使用 3nm）；VMware 是純軟體（無 Capex）。上游依賴 TSMC 先進製程；下游依賴 Google + Meta + Apple（三大客戶佔 50%+）。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Broadcom 供應鏈 — AI XPU + VMware 雙軌</div><svg viewBox='0 0 860 320' style='width:100%;display:block;min-height:260px' aria-label='Broadcom supply chain'><title>Broadcom supply chain</title><text x='8' y='54' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>上游</text><rect x='45' y='20' width='160' height='52' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='125' y='42' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>TSMC 3nm / 5nm</text><text x='125' y='57' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>AI XPU 製造（Fabless）</text><rect x='215' y='20' width='160' height='52' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='295' y='42' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>SK Hynix HBM</text><text x='295' y='57' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>XPU HBM3e 介面</text><rect x='385' y='20' width='160' height='52' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='465' y='42' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>ASE / Amkor</text><text x='465' y='57' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>XPU 先進封裝</text><rect x='555' y='20' width='160' height='52' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='635' y='42' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>VMware 軟體（無 Capex）</text><text x='635' y='57' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>訂閱 ARR，純軟體</text><text x='8' y='138' fill='#F5A623' font-family='monospace' font-size='10' font-weight='700'>★ 核心</text><rect x='250' y='100' width='360' height='60' rx='8' fill='#F5A623' stroke='#d4880a' stroke-width='2'/><text x='430' y='126' text-anchor='middle' fill='white' font-family='monospace' font-size='13' font-weight='700'>★ Broadcom (AVGO)</text><text x='430' y='148' text-anchor='middle' fill='rgba(255,255,255,0.9)' font-family='monospace' font-size='10'>AI XPU 設計 + VMware 軟體 + 網路晶片</text><text x='8' y='205' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>下游</text><rect x='80' y='185' width='170' height='46' rx='6' fill='#1B3A5E'/><text x='165' y='205' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>Google / Meta</text><text x='165' y='221' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='9'>AI XPU 最大客戶</text><rect x='320' y='185' width='170' height='46' rx='6' fill='#1B3A5E'/><text x='405' y='205' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>Apple（iPhone RF）</text><text x='405' y='221' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='9'>年合約 $8B+</text><rect x='560' y='185' width='170' height='46' rx='6' fill='#1B3A5E'/><text x='645' y='205' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>企業 VMware 用戶</text><text x='645' y='221' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='9'>Fortune 500 / 中型企業</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>TSMC 先進製程（3nm）</td><td>XPU 依賴 TSMC 3nm，地緣風險中高</td><td>TSMC 優先供貨合約</td><td><span class="pill pill-gray">高 — 100% TSMC</span></td><td><span class="pill pill-gray">高（地緣）風險</span></td></tr><tr><td>Google / Meta XPU 客戶</td><td>Top 2 客戶佔 AI XPU 100%，需求強但集中</td><td>長期設計合約（2-3 年周期）</td><td><span class="pill pill-gray">極高 — 2 客戶 &gt;40% Revenue</span></td><td><span class="pill pill-gray">高（集中）風險</span></td></tr><tr><td>VMware 企業用戶</td><td>20,000+ 企業客戶，訂閱轉換 ARR 加速</td><td>虛擬化基礎設施替換成本高</td><td><span class="pill pill-green">分散</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>Apple iPhone RF 合約</td><td>年合約 $8B+，iPhone 主供應商</td><td>長期合約，Apple 偏好 AVGO 技術</td><td><span class="pill pill-gray">高 — 單一客戶 $8B+</span></td><td><span class="pill pill-gray">中（Apple 自研風險）風險</span></td></tr><tr><td>ASE / Amkor 封裝</td><td>XPU CoWoS-like 先進封裝</td><td>與 TSMC 協同，穩定合作</td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2026 Revenue × P/S → 個人估算區間</h2>
+    <p class="ph-lead">AI XPU 業務 FY2026 目標 $30B+，VMware ARR $10B+；整體 FY2026E Revenue $80-90B 可見度高。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="50" max="120" value="80">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$80M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="10" max="30" step="0.5" value="18">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">18x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="417.76"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $417.76</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$68-72B</td><td class="num">4.0×</td><td class="num">$280B</td><td class="num">$280B</td><td class="num">4.73B</td><td class="num neg"><strong>$310</strong></td><td class="num neg">-26%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$80-88B</td><td class="num">6.0×</td><td class="num">$504B</td><td class="num">$504B</td><td class="num">4.73B</td><td class="num "><strong>$480</strong></td><td class="num pos">+15%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$95B+</td><td class="num">8.0×</td><td class="num">$760B</td><td class="num">$760B</td><td class="num">4.73B</td><td class="num "><strong>$600</strong></td><td class="num pos">+44%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $417.76 vs MA50 $373.91（+11.7%），1 年大漲 83.3%；VMware 整合 + AI ASIC 業務驅動；接近 52 週高點 $442.36，短線有壓力。（Source: yfinance 即時行情，2026-05-21）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">上升趨勢</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$417.76</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>+11.7%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>+20.1%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>50 — 中性</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">394.65</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">442.36</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$442.36</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$118.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>+83.3%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">5.0/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $417.76 vs MA50 $373.91（+11.7%），1 年大漲 83.3%；VMware 整合 + AI ASIC 業務驅動；接近 52 週高點 $442.36，短線有壓力。（Source: yfinance 即時行情，2026-05-21）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">AVGO 5 大核心風險 — 影響 × 機率矩陣</h2>
+    <p class="ph-lead">AVGO 的風險分布與緩解措施，涵蓋技術、競爭、監管、估值與宏觀面。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="68" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="230" cy="140" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="230" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="160" cy="40" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="160" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="230" cy="220" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="230" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="160" cy="40" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="160" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>AI XPU 增速不達 $30B 目標</strong><br><span style=font-size:12px;color:var(--c-muted)>若 FY2025 AI XPU 只達 $20B（vs $30B 目標），市場下修估值</span></td><td class="num neg">高</td><td class="num">中</td><td>FY2025</td><td>Q1 已 $4.1B（+77%），Q2 guidance $4.4B 正面</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>VMware 企業客戶流失</strong><br><span style=font-size:12px;color:var(--c-muted)>中小企業因訂閱漲價選擇 Nutanix / OpenStack 替代</span></td><td class="num ">中高</td><td class="num">中低</td><td>持續</td><td>Fortune 500 轉換率 &gt;95%，中小企業影響有限</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>客戶自研 XPU 成熟後減少依賴</strong><br><span style=font-size:12px;color:var(--c-muted)>Google 2030 年後可能 100% 自研 TPU，減少 AVGO 依賴</span></td><td class="num neg">極高</td><td class="num">低</td><td>3-5 年</td><td>Apple / ByteDance 新客戶補充 + 次世代設計服務</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>VMware 收購債務 $68B+ 去槓桿壓力</strong><br><span style=font-size:12px;color:var(--c-muted)>若利率維持高位，利息支出 $8B/年 壓縮 FCF 可分配性</span></td><td class="num ">中</td><td class="num">中低</td><td>持續</td><td>FCF $22B+，債務覆蓋比 &gt;2.7×</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>TSMC 地緣政治風險（台灣）</strong><br><span style=font-size:12px;color:var(--c-muted)>XPU 100% TSMC 製造，台灣風險是 AVGO 供應鏈最大單點</span></td><td class="num neg">極高</td><td class="num">低</td><td>長期</td><td>TSMC 亞利桑那 / 日本擴產；但 CoWoS 仍集中台灣</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Broadcom Inc. 的近期催化劑與時間表，供進場決策參考。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025 Q2 法說（6月）</div><div class="tl-title">AI XPU Q2 Revenue 是否超 $5B</div><div class="tl-body">若 Q2 AI XPU &gt; $5B（管理層 guidance $4.4B），則 FY2025 $30B 目標可見度大幅提升。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 下半年</div><div class="tl-title">第三大 XPU 客戶確認（疑似 Apple）</div><div class="tl-body">若 Apple AI Server XPU 合約確認，增加 $5-10B+ 年收入潛力。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025 Q3-Q4</div><div class="tl-title">VMware ARR 突破 $10B 年化</div><div class="tl-body">訂閱轉換進入加速尾聲，ARR $10B 確認 VMware 軟體業務的高毛利貢獻。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">持續</div><div class="tl-title">去槓桿里程碑（Net Debt &lt; $55B）</div><div class="tl-body">每季 FCF $5-6B 用於還債，去槓桿路徑明確，信用評級上調可能。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q1-Q2</div><div class="tl-title">下一代 XPU（3nm 後繼版）設計公告</div><div class="tl-body">Google TPU v6 / Meta MTIA v3 設計確認，鎖定 FY2026-2027 AI XPU 業務。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">AI XPU 季 Revenue ≥ $5B</div><div class="ws">確認 $30B 年化目標路徑 → 估值重估觸發</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">VMware ARR 突破 $10B</div><div class="ws">訂閱轉換確認 → 軟體利潤貢獻占比超 45%</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">第三大 XPU 客戶（Apple？）公告</div><div class="ws">若確認，增加 $5-10B 潛在 Revenue → 超預期觸發</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">Net Debt 降至 $55B 以下</div><div class="ws">去槓桿加速 → 信用評級上調 → 估值倍數擴張</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">TSMC 3nm CoWoS 供應能力確認</div><div class="ws">供應鏈瓶頸解除 → XPU 出貨量提速</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資視角對 AVGO 的判斷</h2>
+    <p class="ph-lead">從護城河到估值泡沫，五種視角給出不同判斷。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">AVGO 的 SerDes IP + VMware 護城河是可持續的競爭優勢；Hock Tan 的資本分配紀錄（每筆收購都 ROI 明確）類似 Buffett 風格。但 81× PE 偏高，VMware 整合債務讓 Buffett 猶豫；他會等更低估值。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-gray">中立</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">PEG = 81 ÷ 25% EPS 成長 = 3.24，GARP 標準偏貴。Lynch 會等 AI XPU 增速確認後、股價回調時進場，而不是在高估值時追高。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">AI XPU 熱潮 → AVGO 股價上漲 → 更多客戶詢問定製服務 → AI XPU Revenue 增長 → 股價再漲，典型正向反身性。VMware 整合去槓桿成功是反身性的強化因素。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">Hock Tan 的連續收購 + 高 FCF 分配策略是 Munger 最欣賞的「資本高效分配者」。SerDes IP + VMware ARR 是複利機器；但 AI XPU 業務集中度（Google/Meta 佔 100%）讓 Munger 要求折扣。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-red">謹慎</span></div><div class="persona-score" style="color:var(--c-red)">4.5</div></div><div class="persona-body">VMware 整合 $69B 是歷史上最貴的科技收購之一；81× PE 在利率正常化後是高風險。若 Google / Meta 2027 年自研完整 XPU，AVGO AI 業務瞬間萎縮 $20B+。Burry 不做空但等待更大回調。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">偏多觀察。Base PT 個人估算 $480（+15%），EV $459（+10%）。AI XPU $30B 目標達成 + VMware ARR $10B 是核心前提。$380-400 是更佳進場區。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">AVGO 是 NVDA 以外 AI 半導體的最佳替代配置，適合不想追高 NVDA 但看好 AI 基礎設施的投資人。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT $480 vs 現價 +15%（&gt;10%）。等 $390 回調後建倉。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>季度財報</td><td>Broadcom FY2025 Q1 8-K / Earnings，2025-03-06，EDGAR CIK 1730168</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>年度財報</td><td>Broadcom 10-K FY2024，2025-01-28，SEC CIK 1730168</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 AVGO，2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（P/S × FY2026E Revenue Scenario）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · AVGO Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001730168" target="_blank" style="color:var(--c-gold)">0001730168</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{ data: [33.2, 35.8, 51.6, 68.3], backgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{
+        data: [66.8, 65.9, 64.7, 76.7],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

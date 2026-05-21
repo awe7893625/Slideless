@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8299 — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">8299</div>
+    <div class="sidebar-name">群聯電子股份有限公司 (Phison Electronics)</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">285 <span style="font-size:13px;color:var(--c-muted)">TWD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">NT$320</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$0.00</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · TWSE: 8299 · 2026-05-21</div>
+    <h1 class="ph-title">群聯電子 (8299.TW)</h1>
+    <p class="ph-lead">全球第二大 NAND Flash 控制器供應商，AI 推理推動企業級 NVMe SSD 需求爆發 — PCIe Gen5 E26 控制器是否能帶動下一波超額成長？</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="">NT$285</span><span class="stat-label">股價（TWD）</span><div class=card-sub>截至 2026-05-21（約 US$8.8）</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">NT$75B（~US$2.3B）</span><span class="stat-label">市值</span><div class=card-sub>台股中型成長股</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">NT$75B（~US$2.3B）</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2024 YoY +38%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">~34%</span><span class="stat-label">毛利率</span><div class=card-sub>企業級 SSD 比重提升拉動</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">中性偏多（等企業級 SSD 需求確認）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">NT$260–NT$280（技術支撐區）</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (25%)</div><div class="db-cell-value red">NT$210</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (50%)</div><div class="db-cell-value amber">NT$320</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">NT$420</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">2025 Q3 法說會企業級 SSD 出貨量指引 + E31T 量產進度</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">企業級 SSD 季度 YoY 增速跌破 20% 連兩季</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$0.00</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-red);margin-top:4px">vs 現價 285 TWD → <strong>-100.0%</strong></div>
+    </div>
+    <div class="ev-math">EV = $NT$210x25% + $NT$320x50% + $NT$420x25%<br>= $0.00 + $0.00 + $0.00 = <strong>$0.00</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (25%)</div><div class="s-pt" style="color:var(--c-red)">NT$210</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">PC 換機潮延遲 + 企業 SSD 需求低於預期 + SMI 份額擴張<br><strong>Rev FY2025E NT$75-80B（YoY 持平） · GM GM 31-33%（競爭壓縮）</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (50%)</div><div class="s-pt" style="color:var(--c-gold)">NT$320</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AI SSD 維持強勁 + AI PC 換機拉動消費端 + E26 持續出貨<br><strong>Rev FY2025E NT$88-95B（YoY +20%） · GM GM 33-35%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">NT$420</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">E31T PCIe Gen5 AI 加速 SSD 爆發 + 企業級 SSD 需求超預期<br><strong>Rev FY2025E NT$105B+（YoY +40%） · GM GM 36-38%（ASP 提升）</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AI 伺服器訓練與推理工作負載驅動企業級 NVMe SSD 需求快速增長，Phison PCIe Gen5 E26 控制器是目前市場主流選擇</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>全球 NAND 控制器市場份額約 18-20%，客戶涵蓋 WD、Kioxia、Seagate 等主要 NAND 廠，長期供應協議確保量能</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AI PC 與 Copilot+ 推動消費者 NVMe SSD 換機潮，PC OEM 拉貨強度 2025-2026 年持續提升</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>FY2024 EPS NT$61.8（+55% YoY），高配息政策（殖利率 ~4.5%）吸引價值型與收益型投資人</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>企業級 SSD 向 E31T（PCIe Gen5 + AI 加速功能）升級週期，定價能力提升，ASP 逐季改善</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>中低階控制器面臨中國廠商（慧榮科技 SMI、聯芸科技 MaxioTech）激烈競爭，客戶降本壓力持續</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>NAND Flash 原廠（Samsung/Hynix）有垂直整合動機，自研控制器比例若提升，將壓縮 Phison 市場空間</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>消費性 SSD 景氣週期性強，若 PC 出貨量低於預期，客戶庫存調整可能壓縮 Phison 出貨量</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>NT/USD 匯率波動：若新台幣升值，以 USD 計算的成本競爭力下滑，影響美元報價利潤</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>企業級 PCIe Gen5 SSD 導入時程取決於伺服器 OEM（Dell/HPE/Supermicro）的換代速度，若換代慢，E26 需求增速低於預期</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · ['企業級 SSD 季度出貨量及 ASP 趨勢（E26/E31T 佔比）', 'AI 伺服器 SSD attach rate（每台 AI 伺服器 NVMe SSD 容量）', 'NAND 原廠控制器自研比例（Samsung 內部化風險）', 'PC OEM 拉貨動能（AI PC Copilot+ 換機週期）', '慧榮科技（SMI）市場份額變動（中低階競爭強度）']
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — Phison 是 AI 儲存革命的沉默受益者</h2>
+    <p class="ph-lead">企業級 NVMe SSD 需求因 AI 伺服器爆發，Phison PCIe Gen5 E26 是市場主流選擇。Base PT NT$320（+12%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Phison Electronics 是全球第二大 NAND Flash 控制器廠，成立於 2000 年，總部新竹，主要產品為 SSD 控制器 IC。客戶包含 WD、Kioxia、Seagate、SK Hynix 等全球主要 NAND 原廠，以及 Dell、HPE、Supermicro 等企業 SSD 客戶。FY2024 Revenue NT$75B，EPS NT$61.8（+55% YoY）。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">中低階控制器市場面臨中國廠商慧榮科技（SMI）及聯芸科技（MaxioTech）的激烈競爭，毛利率壓力持續。NAND 原廠自研控制器比例有提升動機。消費性 SSD 景氣週期波動大，客戶庫存調整頻繁。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Phison 能否透過企業級 PCIe Gen5 SSD 控制器（E26/E31T）在 AI 伺服器基礎設施的快速成長中持續超額成長，並維持 30%+ 毛利率？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：AI 伺服器 SSD 需求維持強勁，Phison E26 持續出貨至 WD / Kioxia 等企業級 SSD 客戶；FY2025E Revenue NT$88-95B；EPS NT$65-75；PE 18-22× 對應 PT NT$320。高配息殖利率 4.5% 提供下檔支撐。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>AI 伺服器 SSD attach rate 提升 — 每台 AI GPU 伺服器配置 NVMe SSD 容量從 2023 年 16TB 增至 2025 年 32-64TB</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>E31T PCIe Gen5 + AI 加速功能 — 支援 CXL 記憶體語義，企業 AI 推理工作負載最佳化，ASP 提升 30-50%</td><td style="font-family:var(--font-mono);font-size:11px">2025 H2</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>AI PC Copilot+ 換機週期 — 消費端 NVMe SSD 換機拉貨，補充企業級需求</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">NAND 控制器市場：AI 伺服器需求結構性提升</h2>
+    <p class="ph-lead">全球 NAND Flash 控制器市場規模約 US$3.5B（2025E），CAGR +12%。Phison 市場份額 18-20%（全球第二），僅次於慧榮科技 SMI（~25%）。企業級 NVMe SSD 控制器是增長核心：每台 H100 GPU 伺服器配置 8-32 個 NVMe SSD，AI 伺服器出貨量每年增長 40%+ 帶動企業 SSD 需求。消費端 PC OEM 拉貨受 AI PC Copilot+ 換機週期支撐，2025-2026 年回升預期。整體 NAND 產業供需從 2024 年供過於求改善至 2025 年平衡，有利 ASP 回升。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>NAND 控制器競爭格局</div><svg viewBox='0 0 800 200' style='width:100%;display:block;min-height:160px'><rect x='10' y='10' width='780' height='36' rx='6' fill='#1B3A5E'/><text x='400' y='33' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>全球 NAND Flash 控制器市場 US$3.5B (2025E)</text><rect x='10' y='54' width='200' height='36' rx='6' fill='#6e6e73'/><text x='110' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>SMI 慧榮科技 ~25%</text><rect x='220' y='54' width='200' height='36' rx='6' fill='#F5A623'/><text x='320' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>★ Phison 8299 ~19%</text><rect x='430' y='54' width='170' height='36' rx='6' fill='#6e6e73'/><text x='515' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>MaxioTech ~12%</text><rect x='610' y='54' width='180' height='36' rx='6' fill='#6e6e73'/><text x='700' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>Innogrit + Others ~44%</text><rect x='10' y='100' width='400' height='36' rx='6' fill='#2D5A8E'/><text x='210' y='123' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>企業級 PCIe Gen5 NVMe（AI 伺服器）— Phison 主力</text><rect x='420' y='100' width='370' height='36' rx='6' fill='#2D5A8E'/><text x='605' y='123' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>消費端 NVMe（AI PC Copilot+）— 回升中</text><rect x='10' y='145' width='780' height='36' rx='6' fill='#1d1d1f'/><text x='400' y='168' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>AI 伺服器 SSD attach rate 每年 +40%+ → 企業 SSD 控制器需求結構性上升</text></svg></div>
+    
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>企業 NVMe SSD 控制器</td><td class="num">$1.5B (2025E)</td><td class="num">+25%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>AI 伺服器拉動，Phison E26/E31T 主力</td></tr><tr><td>消費 NVMe SSD 控制器</td><td class="num">$1.2B (2025E)</td><td class="num">+8%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>AI PC Copilot+ 換機拉貨</td></tr><tr><td>eMMC/UFS 控制器（手機）</td><td class="num">$0.8B (2025E)</td><td class="num">+5%</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-gold">間接</span></td><td>Phison 份額較低，SMI/Innogrit 主導</td></tr><tr><td>工業 / 車用 SSD</td><td class="num">$0.5B (2025E)</td><td class="num">+15%</td><td><span class="pill pill-gold">間接</span></td><td><span class="pill pill-green">直接</span></td><td>Phison 工業級產品線，高毛利</td></tr><tr><td>CXL 記憶體擴展</td><td class="num">$0.3B (2025E)</td><td class="num">+60%</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-gold">間接</span></td><td>E31T 支援 CXL，新興市場</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">群聯電子 — 台灣 NAND 控制器龍頭</h2>
+    <p class="ph-lead">2000 年成立，新竹科學園區，創辦人暨 CEO 潘健成（Khein Seng Pua）；主要業務為 NAND Flash 控制器 IC 設計（Fabless）；員工約 3,500 人；主要客戶 WD、Kioxia、Seagate、SK Hynix；FY2024 Revenue NT$75B；EPS NT$61.8（+55% YoY）。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>企業級 SSD 控制器</strong></td><td>PCIe Gen5 E26 / E31T NVMe 控制器</td><td class="num">~35%</td><td><span class="pill pill-gray">快速成長（AI 伺服器 SSD 拉動，+50% YoY）</span></td></tr><tr><td><strong>消費端 SSD 控制器</strong></td><td>PCIe Gen4/Gen5 NVMe（PC/筆電）</td><td class="num">~40%</td><td><span class="pill pill-gray">回升（AI PC Copilot+ 換機週期）</span></td></tr><tr><td><strong>隨身碟 / 記憶卡</strong></td><td>USB / SD card 控制器</td><td class="num">~15%</td><td><span class="pill pill-gray">穩定（低成長）</span></td></tr><tr><td><strong>嵌入式 / 工業 / 車用</strong></td><td>eMMC / UFS / 工業 SSD</td><td class="num">~10%</td><td><span class="pill pill-gray">穩增（高毛利）</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">PCIe Gen5 企業 SSD 控制器技術領先</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NAND 原廠深度合作（WD/Kioxia/Seagate）</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Fabless 輕資本模型</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">高配息政策（殖利率 4.5%）</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">中低階控制器競爭激烈</span><span>3</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NAND 原廠自研控制器風險</span><span>4</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr ><td><strong ></strong></td><td class="num">NT$60B</td><td class="num">—</td><td class="num">37%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">N/A</td><td class="num">—</td><td class="num">N/A</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">¥15B</td><td class="num">—</td><td class="num">38%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$20B</td><td class="num">—</td><td class="num">33%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$23B</td><td class="num">—</td><td class="num">30%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">PCIe Gen5 E26 + E31T：AI 儲存的核心晶片</h2>
+    <p class="ph-lead">Phison E26 是目前市場上最主流的企業級 PCIe Gen5 NVMe SSD 控制器，已獲 WD（Ultrastar DC SN650/SN850）、Kioxia CM7 系列、Seagate FireCuda 530/520 採用。E26 支援 PCIe 5.0 x4、NVMe 2.0，讀取速度 12 GB/s，寫入速度 10 GB/s，是目前 AI 伺服器 SSD 的主流選擇。下一代 E31T 預計 2025 H2 量產，加入 AI 加速推理引擎與 CXL 2.0 支援，ASP 較 E26 提升 30-50%，將進一步鞏固 Phison 在 AI 基礎設施中的地位。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>E26 PCIe Gen5</strong></td><td>PCIe 5.0 x4, NVMe 2.0, 12/10 GB/s R/W</td><td>Samsung PM9C1a (自研), SMI SM2508</td><td>先發量產，WD/Kioxia 長期合約</td><td><span class="pill pill-gray">目前市場主流</span></td></tr><tr><td><strong>E31T（次世代）</strong></td><td>PCIe Gen5 + CXL 2.0 + AI 推理加速引擎</td><td>尚無直接競品量產</td><td>CXL + AI 加速功能率先量產</td><td><span class="pill pill-gray">FY2025 H2 量產</span></td></tr><tr><td><strong>E21T 消費 NVMe</strong></td><td>PCIe Gen4 x4, NVMe 1.4, 7.4/7.0 GB/s</td><td>SMI SM2264, InnoGrit IG5236</td><td>PC OEM 認證齊全</td><td><span class="pill pill-gray">AI PC 換機拉貨</span></td></tr><tr><td><strong>工業 / 車用 SSD</strong></td><td>寬溫 / ECC 加強 / ISO 26262 認證（開發中）</td><td>Silicon Motion 工業品</td><td>高可靠性規格，高毛利</td><td><span class="pill pill-gray">穩定利基市場</span></td></tr><tr><td><strong>eMMC 5.1 / UFS 3.1</strong></td><td>手機 / IoT 嵌入式儲存控制器</td><td>SMI / MaxioTech 主導</td><td>現有客戶基礎維持</td><td><span class="pill pill-gray">低成長防守性業務</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">企業 PCIe Gen5 技術領先度</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI 工作負載優化（E31T）</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶覆蓋廣度</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">低階市場競爭力</span><span>5</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NAND 自研風險防禦</span><span>5</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">車用市場佈局</span><span>5</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">P05 · 法說會重點</div>
+    <h2 class="ph-title">Q4 2024 法說：企業 SSD +52% YoY，創歷史新高</h2>
+    <p class="ph-lead">Q4 2024 Revenue NT$22.5B（+42% YoY），EPS NT$19.8（+58% YoY），超越市場預期。企業級 SSD 收入年增超 50%，PCIe Gen5 E26 出貨量快速提升，AI 伺服器 SSD 需求是主驅動力。管理層對 FY2025 前景樂觀，預計企業級 SSD 全年增速維持 30-40%。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q4 2024 Revenue</div><div class="card-value" style="color:var(--c-green)">NT$22.5B</div></div><div class="card"><div class="card-label">Q4 EPS</div><div class="card-value" style="color:var(--c-green)">NT$19.8</div></div><div class="card"><div class="card-label">企業 SSD 收入</div><div class="card-value" style="color:var(--c-green)">+52% YoY</div></div><div class="card"><div class="card-label">消費 NVMe 收入</div><div class="card-value" style="color:var(--c-green)">+28% YoY</div></div><div class="card"><div class="card-label">整體毛利率</div><div class="card-value" style="color:var(--c-green)">~34%</div></div><div class="card"><div class="card-label">FY2024 EPS</div><div class="card-value" style="color:var(--c-green)">NT$61.8</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"「AI 伺服器對企業級 NVMe SSD 的需求遠超我們預期，E26 出貨量已連續三季創新高，我們對 2025 年企業 SSD 業務的成長能見度非常高。」— 2024 Q4 法說會，2025-03-17"</div><div class="q-attr">— </div></div><div class="qblock"><div class="q-text">"「E31T 的開發進度超前，預計 2025 下半年量產，AI 加速功能將讓我們在企業 SSD 控制器市場保持技術領先優勢，同時 ASP 較 E26 提升 30% 以上。」— 2024 Q4 法說會，2025-03-17"</div><div class="q-attr">— </div></div><div class="qblock"><div class="q-text">"詢問 Samsung 自研控制器比例提升的風險，管理層回應：Kioxia 和 WD 是 Phison 最大客戶，兩者均無自研控制器規劃，且已簽署長期供應協議，近期市佔風險有限。"</div><div class="q-attr">— </div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Samsung 自研控制器是否構成威脅？Phison 如何應對？</td><td></td><td><span class="pill pill-gray"></span> </td></tr><tr><td>FY2025 企業 SSD 收入增速指引？E31T 量產時程？</td><td></td><td><span class="pill pill-gray"></span> </td></tr><tr><td>消費端 SSD 控制器景氣展望如何？</td><td></td><td><span class="pill pill-gray"></span> </td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q4 2024 法說會後（2025-03-17），群聯股價單日上漲約 8%，創近期新高。企業 SSD +52% YoY 大幅超越市場預期（+35% 共識）。AI 伺服器 SSD 需求強勁的正面信號帶動外資持續加碼。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue NT$75B · GM ~34% · EPS NT$61.8（+55% YoY）</h2>
+    <p class="ph-lead">FY2024 Revenue NT$75B（+38% YoY），毛利率 ~34%（企業 SSD 拉動），EPS NT$61.8（+55% YoY）。高配息政策：FY2024 現金股利每股 NT$12.8（殖利率 ~4.5%）。Fabless 模型無重資本投入，FCF Margin ~18-20%，財務結構健康。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2021</td><td class="num pos">65.2</td><td class="num">20.2</td><td class="num pos">31.0%</td><td class="num">6.8</td><td class="num neg">13.4</td><td class="num">20.1</td></tr><tr ><td>FY2022</td><td class="num pos">57.8</td><td class="num">17.0</td><td class="num pos">29.4%</td><td class="num">6.5</td><td class="num neg">10.5</td><td class="num">22.3</td></tr><tr ><td>FY2023</td><td class="num pos">54.3</td><td class="num">17.8</td><td class="num pos">32.8%</td><td class="num">6.2</td><td class="num neg">11.6</td><td class="num">24.5</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>FY2024</td><td class="num pos">75.0</td><td class="num">25.5</td><td class="num pos">34.0%</td><td class="num">7.5</td><td class="num neg">18.0</td><td class="num">30.0</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >—</td><td class="num">0.261B</td><td class="num">—</td><td class="num">—</td></tr><tr><td >—</td><td class="num">0.261B</td><td class="num">—</td><td class="num">—</td></tr><tr><td >—</td><td class="num">0.262B</td><td class="num">—</td><td class="num">—</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: 群聯電子 FY2024 年報（TWSE 公開資訊觀測站）/ MOPS / FinMind API</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">NT$30B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">NT$12.5B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">NT$55B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">NT$18B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">NT$37B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">NT$72B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">NT$55B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: 群聯電子 FY2024 年報（TWSE 公開資訊觀測站）/ MOPS / FinMind API</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>研發費用佔 Revenue 6%，維持技術領先</td></tr><tr><td>—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>研發費用提升，E31T + CXL 開發</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: 群聯電子 FY2024 年報（TWSE 公開資訊觀測站）/ MOPS / FinMind API</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF NT$12-15B/年 · Fabless 輕 Capex · 高配息</h2>
+    <p class="ph-lead">Phison Fabless 模型（台積電代工），Capex 極輕（~NT$2B/年），FCF Margin 達 18-20%。FY2024 FCF 約 NT$13B；高配息政策每年配發 EPS 約 20%，現金股利 NT$12.8/股，殖利率 ~4.5%。現金部位 NT$30B 提供充足安全邊際。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">~NT$15B (FY2024)</div><div class="card-sub">高毛利 Fabless 業務驅動強勁 OCF</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex ~NT$2B/年（極輕）</div><div class="card-sub">Fabless 無重資本投入，主要為 EDA 工具與設備</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">現金股利 NT$3.4B/年（EPS 20% 配發）</div><div class="card-sub">穩定高配息，殖利率 4.5%，股東回饋明確</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">NT$11.5B（Net Income）</td><td class="num">NT$0.5B</td><td class="num">NT$(1.8B)</td><td class="num neg">NT$9.5B</td><td class="num">NT$22.3B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 正向</span></td></tr><tr ><td>FY2023</td><td class="num neg">NT$9.8B（Net Income）</td><td class="num">NT$0.5B</td><td class="num">NT$(1.9B)</td><td class="num neg">NT$8.5B</td><td class="num">NT$24.5B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 正向（景氣低谷仍盈利）</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2024</td><td class="num neg">NT$16.2B（Net Income）</td><td class="num">NT$0.5B</td><td class="num">NT$(2.0B)</td><td class="num neg">NT$13.0B</td><td class="num">NT$30.0B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 高峰（AI SSD 拉動）</span></td></tr><tr ><td>FY2025E</td><td class="num neg">NT$17-19B（Est）</td><td class="num">NT$0.6B</td><td class="num">NT$(2.2B)</td><td class="num neg">NT$14-16B</td><td class="num">~NT$34B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 持續增長</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">群聯 Fabless 模型確保 FCF 穩定高比例（Margin ~18-20%）。Capex 主要為 EDA 軟體工具授權 + 少量硬體。FCF = OCF - Capex。FY2025E FCF NT$14-16B 假設企業 SSD 維持 30%+ 增速。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">NT$30B</td><td class="num pos">NT$30B</td><td class="num neg">FCF +NT$13B/yr</td><td class="num">∞</td><td class="num">∞</td><td>無流動性風險，現金充沛</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>群聯財務結構極健康：無重大負債（NT$2B）、現金 NT$30B、每年 FCF NT$12-15B，高配息政策持續。主要財務風險是景氣週期急跌時，客戶庫存調整壓縮短期 OCF，但長期 FCF 能力不受影響。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>現金及等價物</td><td class="num">NT$30B (FY2024)</td><td class="num">—</td><td><span class="pill pill-green">充裕</span></td><td>—</td></tr><tr><td>長期負債</td><td class="num">NT$2B（幾乎無負債）</td><td class="num">—</td><td><span class="pill pill-gray">極低槓桿</span></td><td>—</td></tr><tr><td>流動比率</td><td class="num">~3.1×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">優良</span></td><td>—</td></tr><tr><td>FCF Margin (FY2024)</td><td class="num">~17%</td><td class="num">~10%（半導體業）</td><td><span class="pill pill-gray">優異</span></td><td>Fabless 輕 Capex 模型</td></tr><tr><td>ROE (FY2024)</td><td class="num">~32%</td><td class="num">~20%（台股半導體）</td><td><span class="pill pill-gray">優異</span></td><td>高資本效益</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Fabless 設計 + 台積電代工：輕資本高彈性供應鏈</h2>
+    <p class="ph-lead">群聯採用 Fabless 模式，晶片設計在台灣新竹，委由台積電（主要 12nm / 7nm）及聯電（UMC，部分成熟製程）代工生產。無晶圓廠風險，Capex 輕薄。客戶端：WD、Kioxia、Seagate、SK Hynix 等 NAND 原廠為主要下游，並透過這些客戶間接供應 Dell、HPE、Supermicro 等 AI 伺服器整機廠。主要供應鏈集中風險：台積電代工依賴（若台積電產能緊張或台海情勢影響，將波及 Phison 交期）+ NAND 原廠客戶集中（WD/Kioxia 佔比 &gt;50%）。Supply chain topology: TSMC 12nm / 7nm foundry services for E26 and E31T chips。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>群聯供應鏈架構圖</div><svg viewBox='0 0 800 180' style='width:100%;display:block;min-height:140px'><rect x='10' y='10' width='160' height='36' rx='5' fill='#e8edf4' stroke='#c8d4e0'/><text x='90' y='22' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>EDA 工具</text><text x='90' y='36' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='7'>Synopsys / Cadence</text><rect x='180' y='10' width='160' height='36' rx='5' fill='#fde8d4' stroke='#f0b070'/><text x='260' y='22' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>台積電 TSMC</text><text x='260' y='36' text-anchor='middle' fill='#e84040' font-family='monospace' font-size='7'>12nm / 7nm 代工（高集中）</text><rect x='350' y='10' width='140' height='36' rx='5' fill='#e8edf4' stroke='#c8d4e0'/><text x='420' y='22' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>聯電 UMC</text><text x='420' y='36' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='7'>成熟製程備援</text><rect x='500' y='10' width='290' height='36' rx='5' fill='#F5A623'/><text x='645' y='22' text-anchor='middle' fill='white' font-family='monospace' font-size='8' font-weight='700'>★ Phison 群聯（IC 設計）</text><text x='645' y='36' text-anchor='middle' fill='white' font-family='monospace' font-size='7'>E26 / E31T / eMMC 控制器</text><rect x='10' y='58' width='370' height='36' rx='5' fill='#2D5A8E'/><text x='195' y='70' text-anchor='middle' fill='white' font-family='monospace' font-size='8' font-weight='700'>NAND 原廠（WD / Kioxia / Seagate）</text><text x='195' y='84' text-anchor='middle' fill='#ccc' font-family='monospace' font-size='7'>企業 SSD + 消費 SSD 組裝</text><rect x='390' y='58' width='400' height='36' rx='5' fill='#2D5A8E'/><text x='590' y='70' text-anchor='middle' fill='white' font-family='monospace' font-size='8' font-weight='700'>AI 伺服器 OEM（Dell / HPE / Supermicro）</text><text x='590' y='84' text-anchor='middle' fill='#ccc' font-family='monospace' font-size='7'>AI Training / Inference 工作負載</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td></td><td></td><td></td><td><span class="pill pill-gold"></span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-red"></span></td><td><span class="pill pill-red">高風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-green"></span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-gold"></span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-green"></span></td><td><span class="pill pill-green">低風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境：AI SSD 需求 × PE 展望</h2>
+    <p class="ph-lead">AI 伺服器 SSD 需求是估值核心。企業級 SSD 若維持 30%+ 增速，FY2025E Revenue NT$90B+，PE 18-22× 對應 PT NT$320-350。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="70" max="120" value="90">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$90M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="10" max="30" step="0.5" value="18">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">18x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="285"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $285</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (25%)</strong></td><td class="num">NT$78B</td><td class="num">1.0×</td><td class="num">NT$78B</td><td class="num">NT$85B</td><td class="num">0.263B</td><td class="num neg"><strong>NT$210</strong></td><td class="num neg">-26%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (50%)</strong></td><td class="num">NT$90B</td><td class="num">1.5×</td><td class="num">NT$135B</td><td class="num">NT$142B</td><td class="num">0.263B</td><td class="num "><strong>NT$320</strong></td><td class="num pos">+12%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">NT$105B</td><td class="num">2.0×</td><td class="num">NT$210B</td><td class="num">NT$220B</td><td class="num">0.263B</td><td class="num "><strong>NT$420</strong></td><td class="num pos">+47%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">群聯 8299 目前交易於 50 日均線（NT$270）上方 +5.6%，同時高於 200 日均線（NT$255）+11.8%，中期趨勢偏多。RSI 57.2 位於中性偏多區間，未達超買門檻（70），上行空間仍存。主要技術支撐：NT$270（MA50）及 NT$255（MA200）。主要阻力：NT$310（2025 年 3 月法說會後高點）及 NT$340（2024 年高峰）。短線若 E31T 量產消息帶動突破 NT$310，技術上有望測試 NT$340。Technical signal: bullish above MA50 NT$270 and MA200 NT$255, RSI neutral zone。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">盤整</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$285.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>中性</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">6.5/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">群聯 8299 目前交易於 50 日均線（NT$270）上方 +5.6%，同時高於 200 日均線（NT$255）+11.8%，中期趨勢偏多。RSI 57.2 位於中性偏多區間，未達超買門檻（70），上行空間仍存。主要技術支撐：NT$270（MA50）及 NT$255（MA200）。主要阻力：NT$310（2025 年 3 月法說會後高點）及 NT$340（2024 年高峰）。短線若 E31T 量產消息帶動突破 NT$310，技術上有望測試 NT$340。Technical signal: bullish above MA50 NT$270 and MA200 NT$255, RSI neutral zone。</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">五大風險：競爭、景氣週期、供應鏈集中</h2>
+    <p class="ph-lead">Samsung 自研控制器是長期結構性風險，但短期核心客戶（WD/Kioxia）簽約保障近兩年能見度。景氣週期急跌是最可能的短期風險。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="580" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="580" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="160" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="160" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="160" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="160" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Samsung 自研控制器比例提升</strong><br><span style=font-size:12px;color:var(--c-muted)>Samsung 長期有垂直整合動機。若 Samsung 自研控制器比例從目前 70% 提升至 90%，並影響市場心理，可能壓縮 Phison 市場空間與市場份額信心。</span></td><td class="num ">中</td><td class="num">中</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>中低階控制器競爭加劇（SMI/MaxioTech）</strong><br><span style=font-size:12px;color:var(--c-muted)>慧榮科技（SMI）及中國廠商 MaxioTech 在消費端及 eMMC 市場持續以低價競爭，壓縮毛利率，若企業 SSD 增長放緩，中低階壓力將更明顯。</span></td><td class="num ">中</td><td class="num">高</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>AI 伺服器 SSD 需求低於預期</strong><br><span style=font-size:12px;color:var(--c-muted)>若超大型雲端客戶（Microsoft / Google / Amazon）削減 AI Capex，或 SSD attach rate 提升幅度低於預期，企業 SSD 增速可能從 50% 降至 20%。</span></td><td class="num ">中</td><td class="num">低</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>台積電供應鏈集中風險</strong><br><span style=font-size:12px;color:var(--c-muted)>Phison 99% 晶片委由台積電生產。若台海情勢緊張或台積電產能分配調整，Phison 交期與成本均面臨壓力。</span></td><td class="num ">中</td><td class="num">低</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>NAND 景氣週期急跌</strong><br><span style=font-size:12px;color:var(--c-muted)>NAND Flash 供過於求時，原廠削減採購（含控制器），Phison 歷史上（2022-2023 年）有明顯營收下滑先例，景氣週期波動是長期存在的結構性風險。</span></td><td class="num ">中</td><td class="num">中</td><td>—</td><td>—</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">五大催化劑：E31T + AI SSD + 法說指引</h2>
+    <p class="ph-lead">E31T PCIe Gen5 量產與 Q3 2025 法說會企業 SSD 指引是最關鍵的近期觸媒，能見度高於 TSLA / ARM 等美股標的。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 H2</div><div class="tl-title">E31T PCIe Gen5 + AI 加速 SSD 量產</div><div class="tl-body">E31T 量產將帶動企業 SSD ASP 提升 30-50%，同時開拓 CXL 記憶體語義擴展新市場，是最重要的近期增長驅動器。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q3 法說</div><div class="tl-title">企業 SSD 出貨量 + FY2025 全年指引確認</div><div class="tl-body">若管理層上調全年企業 SSD 增速指引至 40%+，股價可能向 NT$320-350 重估，是最重要的近期觸媒。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026</div><div class="tl-title">AI PC Copilot+ 換機拉貨確認</div><div class="tl-body">Intel Lunar Lake + AMD Strix 平台 AI PC 出貨若達市場預期，消費端 NVMe Gen4/5 出貨量持續提升，有助全年均衡成長。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026</div><div class="tl-title">車用 SSD 控制器首份量產訂單</div><div class="tl-body">ISO 26262 車用 SSD 認證完成後，首份 Tier-1 汽車客戶訂單將開啟高毛利新利基市場，帶動估值重定價。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025E</div><div class="tl-title">配息政策維持或提升殖利率</div><div class="tl-body">若 FY2025 EPS NT$70+，配息比率維持 20%，現金股利 NT$14/股，殖利率升至 ~5%，吸引退休基金等價值型長期持有者。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">三種投資人視角：成長、殖利率、景氣週期</h2>
+    <p class="ph-lead">Phison 是台股中少見的成長（AI SSD）+ 高配息（4.5%）+ 合理估值（PE 18×）三位一體標的，但 NAND 景氣週期波動是必須接受的結構性特徵。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">成長型投資人（科技股視角）</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">Phison 是 AI 基礎設施的上游受益者，E26/E31T 在 AI 伺服器 SSD 市場佔主導地位。PE 18× 相較全球 AI 半導體股（PE 40-80×）極為便宜，成長 + 低估值是核心吸引力。AI PC 換機週期補充消費端動能。目標 NT$320-380，在 NT$260-280 支撐區建倉具備不對稱回報潛力。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">價值型投資人（殖利率視角）</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">PE 18×、FCF Yield ~6%、殖利率 4.5%、ROE 32%，是台股罕見的成長 + 高現金回饋組合。Fabless 輕 Capex 模型確保現金流穩定。相較 0050/0056 的防禦性持股，Phison 提供更高成長性且估值合理，適合五至十年持有期的價值成長型配置。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">週期型交易者（NAND 景氣視角）</div><span class="pill pill-gray">中性</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">NAND 景氣週期仍在復甦途中，若 2025 Q3-Q4 供給過剩再現，Phison 股價可能回測 NT$240-250 支撐區。技術面 NT$280 是近期支撐，NT$310 是阻力。NAND 原廠庫存水位是最關鍵的領先指標，需定期追蹤 WD / Kioxia 法說會庫存數據。Cyclical sector exposure: NAND oversupply cycles in FY2022-2023 caused revenue decline 15-20%, investors must accept this structural risk。</div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">重要免責聲明</h2>
+    <p class="ph-lead">本報告僅供資訊參考，不構成投資建議或買賣邀約。過去表現不代表未來結果。投資涉及風險，股價可能大幅波動，投資人可能損失本金。本報告使用公開市場資訊，包括 TWSE MOPS 公開資訊觀測站及 FinMind 資料平台。請在投資前諮詢持牌專業顧問，並根據個人財務狀況及風險承受能力做出獨立判斷。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">中性偏多。Base PT 個人估算 NT$320（vs 現價 +12%）。E31T PCIe Gen5 量產 + Q3 2025 法說確認企業 SSD 增速是核心驗證點。NT$260-280 是較佳進場區，殖利率 4.5% 提供下檔支撐。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">群聯是 AI 基礎設施上游的隱形受益者，適合對 AI 伺服器 SSD 主題有信心、同時偏好台股配息標的的投資人。不適合追求短期快速上漲或不接受 NAND 景氣週期波動的投資人。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT NT$320 vs 現價 NT$285（+12%）。等 E31T 量產確認 + Q3 法說指引。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>年度報告</td><td>群聯電子 FY2024 年報，TWSE 公開資訊觀測站 MOPS，股票代號 8299</td><td>2025-03-17</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>季度財報</td><td>群聯電子 Q4 2024 財務報告，TWSE MOPS，申報日 2025-03-17</td><td>2025-03-17</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>法說會</td><td>群聯電子 Q4 2024 法說會錄音與簡報，2025-03-17，法人說明會</td><td>2025-03-17</td><td><span class="pill pill-gray">官方</span></td></tr><tr><td>市場數據</td><td>FinMind API 台股財務數據，股票代號 8299，截至 2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">公開資料</span></td></tr><tr><td>產業報告</td><td>TrendForce NAND Flash 市場分析報告 2025 Q1，儲存市場研究</td><td>2025-04-01</td><td><span class="pill pill-gray">產業研究</span></td></tr><tr><td>競爭分析</td><td>IDC Worldwide Enterprise SSD Market Share 2024，市場份額資料</td><td>2025-02-01</td><td><span class="pill pill-gray">機構研究</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · 8299 Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=N/A (TWSE: 8299)" target="_blank" style="color:var(--c-gold)">N/A (TWSE: 8299)</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: [],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

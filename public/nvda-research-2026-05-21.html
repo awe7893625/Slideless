@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVDA — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">NVDA</div>
+    <div class="sidebar-name">NVIDIA Corporation</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">223.47 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$260</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$260.00</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: NVDA · 2026-05-21</div>
+    <h1 class="ph-title">NVIDIA — AI 算力基礎設施的壟斷者</h1>
+    <p class="ph-lead">Blackwell 架構全速出貨、FY2026 Q1 Revenue $68.1B (+69% YoY)，Data Center 占比超過 88%；估值 34× TTM PE 已充分反映短期盈利，但 Sovereign AI 與 Next-Gen Rubin 架構週期構成新成長台階。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" data-count="68.1" data-suffix="B" style="color:var(--c-green)">$68.1B</span><span class="stat-label">Q1 FY2026 Revenue</span><div class=card-sub>+69% YoY，連 7 季創新高</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">88%+</span><span class="stat-label">Data Center Rev %</span><div class=card-sub>$60.8B，YoY +73%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">71.1%</span><span class="stat-label">Gross Margin</span><div class=card-sub>TTM FY2026</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$5.4T</span><span class="stat-label">Market Cap</span><div class=card-sub>全球第一大市值公司</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">偏多觀察（估值充分，等 Rubin 量產訊號）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$190–$210</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">$160</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">$260</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$340</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q2 FY2026 法說（8 月）</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">AI 資本開支凍結 OR Rubin 量產延遲 6 個月+</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$260.00</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 223.47 USD → <strong>+16.3%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$160x20% + $$260x55% + $$340x25%<br>= $32.00 + $143.00 + $85.00 = <strong>$260.00</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">$160</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AI 資本開支削減 / H20 禁令擴大 / AMD 搶份額加速<br><strong>Rev FY2027E $180-200B · GM GM 65-67%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">$260</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Rubin 按計畫 2026 Q4 量產 / Sovereign AI 持續擴張<br><strong>Rev FY2027E $260-290B · GM GM 70-72%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$340</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Rubin Ultra + 軟體 NIM 訂閱爆發 / Sovereign AI $10B+/Q<br><strong>Rev FY2027E $330-380B · GM GM 72-74%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Blackwell GB200/B200 供不應求，CoWoS + HBM3e 配置仍受限，客戶排隊 12–18 個月</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Sovereign AI（政府採購）從 0 到 $1B+ 季度，沙烏地、日本、印度、歐盟大單確認</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>CUDA 生態護城河：超過 4,500 個 AI 應用依賴 CUDA，替換成本極高</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>NIM / NeMo 軟體訂閱化，正在從純硬體轉型為 AI 平台公司</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Rubin 架構 2026 量產，GB300 → Rubin Ultra 路線圖清晰</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>估值 P/E 34×（TTM），若 AI 資本開支下行，倍數壓縮風險大</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>AMD MI325X / Gaudi 3 進步中，Huawei Ascend 910C 侵蝕中國市場份額</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>美國出口管制收緊：H20 禁令擴大後中國收入歸零，FY2025 中國占比 ~13%</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>客戶自研晶片加速（Google TPU / AWS Trainium / Meta MTIA），長期滲透率受壓</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>HBM3e / CoWoS 供應緊張導致毛利率短期壓力（Q2 FY2026 guidance 71.3% 下修）</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · Rubin 出貨節奏 + H20 禁令對 FY2027 China 收入的實際影響
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — NVIDIA 是 AI 算力週期的唯一壟斷者，但估值已反映樂觀預期</h2>
+    <p class="ph-lead">Blackwell 超級週期帶動 FY2026 收入年化 $272B+ 節奏；Base PT 個人估算 $260（vs 現價 +16%），EV $237（+6.0%），合理但不便宜</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">全球 AI 基礎設施進入大規模建設期，Meta / Microsoft / Google / AWS 合計 2025 年資本開支超過 $300B，其中 GPU 採購占大頭。NVIDIA 的 Blackwell B200/GB200 架構是目前最強 AI Training &amp; Inference 晶片，且沒有同等效能的替代品。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">市場已充分定價 Blackwell 超級週期——34× TTM PE 反映高增長預期。問題是：(1) AI Capex 是否可持續？(2) H20 禁令是否蔓延至 GB200？(3) AMD MI325X / Google TPU 等競品是否開始侵蝕份額？這三個問題的答案決定 2026-2027 的估值能否撐住。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">若 AI Capex 增速放緩至 20-30% YoY（從目前 70%+），NVIDIA 的 Revenue 增速能否維持 30%+？估值倍數是否需要下調？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：Sovereign AI（政府市場）從 $0 快速增長至 $4B+ 季度，部分抵消 Hyperscaler Capex 放緩；同時 Rubin 架構 2026 量產拉開下一個效能代差，NVIDIA 在 AI 訓練市場份額維持 80%+。FY2027E Revenue $260-290B 可見度高，Base PT 個人估算 $260。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>Blackwell GB200 NVL72 量產斜坡 — 液冷 72-GPU 機架，較 H100 算力 30×，訓練成本 -25×，Hyperscaler 排隊 12-18 個月</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>Sovereign AI 爆發 — 沙烏地 AI 城 500MW、日本 AI 國家計畫、印度 DePIN，政府 GPU 採購從概念走向 $10B+ 規模</td><td style="font-family:var(--font-mono);font-size:11px">2025-2027</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>NIM / NeMo 軟體訂閱化 — NVIDIA 正從硬體 One-time Revenue 轉向 ARR 模式，長期將提升估值倍數</td><td style="font-family:var(--font-mono);font-size:11px">2026-2028</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">AI 算力基礎設施 — $2T+ 的 Secular 成長市場</h2>
+    <p class="ph-lead">全球 AI 伺服器市場 2025 估 $300B+，CAGR 30-40%；NVIDIA 在 AI Training GPU 市場份額 80%+，Data Center Networking（InfiniBand / Spectrum-X）份額持續擴大。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">AI 算力生態 — 7 層堆疊：NVIDIA 在哪裡？</div><svg viewBox="0 0 800 380" style="width:100%;display:block;min-height:300px" aria-label="NVIDIA AI ecosystem stack diagram"><title>NVIDIA AI Stack Position</title><rect x="10" y="10" width="780" height="44" rx="6" fill="#1B3A5E"/><text x="400" y="36" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">終端應用層 · 企業 AI / 自動駕駛 / 醫療影像 / 生成式 AI SaaS</text><rect x="10" y="62" width="780" height="44" rx="6" fill="#2D5A8E"/><text x="400" y="88" text-anchor="middle" fill="white" font-family="monospace" font-size="12">AI 框架層 · PyTorch / TensorFlow / JAX（第三方，CUDA 依賴）</text><rect x="10" y="114" width="380" height="44" rx="6" fill="#F5A623"/><text x="200" y="140" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ CUDA 生態 · 4,500+ AI 庫 / TensorRT / cuDNN</text><rect x="400" y="114" width="390" height="44" rx="6" fill="#6B7280"/><text x="595" y="140" text-anchor="middle" fill="white" font-family="monospace" font-size="11">ROCm (AMD) / OneAPI (Intel) — 替代生態，成熟度低</text><rect x="10" y="166" width="380" height="44" rx="6" fill="#F5A623"/><text x="200" y="192" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ GPU 硬體 · H100 / H200 / B200 / GB200 NVL72</text><rect x="400" y="166" width="390" height="44" rx="6" fill="#6B7280"/><text x="595" y="192" text-anchor="middle" fill="white" font-family="monospace" font-size="11">MI325X / Gaudi 3 / TPU v5 — 份額 &lt;15%</text><rect x="10" y="218" width="380" height="44" rx="6" fill="#1F7A5C"/><text x="200" y="244" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ 網路 · InfiniBand NDR 400G / Spectrum-X</text><rect x="400" y="218" width="390" height="44" rx="6" fill="#4B5563"/><text x="595" y="244" text-anchor="middle" fill="white" font-family="monospace" font-size="11">Ethernet (Arista / Cisco) — AI Fabric 替代方案</text><rect x="10" y="270" width="780" height="44" rx="6" fill="#374151"/><text x="400" y="296" text-anchor="middle" fill="#F5A623" font-family="monospace" font-size="12" font-weight="700">★ 晶圓代工 · TSMC CoWoS / HBM3e (SK Hynix / Samsung) — 上游供應瓶頸</text><rect x="10" y="322" width="780" height="44" rx="6" fill="#4B5563"/><text x="400" y="348" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="monospace" font-size="11">資料中心 OEM · Dell / HPE / Supermicro — NVIDIA GPU 整合系統商</text></svg></div>
+    <div class="qblock reveal" style="border-left-color:var(--c-blue);margin-bottom:24px"><p class="q-text"><strong style="color:var(--c-blue)">Picks-and-Shovels 視角：</strong>在 AI 基礎設施鏈中，TSMC CoWoS 封裝（唯一能做 GB200 NVL72）和 SK Hynix HBM3e 是 NVIDIA 的上游瓶頸供應商，具有定價權；ASML EUV（生產 A16 晶圓）是更上游的壟斷者。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>AI GPU（Training）</td><td class="num">$180B (2025E)</td><td class="num">35-45%</td><td><span class="pill pill-gray">80%+ 份額</span></td><td><span class="pill pill-green">直接</span></td><td>H100/H200/B200 主戰場</td></tr><tr><td>AI Inference 加速器</td><td class="num">$60B (2025E)</td><td class="num">50%+</td><td><span class="pill pill-gray">60%+ 份額</span></td><td><span class="pill pill-green">直接</span></td><td>L40S / H200 Inference 版</td></tr><tr><td>AI 網路（IB/Ethernet）</td><td class="num">$25B (2025E)</td><td class="num">40%</td><td><span class="pill pill-gray">55% IB 份額</span></td><td><span class="pill pill-green">直接</span></td><td>Spectrum-X 搶 Ethernet AI Fabric</td></tr><tr><td>Sovereign AI 採購</td><td class="num">$10-15B (2026E)</td><td class="num">100%+</td><td><span class="pill pill-gray">唯一受益</span></td><td><span class="pill pill-green">直接</span></td><td>中東 / 歐盟 / 亞洲政府採購</td></tr><tr><td>自駕 DRIVE 平台</td><td class="num">$5B (2025E)</td><td class="num">30%</td><td><span class="pill pill-gray">設計勝出 BMW/Volvo</span></td><td><span class="pill pill-gold">間接</span></td><td>Thor SoC 2026 量產</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">NVIDIA Corporation — AI 時代的壟斷者</h2>
+    <p class="ph-lead">1993 年成立，總部加州聖塔克拉拉，42,000 名員工。從遊戲 GPU 廠商蛻變為全球最重要的 AI 基礎設施公司。FY2026 Q1 Revenue $68.1B（+69% YoY），Data Center 占 88.7%。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>Data Center</strong></td><td>H100/H200/B200/GB200 + InfiniBand</td><td class="num">88.7%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>Gaming</strong></td><td>GeForce RTX 5090/5080（Blackwell）</td><td class="num">8.1%</td><td><span class="pill pill-gray">穩</span></td></tr><tr><td><strong>Professional Visualization</strong></td><td>RTX A6000 / OMNIVERSE</td><td class="num">1.6%</td><td><span class="pill pill-gray">穩</span></td></tr><tr><td><strong>Automotive / Robotics</strong></td><td>DRIVE Thor / Jetson Orin</td><td class="num">1.6%</td><td><span class="pill pill-gray">快增起步</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">CUDA 生態鎖定（4,500+ 庫）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Blackwell 效能代差（30× vs H100）</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">InfiniBand 網路整合壟斷</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NIM / NeMo 軟體 ARR 轉型</span><span>7.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="70%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">估值充分反映樂觀預期</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">中國出口禁令風險</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">客戶自研晶片長期威脅</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">CoWoS / HBM3e 供應制約</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">NVDA</strong></td><td class="num">$5.4T</td><td class="num">$215.9B (FY2026)</td><td class="num">71.1%</td><td class="num">25×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI GPU 80%+份額</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gold">偏多觀察</span></td></tr><tr ><td><strong >AMD</strong></td><td class="num">~$210B</td><td class="num">$30B (FY2025E)</td><td class="num">51%</td><td class="num">7×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">MI325X 搶份額中</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">潛力但份額差距大</span></td></tr><tr ><td><strong >Intel (INTC)</strong></td><td class="num">~$520B</td><td class="num">$53.8B (TTM)</td><td class="num">37.2%</td><td class="num">10×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">Gaudi 3 市場份額低</span></td><td><span class="pill pill-gray">中（轉型中）</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">轉型不確定性高</span></td></tr><tr ><td><strong >Broadcom (AVGO)</strong></td><td class="num">~$1.9T</td><td class="num">$68.3B (TTM)</td><td class="num">76.7%</td><td class="num">28×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">ASIC XPU（Google / Meta）</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">自研晶片受益</span></td></tr><tr ><td><strong >Google (Alphabet)</strong></td><td class="num">~$2.1T</td><td class="num">$350B+ (FY2025E)</td><td class="num">58%</td><td class="num">6×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">TPU v5 自用+雲租用</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">客戶兼競爭者</span></td></tr><tr ><td><strong >Marvell (MRVL)</strong></td><td class="num">~$163B</td><td class="num">$8.2B (TTM)</td><td class="num">51%</td><td class="num">20×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AI ASIC 代工設計服務</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">NVDA 補充非替代</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>Blackwell B200 / GB200 NVL72</strong></td><td>量產交付（排隊 12-18 個月）</td><td>HBM3e 供應增加，出貨量翻倍</td><td>GB300 過渡</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Rubin (R100) 架構</strong></td><td>2026 Q4 量產計畫</td><td>Rubin Ultra 2027</td><td>替換 Blackwell 成主力</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>Spectrum-X Ethernet AI Fabric</strong></td><td>Amazon / Microsoft 採用確認</td><td>取代 InfiniBand 在部分場景</td><td>Data Center 標配</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>DRIVE Thor / Jetson Orin</strong></td><td>BMW / Volvo / Waymo 確認</td><td>2026 車廠量產</td><td>Robotics 新市場</td><td><span class="pill pill-blue">新興</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">GB200 NVL72 — 撐起 $60B+ Data Center 季度的算力怪獸</h2>
+    <p class="ph-lead">GB200 NVL72 是 NVIDIA 史上最複雜的系統產品：72 個 B200 GPU + 36 個 Grace CPU + NVLink 5.0 互連，液冷機架，Training 吞吐量比 H100 機架提升 30×，Inference 提升 25×。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>架構</strong></td><td>Blackwell B200 GPU + Grace CPU (Grace Hopper Next)</td><td>AMD MI325X：CDNA4，效能約 H200 的 1.5×</td><td>CoWoS-L 封裝，競品無法複製</td><td><span class="pill pill-red">關鍵優勢</span></td></tr><tr><td><strong>互連</strong></td><td>NVLink 5.0 · 1.8 TB/s GPU-GPU 頻寬</td><td>AMD Infinity Fabric ~900 GB/s</td><td>2× 頻寬優勢，大型 LLM 訓練加速</td><td><span class="pill pill-gray">技術代差</span></td></tr><tr><td><strong>記憶體</strong></td><td>HBM3e 192GB / GPU，系統合計 13.8TB</td><td>MI325X HBM3 192GB，頻寬略低</td><td>SK Hynix HBM3e 優先供貨</td><td><span class="pill pill-green">強護城河</span></td></tr><tr><td><strong>軟體</strong></td><td>CUDA 12.x + TensorRT-LLM + NIM</td><td>AMD ROCm 成熟度落後 2–3 年</td><td>4,500+ AI 庫依賴 CUDA，遷移成本極高</td><td><span class="pill pill-gray">最強護城河</span></td></tr><tr><td><strong>功耗</strong></td><td>每機架 ~120kW，需液冷</td><td>AMD MI325X ~750W/GPU 功耗相近</td><td>效能 / 瓦特比仍領先 30%+</td><td><span class="pill pill-gray">可接受</span></td></tr><tr><td><strong>定價</strong></td><td>B200 ~$30-40K/GPU，NVL72 ~$2-3M/機架</td><td>MI325X ~$25-30K，有折扣</td><td>供不應求，定價權強</td><td><span class="pill pill-gray">高 ASP</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI Training 效能（Transformer）</span><span>GB200: 10/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="100%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI Inference 效率</span><span>GB200 NVL72: 9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">軟體生態（CUDA）</span><span>10/10，4,500+ 庫</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="100%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">記憶體頻寬</span><span>9.0/10，HBM3e 8TB/s</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">供應鏈穩定性（CoWoS 瓶頸）</span><span>6.5/10，仍緊缺</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">功耗效率</span><span>8.0/10，液冷必要</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">競品替換成本</span><span>10/10，CUDA 鎖定</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="100%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">製造地風險（台灣 TSMC）</span><span>5.0/10，地緣風險</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · Q1 FY2026 法說重點（2025-05-28）</div>
+    <h2 class="ph-title">Q1 FY2026 Revenue $68.1B · +69% YoY — Blackwell 全速出貨創紀錄</h2>
+    <p class="ph-lead">NVIDIA Q1 FY2026（截至 2025-04-27）創史上最高季度收入 $68.1B，Blackwell 架構出貨量達 $44B+（vs H100 系列）；Data Center $60.9B (+73% YoY)；Gaming $3.8B (-4% QoQ)。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Revenue YoY</div><div class="card-value" style="color:var(--c-green)">+69%</div><div class=card-sub>$68.1B vs $40.3B 去年同期</div></div><div class="card"><div class="card-label">Data Center Revenue</div><div class="card-value" style="color:var(--c-green)">$60.9B</div><div class=card-sub>+73% YoY，占比 89%</div></div><div class="card"><div class="card-label">Gross Margin</div><div class="card-value" style="color:var(--c-)">61.0%</div><div class=card-sub>Q1 FY2026 GAAP，Non-GAAP 71.3%</div></div><div class="card"><div class="card-label">Non-GAAP EPS</div><div class="card-value" style="color:var(--c-green)">$0.96</div><div class=card-sub>+33% YoY，超市場預期 $0.02</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"Demand for Blackwell AI computing is extraordinary. We shipped $44 billion worth of Blackwell in the first quarter. The age of AI is in full steam."</div><div class="q-attr">— Jensen Huang · Q1 FY2026 Earnings Call · 2025-05-28 · Source: NVIDIA IR</div></div><div class="qblock"><div class="q-text">"Sovereign AI represents a new and significant wave of demand. Countries around the world are building out AI infrastructure. We see this as a lasting trend."</div><div class="q-attr">— Jensen Huang · Q1 FY2026 Earnings Call · 2025-05-28</div></div><div class="qblock"><div class="q-text">"We are now guiding Q2 FY2026 to $45 billion. The supply chain is ramping but customer demand continues to exceed our supply significantly."</div><div class="q-attr">— CFO Colette Kress · Q2 FY2026 Guidance · 2025-05-28</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>H20 禁令對收入影響？</td><td>$5.5B Q1 FY2026 Inventory Write-down，中國收入未來降至個位數 %</td><td><span class="pill pill-gray">重大負面</span> FY2025 中國占比 13%，現已接近清零</td></tr><tr><td>Rubin 何時量產？</td><td>2026 年下半年，Rubin Ultra 2027 年</td><td><span class="pill pill-green">正面</span> 效能比 Blackwell 再 10×+</td></tr><tr><td>毛利率 Q2 展望？</td><td>Non-GAAP 71.3% guidance，符合預期</td><td><span class="pill pill-gray">中性</span> Blackwell 良率持續改善</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 FY2026 業績後（2025-05-28），NVDA 股價從 $130 區域大幅上漲，至 2026-05-21 報 $223.47，升幅 +70%+。市場定價 Blackwell 超級週期持續，估值重評至 $5.4T 全球第一大市值。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue 複合年增長 71% · 毛利率 71% · FCF $58B — 財務品質極佳</h2>
+    <p class="ph-lead">NVIDIA FY2026（截至 2025 年 1 月底）全年 Revenue $130.5B (+114% YoY)；FY2026 Q1 年化節奏 $272B+。毛利率 71.1%（TTM），FCF $58.1B，淨現金超過 $40B。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2023</td><td class="num pos">$26.97</td><td class="num">$15.36</td><td class="num pos">56.9%</td><td class="num">$7.65</td><td class="num neg">$4.22</td><td class="num">$13.3</td></tr><tr ><td>FY2024</td><td class="num pos">$60.92</td><td class="num">$44.30</td><td class="num pos">72.7%</td><td class="num">$11.50</td><td class="num neg">$32.58</td><td class="num">$26.0</td></tr><tr ><td>FY2025</td><td class="num pos">$130.50</td><td class="num">$97.86</td><td class="num pos">75.0%</td><td class="num">$14.84</td><td class="num neg">$84.20</td><td class="num">$34.6</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>FY2026 Q1</td><td class="num pos">$68.13</td><td class="num">$51.09</td><td class="num pos">75.0%</td><td class="num">~$4.5</td><td class="num neg">$44.30</td><td class="num">~$40B+</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >FY2024-2026</td><td class="num">(-1.5B 回購)</td><td class="num">$50B+ 回購計畫</td><td class="num">持續</td></tr><tr><td >2025-06</td><td class="num">股票分割 10:1</td><td class="num">N/A（面值調整）</td><td class="num">分割前 ~$1,200</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: NVIDIA 10-K FY2025（SEC CIK 1045810）/ Q1 FY2026 8-K / NVIDIA IR</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$34.6B (FY2025)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$10.4B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$65.7B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$16.3B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$49.4B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$111.6B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A（累積盈餘）</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$65.7B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: NVIDIA 10-K FY2025（SEC CIK 1045810）/ Q1 FY2026 8-K / NVIDIA IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>R&amp;D</td><td class="num">$12.91</td><td class="num">$8.68</td><td class="num">$6.67</td><td class="num">+49%</td><td>Rubin + 自駕 + Robotics 多線並進</td></tr><tr><td>Sales &amp; Marketing</td><td class="num">$1.93</td><td class="num">$1.58</td><td class="num">$1.15</td><td class="num">+22%</td><td>企業 AI / NIM 平台推廣</td></tr><tr><td>G&amp;A</td><td class="num">$0.85</td><td class="num">$0.71</td><td class="num">$0.60</td><td class="num">+20%</td><td>公司規模擴張合規成本</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$14.84</td><td class="num">$11.50</td><td class="num">$7.65</td><td class="num">+29%</td><td>Revenue 增速 114% 遠超 OpEx 29%，槓桿顯著</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: NVIDIA 10-K FY2025（SEC CIK 1045810）/ Q1 FY2026 8-K / NVIDIA IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF $58B · 現金充裕 · 持續回購 — NVIDIA 是 AI 時代最賺錢的硬體公司</h2>
+    <p class="ph-lead">FY2025 FCF $58.1B，OCF $67.9B；FY2026 年化節奏 FCF $80B+。持續回購（$50B 授權）支撐每股盈利增長，股利率 ~0.02%（非主要回報方式）。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">$67.9B (FY2025)</div><div class="card-sub">OCF Margin 52%，每 1 元收入轉 0.52 元 OCF，科技史上最高水準之一</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">資本開支 $3.2B</div><div class="card-sub">輕資產模型（Fabless），主要 Capex 是 IP / R&amp;D 設施；製造外包 TSMC</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">回購 $35B+</div><div class="card-sub">FY2025 買回股票 $35B+ ($50B 計畫進行中)；股利支出 $0.3B</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2023</td><td class="num neg">$4.4</td><td class="num">$1.1</td><td class="num">$(1.1)</td><td class="num neg">$4.6</td><td class="num">$13.3</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2024</td><td class="num neg">$29.8</td><td class="num">$1.6</td><td class="num">$(1.1)</td><td class="num neg">$33.5</td><td class="num">$26.0</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2025</td><td class="num neg">$72.9</td><td class="num">$2.5</td><td class="num">$(3.2)</td><td class="num neg">$58.1</td><td class="num">$34.6</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2026E</td><td class="num neg">~$120</td><td class="num">~$3.5</td><td class="num">~$(4.0)</td><td class="num neg">~$80B+</td><td class="num">~$50B+</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利加速</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">Net loss 欄實際為淨利潤（正值），標示習慣與模板對齊。數字來源：NVIDIA FY2025 10-K（SEC CIK 1045810）/ FY2026 Q1 8-K。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>維持現狀</td><td class="num">$34.6B</td><td class="num pos">$34.6B</td><td class="num neg">正 FCF $80B/yr</td><td class="num">∞</td><td class="num">∞</td><td>FCF 正值，現金持續積累</td></tr><tr style="background:rgba(46,204,113,.05)"><td>Rubin 加速</td><td class="num">$34.6B</td><td class="num pos">$50B+</td><td class="num neg">正 FCF $100B+/yr</td><td class="num">∞</td><td class="num">∞</td><td>AI Capex 持續成長</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>NVIDIA 現金流狀況極佳，無流動性壓力。FCF Margin 52%（FY2025），年化 FCF 超過 $80B（FY2026E）。主要風險非流動性，而是估值倍數能否維持（取決於 AI Capex 週期）。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>流動比率</td><td class="num">4.0×</td><td class="num">~2×</td><td><span class="pill pill-green">極佳</span></td><td>Current Assets $65.7B ÷ Current Liabilities $16.3B</td></tr><tr><td>淨現金</td><td class="num">~$25B+</td><td class="num">正值</td><td><span class="pill pill-green">充裕</span></td><td>Total Cash - Long-term Debt</td></tr><tr><td>ROE</td><td class="num">101.5%</td><td class="num">15-20%</td><td><span class="pill pill-gray">極強</span></td><td>高利潤 + 回購降低 Equity，ROE 放大</td></tr><tr><td>Debt/Equity</td><td class="num">7.3×</td><td class="num">~0.5×</td><td><span class="pill pill-gray">注意</span></td><td>大量回購導致 Book Equity 低；實際信用評級 AA-</td></tr><tr><td>Interest Coverage</td><td class="num">&gt;100×</td><td class="num">&gt;5×</td><td><span class="pill pill-gray">極強</span></td><td>EBIT $84B+ ÷ Interest $0.3B</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Fabless 輕資產 + TSMC 獨佔代工 — 供應鏈瓶頸在 CoWoS 封裝</h2>
+    <p class="ph-lead">NVIDIA 是 Fabless 模式（無自有晶圓廠），100% 依賴 TSMC N4P 製程 + CoWoS-L 先進封裝。HBM3e 由 SK Hynix 優先供貨。NVLink 5.0 Switch 由 TSMC 製造。這條鏈的瓶頸就是 CoWoS 月產能。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">NVIDIA 供應鏈位置圖 — 從矽晶圓到資料中心</div><svg viewBox="0 0 860 320" style="width:100%;display:block;min-height:260px" aria-label="NVIDIA supply chain map"><title>NVIDIA supply chain</title><text x="8" y="54" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">上游</text><rect x="45" y="20" width="150" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="120" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">TSMC N4P</text><text x="120" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">GPU / GraceHopper Die</text><rect x="207" y="20" width="150" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="282" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">SK Hynix HBM3e</text><text x="282" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">192GB / GPU，優先供貨</text><rect x="369" y="20" width="150" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="444" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">TSMC CoWoS-L</text><text x="444" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">先進封裝（供給瓶頸）</text><rect x="531" y="20" width="150" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="606" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">NVLink Switch</text><text x="606" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">TSMC 製，GB200 必需</text><text x="8" y="138" fill="#F5A623" font-family="monospace" font-size="10" font-weight="700">★ 核心</text><rect x="260" y="100" width="340" height="60" rx="8" fill="#F5A623" stroke="#d4880a" stroke-width="2"/><text x="430" y="126" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">★ NVIDIA (Fabless)</text><text x="430" y="148" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="monospace" font-size="10">設計 B200/GB200/NVLink · 軟體 CUDA/TensorRT/NIM</text><text x="8" y="205" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">下游</text><rect x="100" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="180" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">Supermicro / Dell</text><text x="180" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">DGX H200 / HGX B200 系統</text><rect x="330" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="410" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">Hyperscalers</text><text x="410" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">AWS / Azure / GCP / Meta</text><rect x="560" y="183" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="640" y="203" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">Sovereign AI 客戶</text><text x="640" y="219" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">沙烏地 / 日本 / 印度 / 歐盟</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>TSMC N4P 製程</td><td>供應穩定，但單一廠商依賴</td><td>台灣地緣風險</td><td><span class="pill pill-gray">高 — 100% TSMC</span></td><td><span class="pill pill-gray">高（地緣）風險</span></td></tr><tr><td>CoWoS-L 封裝</td><td>最大瓶頸，月產能 ~60-80K 片，TSMC 持續擴產</td><td>唯一可量產 NVL72</td><td><span class="pill pill-red">極高</span></td><td><span class="pill pill-red">高風險</span></td></tr><tr><td>SK Hynix HBM3e</td><td>優先供貨，但三星 / Micron HBM3e 亦在補充</td><td>頻寬優勢</td><td><span class="pill pill-gold">中高</span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td>客戶：4大 Hyperscaler</td><td>排隊 12-18 個月，需求超供給</td><td>長期框架合約</td><td><span class="pill pill-gold">高 — Top 4 占 &gt;50%</span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td>NVLink 5.0 Interconnect</td><td>TSMC 製，整合於 NVL72 機架</td><td>技術護城河</td><td><span class="pill pill-green">中</span></td><td><span class="pill pill-green">低風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2027 Revenue × 遠期 P/S → 個人估算區間</h2>
+    <p class="ph-lead">以 NTM P/S 為核心框架；Blackwell 超級週期若延續，FY2027E Revenue $300B+，Base PT $260；若 AI 資本開支停滯則回測 $160。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="100" max="350" value="240">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$240M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="15" max="40" step="0.5" value="25">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">25x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="223.47"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $223.47</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$180-200B</td><td class="num">3.5×</td><td class="num">$660-700B</td><td class="num">$680B</td><td class="num">24.4B</td><td class="num neg"><strong>$160</strong></td><td class="num neg">-28%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$260-290B</td><td class="num">5.5×</td><td class="num">$1.43-1.59T</td><td class="num">$1.5T</td><td class="num">24.4B</td><td class="num "><strong>$260</strong></td><td class="num pos">+16%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$330-380B</td><td class="num">8.0×</td><td class="num">$2.64-3.04T</td><td class="num">$2.8T</td><td class="num">24.4B</td><td class="num "><strong>$340</strong></td><td class="num pos">+52%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $223.47 vs MA50 $195.49（+14.3%）；52 週區間 $129.13–$236.54；1 年績效 +69.6%（Source: yfinance 即時行情）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">上升趨勢</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$223.47</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>+14.3%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>+19.7%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>70 — 中性偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">194.74</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">236.54</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$236.54</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$129.13</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>+69.6%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">9.9/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $223.47 vs MA50 $195.49（+14.3%）；52 週區間 $129.13–$236.54；1 年績效 +69.6%（Source: yfinance 即時行情）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">5 大核心風險 — 影響 × 機率 2D 矩陣</h2>
+    <p class="ph-lead">NVIDIA 的核心風險不在基本面（財務極健康），而在估值倍數能否支撐 + 外部監管（出口禁令）。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="40" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="370" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="490" cy="68" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="490" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="370" cy="140" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="370" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="370" cy="68" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="230" cy="68" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="230" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>AI 資本開支週期性回調</strong><br><span style=font-size:12px;color:var(--c-muted)>若 Hyperscaler 資本開支從 $300B+ 削減至 $200B，NVIDIA GPU 需求季度性可能下跌 30-40%</span></td><td class="num neg">極高</td><td class="num">中</td><td>FY2027</td><td>Sovereign AI 市場多元化；Rubin 新週期補充</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>H20 / GB200 出口禁令擴大</strong><br><span style=font-size:12px;color:var(--c-muted)>美國商務部可能進一步限制 China 銷售，影響 $10-20B 潛在收入</span></td><td class="num neg">高</td><td class="num">中高</td><td>2025-2026</td><td>中國收入已降至 &lt;5%；對整體影響有限但情緒衝擊大</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>AMD / 自研晶片份額侵蝕</strong><br><span style=font-size:12px;color:var(--c-muted)>AMD MI325X 效能接近 H200；Meta MTIA / Google TPU v5 自用比例上升</span></td><td class="num ">中高</td><td class="num">中</td><td>2-3 年</td><td>CUDA 鎖定；Blackwell 效能代差仍 2×+</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>CoWoS 供應緊張延誤出貨</strong><br><span style=font-size:12px;color:var(--c-muted)>TSMC CoWoS 月產能受限，GB200 NVL72 出貨節奏若落後 Hyperscaler 計畫</span></td><td class="num neg">高</td><td class="num">中</td><td>FY2026-2027</td><td>TSMC 持續擴產；NVIDIA 預下訂單（Take-or-Pay）</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>估值倍數壓縮</strong><br><span style=font-size:12px;color:var(--c-muted)>若利率上升或 AI 熱情退潮，P/E 從 34× 壓縮至 20-25×，對應股價 -30%+</span></td><td class="num neg">高</td><td class="num">中低</td><td>市場情緒轉折</td><td>基本面 EPS 持續增長可部分抵消</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Rubin 量產時間線 + Sovereign AI 收入節奏 + Q2 FY2026 法說超預期是三個最重要的觀察點。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q2 法說（8月）</div><div class="tl-title">Q2 FY2026 業績 — Blackwell 出貨量確認</div><div class="tl-body">若 Q2 FY2026 Revenue ≥ $43-45B（guidance）且 Blackwell 出貨超預期，股價上行空間確認。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q4 / 2027 Q1</div><div class="tl-title">Rubin (R100) 量產啟動</div><div class="tl-body">Rubin 架構效能比 Blackwell 再 10×，Rubin Ultra 2027 量產 → 下一個超級週期起點。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026 持續</div><div class="tl-title">Sovereign AI 季度收入突破 $5B+</div><div class="tl-body">沙烏地 500MW、印度 AI 城、日本政府 GPU 採購；若季度 Sovereign AI Revenue 超 $5B，市場會重新定價這條增長曲線。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q1</div><div class="tl-title">DRIVE Thor 車廠量產確認</div><div class="tl-body">BMW / Volvo 等 2026 量產車型內裝 DRIVE Thor，開啟 Automotive AI 新市場。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">持續</div><div class="tl-title">回購 + EPS 提升</div><div class="tl-body">$50B 回購計畫持續執行，每股盈利增速超過 Revenue，支撐估值。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Rubin 量產節奏確認</div><div class="ws">2026 Q4 是否按計畫量產 → 若延遲超過 2 季代表設計複雜度問題</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">Sovereign AI 季度 Revenue ≥ $5B</div><div class="ws">確認政府採購不是一次性採購，而是持續擴張</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">CoWoS 月產能突破 100K 片</div><div class="ws">供應瓶頸解除信號 → 出貨量提速</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">AMD MI325X 市場份額 &gt; 15%</div><div class="ws">競品追上信號 → CUDA 護城河受挑戰</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">AI Capex 四大 Hyperscaler FY2026 指引</div><div class="ws">若 Meta/Google/Amazon/Microsoft 任一大幅削減 Capex → 需求展望下修</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資人視角對 NVIDIA 的判斷</h2>
+    <p class="ph-lead">從護城河確認到估值泡沫，五種視角在基本面上高度一致（極強），但在估值是否合理上產生根本分歧。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-gray">觀望</span></div><div class="persona-score" style="color:var(--c-green)">6.5</div></div><div class="persona-body">CUDA 護城河是真實的、可量化的（4,500+ 庫依賴）。但 P/E 34×、P/S 25× 遠超 Buffett 偏好的合理估值（15× 以下）。若是 Buffett 持有 NVIDIA，他不會追高，而是在 AI 資本開支回調時等待合理入場機會。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">PEG = P/E 34÷ EPS 成長率 33% = 1.0，GARP 標準下合理偏低。Lynch 會注意到「NVIDIA 的故事清晰、可見度高、每季超預期」是最好的 GARP 組合，但 $5.4T 市值的增長空間已有限。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-gray">中立</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">AI 投資熱潮已形成顯著的正向反身性循環（AI 熱潮 → 股價上升 → 公司資本增加 → AI 更多投入 → 更多需求 → NVDA 收入增長 → 股價更高）。反身性循環何時逆轉是關鍵——目前看不到逆轉信號，但 $5.4T 是很難再上漲 10× 的基數。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">Munger 強調「偉大公司以合理價格買入，平庸公司以便宜價格買入」。NVIDIA 是真正偉大的公司——CUDA 是不可逆的網路效應，技術代差在短期內無法被追上。但「合理價格」部分讓 Munger 猶豫：ROE 100%+ 在硬體公司中幾乎無先例。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-red">謹慎</span></div><div class="persona-score" style="color:var(--c-red)">4.5</div></div><div class="persona-body">P/S 25× 對應 $215B TTM Revenue，歷史上任何硬體公司都沒有能維持這個倍數。Burry 會看 AI 資本開支週期：目前 Meta/Google/AWS/Microsoft 承諾 $300B+/年，但若利率上升或 AI ROI 不達預期，資本開支削減速度可能比預期快得多。CDS 不好買，但做空 AI ETF 或等待大幅修正後買入是 Burry 的思路。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場 — 偏多但不追高</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">偏多觀察，不追高。Base PT 個人估算 $260（vs 現價 +16.3%），EV $243（+8.7%）。此 upside 需要 FY2027E Revenue $260-290B 兌現（Rubin 量產 + Sovereign AI 擴張）。若 AI 資本開支停滯，熊市 PT $160（-28%）。現價 $223 估值充分，等 $190-210 回調再分批建倉更佳。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">若看好 AI 基礎設施整體，可同時觀察 TSMC（CoWoS 上游壟斷）和 AVGO（自研 ASIC 受益者），作為 NVIDIA 風險對沖標的。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT 個人估算 $260，vs 現價 +16.3%（&gt;10%閾值），技術面確認需 $195 支撐守住。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>季度財報</td><td>NVIDIA Q1 FY2026 8-K / Earnings Press Release，2025-05-28，EDGAR CIK 1045810</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>年度財報</td><td>NVIDIA 10-K FY2025，2025-02-26，SEC CIK 1045810</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>法說會逐字稿</td><td>NVIDIA Q1 FY2026 Earnings Call Transcript，2025-05-28，NVIDIA IR</td><td>2026-05-21</td><td><span class="pill pill-gray">官方</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 NVDA，2026-05-21 研究啟動基準</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（EV/Revenue × FY2027E Scenario）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · NVDA Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810" target="_blank" style="color:var(--c-gold)">0001045810</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2023", "FY2024", "FY2025", "Q1 FY2026 (ann.)"],
+      datasets: [{ data: [26.97, 60.92, 130.5, 272.5], backgroundColor: ["#c8d4e0", "#F5A623", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2023", "FY2024", "FY2025", "Q1 FY2026"],
+      datasets: [{
+        data: [56.9, 72.7, 75.0, 75.0],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#F5A623", "#2ECC71", "#2ECC71", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

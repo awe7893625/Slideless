@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSLA — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">TSLA</div>
+    <div class="sidebar-name">Tesla, Inc.</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">341.24 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$360</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$353.50</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: TSLA · 2026-05-21</div>
+    <h1 class="ph-title">Tesla, Inc. (TSLA)</h1>
+    <p class="ph-lead">Cybercab 量產倒計時、FSD v13 里程碑 — EV 硬體利潤被壓縮之際，AI 與能源業務能否成為新增長引擎？</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="">$341.24</span><span class="stat-label">股價</span><div class=card-sub>截至 2026-05-21</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$1,094B</span><span class="stat-label">市值</span><div class=card-sub>全球第 6 大上市公司</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$97.9B</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2024 YoY +1.1%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-red)">16.3%</span><span class="stat-label">汽車毛利率</span><div class=card-sub>FY2022 峰值 32% → 壓縮 16pp</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">中性觀察（等 Cybercab 量產驗證）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$290–$320（MA50 支撐附近）</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (30%)</div><div class="db-cell-value red">$180</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (45%)</div><div class="db-cell-value amber">$360</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$550</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q4 2025 Cybercab 量產啟動 + FSD 無監督監管批准</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">Cybercab 再度推遲至 2027 + 汽車毛利率跌破 14%</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$353.50</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 341.24 USD → <strong>+3.6%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$180x30% + $$360x45% + $$550x25%<br>= $54.00 + $162.00 + $137.50 = <strong>$353.50</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (30%)</div><div class="s-pt" style="color:var(--c-red)">$180</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Cybercab 延遲至 2027、FSD L4 監管受阻、BYD 侵蝕市佔<br><strong>Rev FY2025E $98-102B（車輛業務持平） · GM 整體 GM 17-18%（能源拉動）</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (45%)</div><div class="s-pt" style="color:var(--c-gold)">$360</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Cybercab 2026 量產、能源業務保持 &gt;50% 成長、FSD 授權初現<br><strong>Rev FY2025E $100-110B；FY2026E $120B+ · GM 整體 GM 18-20%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$550</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Cybercab 網路規模化、Optimus 商業訂單、FSD 全球授權突破<br><strong>Rev FY2026E $140B+（平台收入貢獻 &gt;20%） · GM 整體 GM 22-25%（軟體/平台佔比提升）</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Cybercab 計畫於 Q4 2025 量產，定價 ~$30,000，有望開創 RoboTaxi 網路，TAM 突破傳統汽車市場</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>能源儲存業務 Q1 2025 收入 $2.7B（+67% YoY），Megapack 積壓訂單超過 $12B，毛利率高於車輛部門</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Optimus 人形機器人 FY2025 目標產出 1,000 台，若商業化 Tesla 將進入百兆新市場</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>FSD v13 全監督模式里程碑，事故率低於人類均值 3×；監管批准後授權收入可規模化</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>超級充電網路 NACS 成業界標準，Ford/GM/Rivian 等競爭對手接入，網路效應護城河持續深化</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Q1 2025 車輛交付量 336,681 輛（-13% YoY），市佔率面臨 BYD 在中國及歐洲的持續侵蝕</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>汽車毛利率從 2022 年峰值 32% 壓縮至目前 16.3%，降價週期短期難以逆轉</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Musk 注意力分散：同時掌管 SpaceX、xAI（Grok）、DOGE 政府職責，管理風險顯著上升</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>FSD L4 完全自動駕駛仍面臨 NHTSA 監管不確定性；Cybercab 量產時程每季均有延遲風險</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>PE 118× 遠高於傳統汽車業均值 8-12×，任何執行缺口都可能觸發估值重新定價</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · ['Cybercab 量產實際交付時間表（Q4 2025 目標，追蹤每季法說會是否上修）', 'FSD v13 → 全無監督模式監管進展（NHTSA 批准狀態）', '能源儲存季度收入增速（目標維持 &gt;50% YoY）', 'Optimus 商業訂單首份意向書（LoI）或 pilot 合約公告', '中國市場月銷量趨勢（vs. BYD Model Y 競爭格局）']
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — Tesla 從 EV OEM 轉型為 AI 平台的估值重構</h2>
+    <p class="ph-lead">汽車毛利壓縮是近憂；Cybercab + FSD 授權是長期估值支撐。Base PT 個人估算 $360（vs 現價 +6%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Tesla 是全球最有價值的汽車製造商，市值 $1.09T。2024 年 EV 交付 178.9 萬輛，能源業務 $10.9B。超級充電網路成為北美 EV 充電的業界標準（NACS）。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">BYD 2024 年 EV 銷售量超越 Tesla，中國市場競爭加劇。汽車毛利率從 2022 年 32% 壓縮至 2024 年 16.3%。Q1 2025 交付量年減 13%。PE 118× 遠高於傳統 OEM 均值 8-12×，估值高度依賴尚未兌現的 Cybercab 與 FSD 期權。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Tesla 能否成功從硬體 OEM 轉型為軟體/平台業務主導的 AI 公司，並在 2025-2026 年實現 Cybercab 量產與 FSD 商業化？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：Cybercab 2026 年量產並初步建立 RoboTaxi 網絡，FSD 授權收入在 2026-2027 年出現，能源業務維持 &gt;50% 增長。三條業務線共同支撐 $360 估算。但執行風險高，建議分批建倉於 $290-320 區間。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>Cybercab Q4 2025 量產 — 從概念車到量產是估值重構的關鍵驗證點</td><td style="font-family:var(--font-mono);font-size:11px">2025 Q4</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>FSD v13 無監督模式 — 若 NHTSA 批准，RoboTaxi 商業化路徑明朗化</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>Optimus 商業訂單 — FY2025 目標 1,000 台內部使用後，商業 LoI 將是下一個催化劑</td><td style="font-family:var(--font-mono);font-size:11px">2026</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">三線戰場：EV 市佔、充電網路、AI 自駕</h2>
+    <p class="ph-lead">全球 EV 市場 2025 年滲透率達 18%（IEA），中國佔 62%。BYD 年收入 $107B，本土成本優勢持續壓縮 Tesla 中國份額。北美市場 Tesla 維持 &gt;40% EV 份額，NACS 充電標準業界化是核心護城河。自駕賽道：Waymo 已多城市商業化，Tesla FSD 需在 2026 年前取得監管突破。歐洲市場 Tesla 份額從 2022 年 16% 降至 2024 年 12%，Volkswagen ID 系列是主要競爭壓力。整體競爭格局：傳統 OEM 轉型慢但體量大；中國品牌成本低但品牌溢價弱；Tesla 護城河仍存但正在收窄。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Tesla 競爭格局圖</div><svg viewBox='0 0 800 200' style='width:100%;display:block;min-height:160px'><rect x='10' y='10' width='780' height='36' rx='6' fill='#1B3A5E'/><text x='400' y='33' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>全球 EV + 自動駕駛市場 （TAM $3T+ 2030E）</text><rect x='10' y='54' width='240' height='36' rx='6' fill='#F5A623'/><text x='130' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>Tesla (TSLA) Market Cap $1.09T</text><rect x='260' y='54' width='200' height='36' rx='6' fill='#6e6e73'/><text x='360' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>BYD $107B Rev</text><rect x='470' y='54' width='160' height='36' rx='6' fill='#6e6e73'/><text x='550' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>Waymo (Alphabet)</text><rect x='640' y='54' width='150' height='36' rx='6' fill='#6e6e73'/><text x='715' y='77' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>GM / Ford / Rivian</text><rect x='10' y='98' width='300' height='36' rx='6' fill='#2D5A8E'/><text x='160' y='121' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>Cybercab RoboTaxi（2025 Q4 量產）</text><rect x='320' y='98' width='240' height='36' rx='6' fill='#2D5A8E'/><text x='440' y='121' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>FSD v13 自動駕駛授權</text><rect x='570' y='98' width='220' height='36' rx='6' fill='#2D5A8E'/><text x='680' y='121' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>Megapack 能源儲存 +67% YoY</text><rect x='10' y='142' width='780' height='36' rx='6' fill='#1d1d1f'/><text x='400' y='165' text-anchor='middle' fill='white' font-family='monospace' font-size='10'>NACS 充電標準（Ford/GM/Rivian 接入）充電網路護城河</text></svg></div>
+    
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>全球 EV 市場</td><td class="num">$800B (2025E)</td><td class="num">+18%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>Tesla 全球份額 ~12%，北美份額 &gt;40%</td></tr><tr><td>RoboTaxi 網路</td><td class="num">$2T+ (2030E)</td><td class="num">+45%</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-red">唯一</span></td><td>Cybercab Q4 2025 量產，vs Waymo 競爭</td></tr><tr><td>AI 自駕授權</td><td class="num">$300B (2030E)</td><td class="num">+35%</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-green">直接</span></td><td>FSD v13，需監管批准</td></tr><tr><td>能源儲存（Megapack）</td><td class="num">$150B (2030E)</td><td class="num">+25%</td><td><span class="pill pill-red">直接</span></td><td><span class="pill pill-green">直接</span></td><td>積壓訂單 $12B+，毛利率 &gt;20%</td></tr><tr><td>人形機器人</td><td class="num">$5T+ (2035E)</td><td class="num">N/M</td><td><span class="pill pill-blue">新進入</span></td><td><span class="pill pill-gold">間接</span></td><td>Optimus 2025 目標 1,000 台（內部使用）</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Tesla, Inc. — 從 EV OEM 到 AI 平台</h2>
+    <p class="ph-lead">2003 年成立，2008 年 Elon Musk 成為 CEO；德州奧斯丁總部；全球員工 127,855（FY2024）；FY2024 Revenue $97.9B；三大業務：汽車製造 79%、能源儲存 11%、服務與其他 10%。直銷模式（無傳統經銷商）+ 垂直整合（電池/晶片/OS/充電）是核心差異化。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>汽車製造（Automotive）</strong></td><td>Model 3/Y/S/X/Cybertruck + Cybercab（Q4 2025）</td><td class="num">79%</td><td><span class="pill pill-gray">承壓（Q1 2025 -20% YoY，降價週期）</span></td></tr><tr><td><strong>能源儲存（Energy）</strong></td><td>Megapack（電網）+ Powerwall（家用）</td><td class="num">11%</td><td><span class="pill pill-gray">強勁（+67% YoY，積壓訂單 $12B+）</span></td></tr><tr><td><strong>服務與其他（Services）</strong></td><td>超充網路 NACS + FSD 訂閱 $99/月 + 保險</td><td class="num">10%</td><td><span class="pill pill-gray">穩增（NACS 業界標準帶動充電收入）</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NACS 超充網路業界標準</span><span>9</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">FSD 自駕數據量（里程數最大）</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">垂直整合深度（電池/晶片/OS）</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">品牌 + Musk 個人 IP</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">中國市場競爭護城河薄弱</span><span>3</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">汽車毛利護城河收窄</span><span>4</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr ><td><strong ></strong></td><td class="num">$100B</td><td class="num">—</td><td class="num">17.8%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$51B</td><td class="num">—</td><td class="num">14.2%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$48B</td><td class="num">—</td><td class="num">8.1%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$14B</td><td class="num">—</td><td class="num">-41%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr><tr ><td><strong ></strong></td><td class="num">$9B</td><td class="num">—</td><td class="num">9.7%</td><td class="num">—</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">—</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr><tr><td><strong></strong></td><td></td><td></td><td></td><td><span class="pill pill-gray"></span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">Cybercab：Tesla 下一個十年的關鍵賭注</h2>
+    <p class="ph-lead">Cybercab 是 Tesla 計畫於 2025 Q4 量產的雙座無方向盤 RoboTaxi，定價目標 ~$30,000。若配合 FSD 全監督模式，Tesla 將建立點對點 RoboTaxi 網路，車主可出租 Cybercab，Tesla 收取 25-30% 平台費。若此模式成立，毛利率將從目前 16% 的硬體轉向 &gt;60% 的軟體/平台業務。這是市場給予 Tesla 118× PE 溢價的核心理由。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>目標售價</strong></td><td>~$30,000（無方向盤/踏板）</td><td>Waymo One（不直接銷售）</td><td>Consumer 定價，RoboTaxi 創業者模式</td><td><span class="pill pill-gray">市場差異化</span></td></tr><tr><td><strong>動力系統</strong></td><td>後置單馬達，WLTP 航程目標 ~300 英里</td><td>Model Y ~330 英里</td><td>Tesla 電驅動技術積累</td><td><span class="pill pill-gray">成熟技術</span></td></tr><tr><td><strong>生產基地</strong></td><td>德州奧斯丁超廠（與 Optimus 共線）</td><td>上海廠（Model 3/Y）</td><td>共線降成本</td><td><span class="pill pill-gray">風險：量產爬坡</span></td></tr><tr><td><strong>量產目標</strong></td><td>Q4 2025 啟動，2026 年年產 50 萬輛目標</td><td>Tesla Semi（延遲多年）</td><td>CEO 親自監督時程</td><td><span class="pill pill-gray">高執行風險</span></td></tr><tr><td><strong>配套平台</strong></td><td>Tesla RoboTaxi App（Tesla 抽成 25-30%）</td><td>Uber/Lyft（20-25% 抽成）</td><td>硬體+軟體+平台垂直整合</td><td><span class="pill pill-gray">差異化核心</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">技術成熟度（FSD v13）</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">量產執行力</span><span>6</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">成本優勢（$30K 目標）</span><span>8</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">監管可行性（NHTSA）</span><span>5</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">市場 TAM（RoboTaxi）</span><span>9</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">競爭差異化（vs Waymo）</span><span>7</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">P05 · Earnings &amp; Guidance</div>
+    <h2 class="ph-title">Q1 2025：汽車承壓 -9% YoY，能源創歷史新高</h2>
+    <p class="ph-lead">Q1 2025 汽車業務年減 20%，能源業務創歷史新高 +67% YoY。管理層強調 Cybercab 量產按計畫推進，拒絕提供量化 Guidance。Revenue $19.34B 較市場預期 $21.4B 大幅低 9%。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q1 2025 Revenue</div><div class="card-value" style="color:var(--c-red)">$19.34B</div></div><div class="card"><div class="card-label">汽車收入</div><div class="card-value" style="color:var(--c-red)">$14.0B</div></div><div class="card"><div class="card-label">能源收入</div><div class="card-value" style="color:var(--c-green)">$2.7B</div></div><div class="card"><div class="card-label">Q1 交付量</div><div class="card-value" style="color:var(--c-red)">336,681 輛</div></div><div class="card"><div class="card-label">Q1 整體毛利率</div><div class="card-value" style="color:var(--c-red)">16.3%</div></div><div class="card"><div class="card-label">Q1 EPS (GAAP)</div><div class="card-value" style="color:var(--c-red)">$0.27</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">""We're going to look back at 2025 as the year of the autonomous transition. Cybercab production will begin in Q4." — Q1 2025 Earnings Call, 2025-04-22"</div><div class="q-attr">— </div></div><div class="qblock"><div class="q-text">""Energy generation and storage gross margin reached a record level as we continue to scale Megapack deployments globally." — Q1 2025 Earnings Call, 2025-04-22"</div><div class="q-attr">— </div></div><div class="qblock"><div class="q-text">"分析師追問交付量年減 13% 原因，管理層歸因於 Model Y 煥新過渡期與產線調整，強調訂單量正在回升，未承認需求問題。"</div><div class="q-attr">— </div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Cybercab 的量產計畫能否不再延期？與 Semi 和 Roadster 的歷史相比，信心基礎是什麼？</td><td></td><td><span class="pill pill-gray"></span> </td></tr><tr><td>Megapack 毛利率未來是否可維持在 20%+？積壓訂單消化節奏如何？</td><td></td><td><span class="pill pill-gray"></span> </td></tr><tr><td>Q1 交付量年減 13% 是需求問題還是供應問題？中國市場競爭壓力多嚴重？</td><td></td><td><span class="pill pill-gray"></span> </td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 2025 財報發布後（2025-04-22），股價初始下跌約 5%（收入大幅低於市場預期），但因 Musk 重申 Cybercab Q4 量產承諾，次日反彈約 3%。能源業務創新高的正面信號部分抵銷汽車業務疲弱。市場仍定價 Cybercab + FSD 成長期權而非當期盈利。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $97.9B · GM 19.1% · 汽車毛利壓縮至 16.3%</h2>
+    <p class="ph-lead">FY2024 Revenue $97.9B（+1.1% YoY），汽車業務毛利從 2022 年 32% 壓縮至 16.3%，能源業務 GM &gt;20% 提升整體結構。EPS $2.04（FY2024），Q1 2025 EPS $0.27（年減 55%）反映汽車業務壓力。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2022</td><td class="num pos">81.5</td><td class="num">20.9</td><td class="num pos">25.6%</td><td class="num">7.2</td><td class="num neg">13.7</td><td class="num">22.2</td></tr><tr ><td>FY2023</td><td class="num pos">96.8</td><td class="num">17.6</td><td class="num pos">18.2%</td><td class="num">8.7</td><td class="num neg">8.9</td><td class="num">29.1</td></tr><tr ><td>FY2024</td><td class="num pos">97.9</td><td class="num">18.7</td><td class="num pos">19.1%</td><td class="num">11.6</td><td class="num neg">7.1</td><td class="num">36.6</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>FY2025E</td><td class="num pos">100.2</td><td class="num">18.8</td><td class="num pos">18.8%</td><td class="num">~12.3</td><td class="num neg">~6.5</td><td class="num">~37B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >—</td><td class="num">3.16B</td><td class="num">—</td><td class="num">—</td></tr><tr><td >—</td><td class="num">3.17B</td><td class="num">—</td><td class="num">—</td></tr><tr><td >—</td><td class="num">3.20B</td><td class="num">—</td><td class="num">—</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Tesla 10-K FY2024（SEC CIK 1318605）/ Q1 2025 10-Q（2025-04-22）</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$36.6B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$15.1B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$45.7B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$28.7B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$17.0B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$122.1B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">—</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$74.1B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Tesla 10-K FY2024（SEC CIK 1318605）/ Q1 2025 10-Q（2025-04-22）</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>AI 研發佔比持續提升</td></tr><tr><td>—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>Capex + Opex 均增</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Tesla 10-K FY2024（SEC CIK 1318605）/ Q1 2025 10-Q（2025-04-22）</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF 轉負，Capex 大擴張期（AI 基礎設施 + Cybercab 產線）</h2>
+    <p class="ph-lead">FY2024 FCF -$1.5B，主因 Capex $11B（AI 訓練基礎設施 + 新生產線）。現金儲備 $37B 充足，足以支撐 Cybercab 量產爬坡。FY2025 Capex 預計維持 &gt;$10B，FCF 持續負向但屬成長性投入。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">$14.9B (FY2024)</div><div class="card-sub">汽車業務現金流仍正向，OCF 健康</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">-$16.4B (FY2024 含 Capex $11B)</div><div class="card-sub">Cybercab 產線 + AI Dojo + 超廠擴建</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">無股利，少量股票回購</div><div class="card-sub">FY2024 無現金股利，少量回購以抵銷員工股權攤薄</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">$12.6B</td><td class="num">$1.6B</td><td class="num">$(7.9B)</td><td class="num neg">$7.6B</td><td class="num">$22.2B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 歷史高峰</span></td></tr><tr ><td>FY2023</td><td class="num neg">$15.0B</td><td class="num">$1.7B</td><td class="num">$(8.9B)</td><td class="num neg">$4.4B</td><td class="num">$29.1B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 回落</span></td></tr><tr ><td>FY2024</td><td class="num neg">$7.1B（Op）</td><td class="num">$2.1B</td><td class="num">$(11.0B)</td><td class="num neg">-$1.5B</td><td class="num">$36.6B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">FCF 轉負（Capex 擴張）</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025E</td><td class="num neg">~$6.5B（Op）</td><td class="num">~$2.5B</td><td class="num">&gt;$(10B)</td><td class="num neg">~-$1B 至 $2B</td><td class="num">~$37B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">Cybercab 量產驗證關鍵年</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FCF = 營運現金流 - 資本支出。FY2024 FCF 轉負主因 AI 基礎設施投入（Dojo 超算）與 Cybercab/Optimus 生產線建設，而非盈利能力下滑。現金儲備 $37B 提供充足緩衝。FY2025E FCF 區間視 Cybercab 量產進度而定。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$37B</td><td class="num pos">$37B</td><td class="num neg">OCF ~$14B/yr</td><td class="num">∞</td><td class="num">∞</td><td>無流動性風險，現金充足</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>Tesla 資產負債表健康，$37B 現金 + 每年 $14B+ OCF 足以支撐 Cybercab 量產爬坡。主要財務風險是若 Cybercab/FSD 長期未兌現，持續高 Capex 在無成長的情況下將侵蝕股東價值。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>現金及等價物</td><td class="num">$37.0B (Q1 2025)</td><td class="num">—</td><td><span class="pill pill-green">充裕</span></td><td>充足支撐 Cybercab 量產</td></tr><tr><td>長期負債</td><td class="num">$7.4B</td><td class="num">—</td><td><span class="pill pill-gray">低槓桿</span></td><td>債務結構健康</td></tr><tr><td>流動比率</td><td class="num">~1.8×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">良好</span></td><td>—</td></tr><tr><td>FCF Margin (FY2024)</td><td class="num">-1.5%（暫時負向）</td><td class="num">—</td><td><span class="pill pill-gray">Capex 擴張期</span></td><td>—</td></tr><tr><td>Operating Margin (FY2024)</td><td class="num">7.3%</td><td class="num">~5%（汽車業均值）</td><td><span class="pill pill-gray">高於均值</span></td><td>—</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">垂直整合深度領先，電池原料地緣風險仍存</h2>
+    <p class="ph-lead">Tesla 是汽車業最高垂直整合度的 OEM：自研 4680 電池（德州廠）、FSD/Dojo AI 晶片（委台積電 7nm 製造）、車輛作業系統（MCU3）、超級充電網路（NACS 北美業界標準），以及全球最大直銷網路（無傳統經銷商）。原料供應面：鋰礦與 Ganfeng Lithium（中國）及 Liontown（澳洲）簽有長期採購協議；鈷來源剛果 DRC 是 ESG 風險點。地緣集中風險：台積電依賴（FSD/Dojo 晶片）+ 上海廠佔全球約 50% 產量，中美關係或台海情勢任何緊張均可能衝擊 Tesla 供應鏈穩定性。整體來看，Tesla 垂直整合程度遠超傳統 OEM。Key supply chain risks: Taiwan TSMC concentration ( FSD / Dojo chips ) + Shanghai plant ~50% global output + DRC cobalt ESG exposure。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Tesla 供應鏈節點圖</div><svg viewBox='0 0 800 180' style='width:100%;display:block;min-height:140px'><text x='8' y='24' fill='#6e6e73' font-family='monospace' font-size='9' font-weight='700'>原料</text><rect x='40' y='8' width='130' height='34' rx='5' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='105' y='20' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>鋰礦</text><text x='105' y='33' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='7'>Ganfeng / Liontown</text><rect x='180' y='8' width='130' height='34' rx='5' fill='#fde8d4' stroke='#f0b070' stroke-width='1.5'/><text x='245' y='20' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>鈷（DRC）</text><text x='245' y='33' text-anchor='middle' fill='#e84040' font-family='monospace' font-size='7'>ESG / ESG 風險</text><text x='330' y='24' fill='#6e6e73' font-family='monospace' font-size='9' font-weight='700'>電池</text><rect x='360' y='8' width='130' height='34' rx='5' fill='#d4e8d4' stroke='#a0c8a0' stroke-width='1.5'/><text x='425' y='20' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>4680 自研電池</text><text x='425' y='33' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='7'>德州廠 + CATL 採購</text><text x='510' y='24' fill='#6e6e73' font-family='monospace' font-size='9' font-weight='700'>晶片</text><rect x='545' y='8' width='130' height='34' rx='5' fill='#fde8d4' stroke='#f0b070' stroke-width='1.5'/><text x='610' y='20' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>台積電 7nm</text><text x='610' y='33' text-anchor='middle' fill='#e84040' font-family='monospace' font-size='7'>FSD/Dojo 高集中風險</text><text x='690' y='24' fill='#6e6e73' font-family='monospace' font-size='9' font-weight='700'>整車</text><rect x='700' y='8' width='90' height='34' rx='5' fill='#d4e8d4' stroke='#a0c8a0' stroke-width='1.5'/><text x='745' y='20' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='8'>德州/上海</text><text x='745' y='33' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='7'>柏林超廠</text><rect x='40' y='58' width='750' height='34' rx='5' fill='#2D5A8E'/><text x='415' y='70' text-anchor='middle' fill='white' font-family='monospace' font-size='9' font-weight='700'>直銷模式（無傳統經銷商）+ NACS 超充網路業界標準</text><text x='415' y='84' text-anchor='middle' fill='#ccc' font-family='monospace' font-size='8'>護城河：垂直整合最深的汽車 OEM</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td></td><td></td><td></td><td><span class="pill pill-gold"></span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-green"></span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-red"></span></td><td><span class="pill pill-red">高風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-gold"></span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td></td><td></td><td></td><td><span class="pill pill-green"></span></td><td><span class="pill pill-green">低風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境估算：Cybercab + FSD 期權定價</h2>
+    <p class="ph-lead">當前 PE 118× 幾乎全部來自 Cybercab/FSD 未兌現期權；汽車本業在 DCF 框架下對應 $120-150 合理值。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="90" max="160" value="110">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$110M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="40" max="150" step="0.5" value="90">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">90x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="341.24"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $341.24</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (30%)</strong></td><td class="num">$100B</td><td class="num">0.5×</td><td class="num">$350B</td><td class="num">$387B</td><td class="num">3.21B</td><td class="num neg"><strong>$180</strong></td><td class="num neg">-47%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (45%)</strong></td><td class="num">$110B</td><td class="num">1.0×</td><td class="num">$1,000B</td><td class="num">$1,037B</td><td class="num">3.21B</td><td class="num "><strong>$360</strong></td><td class="num pos">+6%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$140B</td><td class="num">1.25×</td><td class="num">$1,750B</td><td class="num">$1,787B</td><td class="num">3.21B</td><td class="num "><strong>$550</strong></td><td class="num pos">+61%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">TSLA 目前交易於 50 日均線（$288.5）上方 +18.3%，同時高於 200 日均線（$275.0）+24.1%，中期趨勢偏多。RSI 59.7 位於中性偏多區間（未達超買門檻 70），上行空間仍有餘裕。近期成交量在 $310-350 形成支撐密集區。主要技術阻力：$380（2025 年 2 月波段高點）及 $430（2024 年 12 月頸線）。短線關注 $320 支撐是否守穩，若跌破則可能測試 MA50 $288 區域。黃金交叉（MA50 &gt; MA200）確認趨勢多頭結構。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">盤整</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$341.24</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>中性</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>—</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">6.5/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">TSLA 目前交易於 50 日均線（$288.5）上方 +18.3%，同時高於 200 日均線（$275.0）+24.1%，中期趨勢偏多。RSI 59.7 位於中性偏多區間（未達超買門檻 70），上行空間仍有餘裕。近期成交量在 $310-350 形成支撐密集區。主要技術阻力：$380（2025 年 2 月波段高點）及 $430（2024 年 12 月頸線）。短線關注 $320 支撐是否守穩，若跌破則可能測試 MA50 $288 區域。黃金交叉（MA50 &gt; MA200）確認趨勢多頭結構。</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">五大風險：執行、監管、競爭三線夾擊</h2>
+    <p class="ph-lead">Cybercab 量產時程與 FSD 監管批准是最關鍵的二元事件，任一重大延遲均可能觸發 20-40% 的估值重設。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="580" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="580" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text><circle cx="580" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="580" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Cybercab 量產延遲</strong><br><span style=font-size:12px;color:var(--c-muted)>Tesla 歷史上多次推遲新產品時程（Roadster 2、Semi 均延遲多年）。若 Cybercab 延至 2027，當前估值溢價將大幅收縮，股價面臨 25-40% 下修壓力。</span></td><td class="num ">中</td><td class="num">中</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>EV 毛利率持續壓縮</strong><br><span style=font-size:12px;color:var(--c-muted)>BYD/比亞迪成本優勢持續，若 Tesla 繼續以降價保市佔率，汽車毛利率可能進一步從 16.3% 降至 14%，直接衝擊 EPS 與 DCF 估值。</span></td><td class="num ">中</td><td class="num">中</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>Musk 注意力分散風險</strong><br><span style=font-size:12px;color:var(--c-muted)>Musk 同時掌管 Tesla、SpaceX、xAI（Grok）、X.com 平台及 DOGE 政府職務。多頭投入時，Tesla 執行力（尤其是 Cybercab 量產）存在顯著管理風險。</span></td><td class="num ">中</td><td class="num">高</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>FSD L4 監管受阻</strong><br><span style=font-size:12px;color:var(--c-muted)>NHTSA 若以安全理由拒絕無監督駕駛許可，或各州立法設置障礙，RoboTaxi 商業化時程推後 2 年以上，直接打擊估值最重要的成長期權。</span></td><td class="num ">中</td><td class="num">中</td><td>—</td><td>—</td></tr><tr><td style="color:var(--c-muted);font-weight:700">—</td><td><strong>中國市場份額流失</strong><br><span style=font-size:12px;color:var(--c-muted)>BYD、極氪、問界等在中高端市場快速成長，加上地緣政治緊張可能帶來政策逆風，Tesla 中國份額若跌破 10% 將拖累整體交付量及營收目標。</span></td><td class="num ">中</td><td class="num">高</td><td>—</td><td>—</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">五大催化劑：Cybercab + FSD 是主線</h2>
+    <p class="ph-lead">FSD 無監督模式監管突破是估值框架重構的核心驅動力，可能帶動股價向 $450-550 區間重定價。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q4</div><div class="tl-title">Cybercab 量產正式啟動（德州奧斯丁）</div><div class="tl-body">CEO 於 Q1 2025 法說會明確承諾，量產確認將是 RoboTaxi 估值重構的第一步驗證，也是近期最關鍵的二元事件。若能如期啟動並在 2026 年爬坡，市場對 Cybercab 商業模式的信心將大幅提升。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026</div><div class="tl-title">FSD 無監督模式獲州政府批准</div><div class="tl-body">NHTSA 以及加州/德州等關鍵州監管機構的批准是 RoboTaxi 商業化的前提條件，任何正面監管消息均可能帶動股價 15-25%，這是未來 12-18 個月最具顛覆性的催化劑。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q1-Q2</div><div class="tl-title">Optimus 首份商業 LoI 或 pilot 合約</div><div class="tl-body">FY2025 目標 1,000 台 Tesla 內部使用後，首份商業意向書或 pilot 合約是 Optimus 人形機器人估值期權的第一個兌現信號，將驗證 Tesla 機器人業務的商業可行性。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025E</div><div class="tl-title">能源業務全年收入突破 $15B</div><div class="tl-body">Q1 2025 能源收入 $2.7B 年化約 $10.8B，若保持 50% 增速，FY2025 有望突破 $15B，Megapack 積壓訂單 $12B+ 給予高能見度，驗證第二條增長曲線可持續性。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026</div><div class="tl-title">NACS 充電業務獨立損益披露</div><div class="tl-body">Ford/GM/Rivian 接入 NACS 後充電收入快速增長，若 Tesla 獨立披露充電部門損益，將展示平台模式的收入潛力，有助市場重新評估超充網路的價值，類比 Apple 服務業務分拆定價。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt"></div><div class="ws"></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">三種投資人視角：成長、價值、動能</h2>
+    <p class="ph-lead">不同投資框架對應不同的進出場邏輯，建議對齊自身風險偏好與持有期限再作決策。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">成長型投資人（ARK Invest 視角）</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">ARK Invest 模型將 Tesla 定價為 AI 加 RoboTaxi 平台，2029 年目標 $2,000+。Cybercab 網路化後每英里成本 $0.25，vs Uber $2.0，具備顛覆性定價優勢。能源業務 $15B+ 是額外紅利，Optimus 人形機器人是長期期權選擇。對 Cybercab 與 FSD 有高確信度的投資人，可在 $290-320 支撐區分批建倉，分散執行延遲的下行風險。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">價值型投資人（傳統 DCF 視角）</div><span class="pill pill-gray">回避</span></div><div class="persona-score" style="color:var(--c-red)">4.0</div></div><div class="persona-body">PE 118× 在任何傳統估值框架下均難以支撐。汽車業務本業 DCF 按 EV/EBITDA 12× 對應 $120-150，FSD/Cybercab 期權尚未兌現，不應輕易計入估值。FCF 持續負向加上高 Capex 是財務警示。需等汽車毛利率回升至 20%+ 並看到 FCF 轉正，才是合適的建倉時機。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">動能交易者（技術面視角）</div><span class="pill pill-green">中性偏多</span></div><div class="persona-score" style="color:var(--c-green)">6.5</div></div><div class="persona-body">RSI 59.7 中性偏多，未達超買門檻（70），上行空間仍存。股價交易於 MA50（$288.5）上方 18.3% 及 MA200（$275.0）上方 24.1%，中期趨勢偏多結構。$320 是關鍵近期支撐，$380（2025 年 2 月高點）是主要阻力，$430（2024 Q4 頸線）是第二阻力位。法說會和 Cybercab 量產新聞是短線主要進出場觸發器，可作為動態進出參考依據。Signal: bullish trend above both MA50 and MA200。</div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">重要免責聲明</h2>
+    <p class="ph-lead">本報告僅供資訊參考，不構成投資建議或買賣邀約。過去表現不代表未來結果。投資涉及風險，市值可能大幅波動，投資人可能損失本金。請在投資前諮詢持牌專業顧問，並根據個人財務狀況及風險承受能力作出獨立判斷。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Tesla 是市場上最具爭議性的股票之一。看多者將其定價為 AI + RoboTaxi 平台，看空者認為本質仍是面臨激烈競爭的汽車製造商。當前 118× PE 的溢價幾乎全部來自尚未兌現的 Cybercab 與 FSD 期權。在 Cybercab 量產確認（Q4 2025）與 FSD 監管批准兩個二元事件明朗前，全倉押注存在顯著下行風險。建議投資人評估自身對執行延遲的風險承受能力，分批建倉於技術支撐區。以上為研究分析觀點，不構成具體投資建議，投資人應獨立判斷。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">TSLA 適合對 Cybercab/FSD 有高確信度、能承受高波動的成長型投資人。若對 Musk 執行力或 FSD 監管有疑慮，應等待量產驗證後再建倉。不適合偏好穩定盈利、低 PE 的價值型投資人。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT 個人估算  vs 現價 .24（+6%）。等 Cybercab Q4 2025 量產確認。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>年度報告</td><td>Tesla 10-K FY2024，SEC EDGAR CIK 1318605，申報日 2025-01-29</td><td>2025-01-29</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>季度財報</td><td>Tesla Q1 2025 10-Q，SEC EDGAR CIK 1318605，申報日 2025-04-22</td><td>2025-04-22</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>法說會</td><td>Tesla Q1 2025 Earnings Call Transcript，2025-04-22，管理層回答analyst提問</td><td>2025-04-22</td><td><span class="pill pill-gray">官方</span></td></tr><tr><td>市場數據</td><td>yfinance API，股價/技術指標，截至 2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場數據</span></td></tr><tr><td>產業報告</td><td>IEA Global EV Outlook 2025，國際能源署官方出版</td><td>2025-04-01</td><td><span class="pill pill-gray">官方</span></td></tr><tr><td>競爭分析</td><td>Bloomberg Intelligence EV Market Share Database，2025 Q1</td><td>2025-04-01</td><td><span class="pill pill-gray">機構研究</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · TSLA Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1318605" target="_blank" style="color:var(--c-gold)">1318605</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{ data: [], backgroundColor: [], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: [],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

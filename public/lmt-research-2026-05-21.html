@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMT — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">LMT</div>
+    <div class="sidebar-name">Lockheed Martin Corporation</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">468.22 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$520</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$505.00</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NYSE: LMT · 2026-05-21</div>
+    <h1 class="ph-title">Lockheed Martin — F-35 壟斷 + 導彈需求爆發，國防預算削減是主要逆風</h1>
+    <p class="ph-lead">FY2025 Q1 Revenue $18.0B（+4% YoY）；F-35 全球服役 900+ 架；導彈與火控業務受烏克蘭戰爭推動快增；TTM Revenue $71B，毛利率 12.2%；PE 16.8× 偏低但 DOGE 削減疑慮壓估值。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="">$71B</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2025 穩定增長 +4% YoY</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">$135B+</span><span class="stat-label">F-35 訂單積壓</span><div class=card-sub>2030 年前交付可見度高</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">~3.0%</span><span class="stat-label">股利率</span><div class=card-sub>$9.96/股年股利，防禦性配置</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$107B</span><span class="stat-label">Market Cap</span><div class=card-sub>國防股防禦性配置</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">中立（等 DOGE 疑慮消散）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$440–$460</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (25%)</div><div class="db-cell-value red">$380</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">$520</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (20%)</div><div class="db-cell-value green">$620</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q2 2025 法說（7月）NDAA 預算確認</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">美國國防 Capex 削減超 15%</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中低</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$505.00</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 468.22 USD → <strong>+7.9%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$380x25% + $$520x55% + $$620x20%<br>= $95.00 + $286.00 + $124.00 = <strong>$505.00</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (25%)</div><div class="s-pt" style="color:var(--c-red)">$380</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">DOGE 削減 F-35 訂單 + 地緣降溫 → 導彈需求下滑<br><strong>Rev FY2026E $68-70B · GM GM 11-12%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">$520</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">NDAA 預算確認 + NATO 訂單持續 + 導彈補庫穩健<br><strong>Rev FY2026E $74-77B · GM GM 12-13%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (20%)</div><div class="s-pt" style="color:var(--c-green)">$620</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">歐洲 F-35 大單 + 高超音速武器合約 + 股利上調<br><strong>Rev FY2026E $80B+ · GM GM 13-14%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>F-35 全球服役 900+ 架，維修 / 升級 / 訓練長尾收入（LRIP 維持 30+ 年）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>導彈與火控（MFC）業務受俄烏衝突驅動：HIMARS / PAC-3 / JAGM 需求爆發</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>NATO 盟國 GDP 2%+ 國防預算目標 → 歐洲盟國 F-35 訂單持續</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>PE 16.8× 歷史低位，股利率 3%，提供防禦性下檔保護</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>高超音速武器 / 太空防禦 / 網路戰業務長期成長催化劑</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>DOGE 削減美國國防預算疑慮：Elon Musk 主導政府效率削減，LMT 合約可能受壓</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>毛利率 12.2% 偏低（政府成本加成合約結構），利潤擴張空間有限</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>F-35 單位成本超支歷史問題 + 軟體升級延遲，客戶信心偶有動搖</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>地緣政治降溫（若俄烏停火），導彈補庫需求短期下滑</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>技術長 / CEO 近年更替頻繁，執行風險中等</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · 美國國防授權法（NDAA）預算確認 + F-35 Block 4 升級合約進展
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — F-35 長尾維修 + 導彈爆發，DOGE 是最大變數</h2>
+    <p class="ph-lead">F-35 維修合約 + 導彈需求；Base PT $520（vs 現價 +11%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Lockheed Martin 是全球最大國防承包商，F-35 戰機是 30 年維修長尾訂單的核心；導彈 / 火控（HIMARS / PAC-3）受烏克蘭戰爭驅動需求爆發。美國和歐洲盟國 GDP 2%+ 國防目標是長期支撐。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">DOGE（政府效率部）主導美國預算削減，國防合約審查風險上升；F-35 生產成本超支歷史問題降低客戶信心；毛利率 12% 偏低，利潤率擴張空間有限。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">LMT 能否在 DOGE 疑慮下維持 Revenue 增長 5%+，並靠 F-35 維修長尾和導彈業務支撐利潤？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：NDAA 預算確認 F-35 生產計畫；NATO 訂單補充美國預算不確定性；導彈補庫需求 2025-2026 持續；PE 16.8× + 3% 股利提供下檔支撐；PT $520。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>NATO GDP 2%+ 目標 — 歐洲盟國（德國 / 波蘭 / 荷蘭）F-35 訂單持續，補充美國預算不確定性</td><td style="font-family:var(--font-mono);font-size:11px">2025-2027</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>導彈補庫需求 — HIMARS / PAC-3 / JAGM 在烏克蘭 / 中東消耗後需大量補充，FY2025 MFC +12%</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>F-35 Block 4 升級 + LRIP 19 合約 — 確認後 F-35 生產維持 120 架/年，積壓 $135B+</td><td style="font-family:var(--font-mono);font-size:11px">2025</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">全球國防 / 航空航天市場</h2>
+    <p class="ph-lead">全球國防支出 2025E $2.5T，CAGR 4-5%；美國佔 40%（$1T+）；LMT 是最大受益者（年收入 70B+）。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Lockheed Martin 市場位置</div><svg viewBox='0 0 800 280' style='width:100%;display:block;min-height:220px'><rect x='10' y='10' width='780' height='44' rx='6' fill='#1B3A5E'/><text x='400' y='37' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>美國國防部 + NATO 盟國 + 盟邦（45+ 國家）</text><rect x='10' y='62' width='370' height='44' rx='6' fill='#F5A623'/><text x='195' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>★ LMT F-35 / HIMARS / PAC-3</text><rect x='390' y='62' width='400' height='44' rx='6' fill='#2D5A8E'/><text x='590' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>競品：Boeing / Raytheon / Northrop</text><rect x='10' y='114' width='780' height='44' rx='6' fill='#374151'/><text x='400' y='140' text-anchor='middle' fill='#F5A623' font-family='monospace' font-size='11' font-weight='700'>★ 積壓訂單 $160B+，未來 5 年 Revenue 可見度高</text><rect x='10' y='166' width='380' height='44' rx='6' fill='#4B5563'/><text x='200' y='192' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='10'>DOGE 削減風險 + F-35 成本超支歷史爭議</text><rect x='400' y='166' width='390' height='44' rx='6' fill='#4B5563'/><text x='595' y='192' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='10'>NATO 2%+ GDP 目標 → 歐洲訂單多元化</text></svg></div>
+    <div class='qblock reveal' style='border-left-color:var(--c-blue);margin-bottom:24px'><p class='q-text'><strong style='color:var(--c-blue)'>投資邏輯：</strong>LMT 是「地緣政治保險股」— 全球緊張局勢上升必然增加 F-35 + 導彈需求，同時 PE 16.8× + 3% 股利提供防禦性配置價值。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>戰鬥機（F-35 / F-16）</td><td class="num">$25B/yr (2025E)</td><td class="num">5%</td><td><span class="pill pill-gray">F-35 壟斷 5th Gen</span></td><td><span class="pill pill-green">直接</span></td><td>積壓 $135B+</td></tr><tr><td>導彈 / 火控系統</td><td class="num">$40B/yr (2025E)</td><td class="num">12%</td><td><span class="pill pill-gray">HIMARS / PAC-3 領先</span></td><td><span class="pill pill-green">直接</span></td><td>補庫需求爆發</td></tr><tr><td>太空 / 衛星系統</td><td class="num">$15B/yr (2025E)</td><td class="num">8%</td><td><span class="pill pill-gray">GPS III / 偵察衛星</span></td><td><span class="pill pill-green">直接</span></td><td>Space 部門</td></tr><tr><td>直升機（Sikorsky）</td><td class="num">$10B/yr (2025E)</td><td class="num">4%</td><td><span class="pill pill-gray">Black Hawk / CH-53K</span></td><td><span class="pill pill-green">直接</span></td><td>穩定現金流</td></tr><tr><td>C4ISR / 網路戰</td><td class="num">$20B/yr (2025E)</td><td class="num">10%</td><td><span class="pill pill-gray">競爭市場</span></td><td><span class="pill pill-green">直接</span></td><td>Rotary + Mission Systems</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Lockheed Martin Corporation — 全球最大國防承包商</h2>
+    <p class="ph-lead">1995 年 Lockheed + Martin Marietta 合併；總部 Bethesda MD；CEO Jim Taiclet（2020 年起）；全球員工 122,000+；美國政府佔 Revenue 73%。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>航空（Aeronautics）</strong></td><td>F-35 / F-16 / F-22 維修</td><td class="num">40%</td><td><span class="pill pill-gray">穩定（LRIP 繼續）</span></td></tr><tr><td><strong>導彈 &amp; 火控（MFC）</strong></td><td>HIMARS / PAC-3 / JAGM</td><td class="num">17%</td><td><span class="pill pill-gray">快增（+12% YoY）</span></td></tr><tr><td><strong>旋翼機 &amp; 任務系統（RMS）</strong></td><td>Black Hawk / CH-53K / 雷達</td><td class="num">25%</td><td><span class="pill pill-gold">穩增</span></td></tr><tr><td><strong>太空（Space）</strong></td><td>GPS III / 飛彈防禦衛星</td><td class="num">18%</td><td><span class="pill pill-gold">穩增</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">F-35 平台 30 年維修長尾（積壓 $135B+）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">HIMARS / PAC-3 導彈系統市場壟斷</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">政府安全許可 + 機密技術壁壘</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">NATO 盟國客戶多元化（45+ 國家）</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">穩定股利增長（連 20 年增股利）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">DOGE 削減美國國防預算風險</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利率 12% 偏低（成本加成合約）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">F-35 生產成本超支歷史紀錄</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">地緣政治降溫導彈需求短期下滑</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">LMT</strong></td><td class="num">$107B</td><td class="num">$71B</td><td class="num">12.2%</td><td class="num">1.51×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">F-35 壟斷 + 導彈</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">中立（DOGE 疑慮）</span></td></tr><tr ><td><strong >Raytheon (RTX)</strong></td><td class="num">~$150B</td><td class="num">~$80B</td><td class="num">20%</td><td class="num">1.87×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">導彈 / 引擎 / 航電</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">互補</span></td></tr><tr ><td><strong >Northrop Grumman (NOC)</strong></td><td class="num">~$68B</td><td class="num">~$40B</td><td class="num">21%</td><td class="num">1.7×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">B-21 / 太空 / 網戰</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">互補</span></td></tr><tr ><td><strong >General Dynamics (GD)</strong></td><td class="num">~$72B</td><td class="num">~$47B</td><td class="num">15%</td><td class="num">1.53×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">潛艦 / Gulfstream 商務機</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">互補</span></td></tr><tr ><td><strong >Boeing Defense (BA)</strong></td><td class="num">~$120B</td><td class="num">~$78B (合併)</td><td class="num">5%</td><td class="num">1.54×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">B-21 競品 / KC-46</span></td><td><span class="pill pill-gray">中（財務問題）</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">競品但財務差</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>F-35 LRIP 19（低速初始量產）</strong></td><td>LRIP 18 交付中，120 架/年</td><td>LRIP 19 合約確認，維持生產節奏</td><td>Block 4 升級完成，全面量產</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>HIMARS / PrSM 精密打擊導彈</strong></td><td>烏克蘭 + NATO 大量採購</td><td>PrSM 超遠程版本（500km+）量產</td><td>亞太盟國採購</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>NGAD 下一代空優戰機</strong></td><td>競標中（vs Northrop）</td><td>2026 合約決定</td><td>若獲選，$50B+ 長期合約</td><td><span class="pill pill-gray">重要（高不確定）</span></td></tr><tr><td><strong>衛星 / 太空防禦（GPS III Follow-On）</strong></td><td>GPS III SV-11 以後持續</td><td>軍事衛星增加</td><td>太空防禦系統</td><td><span class="pill pill-gray">穩定</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">F-35 + HIMARS + PAC-3 — 三大主力系統深拆</h2>
+    <p class="ph-lead">F-35 是 LMT 的核心護城河（長尾 30 年）；HIMARS / PAC-3 受地緣衝突需求爆發；Black Hawk 直升機是穩定現金流。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>F-35 Lightning II</strong></td><td>第五代匿蹤戰機，全球唯一量產隱形多用途戰機，A/B/C 三型</td><td>Eurofighter / F-16（較舊）/ Rafale</td><td>唯一量產 5th Gen，技術差距 10+ 年</td><td><span class="pill pill-gray">核心護城河（30 年長尾）</span></td></tr><tr><td><strong>HIMARS（高機動砲兵）</strong></td><td>精準導引多管火箭系統，M31/M270，射程 80-300km</td><td>俄製 BM-30，精準度遠低於 HIMARS</td><td>烏克蘭實戰驗證，盟國搶購補庫</td><td><span class="pill pill-gray">導彈業務核心</span></td></tr><tr><td><strong>PAC-3 飛彈防禦</strong></td><td>愛國者防空系統 PAC-3 MSE，攔截彈道飛彈 / 巡弋飛彈</td><td>俄製 S-400（制裁中）/ 以色列鐵穹（短程）</td><td>美軍 + NATO 標準防空系統</td><td><span class="pill pill-gray">強需求</span></td></tr><tr><td><strong>JAGM（聯合空地導彈）</strong></td><td>替代 Hellfire 的新型空地導彈，雙模導引，適裝 F-35 / 直升機</td><td>波音 JASSM（不同用途）</td><td>F-35 標配導彈，協同採購</td><td><span class="pill pill-gray">穩定增長</span></td></tr><tr><td><strong>Sikorsky Black Hawk</strong></td><td>UH-60M 多用途直升機，全球 4,000+ 服役</td><td>Boeing CH-47 Chinook</td><td>美軍標準直升機，40 年長尾服務</td><td><span class="pill pill-gray">穩定現金流</span></td></tr><tr><td><strong>GPS III 衛星系統</strong></td><td>GPS III Follow-On 衛星，精準度提升 3×，抗干擾</td><td>Galileo（EU）/ BeiDou（中）</td><td>美國政府獨家合約，競標壁壘高</td><td><span class="pill pill-gray">穩定</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">F-35 平台長尾護城河（積壓 $135B）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">HIMARS / PAC-3 地緣需求爆發</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">政府安全許可壁壘（機密技術）</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">股利增長 20 年（防禦性）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">DOGE 削減美國國防預算</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">毛利率偏低（成本加成合約）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">F-35 成本超支歷史爭議</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">地緣政治降溫風險</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · Q1 2025 法說重點（2025-04-22）</div>
+    <h2 class="ph-title">Q1 2025 Revenue $18.0B · +4% YoY — 導彈火控 +12%，F-35 積壓維持</h2>
+    <p class="ph-lead">Lockheed Martin Q1 2025 Revenue $18.0B（+4% YoY）；MFC（導彈）$3.0B（+12%）；Aeronautics $7.1B（+2%）；Non-GAAP EPS $7.28（+11%）；積壓訂單 $160B+。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q1 2025 Revenue</div><div class="card-value" style="color:var(--c-)">$18.0B</div><div class=card-sub>+4% YoY，符合預期</div></div><div class="card"><div class="card-label">MFC Revenue</div><div class="card-value" style="color:var(--c-green)">$3.0B</div><div class=card-sub>+12% YoY，HIMARS/PAC-3 需求</div></div><div class="card"><div class="card-label">積壓訂單</div><div class="card-value" style="color:var(--c-green)">$160B+</div><div class=card-sub>約 2.2× 年收入，可見度高</div></div><div class="card"><div class="card-label">Non-GAAP EPS</div><div class="card-value" style="color:var(--c-green)">$7.28</div><div class=card-sub>+11% YoY，超預期</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"Our missile and fire control business continues to benefit from strong global demand driven by geopolitical tensions. HIMARS deliveries are running at near-capacity, and we're expanding production to meet international demand."</div><div class="q-attr">— Jim Taiclet (CEO) · Q1 2025 Earnings · 2025-04-22 · Source: Lockheed Martin IR</div></div><div class="qblock"><div class="q-text">"The F-35 program remains the backbone of our business with over $135 billion in backlog. We're making progress on Block 4 software upgrades and remain confident in our long-term production schedule."</div><div class="q-attr">— Jim Taiclet · Q1 2025 Earnings · 2025-04-22 · Source: Lockheed Martin IR</div></div><div class="qblock"><div class="q-text">"We are closely monitoring the budget environment in Washington. While there is discussion about efficiency, we believe mission-critical programs like F-35 and PAC-3 will be protected. Our NATO customer base provides significant revenue diversification."</div><div class="q-attr">— CFO Jay Malave · Q1 2025 Earnings · 2025-04-22 · Source: Lockheed Martin IR</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>DOGE 削減影響多大？</td><td>管理層表示機密 / 作戰系統優先保護，F-35 / HIMARS 不在削減清單；非核心後勤合約有風險</td><td><span class="pill pill-gray">短期疑慮仍在，但核心系統受保護</span> NDAA 最終通過才能確認</td></tr><tr><td>F-35 Block 4 升級延遲？</td><td>Block 4 軟體升級延遲 1-2 季（技術整合複雜），但不影響基本型號生產交付</td><td><span class="pill pill-gray">可控，市場已知情</span> 延遲對 Revenue 影響小，主要是客戶信心問題</td></tr><tr><td>歐洲 F-35 訂單規模？</td><td>德國 20 架 / 波蘭 32 架 / 比利時 34 架均已確認；2025-2026 交付；更多歐洲國家評估中</td><td><span class="pill pill-gray">正面，歐洲訂單補充美國預算不確定性</span> </td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 2025 業績後（2025-04-22），LMT 股價小幅上漲 1-2%；EPS 超預期但 DOGE 疑慮持續壓制估值。2026-05-21 現報 $468.22，1 年 -14.8%，遠遜大盤。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $71B · GM 12.2% · 政府合約結構</h2>
+    <p class="ph-lead">LMT TTM Revenue $71B；毛利率 12.2%（政府成本加成合約，利潤空間有限）；Operating Margin ~11%；FCF $6.1B，持續回饋股東。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2022</td><td class="num pos">65.98</td><td class="num">8.6</td><td class="num pos">13.0%</td><td class="num">3.1</td><td class="num neg">8.1</td><td class="num">3.3</td></tr><tr ><td>FY2023</td><td class="num pos">67.57</td><td class="num">8.5</td><td class="num pos">12.6%</td><td class="num">3.2</td><td class="num neg">8.3</td><td class="num">1.4</td></tr><tr ><td>FY2024</td><td class="num pos">71.02</td><td class="num">8.6</td><td class="num pos">12.1%</td><td class="num">3.2</td><td class="num neg">8.5</td><td class="num">1.7</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>TTM / FY2025E</td><td class="num pos">71.0</td><td class="num">8.7</td><td class="num pos">12.2%</td><td class="num">~3.3</td><td class="num neg">~8.7</td><td class="num">~1.8B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="card" style="min-width:0"><div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div><p style="font-size:13px;color:var(--c-muted);margin-top:8px">無資料</p></div>
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$1.7B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$3.5B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$16.0B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$15.2B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$0.8B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$52.5B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$6.2B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Lockheed Martin 10-K FY2024（SEC CIK 1133421）/ Q1 2025 10-Q / LMT IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>SG&amp;A</td><td class="num">$2.1</td><td class="num">$2.0</td><td class="num">$1.9</td><td class="num">+5%</td><td>—</td></tr><tr><td>R&amp;D（IR&amp;D）</td><td class="num">$1.2</td><td class="num">$1.2</td><td class="num">$1.2</td><td class="num">0%</td><td>政府合約內含研發費</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$3.3</td><td class="num">$3.2</td><td class="num">$3.1</td><td class="num">+3%</td><td>—</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Lockheed Martin 10-K FY2024（SEC CIK 1133421）/ Q1 2025 10-Q / LMT IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF $6.1B · 持續回饋股東（股利 + 回購）</h2>
+    <p class="ph-lead">LMT FY2024 FCF $6.1B；Capex 輕（~$2B/年）；持續大量回購 + 股利，FY2024 股東回饋 $8B+。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">~$8B (FY2024)</div><div class="card-sub">政府長期合約提供穩定 OCF，Margin ~11%</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex ~$1.9B</div><div class="card-sub">輕 Capex，主要為設施升級</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">回購 $5B+ / 年 + 股利 $2.3B/年</div><div class="card-sub">FCF 幾乎全部回饋股東，淨負債維持</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">$5.7</td><td class="num">$0.8</td><td class="num">$(1.7)</td><td class="num neg">$7.2</td><td class="num">$3.3</td><td class="num neg">N/A</td><td><span class="pill pill-gray">強勁 FCF</span></td></tr><tr ><td>FY2023</td><td class="num neg">$6.9</td><td class="num">$0.8</td><td class="num">$(1.9)</td><td class="num neg">$6.2</td><td class="num">$1.4</td><td class="num neg">N/A</td><td><span class="pill pill-gray">強勁 FCF，大量回購</span></td></tr><tr ><td>FY2024</td><td class="num neg">$5.3</td><td class="num">$0.9</td><td class="num">$(1.9)</td><td class="num neg">$6.1</td><td class="num">$1.7</td><td class="num neg">N/A</td><td><span class="pill pill-gray">穩定 FCF</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025E</td><td class="num neg">~$6.5</td><td class="num">~$0.9</td><td class="num">~$(2.0)</td><td class="num neg">~$6.5</td><td class="num">~$1.5B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">穩定增長，持續回饋</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">LMT FCF 高度穩定。幾乎全部 FCF 用於回購（~$5B/年）+ 股利（~$2.3B/年）。淨負債 ~$12B，Financial Leverage 高但現金流覆蓋。數據來源：Lockheed Martin 10-K FY2024（SEC CIK 1133421）。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$1.7B</td><td class="num pos">$1.7B</td><td class="num neg">FCF +$6.1B/yr</td><td class="num">∞</td><td class="num">∞</td><td>政府長期合約，無流動性問題</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>LMT 財務非常穩健，積壓訂單 $160B+ 確保 2030 年前 Revenue 可見度。最大風險是美國政府預算削減，但核心系統（F-35 / PAC-3）優先保護。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>現金</td><td class="num">$1.7B (FY2024)</td><td class="num">—</td><td><span class="pill pill-gray">偏低（但 FCF $6B 補充）</span></td><td>—</td></tr><tr><td>淨負債</td><td class="num">~$12B</td><td class="num">—</td><td><span class="pill pill-gray">適中</span></td><td>Debt/EBITDA ~1.3×</td></tr><tr><td>Interest Coverage</td><td class="num">~8×</td><td class="num">&gt;5×</td><td><span class="pill pill-gray">良好</span></td><td>EBIT $8.5B ÷ 利息 ~$1.1B</td></tr><tr><td>流動比率</td><td class="num">1.05×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">緊平衡（正常）</span></td><td>政府合約業務特性</td></tr><tr><td>FCF Yield（現股價）</td><td class="num">~5.7%</td><td class="num">~3%（S&amp;P 500）</td><td><span class="pill pill-gray">優異</span></td><td>$6.1B ÷ 市值 $107B</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">政府合約主導 — F-35 供應鏈深度垂直整合</h2>
+    <p class="ph-lead">LMT 是主承包商，F-35 有 1,500+ 家供應商；導彈業務自研為主；政府合約結構（成本加成 / 固定價格）決定利潤率。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Lockheed Martin 供應鏈</div><svg viewBox='0 0 860 280' style='width:100%;display:block;min-height:220px'><text x='8' y='40' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>上游</text><rect x='45' y='14' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='145' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>Pratt & Whitney（引擎）</text><text x='145' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>F135 引擎（RTX 旗下）</text><rect x='255' y='14' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='355' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>Northrop（機身）</text><text x='355' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>F-35 中央機身製造</text><rect x='465' y='14' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='565' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>BAE Systems（後機身）</text><text x='565' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>F-35 後段機身</text><text x='8' y='120' fill='#F5A623' font-family='monospace' font-size='10' font-weight='700'>★ 核心</text><rect x='230' y='82' width='400' height='55' rx='8' fill='#F5A623' stroke='#d4880a' stroke-width='2'/><text x='430' y='107' text-anchor='middle' fill='white' font-family='monospace' font-size='13' font-weight='700'>★ Lockheed Martin (LMT)</text><text x='430' y='125' text-anchor='middle' fill='rgba(255,255,255,0.9)' font-family='monospace' font-size='10'>F-35 主承包商 + HIMARS + PAC-3 + Sikorsky</text><text x='8' y='190' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>客戶</text><rect x='80' y='165' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='180' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>美國國防部（73%）</text><rect x='330' y='165' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='430' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>NATO 盟國（27%）</text><rect x='580' y='165' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='680' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>45+ 國際客戶</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>Pratt &amp; Whitney（F135 引擎）</td><td>F-35 唯一引擎供應商，P&amp;W 子公司（RTX）</td><td>深度整合，替換成本極高</td><td><span class="pill pill-gray">極高（單一引擎）</span></td><td><span class="pill pill-gray">中（引擎供應鏈）風險</span></td></tr><tr><td>美國國防部（主要客戶）</td><td>佔 Revenue 73%，NDAA 預算確認後穩定</td><td>長期政府合約</td><td><span class="pill pill-gray">高（73%）</span></td><td><span class="pill pill-gray">中（DOGE 削減）風險</span></td></tr><tr><td>NATO 盟國客戶</td><td>45+ 國家 F-35 / PAC-3 / HIMARS 採購</td><td>政治 + 技術鎖定，替換成本極高</td><td><span class="pill pill-green">中（多元化）</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>Northrop / BAE（機身供應）</td><td>F-35 機身供應，長期合約</td><td>無法替換，深度整合</td><td><span class="pill pill-green">中</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>鈦合金 / 特殊材料供應鏈</td><td>俄羅斯 / 中國替代方案逐步建立</td><td>國防供應鏈本土化推進中</td><td><span class="pill pill-gray">中</span></td><td><span class="pill pill-gray">中（地緣）風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2026 Revenue × P/S → 個人估算區間</h2>
+    <p class="ph-lead">F-35 維修長尾 + 導彈補庫是核心驅動；FY2025E Revenue $74-76B 可見度高。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="60" max="85" value="74">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$74M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="0.8" max="1.8" step="0.5" value="1.3">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">1.3x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="468.22"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $468.22</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (25%)</strong></td><td class="num">$68-70B</td><td class="num">0.9×</td><td class="num">$62B</td><td class="num">$62B</td><td class="num">0.229B</td><td class="num neg"><strong>$380</strong></td><td class="num neg">-19%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$74-77B</td><td class="num">1.3×</td><td class="num">$97B</td><td class="num">$97B</td><td class="num">0.229B</td><td class="num "><strong>$520</strong></td><td class="num pos">+11%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (20%)</strong></td><td class="num">$80B+</td><td class="num">1.6×</td><td class="num">$128B</td><td class="num">$128B</td><td class="num">0.229B</td><td class="num "><strong>$620</strong></td><td class="num pos">+32%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $468.22 低於 MA50 $475（-1.4%）和 MA200 $510（-8.2%）；從 52 週高點 $614.87 大幅回落，1 年績效 -14.8%；DOGE 國防預算削減疑慮壓抑估值；RSI 47 中性偏空；股利率 ~3.0%（$9.96/股年股利）提供下檔支撐；等待 RSI 超賣反彈或預算明朗化才評估進場。（Source: yfinance 即時行情，2026-05-21）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">下降趨勢（低於 MA50/MA200）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$468.22</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>-1.4%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>-8.2%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>47 — 中性偏空</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">445.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">500.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$614.87</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$413.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>-14.8%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-red);font-weight:700">偏空</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">4.0/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $468.22 低於 MA50 $475（-1.4%）和 MA200 $510（-8.2%）；從 52 週高點 $614.87 大幅回落，1 年績效 -14.8%；DOGE 國防預算削減疑慮壓抑估值；RSI 47 中性偏空；股利率 ~3.0%（$9.96/股年股利）提供下檔支撐；等待 RSI 超賣反彈或預算明朗化才評估進場。（Source: yfinance 即時行情，2026-05-21）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">LMT 5 大核心風險 — 影響 × 機率矩陣</h2>
+    <p class="ph-lead">LMT 的風險分布與緩解措施，涵蓋預算、技術、競爭、地緣與合約面。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="68" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="490" cy="220" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="490" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="230" cy="220" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="230" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="370" cy="220" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="140" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>DOGE 削減美國國防預算</strong><br><span style=font-size:12px;color:var(--c-muted)>若 NDAA FY2026 削減 F-35 採購數量（120 → 80 架/年），Revenue 下滑 $3-5B</span></td><td class="num neg">高</td><td class="num">中</td><td>FY2026</td><td>NATO 訂單補充；F-35 LRIP 已確認合約保護</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>F-35 Block 4 升級持續延遲</strong><br><span style=font-size:12px;color:var(--c-muted)>軟體整合複雜，若延遲超 2 年，影響海外客戶信心和追加訂單</span></td><td class="num ">中</td><td class="num">中高</td><td>持續</td><td>基本型號不受影響；客戶已知情</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>地緣政治降溫（俄烏停火）</strong><br><span style=font-size:12px;color:var(--c-muted)>若俄烏衝突快速停火，HIMARS / PAC-3 緊急補庫需求下滑</span></td><td class="num ">中</td><td class="num">中低</td><td>2025</td><td>積壓訂單 $160B+，停火後影響有 2-3 年滯後</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>固定價格合約成本超支</strong><br><span style=font-size:12px;color:var(--c-muted)>若通脹 / 材料成本上升超過固定價格合約假設，LMT 承擔損失</span></td><td class="num ">中</td><td class="num">中</td><td>持續</td><td>成本加成合約比例提升；LMT 有歷史超支補救機制</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>NGAD 競標失敗（Northrop 勝出）</strong><br><span style=font-size:12px;color:var(--c-muted)>若下一代空優戰機合約由 Northrop 獲得，LMT 缺乏長期戰機新項目</span></td><td class="num ">中高</td><td class="num">中（競爭激烈）</td><td>2026</td><td>F-35 維修長尾和導彈業務可支撐 10+ 年</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Lockheed Martin 的近期催化劑與時間表，供進場決策參考。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q2（7月）</div><div class="tl-title">NDAA FY2026 預算確認 F-35 採購計畫</div><div class="tl-body">若 F-35 年採購維持 120 架，DOGE 疑慮消散 → 股價重估。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 Q2-Q3</div><div class="tl-title">F-35 Block 4 升級通過 IOC 里程碑</div><div class="tl-body">Block 4 IOC（初始作戰能力）確認，海外客戶信心回升。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 H2</div><div class="tl-title">歐洲盟國追加 F-35 訂單（德國 / 挪威）</div><div class="tl-body">NATO GDP 2%+ 目標驅動，新訂單確認 Revenue 多元化。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026</div><div class="tl-title">PrSM 超遠程導彈量產合約</div><div class="tl-body">500km+ 射程 PrSM 量產，補充 HIMARS 高端需求，高利潤。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026</div><div class="tl-title">NGAD 合約決定</div><div class="tl-body">若 LMT 獲得 NGAD，長期 $50B+ 合約確認下一代戰機地位。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">NDAA FY2026 F-35 採購量確認</div><div class="ws">≥100 架/年確認 → DOGE 疑慮消散 → 估值重估</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">歐洲追加 F-35 訂單 2 國以上</div><div class="ws">NATO 多元化確認 → Revenue 穩定性提升</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">HIMARS Q3 Revenue ≥ $1B</div><div class="ws">導彈補庫持續 → MFC 部門超預期</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">Block 4 升級通過 IOC</div><div class="ws">技術風險消除 → 客戶信心回升</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">PE 回升至 19× 以上</div><div class="ws">DOGE 疑慮消散 + EPS 增長 → 股價重返 $550+</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資視角對 LMT 的判斷</h2>
+    <p class="ph-lead">從護城河到估值泡沫，五種視角給出不同判斷。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">LMT 的 F-35 長尾 + 政府合約 + 股利增長是 Buffett 最愛的「耐用護城河」。PE 16.8× + FCF Yield 5.7% 在防禦股中是合理估值。DOGE 是短期雜訊；Buffett 看長期政府支出義務。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">PEG = 16.8 ÷ 8% EPS 成長 = 2.1，GARP 偏貴但可接受（防禦股成長率本就低）。Lynch 會看 FCF Yield 5.7%，認為 LMT 是可持有的「股利成長股」。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-gray">中立</span></div><div class="persona-score" style="color:var(--c-text)">6.0</div></div><div class="persona-body">地緣政治緊張 → 國防預算增加 → LMT 訂單增加 → 股價上漲，正向反身性成立。但 DOGE 是反向力量。目前處於兩種反身性衝突中，等 NDAA 確認後方向明朗。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">Munger 欣賞 LMT 的護城河（機密技術 + 政府認證壁壘），連 20 年股利增長是複利機器的標誌。但毛利率 12% 偏低，Munger 認為政府合約業務「護城河寬但利潤薄」。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-gray">中立</span></div><div class="persona-score" style="color:var(--c-green)">6.5</div></div><div class="persona-body">Burry 看到 DOGE 是真實的業務風險，但 LMT PE 16.8× 在近年低位，FCF Yield 5.7% 提供安全邊際。若 DOGE 最終沒有大規模削減核心系統，LMT 是被過度悲觀定價的優質標的。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">中立偏多。Base PT 個人估算 $520（vs 現價 +11%）。NDAA 預算確認 + NATO 訂單多元化是核心前提。$440-460 是較佳進場區，股利率 3% 提供防禦性支撐。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">LMT 是地緣政治保險 + 防禦性配置，適合厭惡波動、需要穩定股利的投資人。不適合追求高速成長的投資人。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT $520 vs 現價 $468.22（+11%）。等 NDAA 確認後評估。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>季度財報</td><td>Lockheed Martin Q1 2025 10-Q / Earnings，2025-04-22，SEC CIK 1133421</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>年度財報</td><td>Lockheed Martin 10-K FY2024，2025-01-27，SEC CIK 1133421</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 LMT，2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（P/S × Revenue Scenario）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · LMT Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001133421" target="_blank" style="color:var(--c-gold)">0001133421</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{ data: [65.98, 67.57, 71.02, 74.0], backgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{
+        data: [13.0, 12.6, 12.1, 12.2],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

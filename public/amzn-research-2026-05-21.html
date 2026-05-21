@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMZN — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">AMZN</div>
+    <div class="sidebar-name">Amazon.com Inc.</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">265.01 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$300</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$296.50</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: AMZN · 2026-05-21</div>
+    <h1 class="ph-title">Amazon — AWS 加速 + 廣告利潤引擎，AI 基礎設施最大受益者之一</h1>
+    <p class="ph-lead">Q1 2025 Revenue $155.7B（+9% YoY）；AWS $29.3B（+17% YoY）；廣告 $13.9B（+18% YoY）；Operating Income $18.4B（+64% YoY）。TTM Revenue $743B，毛利率 50.6%。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">$743B</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2024 +11% YoY</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">~$117B+</span><span class="stat-label">AWS Revenue Run-Rate</span><div class=card-sub>Q1 2025 $29.3B（+17% YoY），年化超 $117B</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">50.6%</span><span class="stat-label">Gross Margin</span><div class=card-sub>TTM，廣告 + AWS 高毛利拉升</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$2851B</span><span class="stat-label">Market Cap</span><div class=card-sub>全球前三大市值公司</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">中性偏多（等 AWS 加速確認）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$230–$250</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">$195</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">$300</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$370</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q2 2025 法說（7月）AWS 增速</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">AWS 增速降至 12% 以下連 2 季</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$296.50</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 265.01 USD → <strong>+11.9%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$195x20% + $$300x55% + $$370x25%<br>= $39.00 + $165.00 + $92.50 = <strong>$296.50</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">$195</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AWS 增速降至 12% / 廣告疲軟 / 物流 Capex 超支<br><strong>Rev FY2025E $750-760B · GM GM 48-50%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">$300</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AWS 維持 16-18% / 廣告 +15% / Operating Margin 11-12%<br><strong>Rev FY2025E $775-800B · GM GM 50-52%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$370</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">AWS +20%+ / AI 推理加速 / 廣告 +20% / FCF 突破 $60B<br><strong>Rev FY2025E $810B+ · GM GM 52-54%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AWS 加速成長（+17% YoY）+ AI 基礎設施需求，Bedrock / Trainium / Inferentia 自研晶片</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>廣告業務 $13.9B/季（+18% YoY），高利潤率貢獻，成長可見度高</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Prime + 物流飛輪完善，全球電商市佔率 40%+（美國），重複購買率高</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Operating Margin 擴張（Q1 2025 11.8%，vs FY2022 2%），利潤率改善趨勢強</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Project Kuiper（LEO 衛星）長期是 AWS 延伸，可觸及未聯網市場</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>估值 32× PE 適中但電商業務增速放緩（+5%），整體 PE 偏高</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>AWS 競爭激烈（Azure +33% / GCP +28%），市佔率壓力持續</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>物流 Capex 高（$60B+/年），資本密集降低 FCF 品質</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>監管風險：FTC 反壟斷調查（電商 + AWS 市場支配地位）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>廣告業務依賴 Amazon 生態，若電商衰退廣告 CPM 跟著下滑</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · AWS 季度增速是否維持 15%+ + Operating Margin 是否繼續擴張
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — AWS 是 Amazon 的利潤引擎，AI 基礎設施的核心承載者</h2>
+    <p class="ph-lead">AWS $117B+ 年化 + 廣告 $55B+ 雙引擎；Base PT 個人估算 $300（vs 現價 +13%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Amazon 從電商起家，AWS 雲端業務已佔全球公有雲市場 31%，是公司利潤主要來源（AWS Operating Margin 39%，電商 5-6%）。AI 工作負載向雲端遷移加速，AWS 直接受益。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">電商業務增速放緩（+5-7%），物流 Capex 依然高企。Azure 以 Copilot 生態快速追趕，GCP 以 AI 差異化搶份額。市場擔心 AWS 市佔率是否能守住 31%。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">AWS 能否從 FY2024 $100B 增至 FY2026 $140B+，同時廣告和 Operating Margin 維持成長？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：AWS AI 需求（Bedrock / SageMaker）+ 企業遷移加速，FY2025 增至 $117B+，FY2026 $135-140B；廣告 $55B+ 高利潤；整體 Operating Margin 12%+ → FCF $55B+。PT $300。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>AWS AI 推理需求爆發 — Bedrock / Trainium 2 晶片量產，AI 工作負載 AWS 佔比上升</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>廣告業務高速成長 — Q1 2025 +18% YoY，Prime Video 廣告啟動增加庫存</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>Operating Margin 擴張 — 物流效率改善 + 高利潤業務佔比提升，從 2% 到 12%+ 路徑清晰</td><td style="font-family:var(--font-mono);font-size:11px">2024-2026</td><td><span class="pill pill-red">關鍵</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">雲端 + 電商 + 廣告三角護城河</h2>
+    <p class="ph-lead">AWS 雲端市場 31% 份額（全球最大）；全球電商市佔 40%（美國），Prime 會員 2億+；廣告 TAM 持續擴張，Amazon DSP 是 Google/Meta 之外第三大廣告平台。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Amazon 三角護城河生態位</div><svg viewBox='0 0 800 320' style='width:100%;display:block;min-height:260px'><rect x='10' y='10' width='780' height='44' rx='6' fill='#1B3A5E'/><text x='400' y='37' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>消費者 · 企業客戶 · 廣告主 · AI 開發者</text><rect x='10' y='62' width='250' height='44' rx='6' fill='#F5A623'/><text x='135' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>★ AWS 雲端（31% 市佔）</text><rect x='270' y='62' width='250' height='44' rx='6' fill='#F5A623'/><text x='395' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>★ 電商 + Prime（40% US）</text><rect x='530' y='62' width='260' height='44' rx='6' fill='#2D5A8E'/><text x='660' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='11' font-weight='700'>廣告（#3 全球 DSP）</text><rect x='10' y='114' width='780' height='44' rx='6' fill='#374151'/><text x='400' y='140' text-anchor='middle' fill='#F5A623' font-family='monospace' font-size='11' font-weight='700'>★ AI 基礎設施：Trainium 2 / Inferentia / Bedrock / SageMaker</text><rect x='10' y='166' width='380' height='44' rx='6' fill='#4B5563'/><text x='200' y='192' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='10'>Prime 物流（1/2 日配送）→ 增加電商黏性</text><rect x='400' y='166' width='390' height='44' rx='6' fill='#4B5563'/><text x='595' y='192' text-anchor='middle' fill='rgba(255,255,255,0.8)' font-family='monospace' font-size='10'>AWS → 廣告資料飛輪 → 電商轉換率提升</text><rect x='10' y='218' width='780' height='44' rx='6' fill='#6B7280'/><text x='400' y='244' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='10'>競品：Azure / GCP（雲端）；Walmart / TikTok Shop（電商）；Google / Meta（廣告）</text></svg></div>
+    <div class='qblock reveal' style='border-left-color:var(--c-blue);margin-bottom:24px'><p class='q-text'><strong style='color:var(--c-blue)'>投資邏輯：</strong>Amazon 的三角護城河（AWS + 電商 + 廣告）互相強化：電商交易資料強化廣告精準度，廣告收入支撐物流 Capex，AWS 提供企業客戶黏性。AI 時代 AWS 是 LLM 推理的主要承載平台。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>公有雲（IaaS + PaaS）</td><td class="num">$650B (2025E)</td><td class="num">20%</td><td><span class="pill pill-gray">31% 市佔</span></td><td><span class="pill pill-green">直接</span></td><td>AWS 核心業務</td></tr><tr><td>數位廣告</td><td class="num">$700B (2025E)</td><td class="num">12%</td><td><span class="pill pill-gray">第三大（8% 市佔）</span></td><td><span class="pill pill-green">直接</span></td><td>成長最快細分</td></tr><tr><td>全球電商</td><td class="num">$5.8T (2025E)</td><td class="num">9%</td><td><span class="pill pill-gray">美國 40%，全球 6%</span></td><td><span class="pill pill-green">直接</span></td><td>成熟市場</td></tr><tr><td>AI 模型推理（雲端）</td><td class="num">$200B+ (2027E)</td><td class="num">60%+</td><td><span class="pill pill-gray">Bedrock 主要承載</span></td><td><span class="pill pill-green">直接</span></td><td>AI 新增市場</td></tr><tr><td>零售媒體廣告</td><td class="num">$150B (2025E)</td><td class="num">25%</td><td><span class="pill pill-gray">市場領導者</span></td><td><span class="pill pill-green">直接</span></td><td>Amazon DSP</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Amazon.com Inc. — 電商 + 雲端 + 廣告 + AI 四位一體</h2>
+    <p class="ph-lead">1994 年創立，Seattle；2022 年 Andy Jassy 接任 CEO；AWS 成立 2006 年，現為 Amazon 利潤核心（約 70% Operating Income 來自 AWS）；全球員工 1,525,000+。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>AWS（雲端）</strong></td><td>EC2 / S3 / Bedrock / SageMaker</td><td class="num">17%</td><td><span class="pill pill-gray">快增（+17% YoY）</span></td></tr><tr><td><strong>北美電商</strong></td><td>Marketplace / Prime / Fulfillment</td><td class="num">61%</td><td><span class="pill pill-gray">穩增（+8% YoY）</span></td></tr><tr><td><strong>國際電商</strong></td><td>歐洲 / 日本 / 新興市場</td><td class="num">12%</td><td><span class="pill pill-gray">緩增（+5%）</span></td></tr><tr><td><strong>廣告 + 訂閱</strong></td><td>Amazon DSP / Prime Video 廣告</td><td class="num">10%</td><td><span class="pill pill-gray">快增（+18% YoY）</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AWS 雲端先發優勢（31% 全球市佔）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Prime 會員 2億+ 黏性生態</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">廣告資料飛輪（電商購買意圖資料）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">物流基礎設施（全球倉儲 + 最後一哩）</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">電商增速放緩 vs TikTok Shop / Temu</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">物流 Capex 高，FCF 品質打折</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AWS 市佔率被 Azure 追趕壓力</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">監管反壟斷風險（FTC 調查）</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">AMZN</strong></td><td class="num">$2851B</td><td class="num">$743B</td><td class="num">50.6%</td><td class="num">3.8×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AWS 31% 市佔</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">中性偏多</span></td></tr><tr ><td><strong >Microsoft (MSFT)</strong></td><td class="num">$3.1T</td><td class="num">$318B</td><td class="num">68.3%</td><td class="num">9.7×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">Azure +33%，AI 領先</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">競爭但互補</span></td></tr><tr ><td><strong >Google (GOOGL)</strong></td><td class="num">$2.1T</td><td class="num">$350B</td><td class="num">56%</td><td class="num">6×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">GCP +28%，廣告主導</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">廣告競爭</span></td></tr><tr ><td><strong >Alibaba (BABA)</strong></td><td class="num">~$250B</td><td class="num">~$130B</td><td class="num">38%</td><td class="num">1.9×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">中國電商 + 阿里雲</span></td><td><span class="pill pill-gray">強（中國限定）</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">不同市場</span></td></tr><tr ><td><strong >Shopify (SHOP)</strong></td><td class="num">~$140B</td><td class="num">~$9B</td><td class="num">53%</td><td class="num">15×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">電商平台 SaaS</span></td><td><span class="pill pill-gray">中強</span></td><td><span class="pill pill-gold">中</span></td><td><span class="pill pill-gray">補充電商生態</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>AWS Trainium 2 / Inferentia 3</strong></td><td>Trainium 2 量產，Bedrock 服務擴充</td><td>AI 推理 Capex $75B+</td><td>自研晶片降低 NVIDIA 依賴</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Prime Video 廣告</strong></td><td>2024 年啟動廣告層</td><td>廣告收入 $4-6B 年化</td><td>流媒體廣告成為第四引擎</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>Project Kuiper（LEO 衛星）</strong></td><td>2025 年開始部署</td><td>商業服務啟動</td><td>AWS 延伸至未聯網市場</td><td><span class="pill pill-gray">長期</span></td></tr><tr><td><strong>Amazon Health / Pharmacy</strong></td><td>Amazon Pharmacy 成長中</td><td>Healthcare IT 整合</td><td>醫療雲端 + 藥局</td><td><span class="pill pill-blue">新興</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">AWS + 廣告 — AI 基礎設施 + 精準廣告雙核心產品</h2>
+    <p class="ph-lead">AWS 是 Amazon 的利潤引擎（Operating Margin 39%）；廣告業務 $55B+ 年化是高利潤第二引擎；Trainium 2 / Inferentia 3 自研 AI 晶片降低對 NVIDIA 的依賴。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>AWS EC2 / S3</strong></td><td>全球最大公有雲，31% 市佔，IaaS + PaaS 完整棧</td><td>Azure 22% / GCP 12%</td><td>先發優勢 + 生態鎖定（企業遷移成本高）</td><td><span class="pill pill-gray">領先</span></td></tr><tr><td><strong>Amazon Bedrock（AI）</strong></td><td>多模型 AI 推理平台，支援 Claude / Llama / Titan</td><td>Azure OpenAI / GCP Vertex AI</td><td>多模型中立策略 + AWS 基礎設施整合</td><td><span class="pill pill-gray">競爭激烈</span></td></tr><tr><td><strong>Trainium 2 / Inferentia 3</strong></td><td>自研 AI 訓練 / 推理晶片，降低 NVIDIA 成本依賴</td><td>NVIDIA H100 / Google TPU</td><td>降低 GPU 採購成本，提升 AWS 利潤率</td><td><span class="pill pill-gray">早期但有潛力</span></td></tr><tr><td><strong>Amazon 廣告（DSP）</strong></td><td>第三大數位廣告平台，購買意圖資料唯一性</td><td>Google / Meta 廣告</td><td>電商購買資料讓廣告精準度超越 Meta/Google</td><td><span class="pill pill-gray">差異化優勢</span></td></tr><tr><td><strong>Prime / 電商</strong></td><td>2億+ Prime 會員，全球倉儲物流 + 1-2 日配送</td><td>Walmart / TikTok Shop / Temu</td><td>物流基礎設施 20 年積累</td><td><span class="pill pill-green">強護城河</span></td></tr><tr><td><strong>Prime Video 廣告</strong></td><td>2024 年啟動廣告層，串流廣告庫存快速增加</td><td>Netflix / Disney+ 廣告層</td><td>Prime 捆綁黏性，廣告 CPM 潛力大</td><td><span class="pill pill-gray">新增引擎</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AWS 雲端先發護城河（31% 市佔）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">廣告精準度（電商購買資料）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Prime 黏性（2億+ 會員）</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">物流基礎設施（1-2 日配送）</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">電商增速（+5-7%，放緩）</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">物流 Capex（$100B+，壓縮 FCF）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Azure AI 追趕（Copilot 生態）</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">反壟斷監管（FTC 調查）</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="50%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · Q1 2025 法說重點（2025-05-01）</div>
+    <h2 class="ph-title">Q1 2025 Revenue $155.7B · +9% YoY — AWS +17%，廣告 +18%，利潤大幅擴張</h2>
+    <p class="ph-lead">Amazon Q1 2025 Revenue $155.7B（+9% YoY）；AWS $29.3B（+17%）；廣告 $13.9B（+18%）；Operating Income $18.4B（+64% YoY），Operating Margin 11.8%。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q1 2025 Revenue</div><div class="card-value" style="color:var(--c-)">$155.7B</div><div class=card-sub>+9% YoY，符合預期</div></div><div class="card"><div class="card-label">AWS Revenue</div><div class="card-value" style="color:var(--c-green)">$29.3B</div><div class=card-sub>+17% YoY，加速</div></div><div class="card"><div class="card-label">廣告 Revenue</div><div class="card-value" style="color:var(--c-green)">$13.9B</div><div class=card-sub>+18% YoY，高利潤</div></div><div class="card"><div class="card-label">Operating Income</div><div class="card-value" style="color:var(--c-green)">$18.4B</div><div class=card-sub>+64% YoY，Margin 11.8%</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"AWS growth re-accelerated to 17% in Q1, driven by continued migration of workloads and growing demand for generative AI services through Amazon Bedrock."</div><div class="q-attr">— Andy Jassy · Q1 2025 Earnings · 2025-05-01 · Source: Amazon IR</div></div><div class="qblock"><div class="q-text">"Our advertising business continues to grow at a healthy pace, with sponsored products and display advertising both growing double digits. Prime Video advertising is still in its early stages but showing real promise."</div><div class="q-attr">— CFO Brian Olsavsky · Q1 2025 Earnings · 2025-05-01</div></div><div class="qblock"><div class="q-text">"We're continuing to invest heavily in AI infrastructure. We expect to spend over $100 billion in capital expenditures in 2025, the majority of which supports AWS AI capacity."</div><div class="q-attr">— Andy Jassy · Q1 2025 Earnings · 2025-05-01 · Source: Amazon IR</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>AWS 加速是否可持續？</td><td>管理層指出 AI 工作負載是核心增長引擎，Bedrock 客戶數持續增加，Q2 guidance AWS 維持高個位數到低雙位數增速</td><td><span class="pill pill-gray">正面，但 Azure +33% 仍更快</span> AWS 絕對值最大，增速略低但基數效應</td></tr><tr><td>$100B Capex 是否過度投資？</td><td>管理層強調 AI 基礎設施供不應求，Capex 是前瞻投資，ROI 將在 3-5 年實現</td><td><span class="pill pill-gray">市場有疑慮，但歷史上 AWS Capex 回報有跡可循</span> FCF 短期壓縮，長期看 ROI</td></tr><tr><td>TikTok Shop 對電商威脅多大？</td><td>Amazon 承認社交電商興起，但 Prime + 物流護城河難以複製</td><td><span class="pill pill-gray">中期威脅存在但可控</span> 年輕消費者是軟肋</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 2025 業績後股價小幅上漲 2-3%；AWS 增速 +17% 超預期是主因；但 $100B Capex 計畫引發 FCF 壓縮擔憂。2026-05-21 現報 $265.01。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $743B · GM 50.6% · 利潤率快速擴張</h2>
+    <p class="ph-lead">Amazon TTM Revenue $743B；毛利率 50.6%（AWS + 廣告高毛利拉升）；FY2024 Operating Income $68.6B（Operating Margin 10.2%，vs FY2022 2.1%）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2022</td><td class="num pos">513.98</td><td class="num">225.15</td><td class="num pos">43.8%</td><td class="num">196.3</td><td class="num neg">28.8</td><td class="num">53.9</td></tr><tr ><td>FY2023</td><td class="num pos">574.78</td><td class="num">270.16</td><td class="num pos">47.0%</td><td class="num">207.4</td><td class="num neg">62.7</td><td class="num">73.4</td></tr><tr ><td>FY2024</td><td class="num pos">637.96</td><td class="num">340.77</td><td class="num pos">53.4%</td><td class="num">272.2</td><td class="num neg">68.6</td><td class="num">86.5</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>TTM / FY2025E</td><td class="num pos">742.8</td><td class="num">375.8</td><td class="num pos">50.6%</td><td class="num">~300</td><td class="num neg">~80-85</td><td class="num">~90B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="card" style="min-width:0"><div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div><p style="font-size:13px;color:var(--c-muted);margin-top:8px">無資料</p></div>
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$86.5B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$37.0B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$185B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$175B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$10B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$624B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$286B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Amazon 10-K FY2024（SEC CIK 1018724）/ Q1 2025 10-Q / Amazon IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>Fulfillment &amp; Shipping</td><td class="num">~$165</td><td class="num">~$145</td><td class="num">~$130</td><td class="num">+14%</td><td>物流成本最大項</td></tr><tr><td>R&amp;D (Technology)</td><td class="num">~$85</td><td class="num">~$73</td><td class="num">~$63</td><td class="num">+16%</td><td>AWS + AI 研發</td></tr><tr><td>Sales &amp; Marketing</td><td class="num">~$22</td><td class="num">~$20</td><td class="num">~$18</td><td class="num">+10%</td><td>廣告 + 市場拓展</td></tr><tr><td>G&amp;A</td><td class="num">~$11</td><td class="num">~$10</td><td class="num">~$9</td><td class="num">+10%</td><td>公司治理</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">~$300</td><td class="num">~$272</td><td class="num">~$207</td><td class="num">+10%</td><td>物流 Capex + AI 研發雙推動</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Amazon 10-K FY2024（SEC CIK 1018724）/ Q1 2025 10-Q / Amazon IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF $35B+ · 龐大 Capex 但 AWS 現金流覆蓋</h2>
+    <p class="ph-lead">Amazon FY2024 FCF ~$38B（扣除物流 Capex）；FY2025 Capex 計畫 $100B+，主要用於 AWS AI 基礎設施；FCF 短期受壓但 AWS 高 ROIC 支撐長期回報。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">~$115B (FY2024)</div><div class="card-sub">AWS 高 OCF Margin + 電商規模，OCF 強勁</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex ~$77B (FY2024)</div><div class="card-sub">物流倉儲 + AWS 伺服器；FY2025E $100B+ Capex</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">無股利，小額回購</div><div class="card-sub">自由現金流優先投入 AWS AI 基礎設施，未來 2-3 年 FCF 受壓</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">-$2.7</td><td class="num">$19.6</td><td class="num">$(58.3)</td><td class="num neg">-$11.6</td><td class="num">$53.9</td><td class="num neg">N/A</td><td><span class="pill pill-gray">虧損年（物流過度擴張後收縮）</span></td></tr><tr ><td>FY2023</td><td class="num neg">$30.4</td><td class="num">$24.0</td><td class="num">$(52.7)</td><td class="num neg">$35.5</td><td class="num">$73.4</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利回歸</span></td></tr><tr ><td>FY2024</td><td class="num neg">$59.2</td><td class="num">$26.0</td><td class="num">$(77.4)</td><td class="num neg">$38.5</td><td class="num">$86.5</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利，FCF $38B</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025E</td><td class="num neg">~$65-75</td><td class="num">~$28</td><td class="num">~$(100-110)</td><td class="num neg">~$20-35</td><td class="num">~$80B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">Capex 擴張期，FCF 短期壓縮</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FCF = OCF - Capex。FY2025 Capex $100B+ 主要用於 AWS AI 數據中心和 Trainium/Inferentia 晶片。長期 FCF 回歸路徑依賴 AWS AI 業務 ROIC。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$86.5B</td><td class="num pos">$86.5B</td><td class="num neg">FCF +$35B/yr (normalized)</td><td class="num">∞</td><td class="num">∞</td><td>現金充足，主動投資期</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>Amazon 財務健康，最大風險是 FY2025 $100B+ Capex 若 AI ROI 不如預期，將壓縮 FCF 數年。但歷史上 AWS Capex 最終均帶來超額回報。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>現金及等價物</td><td class="num">$86.5B</td><td class="num">—</td><td><span class="pill pill-green">充裕</span></td><td>FY2024 年底</td></tr><tr><td>長期負債</td><td class="num">~$58B</td><td class="num">—</td><td><span class="pill pill-gray">適中</span></td><td>主要為倉儲融資租賃</td></tr><tr><td>Interest Coverage</td><td class="num">~15×</td><td class="num">&gt;5×</td><td><span class="pill pill-gray">優異</span></td><td>Operating Income $68.6B ÷ 利息 $4.5B</td></tr><tr><td>流動比率</td><td class="num">1.06×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">緊平衡</span></td><td>電商業務特性，正常</td></tr><tr><td>FCF Margin（FY2024）</td><td class="num">6.0%</td><td class="num">~5%（電商業平均）</td><td><span class="pill pill-gray">合理</span></td><td>Capex 重業務，FCF Margin 偏低</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">電商 + 雲端 + 廣告 — 三條供應鏈垂直整合</h2>
+    <p class="ph-lead">AWS：NVIDIA GPU + 自研 Trainium/Inferentia；電商：全球倉儲物流網；廣告：Amazon DSP 資料平台。三條業務垂直整合，互相強化。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>Amazon 供應鏈 — 雲端 + 電商 + 廣告三軌</div><svg viewBox='0 0 860 300' style='width:100%;display:block;min-height:240px'><text x='8' y='44' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>上游</text><rect x='45' y='16' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='145' y='36' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>NVIDIA GPU / Trainium 2</text><text x='145' y='51' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>AWS AI 基礎設施</text><rect x='255' y='16' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='355' y='36' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>全球倉儲 + 物流</text><text x='355' y='51' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>電商履單基礎設施</text><rect x='465' y='16' width='200' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='565' y='36' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>Prime 會員資料</text><text x='565' y='51' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>廣告定向資料</text><text x='8' y='130' fill='#F5A623' font-family='monospace' font-size='10' font-weight='700'>★ 核心</text><rect x='230' y='90' width='400' height='55' rx='8' fill='#F5A623' stroke='#d4880a' stroke-width='2'/><text x='430' y='115' text-anchor='middle' fill='white' font-family='monospace' font-size='13' font-weight='700'>★ Amazon (AMZN)</text><text x='430' y='133' text-anchor='middle' fill='rgba(255,255,255,0.9)' font-family='monospace' font-size='10'>AWS 雲端 + 電商 + 廣告 + AI 推理平台</text><text x='8' y='200' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>下游</text><rect x='80' y='175' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='180' y='202' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>企業客戶（AWS）</text><rect x='330' y='175' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='430' y='202' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>消費者（Prime 2億+）</text><rect x='580' y='175' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='680' y='202' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>廣告主（Amazon DSP）</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>NVIDIA GPU / Trainium</td><td>AWS AI Capex $75B+，NVIDIA 主供應商 + 自研替代</td><td>自研 Trainium 降低 NVIDIA 依賴</td><td><span class="pill pill-gold">中（自研進行中）</span></td><td><span class="pill pill-gold">中風險</span></td></tr><tr><td>電商供應商</td><td>300萬+ Marketplace 賣家，分散度高</td><td>物流基礎設施替換成本高</td><td><span class="pill pill-green">低（分散）</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>Prime 會員</td><td>2億+ 訂閱者，高黏性</td><td>Prime 免費配送 + 視頻捆綁</td><td><span class="pill pill-green">分散</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>廣告客戶（DSP）</td><td>百萬+ 廣告主，Amazon 購買資料唯一性</td><td>購買意圖資料不可複製</td><td><span class="pill pill-green">分散</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>物流合作（UPS/FedEx）</td><td>逐步自建物流，降低第三方依賴</td><td>Amazon Logistics 35%+ 自建比例</td><td><span class="pill pill-gold">中（自建進行中）</span></td><td><span class="pill pill-gold">中風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2025 Revenue × P/S → 個人估算區間</h2>
+    <p class="ph-lead">AWS $117B+ 年化 + 廣告 $55B+ 是主要估值錨；整體 FY2025E Revenue $775-800B 可見度高。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="700" max="900" value="780">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$780M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="1.5" max="4.0" step="0.5" value="2.5">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">2.5x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="265.01"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $265.01</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$750-760B</td><td class="num">1.5×</td><td class="num">$1.1T</td><td class="num">$1.1T</td><td class="num">10.7B</td><td class="num neg"><strong>$195</strong></td><td class="num neg">-26%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$775-800B</td><td class="num">2.5×</td><td class="num">$1.9T</td><td class="num">$1.9T</td><td class="num">10.7B</td><td class="num "><strong>$300</strong></td><td class="num pos">+13%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$810B+</td><td class="num">3.2×</td><td class="num">$2.6T</td><td class="num">$2.6T</td><td class="num">10.7B</td><td class="num "><strong>$370</strong></td><td class="num pos">+40%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $265.01 vs MA50 $239.67（+10.6%），MA200 $230（+15.2%）；52 週區間 $196–$278.56；1 年績效 +31.8%；RSI 50 中性，AWS 加速超預期是近期上漲驅動力。（Source: yfinance 即時行情，2026-05-21）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">上升趨勢</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$265.01</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>+10.6%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>+15.2%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>50 — 中性</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">253.07</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">278.56</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$278.56</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$196.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>+31.8%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">5.0/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $265.01 vs MA50 $239.67（+10.6%），MA200 $230（+15.2%）；52 週區間 $196–$278.56；1 年績效 +31.8%；RSI 50 中性，AWS 加速超預期是近期上漲驅動力。（Source: yfinance 即時行情，2026-05-21）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">AMZN 5 大核心風險 — 影響 × 機率矩陣</h2>
+    <p class="ph-lead">AMZN 的風險分布與緩解措施，涵蓋技術、競爭、監管、估值與宏觀面。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="370" cy="68" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="230" cy="68" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="230" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="490" cy="220" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="490" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="230" cy="140" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="230" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="220" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>AWS 市佔率被 Azure 持續侵蝕</strong><br><span style=font-size:12px;color:var(--c-muted)>Azure AI 整合（M365 Copilot）吸引企業客戶，AWS 市佔可能從 31% 降至 27-28%</span></td><td class="num neg">高</td><td class="num">中</td><td>2025-2027</td><td>Bedrock + AI 工具鏈完善；AWS 基礎大客戶轉換成本高</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>Capex $100B+ 若 AI ROI 未達預期</strong><br><span style=font-size:12px;color:var(--c-muted)>若 AI 工作負載成長不如預期，$100B Capex 將壓縮 FCF 2-3 年</span></td><td class="num neg">高</td><td class="num">中低</td><td>2025-2027</td><td>AWS 歷史 Capex 均帶來超額回報；需求端強勁</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>電商 TikTok Shop / Temu 衝擊</strong><br><span style=font-size:12px;color:var(--c-muted)>社交電商吃掉年輕消費者，低價品類競爭激烈</span></td><td class="num ">中</td><td class="num">中高</td><td>持續</td><td>Prime 黏性 + 物流速度是差異化；高端品類受影響小</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>反壟斷監管（FTC / EU）</strong><br><span style=font-size:12px;color:var(--c-muted)>FTC 調查 Amazon Marketplace 獨家交易，EU 數位市場法適用</span></td><td class="num ">中高</td><td class="num">中低</td><td>持續</td><td>Amazon 已做出部分讓步；案件曠日費時</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>物流 Capex 超支 + 勞工成本上升</strong><br><span style=font-size:12px;color:var(--c-muted)>美國最低工資上調 + 倉儲自動化成本，擠壓電商利潤</span></td><td class="num ">中</td><td class="num">中</td><td>持續</td><td>自動化 + 機器人（Proteus）長期降低人力成本</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Amazon.com Inc. 的近期催化劑與時間表，供進場決策參考。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">Q2 2025 法說（7月）</div><div class="tl-title">AWS 增速是否達 18%+</div><div class="tl-body">若 AWS Q2 +18%，則 FY2025 $117B 目標路徑確認，估值重估觸發。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 下半年</div><div class="tl-title">Prime Video 廣告規模化</div><div class="tl-body">Prime Video 廣告 2024 年 Q4 啟動，若 2025 H2 達 $2B+ 季收入，廣告業務 TAM 超預期。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025 全年</div><div class="tl-title">Trainium 2 / Inferentia 3 規模部署</div><div class="tl-body">自研 AI 晶片規模化降低 NVIDIA 成本依賴，提升 AWS AI 毛利率。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026</div><div class="tl-title">Project Kuiper 商業服務啟動</div><div class="tl-body">LEO 衛星網絡覆蓋未聯網市場，長期 AWS 延伸服務。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">持續</div><div class="tl-title">Operating Margin 繼續擴張</div><div class="tl-body">若 Operating Margin 突破 13%，FCF 重估 → PT 上修。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">AWS Q2 增速 ≥18%</div><div class="ws">確認 AI 需求加速 → FY2025 $130B+ 路徑</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">Operating Margin 突破 13%</div><div class="ws">FCF $50B+ 重估 → PT 上修</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">Trainium 2 客戶突破 500+</div><div class="ws">AI 自研晶片成功 → NVIDIA 成本依賴降低</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">Prime Video 廣告達 $2B/季</div><div class="ws">廣告業務 TAM 擴張 → 第四利潤引擎確立</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">FTC 反壟斷案終結</div><div class="ws">監管不確定性消除 → 估值折扣收斂</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資視角對 AMZN 的判斷</h2>
+    <p class="ph-lead">從護城河到估值泡沫，五種視角給出不同判斷。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">Prime 會員黏性 + AWS 雲端護城河是 Buffett 標準的持久競爭優勢。Capex $100B 讓 Buffett 猶豫（他偏好輕資產），但 AWS 歷史 ROIC 超過 30%，他能接受。PE 31× 合理。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">PEG = 31 ÷ 25% EPS 成長 = 1.24，GARP 合理。Lynch 會看 AWS + 廣告雙引擎，認為 Amazon 是少數「PE 偏低但成長超預期」的大型股。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">AI 浪潮 → AWS 需求爆發 → Capex 增加 → AWS 市佔率守住 → 更多 AI 企業選擇 AWS → 正向反身性。Prime Video 廣告啟動是第二條反身性週期。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">Munger 最欣賞「飛輪生意」。Amazon 的電商 → 廣告 → AWS → AI 推理四環飛輪是教科書級別的複利機器。Capex 高但歷史上每次 Capex 後都帶來更高 ROIC。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-red">謹慎</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">Burry 擔心 $100B Capex 是「AI 資本競賽」中的過度投資，類似 2000 年電信泡沫的光纖超建。若 AI 需求不如預期，FCF 壓縮 2-3 年。但 Burry 不看空，只是要求更大安全邊際。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">中性偏多。Base PT 個人估算 $300（vs 現價 +13%）。AWS 維持 15-18% 增速 + Operating Margin 擴張是核心假設。$230-250 是更佳進場區。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">AMZN 是 AI 基礎設施 + 電商廣告複合成長股，FCF 長期潛力巨大，但短期 Capex 擴張壓縮 FCF 可見度。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT $300 vs 現價 +13%（&gt;10%）。等 $245 回調確認後評估。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>季度財報</td><td>Amazon Q1 2025 10-Q / Earnings，2025-05-01，SEC CIK 1018724</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>年度財報</td><td>Amazon 10-K FY2024，2025-01-31，SEC CIK 1018724</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 AMZN，2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（P/S × AWS 分類估值）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · AMZN Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724" target="_blank" style="color:var(--c-gold)">0001018724</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{ data: [513.98, 574.78, 637.96, 742.78], backgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025E"],
+      datasets: [{
+        data: [43.8, 47.0, 53.4, 50.6],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

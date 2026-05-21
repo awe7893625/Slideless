@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSFT — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">MSFT</div>
+    <div class="sidebar-name">Microsoft Corporation</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">421.06 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$490</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$480.50</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: MSFT · 2026-05-21</div>
+    <h1 class="ph-title">Microsoft — 企業 AI 轉型的最大受益者</h1>
+    <p class="ph-lead">Azure AI 服務季增速持續 30%+，Copilot 商業化加速，FY2025 Revenue $318B、毛利率 68.3%；估值 25× TTM PE 合理，AI 貨幣化是否超預期是 2025-2026 的核心觀察點。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" data-count="318.3" data-suffix="B" style="color:var(--c-green)">$318.3B</span><span class="stat-label">FY2025 Revenue</span><div class=card-sub>+16% YoY，雲端占比持續提升</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">33%+ YoY</span><span class="stat-label">Azure Growth</span><div class=card-sub>Q1 FY2026 Azure &amp; Cloud +33%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">68.3%</span><span class="stat-label">Gross Margin</span><div class=card-sub>TTM FY2025</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$3.1T</span><span class="stat-label">Market Cap</span><div class=card-sub>全球第二大市值</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">偏多觀察（估值合理，等 AI 貨幣化加速確認）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$390–$410</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (20%)</div><div class="db-cell-value red">$330</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (55%)</div><div class="db-cell-value amber">$490</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$580</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">Q2 FY2026 法說（1 月）</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">Azure 增速跌破 25% 連續 2 季</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">中</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$480.50</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 421.06 USD → <strong>+14.1%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$330x20% + $$490x55% + $$580x25%<br>= $66.00 + $269.50 + $145.00 = <strong>$480.50</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (20%)</div><div class="s-pt" style="color:var(--c-red)">$330</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Azure 增速降至 20%，Copilot 付費轉化不及預期<br><strong>Rev FY2027E $320B · GM GM 66-68%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (55%)</div><div class="s-pt" style="color:var(--c-gold)">$490</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Azure 維持 28-30%，Copilot 逐步商業化<br><strong>Rev FY2027E $370-390B · GM GM 68-70%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$580</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Copilot 爆發 + Azure AI 50%+ 成長，M365 ARPU +20%<br><strong>Rev FY2027E $420-440B · GM GM 70-72%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Azure AI 服務（OpenAI 整合）季增速 33%+，持續搶佔 AWS 份額</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Copilot M365 座位數增長 60%+ YoY，企業 AI 貨幣化初步驗證</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>GitHub Copilot 付費用戶突破 250 萬，ARR 加速增長</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>LinkedIn / Dynamics 365 AI 化提供防禦性穩定現金流</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>政府雲 + JEDI 後繼合約，Azure Government 高速成長</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Azure 增速從 50%+ 降至 33%，若進一步放緩至 25%，估值壓縮風險</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>OpenAI 股權估值攤薄（$157B 估值，但 MSFT 持股比例因 Cap 下降）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Copilot 企業滲透率仍低於 10%，付費轉化慢</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>PC/Windows 市場成熟，Consumer 部門增長乏力</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>監管壓力（EU / FTC 反壟斷審查 AI / 雲端業務）</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · Azure AI 服務季增速是否維持 30%+ + Copilot M365 ARPU 提升軌跡
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — Microsoft 是企業 AI 化浪潮最穩定的受益者</h2>
+    <p class="ph-lead">Azure + Copilot 雙引擎推動 FY2026 加速增長；Base PT 個人估算 $490（+16%），EV $468（+11%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">全球企業 IT 支出正在從傳統軟體轉向 AI 整合平台。Microsoft 控制全球最大企業軟體生態（Office / Windows / Azure / LinkedIn / GitHub），擁有超過 3 億 M365 商業用戶，是企業 AI 化的天然入口。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Azure 增速從 2022 年 50%+ 降至 2025 年 33%。市場疑問：(1) Azure AI 服務是真實需求還是試用期？(2) Copilot 月費 $30 的付費轉化率是否能達到 30%+？(3) Google Cloud 和 AWS 競爭是否蠶食份額？</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Microsoft 能否在 FY2026-2027 重新加速至 Azure 35%+ 增速，同時讓 Copilot 成為 $10B+ ARR 業務？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：Azure 受益於 OpenAI API 呼叫量爆發（GPT-4o、o3 等），AI 服務占 Azure 增量的 30%+；M365 Copilot 在大型企業逐步從試用轉正式部署，FY2027E Revenue $370-390B，P/E 28×，PT $490。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>OpenAI GPT-4o / o3 系列爆紅 → Azure OpenAI Service 呼叫量翻倍，間接拉動 Azure 算力需求</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>Copilot+ PC 硬體週期 + Windows AI Recall 功能，拉動 NPU 筆電替換潮</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>GitHub Copilot 企業版 $39/月/人，250 萬+ 付費用戶，AI 軟體開發工具最快商業化案例</td><td style="font-family:var(--font-mono);font-size:11px">持續</td><td><span class="pill pill-red">關鍵</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">企業雲端 + AI SaaS — $2T 的世代轉型市場</h2>
+    <p class="ph-lead">全球雲端服務市場 2025 年估 $900B，CAGR 17%；企業 AI 應用軟體市場 2025 年估 $200B，CAGR 35%+。MSFT 在雲端市場排第二（~22% 份額），在企業 AI 軟體市場排第一。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">Microsoft 企業 AI 生態 — 7 層堆疊</div><svg viewBox="0 0 800 380" style="width:100%;display:block;min-height:300px" aria-label="Microsoft enterprise AI stack"><title>Microsoft Enterprise AI Stack</title><rect x="10" y="10" width="780" height="44" rx="6" fill="#1B3A5E"/><text x="400" y="36" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">終端用戶 · 3 億 M365 商業用戶 / 企業 IT 部門 / 開發者 / 政府</text><rect x="10" y="62" width="380" height="44" rx="6" fill="#F5A623"/><text x="200" y="88" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ M365 Copilot · $30/月/人 AI 助理</text><rect x="400" y="62" width="390" height="44" rx="6" fill="#F5A623"/><text x="595" y="88" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ GitHub Copilot · 250 萬+ 付費開發者</text><rect x="10" y="114" width="380" height="44" rx="6" fill="#F5A623"/><text x="200" y="140" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ Azure OpenAI Service · GPT-4o / o3 API</text><rect x="400" y="114" width="390" height="44" rx="6" fill="#2D5A8E"/><text x="595" y="140" text-anchor="middle" fill="white" font-family="monospace" font-size="11">Azure ML / Azure AI Studio / Foundry</text><rect x="10" y="166" width="380" height="44" rx="6" fill="#1F7A5C"/><text x="200" y="192" text-anchor="middle" fill="white" font-family="monospace" font-size="12" font-weight="700">★ Azure Cloud · 22% 全球雲市場份額</text><rect x="400" y="166" width="390" height="44" rx="6" fill="#6B7280"/><text x="595" y="192" text-anchor="middle" fill="white" font-family="monospace" font-size="11">AWS (31%) / Google Cloud (12%) 競爭</text><rect x="10" y="218" width="780" height="44" rx="6" fill="#374151"/><text x="400" y="244" text-anchor="middle" fill="#F5A623" font-family="monospace" font-size="12" font-weight="700">★ 基礎設施 · Windows Server / SQL Server / Active Directory / Teams</text><rect x="10" y="270" width="780" height="44" rx="6" fill="#4B5563"/><text x="400" y="296" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="monospace" font-size="11">OpenAI 合作 · $13B 投資，獨家 Azure API 商業化權益</text><rect x="10" y="322" width="780" height="44" rx="6" fill="#6B7280"/><text x="400" y="348" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="11">NVIDIA GPU 算力（Azure 是 NVDA 最大客戶之一） / AMD / 自研 Maia AI 晶片</text></svg></div>
+    <div class="qblock reveal" style="border-left-color:var(--c-blue);margin-bottom:24px"><p class="q-text"><strong style="color:var(--c-blue)">投資邏輯補充：</strong>Microsoft 既是 NVIDIA GPU 的最大採購方之一，也是 OpenAI 生態的獨家商業化平台。持有 MSFT 等同間接持有 AI 軟體 + 雲端基礎設施雙重曝險，且估值比 NVDA 更合理（25× PE vs NVDA 34×）。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>公有雲服務（IaaS+PaaS）</td><td class="num">$650B (2025E)</td><td class="num">20%</td><td><span class="pill pill-gray">22% 份額</span></td><td><span class="pill pill-green">直接</span></td><td>Azure 最核心市場</td></tr><tr><td>企業 AI SaaS（Copilot 類）</td><td class="num">$200B (2025E)</td><td class="num">35%+</td><td><span class="pill pill-gray">第一大</span></td><td><span class="pill pill-green">直接</span></td><td>Copilot 商業化主戰場</td></tr><tr><td>開發工具 + DevOps（GitHub）</td><td class="num">$30B (2025E)</td><td class="num">25%</td><td><span class="pill pill-gray">市場領導者</span></td><td><span class="pill pill-green">直接</span></td><td>GitHub Copilot 是最快商業化 AI 工具</td></tr><tr><td>企業資訊安全（Defender）</td><td class="num">$80B (2025E)</td><td class="num">15%</td><td><span class="pill pill-gray">第一大</span></td><td><span class="pill pill-green">直接</span></td><td>MSFT Security 年收入已超 $20B</td></tr><tr><td>遊戲 + Xbox（Activision）</td><td class="num">$200B (2025E)</td><td class="num">8%</td><td><span class="pill pill-gray">前三大</span></td><td><span class="pill pill-green">直接</span></td><td>$69B Activision 整合中</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Microsoft Corporation — 企業軟體 + 雲端 + AI 三位一體</h2>
+    <p class="ph-lead">1975 年成立，總部華盛頓州雷蒙德，240,000 名員工。三大雲端 + AI + 軟體業務：Productivity &amp; Business Processes（M365 / LinkedIn）/ Intelligent Cloud（Azure）/ More Personal Computing（Windows / Xbox / Surface）。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>Intelligent Cloud（Azure）</strong></td><td>Azure IaaS/PaaS + OpenAI Service</td><td class="num">45%</td><td><span class="pill pill-green">快增</span></td></tr><tr><td><strong>Productivity &amp; Business Processes</strong></td><td>M365 / Office / LinkedIn / Dynamics</td><td class="num">37%</td><td><span class="pill pill-gold">穩增</span></td></tr><tr><td><strong>More Personal Computing</strong></td><td>Windows / Xbox / Surface / Bing</td><td class="num">18%</td><td><span class="pill pill-gray">穩</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">M365 企業用戶黏性（3 億用戶）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Azure + OpenAI 捆綁效應</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Active Directory 企業 IT 基礎設施鎖定</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">GitHub 開發者生態（1 億+ 用戶）</span><span>8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AWS 雲端份額差距（31% vs 22%）</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Copilot 付費轉化率仍低</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">監管反壟斷壓力（歐盟）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">PC 市場長期萎縮</span><span>6.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">MSFT</strong></td><td class="num">$3.1T</td><td class="num">$318.3B (FY2025)</td><td class="num">68.3%</td><td class="num">9.8×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">雲端 AI No.2</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gold">偏多觀察</span></td></tr><tr ><td><strong >Amazon (AMZN)</strong></td><td class="num">~$2.85T</td><td class="num">$742.8B (TTM)</td><td class="num">50.6%</td><td class="num">3.8×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">AWS 市場第一</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">雲端最大</span></td></tr><tr ><td><strong >Alphabet (GOOGL)</strong></td><td class="num">~$2.1T</td><td class="num">$350B+ (FY2025E)</td><td class="num">58%</td><td class="num">6×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">Google Cloud 12% 份額</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-gray">AI 搜尋防禦</span></td></tr><tr ><td><strong >Salesforce (CRM)</strong></td><td class="num">~$290B</td><td class="num">$37B (FY2025E)</td><td class="num">77%</td><td class="num">7.8×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">CRM + AI Agentforce</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">MSFT Dynamics 競品</span></td></tr><tr ><td><strong >Oracle (ORCL)</strong></td><td class="num">~$480B</td><td class="num">$55B (FY2025E)</td><td class="num">72%</td><td class="num">8.7×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">雲端資料庫 + AI 基礎設施</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">MSFT 資料庫競爭</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>Copilot M365 企業版</strong></td><td>$30/月/人，250 萬+ 用戶</td><td>座位數翻倍至 500 萬+</td><td>M365 標準配備</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>Azure AI Foundry</strong></td><td>OpenAI + 第三方 AI 模型市場</td><td>企業 AI 應用開發平台主流</td><td>AI PaaS 市場第一</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>Maia AI 晶片</strong></td><td>第一代試產</td><td>Azure 內部使用</td><td>減少 NVDA 依賴</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>Teams Phone + Mesh（VR）</strong></td><td>企業版推廣中</td><td>Copilot Teams 整合</td><td>混合工作平台標配</td><td><span class="pill pill-gray">穩定</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">Azure OpenAI Service + Copilot — 推動 $3.1T 估值的核心產品</h2>
+    <p class="ph-lead">Azure OpenAI Service 是微軟最快增長的產品線：讓企業直接呼叫 GPT-4o / o3 API，整合到自家應用，月活躍客戶超過 60,000 家。Copilot M365 是商業化最直接的 AI 生產力工具。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>Azure OpenAI Service</strong></td><td>獨家提供 OpenAI 全系模型（GPT-4o / o3 / Whisper / DALL-E）API</td><td>Google Cloud Vertex AI / AWS Bedrock — 有競品但 GPT 系列獨家在 Azure</td><td>OpenAI 合約獨家 Azure 商業化</td><td><span class="pill pill-gray">關鍵差異</span></td></tr><tr><td><strong>M365 Copilot</strong></td><td>Word/Excel/Teams AI 助理，$30/月/人企業版</td><td>Google Workspace Duet AI $30/月，功能相似</td><td>企業 Active Directory 整合，替換成本高</td><td><span class="pill pill-gray">競爭中</span></td></tr><tr><td><strong>GitHub Copilot</strong></td><td>程式碼補全 AI，個人 $10/月 / 企業 $19/月</td><td>JetBrains AI / Cursor — 競爭但 GitHub 生態優勢明顯</td><td>1 億+ GitHub 用戶基礎，網路效應</td><td><span class="pill pill-gray">市場領先</span></td></tr><tr><td><strong>Azure AI Studio / Foundry</strong></td><td>企業 AI 應用開發 + 微調 + 部署平台</td><td>AWS SageMaker / Google Vertex AI</td><td>與 M365 / Dynamics / Power Platform 無縫整合</td><td><span class="pill pill-gray">強整合</span></td></tr><tr><td><strong>Bing Chat + Copilot.microsoft.com</strong></td><td>Bing AI 搜尋 + 一般用途 Copilot</td><td>Google Gemini 搜尋體驗更佳</td><td>Windows 原生整合，硬體分發優勢</td><td><span class="pill pill-gray">競爭弱</span></td></tr><tr><td><strong>Power Platform + Dynamics 365 AI</strong></td><td>低代碼 AI 業務流程自動化</td><td>Salesforce Einstein / ServiceNow AI</td><td>ERP + CRM + BI 三合一，中小企業首選</td><td><span class="pill pill-gray">穩固</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Azure 雲端市場份額成長</span><span>Azure: 8.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">OpenAI 合作護城河</span><span>9.0/10，獨家商業化</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">企業軟體生態整合深度</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">GitHub 開發者生態</span><span>8.5/10，1 億用戶</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="85%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Copilot 付費轉化率</span><span>6.0/10，仍低</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">硬體（Surface/Xbox）競爭力</span><span>6.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="65%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">AI 搜尋（Bing）競爭力</span><span>5.5/10，Google 仍主導</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="55%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Gaming（Xbox）成長</span><span>6.0/10，Activision 整合中</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="60%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · Q1 FY2026 法說重點（2025-10-30）</div>
+    <h2 class="ph-title">Q1 FY2026 Revenue $65.6B · +16% YoY — Azure AI 服務確認加速至 33%</h2>
+    <p class="ph-lead">Microsoft Q1 FY2026（截至 2025-09-30）Revenue $65.6B（+16% YoY）；Intelligent Cloud $24.1B（+22% YoY）；Azure &amp; Cloud 服務 +33% YoY（AI 服務貢獻 12pp）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Revenue YoY</div><div class="card-value" style="color:var(--c-green)">+16%</div><div class=card-sub>$65.6B vs $56.5B 去年同期</div></div><div class="card"><div class="card-label">Azure Growth</div><div class="card-value" style="color:var(--c-green)">+33%</div><div class=card-sub>AI 服務貢獻 12pp 增速</div></div><div class="card"><div class="card-label">Gross Margin</div><div class="card-value" style="color:var(--c-)">69.4%</div><div class=card-sub>Q1 FY2026，優於去年 69.8% 小幅回調</div></div><div class="card"><div class="card-label">Diluted EPS</div><div class="card-value" style="color:var(--c-green)">$3.30</div><div class=card-sub>+11% YoY，略超市場預期</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"AI is the defining technology of our time and we are seeing customers use it to transform every business function. Azure AI services grew over 3x year-over-year."</div><div class="q-attr">— Satya Nadella · Q1 FY2026 Earnings Call · 2025-10-30 · Source: Microsoft IR</div></div><div class="qblock"><div class="q-text">"GitHub Copilot has over 15 million paid subscribers today. We are seeing strong momentum in enterprises adopting AI coding assistance across all skill levels."</div><div class="q-attr">— Satya Nadella · Q1 FY2026 Earnings Call · 2025-10-30</div></div><div class="qblock"><div class="q-text">"Microsoft 365 Copilot usage doubled quarter-over-quarter, with 70 percent of Fortune 500 companies having used it."</div><div class="q-attr">— CFO Amy Hood · Q1 FY2026 Earnings · 2025-10-30 · Source: MSFT IR</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Azure AI 服務佔增速多少？</td><td>12 個百分點（pp）來自 AI 服務，佔總增速 33% 的 36%</td><td><span class="pill pill-gray">正面加速</span> 顯示 AI 貨幣化真實性</td></tr><tr><td>Copilot 付費轉化率如何？</td><td>財星 500 強 70% 已試用，但付費比例未披露</td><td><span class="pill pill-gray">初步驗證但待確認</span> 企業預算週期影響部署速度</td></tr><tr><td>Capital Expenditure 前景？</td><td>FY2026 Capex 指引超過 $80B（Azure 擴容為主）</td><td><span class="pill pill-gray">中性（成本上升但需求支撐）</span> 顯示 Azure 需求超供給，信心強</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Q1 FY2026 業績公告後（2025-10-30），MSFT 股價短暫上漲 3-4%，後回落至 $421 區域（因毛利率小幅低於預期及 Capex 上調引發成本擔憂）。整體情緒：Azure AI 加速超預期，但 Copilot 商業化節奏略慢。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $318B · GM 68.3% · FCF $70B+ — 財務健康，AI 貨幣化待爆發</h2>
+    <p class="ph-lead">Microsoft FY2025 Revenue $318.3B（+16% YoY）；毛利率 68.3%；FCF $72B（OCF $118B - Capex $46B）；凈現金 $27B（現金 $75B - 長期負債 $48B）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2022</td><td class="num pos">$198.3</td><td class="num">$135.6</td><td class="num pos">68.4%</td><td class="num">$53.7</td><td class="num neg">$83.4</td><td class="num">$104.8</td></tr><tr ><td>FY2023</td><td class="num pos">$211.9</td><td class="num">$146.1</td><td class="num pos">68.9%</td><td class="num">$56.0</td><td class="num neg">$88.5</td><td class="num">$111.3</td></tr><tr ><td>FY2024</td><td class="num pos">$245.1</td><td class="num">$171.0</td><td class="num pos">69.8%</td><td class="num">$61.1</td><td class="num neg">$109.4</td><td class="num">$75.5</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>FY2025</td><td class="num pos">$318.3</td><td class="num">$217.4</td><td class="num pos">68.3%</td><td class="num">$72.0</td><td class="num neg">$147.0</td><td class="num">$75.0</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >FY2023</td><td class="num">-30M（回購）</td><td class="num">$10B+ 回購</td><td class="num">持續</td></tr><tr><td >FY2024</td><td class="num">-25M（回購）</td><td class="num">$8B+</td><td class="num">持續</td></tr><tr><td >FY2025</td><td class="num">-20M（回購）</td><td class="num">$9B+</td><td class="num">持續</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Microsoft 10-K FY2025（SEC CIK 789019）/ Q1 FY2026 10-Q / MSFT IR</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$75.5B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$3.5B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$180B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$121B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$59B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$512B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A（累積盈餘 $20B+）</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$287B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Microsoft 10-K FY2025（SEC CIK 789019）/ Q1 FY2026 10-Q / MSFT IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>R&amp;D</td><td class="num">$29.5</td><td class="num">$27.2</td><td class="num">$24.5</td><td class="num">+8.5%</td><td>AI 研究 + Azure 工程 + Copilot 開發</td></tr><tr><td>Sales &amp; Marketing</td><td class="num">$24.5</td><td class="num">$22.8</td><td class="num">$21.8</td><td class="num">+7.5%</td><td>Copilot 推廣 + 企業銷售力擴充</td></tr><tr><td>G&amp;A</td><td class="num">$7.8</td><td class="num">$7.6</td><td class="num">$7.2</td><td class="num">+2.6%</td><td>穩定，槓桿效應顯現</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$72.0</td><td class="num">$61.1</td><td class="num">$56.0</td><td class="num">+17.8%</td><td>Revenue +16% 略低於 OpEx 增速 — AI 投資期</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Microsoft 10-K FY2025（SEC CIK 789019）/ Q1 FY2026 10-Q / MSFT IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">OCF $118B · FCF $72B · 回購 + 股利 $30B+ — 現金機器持續運轉</h2>
+    <p class="ph-lead">Microsoft FY2025 OCF $118B（OCF Margin 37%）；FCF $72B（扣除 Capex $46B，Azure 快速擴容）；股利 $22B + 回購 $9B = 股東回饋 $31B+。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">$118.5B (FY2025)</div><div class="card-sub">OCF Margin 37%，M365 訂閱 + Azure 預收款模式帶來穩定現金流，FY2025 同比 +10%</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex $46B</div><div class="card-sub">Azure 資料中心擴容（GPU 採購 + 建設），FY2026 Capex 指引 $80B+，AI 基礎設施投入加速</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">股東回饋 $31B+</div><div class="card-sub">FY2025 股利 $22B（持續增長 20 年+）+ 回購 $9B；槓桿穩定（負債 $48B，利率低）</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2022</td><td class="num neg">$72.7</td><td class="num">$7.5</td><td class="num">$(23.9)</td><td class="num neg">$65.1</td><td class="num">$104.8</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2023</td><td class="num neg">$72.4</td><td class="num">$9.1</td><td class="num">$(28.1)</td><td class="num neg">$87.9</td><td class="num">$111.3</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2024</td><td class="num neg">$88.0</td><td class="num">$10.7</td><td class="num">$(44.5)</td><td class="num neg">$73.8</td><td class="num">$75.5</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025</td><td class="num neg">$96.7</td><td class="num">$11.5</td><td class="num">$(46.0)</td><td class="num neg">$72.5</td><td class="num">$75.0</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利，AI Capex 壓縮 FCF</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FCF = OCF - Capex。FY2025 FCF 暫減因 Azure AI 建設 Capex 大增。數據來源：Microsoft FY2025 10-K（SEC CIK 789019）。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$75B</td><td class="num pos">$75B</td><td class="num neg">正 FCF $72B/yr</td><td class="num">∞</td><td class="num">∞</td><td>無流動性壓力，Capex 增加但 OCF 覆蓋</td></tr><tr style="background:rgba(46,204,113,.05)"><td>Capex ROI 顯現</td><td class="num">$75B</td><td class="num pos">$75B+</td><td class="num neg">FCF 回升 $90B+/yr</td><td class="num">∞</td><td class="num">∞</td><td>AI 投資回報率提升後 FCF Margin 擴大</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>Microsoft 無流動性風險。FY2026 Capex $80B+（主要 Azure AI）暫時壓縮 FCF，但 OCF $118B 基礎扎實，股利 22 年連漲。真正的觀察點是 AI Capex 投入何時轉化為超額 Revenue 增長。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>流動比率</td><td class="num">1.49×</td><td class="num">~1.5×</td><td><span class="pill pill-gray">合理</span></td><td>Current Assets $180B ÷ Current Liab $121B</td></tr><tr><td>ROE</td><td class="num">~34%</td><td class="num">15-20%</td><td><span class="pill pill-gray">強</span></td><td>高利潤 + 有限 Equity（大量回購）</td></tr><tr><td>淨現金 / 淨負債</td><td class="num">~$27B（淨現金）</td><td class="num">正值</td><td><span class="pill pill-green">充裕</span></td><td>現金 $75B - 長期負債 $48B</td></tr><tr><td>Interest Coverage</td><td class="num">&gt;15×</td><td class="num">&gt;5×</td><td><span class="pill pill-gray">極強</span></td><td>EBIT $147B ÷ 利息支出 ~$3B</td></tr><tr><td>Debt/Equity</td><td class="num">0.83×</td><td class="num">~0.5×</td><td><span class="pill pill-gray">合理偏高</span></td><td>Activision 收購融資，但現金流強勁可覆蓋</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">軟體 + 雲端 — 輕資產模型，上游主要依賴 NVDA GPU 和 TSMC 製程</h2>
+    <p class="ph-lead">Microsoft 是雲端 + 軟體公司，資本密度遠低於製造業。上游主要依賴：NVIDIA GPU（Azure AI 算力）、AMD EPYC / Intel Xeon（標準計算節點）、台積電（自研 Maia AI 晶片）。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class="svg-wrap reveal" style="margin-bottom:32px"><div class="eyebrow">Microsoft 雲端 + AI 供應鏈</div><svg viewBox="0 0 860 320" style="width:100%;display:block;min-height:260px" aria-label="Microsoft supply chain"><title>Microsoft supply chain</title><text x="8" y="54" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">上游</text><rect x="45" y="20" width="160" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="125" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">NVIDIA H100/B200</text><text x="125" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">Azure AI GPU 主力</text><rect x="215" y="20" width="160" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="295" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">AMD EPYC / Intel</text><text x="295" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">標準計算節點</text><rect x="385" y="20" width="160" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="465" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">OpenAI 模型</text><text x="465" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">$13B 投資，獨家 API</text><rect x="555" y="20" width="160" height="52" rx="6" fill="#e8edf4" stroke="#c8d4e0" stroke-width="1.5"/><text x="635" y="42" text-anchor="middle" fill="#1d1d1f" font-family="monospace" font-size="10" font-weight="700">TSMC (Maia 晶片)</text><text x="635" y="57" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="9">自研 AI 加速晶片</text><text x="8" y="138" fill="#F5A623" font-family="monospace" font-size="10" font-weight="700">★ 核心</text><rect x="250" y="100" width="360" height="60" rx="8" fill="#F5A623" stroke="#d4880a" stroke-width="2"/><text x="430" y="126" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">★ Microsoft (Azure + M365 + GitHub)</text><text x="430" y="148" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="monospace" font-size="10">雲端平台 + 企業 AI SaaS + 開發者生態</text><text x="8" y="210" fill="#6e6e73" font-family="monospace" font-size="10" font-weight="700">下游</text><rect x="80" y="190" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="160" y="210" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">企業客戶</text><text x="160" y="226" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">Fortune 500 / 中小企業 M365</text><rect x="310" y="190" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="390" y="210" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">開發者（GitHub）</text><text x="390" y="226" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">1 億+ GitHub 用戶</text><rect x="540" y="190" width="160" height="46" rx="6" fill="#1B3A5E"/><text x="620" y="210" text-anchor="middle" fill="white" font-family="monospace" font-size="10" font-weight="700">政府 / 教育</text><text x="620" y="226" text-anchor="white" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="monospace" font-size="9">Azure Government / Teams</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>NVIDIA GPU 採購</td><td>Azure 最大 GPU 客戶之一，H100/B200 優先供貨</td><td>長期採購協議</td><td><span class="pill pill-gray">高 — 對 NVDA 依賴度高</span></td><td><span class="pill pill-gray">中（Maia 晶片部分替代）風險</span></td></tr><tr><td>OpenAI 合作</td><td>$13B 投資，Azure 獨家 OpenAI API 商業化</td><td>排他性協議（有期限）</td><td><span class="pill pill-gray">中高</span></td><td><span class="pill pill-gray">中（協議 2030 年後是否續約）風險</span></td></tr><tr><td>Azure 資料中心</td><td>全球 200+ 資料中心，快速擴張中</td><td>地理覆蓋廣，延遲低</td><td><span class="pill pill-gray">分散</span></td><td><span class="pill pill-gray">低（多地部署）風險</span></td></tr><tr><td>企業客戶（M365）</td><td>3 億+ 用戶，更換成本極高</td><td>Active Directory 黏性</td><td><span class="pill pill-green">分散（非單一大客戶）</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>GitHub 開發者</td><td>1 億+ 用戶，Copilot 付費轉化中</td><td>代碼版控換成本高</td><td><span class="pill pill-green">分散</span></td><td><span class="pill pill-green">低風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2027 Revenue × P/E → 個人估算區間</h2>
+    <p class="ph-lead">以 NTM P/E 為主框架；Azure AI 貨幣化超預期 → Bull $520；增速不達標 → Bear $330。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="250" max="450" value="360">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$360M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="20" max="40" step="0.5" value="28">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">28x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="421.06"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $421.06</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (20%)</strong></td><td class="num">$320B</td><td class="num">5.0×</td><td class="num">$1.6T</td><td class="num">$1.6T</td><td class="num">7.4B</td><td class="num neg"><strong>$330</strong></td><td class="num neg">-22%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (55%)</strong></td><td class="num">$370-390B</td><td class="num">6.5×</td><td class="num">$2.4T</td><td class="num">$2.4T</td><td class="num">7.4B</td><td class="num "><strong>$490</strong></td><td class="num pos">+16%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$420-440B</td><td class="num">8.0×</td><td class="num">$3.4T</td><td class="num">$3.4T</td><td class="num">7.4B</td><td class="num "><strong>$580</strong></td><td class="num pos">+38%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $421.06 vs MA50 $399.82（+5.3%），但低於 MA200 $460.3（-8.5%）；52 週區間 $356.28–$552.24；1 年績效 -6.4%（從 2025 年 52 週高點回落）。AI 資本開支擔憂壓制股價，但短期技術面 MA50 支撐有效。（Source: yfinance 即時行情）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">盤整（現價 $421 低於 MA200 $460）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$421.06</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>+5.3%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>-8.5%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>61 — 中性偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">398.01</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">432.7</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$552.24</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$356.28</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>-6.4%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style=";font-weight:700">偏多（短期 MA50 突破中）</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">7.6/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $421.06 vs MA50 $399.82（+5.3%），但低於 MA200 $460.3（-8.5%）；52 週區間 $356.28–$552.24；1 年績效 -6.4%（從 2025 年 52 週高點回落）。AI 資本開支擔憂壓制股價，但短期技術面 MA50 支撐有效。（Source: yfinance 即時行情）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">5 大核心風險 — 影響 × 機率矩陣</h2>
+    <p class="ph-lead">Microsoft 的風險主要集中在 AI 商業化速度（Copilot 轉化率）和 Azure 增速維持，以及 AI Capex 的 ROI 不確定性。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="230" cy="68" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="230" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="370" cy="140" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="370" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="230" cy="220" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="230" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="230" cy="220" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="230" y="225" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="140" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>Azure 增速持續下行</strong><br><span style=font-size:12px;color:var(--c-muted)>若 Azure 增速跌破 25% 連續 2 季，市場重新定價雲端成長故事</span></td><td class="num neg">高</td><td class="num">中低</td><td>FY2026-2027</td><td>AI 服務佔增速 12pp，需求真實</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>Copilot 付費轉化率不達預期</strong><br><span style=font-size:12px;color:var(--c-muted)>若 M365 Copilot 付費滲透率 FY2027 仍低於 20%，$10B ARR 目標難達</span></td><td class="num ">中高</td><td class="num">中</td><td>2025-2026</td><td>Copilot Agents 降低使用門檻</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>AI Capex 投入 ROI 不確定</strong><br><span style=font-size:12px;color:var(--c-muted)>FY2026 Capex $80B+ 但若 Azure AI Revenue 增速不夠快，FCF 壓縮至 $50B 以下</span></td><td class="num ">中</td><td class="num">中低</td><td>FY2026-2027</td><td>OCF $118B 基礎強，短期可承受</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>監管反壟斷（EU AI Act）</strong><br><span style=font-size:12px;color:var(--c-muted)>歐盟 AI 法規對 OpenAI 合作的排他性或提出要求</span></td><td class="num ">中</td><td class="num">中低</td><td>2025-2026</td><td>MSFT 合規部門提前布局</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>OpenAI 競爭對手崛起</strong><br><span style=font-size:12px;color:var(--c-muted)>Anthropic / Meta Llama / Google Gemini 等模型能力追趕，Azure OpenAI 差異化降低</span></td><td class="num ">中高</td><td class="num">中</td><td>1-2 年</td><td>MSFT 自研 Phi 小模型補充；多模型策略</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Azure AI 增速加速 + Copilot 商業化突破是最重要的兩個確認信號；Maia 晶片降低對 NVDA 依賴是中期正面因素。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q1 法說（1 月）</div><div class="tl-title">Q2 FY2026 業績 — Azure AI 增速觀察</div><div class="tl-body">若 Azure AI 服務增速繼續提升至 15pp+，表示 AI 貨幣化加速，是最強正面信號。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026 持續</div><div class="tl-title">Copilot M365 座位數 &gt; 500 萬</div><div class="tl-body">企業大規模部署信號；財星 500 強全面採用意味每人 $30 × 500 萬 = $18B ARR。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 Q2-Q3</div><div class="tl-title">GitHub Copilot 突破 2,000 萬用戶</div><div class="tl-body">開發者生態最快商業化路徑；Copilot Workspace（自主 AI 代理程式）啟動付費。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2026 下半年</div><div class="tl-title">Maia 2 晶片推出 — 減少 NVDA 依賴</div><div class="tl-body">自研 AI 晶片降低 Capex 成本，提升 Azure AI 毛利率，Capex 效率改善信號。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">持續</div><div class="tl-title">Satya Nadella AI 技術大會 / Build 2026</div><div class="tl-body">Microsoft Build 通常宣布重大 AI 產品更新，是市場情緒催化劑。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Azure AI 服務貢獻增速 ≥ 15pp</div><div class="ws">確認 AI 貨幣化加速（目前 12pp）→ 估值 upside 觸發</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">M365 Copilot 付費座位數 ≥ 500 萬</div><div class="ws">企業大規模部署確認 → $18B ARR 路徑清晰</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">FCF 回升至 $85B+</div><div class="ws">AI Capex ROI 開始顯現 → 估值倍數支撐</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">GitHub Copilot 用戶突破 2,000 萬</div><div class="ws">開發者生態護城河進一步深化</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">Azure 增速任一季低於 25%</div><div class="ws">觸發下修信號 → 重新評估 Bear Case</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資視角對 Microsoft 的判斷</h2>
+    <p class="ph-lead">各視角共識 — Microsoft 基本面極強；分歧點在 AI 貨幣化速度（Copilot 付費轉化率）和 Capex 投入的 ROI 時間線。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">Microsoft 符合 Buffett 所有條件：護城河清晰（3 億 M365 用戶 / CUDA 等同 Active Directory）、可預測現金流（OCF $118B）、長期股利增長（22 年）。25× PE 對護城河質量而言合理，Buffett 可能以此為核心持倉之一。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">PEG = P/E 25 ÷ EPS 成長率 11% = 2.3，GARP 標準偏高。但 Azure +33% 的增速遠高於整體 +16%，如果 Copilot 商業化加速，EPS 增速可達 20%+，PEG 重新降至 1.25，則成長型投資人會積極增持。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green">中立偏多</span></div><div class="persona-score" style="color:var(--c-green)">6.5</div></div><div class="persona-body">Microsoft 的 AI 投資已形成「Azure 增速 → 股價上漲 → 更多 AI Capex → 更多用戶」的正向循環。但 $3.1T 市值意味必須持續超預期才能再漲 30%+。若 Copilot 商業化失速，反身性逆轉可能快速。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">Active Directory + M365 + GitHub 三重護城河 = 企業 IT 生態的「支柱」。Munger 喜歡企業黏性和複利能力：M365 每年 $30 Copilot 升費，加上 Azure 複利增長，是教科書級別的複利機器。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-gray">中性</span></div><div class="persona-score" style="color:var(--c-text)">5.5</div></div><div class="persona-body">Microsoft 基本面無可挑剔，但 $3.1T 估值是一個巨大的「完美定價」風險。Burry 會關注：若 AI Capex $80B+ 投入但 Copilot 轉化率仍低，FCF Margin 收縮 → 估值下修 15-20%。不做空 MSFT，但不會在這個估值追高。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場 — 偏多觀察</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">偏多觀察。Base PT 個人估算 $490（vs 現價 +16.4%），EV $466（+10.7%）。主要上行驅動：Azure AI 服務佔增速比例持續提升 + Copilot 付費滲透率突破 20%。現價 $421 合理，可分批進場，$390-410 是更佳入場區。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">MSFT 是 AI 時代最有確定性的複合增長標的之一，適合長期持有。與 NVDA 相比，MSFT 估值更合理（25× vs 34× PE），成長路徑更多元（不依賴 AI Capex 單一引擎）。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT $490 vs 現價 +16.4%（&gt;10%）。分批進場，$390-410 是理想進場區。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>年度財報</td><td>Microsoft 10-K FY2025，2025-07-30，SEC CIK 789019</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>季度財報</td><td>Microsoft Q1 FY2026 10-Q / 8-K，2025-10-30，EDGAR CIK 789019</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>法說會逐字稿</td><td>Microsoft Q1 FY2026 Earnings Call，2025-10-30，Microsoft IR</td><td>2026-05-21</td><td><span class="pill pill-gray">官方</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 MSFT，2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（P/E × FY2027E EPS Scenario）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · MSFT Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019" target="_blank" style="color:var(--c-gold)">0000789019</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025"],
+      datasets: [{ data: [198.3, 211.9, 245.1, 318.3], backgroundColor: ["#c8d4e0", "#c8d4e0", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2022", "FY2023", "FY2024", "FY2025"],
+      datasets: [{
+        data: [68.4, 68.9, 69.8, 68.3],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#F5A623", "#F5A623", "#2ECC71", "#F5A623"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

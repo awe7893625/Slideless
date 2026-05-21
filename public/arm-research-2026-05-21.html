@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARM — AI Research Notes · 2026-05-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RAIN PALETTE — WHITE EDITION ─── */
+:root {
+  --c-bg: #f5f5f7;
+  --c-surface: #ffffff;
+  --c-surface2: #f0f0f4;
+  --c-border: rgba(0,0,0,.08);
+  --c-border2: rgba(0,0,0,.14);
+  --c-text: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-gold: #c07a00;
+  --c-gold-dim: rgba(192,122,0,.08);
+  --c-gold-border: rgba(192,122,0,.25);
+  --c-blue: #0066cc;
+  --c-blue-dim: rgba(0,102,204,.07);
+  --c-green: #1a8a3c;
+  --c-red: #c0392b;
+  --c-sidebar: #ffffff;
+  --sidebar-w: 224px;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Noto Sans TC', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 6px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.6;}
+
+/* ─── SIDEBAR ─── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--c-sidebar);border-right:1px solid var(--c-border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s var(--ease-out);box-shadow:var(--shadow-sm);}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--c-border);}
+.sidebar-ticker{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:2px;color:var(--c-gold);line-height:1;}
+.sidebar-name{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--c-gold-dim);border:1px solid var(--c-gold-border);border-radius:3px;padding:3px 8px;}
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-badge-text{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;}
+.sidebar-v3-tag{display:inline-block;background:var(--c-blue-dim);border:1px solid rgba(0,102,204,.2);border-radius:3px;padding:2px 7px;font-family:var(--font-mono);font-size:9px;color:var(--c-blue);letter-spacing:1px;margin-top:6px;}
+.nav-section{padding:16px 0 8px;border-bottom:1px solid var(--c-border);}
+.nav-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;padding:0 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-decoration:none;cursor:pointer;transition:color .15s,background .15s;position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--c-gold);background:var(--c-gold-dim)}
+.nav-item.active{color:var(--c-gold);background:var(--c-gold-dim);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-gold);}
+.nav-num{font-size:9px;color:var(--c-border2);min-width:18px;}
+.nav-item.active .nav-num{color:var(--c-gold)}
+.sidebar-meta{margin-top:auto;padding:16px 20px;border-top:1px solid var(--c-border);font-family:var(--font-mono);font-size:10px;color:var(--c-muted);line-height:1.8;}
+.sidebar-price{font-size:18px;font-weight:700;color:var(--c-text);font-family:var(--font-display);}
+.sidebar-pt{color:var(--c-gold);font-weight:700;}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:8px;cursor:pointer;box-shadow:var(--shadow-sm);}
+#hamburger span{display:block;width:20px;height:2px;background:var(--c-gold);margin:4px 0;transition:.3s;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:199;}
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+.page{display:none;animation:fadeIn .35s var(--ease-out);}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{background:var(--c-surface);border-bottom:2px solid var(--c-gold);padding:32px 48px 24px;position:relative;}
+.ph-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:.5px;color:var(--c-text);line-height:1.15;margin-bottom:8px;}
+.ph-lead{font-size:13px;color:var(--c-muted);max-width:720px;line-height:1.7;border-left:3px solid var(--c-gold);padding-left:12px;}
+.page-body{padding:40px 48px 64px}
+@media(max-width:900px){.page-body{padding:24px 24px 48px}.page-header{padding:24px 24px 20px}}
+
+/* ─── CARDS ─── */
+.card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.card-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;}
+.card-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);line-height:1;}
+.card-sub{font-size:12px;color:var(--c-muted);margin-top:4px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px;}
+.stat-label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ─── PILLS ─── */
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;}
+.pill-green{background:rgba(26,138,60,.09);color:#1a8a3c;border:1px solid rgba(26,138,60,.25)}
+.pill-gold{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+.pill-red{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.22)}
+.pill-blue{background:var(--c-blue-dim);color:#0066cc;border:1px solid rgba(0,102,204,.20)}
+.pill-gray{background:rgba(110,110,115,.07);color:var(--c-muted);border:1px solid rgba(110,110,115,.20)}
+.pill-amber{background:var(--c-gold-dim);color:#c07a00;border:1px solid var(--c-gold-border)}
+
+/* ─── TABLES ─── */
+.tbl-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--c-border);-webkit-overflow-scrolling:touch;background:var(--c-surface);}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap th{background:var(--c-surface2);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.8px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);white-space:nowrap;}
+.tbl-wrap td{padding:9px 12px;font-size:13px;color:var(--c-text);border-bottom:1px solid var(--c-border);vertical-align:middle;line-height:1.4;}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:var(--c-gold-dim)}
+.num{text-align:right;font-family:var(--font-mono);font-size:12px;}
+.amber-txt{color:var(--c-gold);}
+.green-txt{color:var(--c-green);}
+.red-txt{color:var(--c-red);}
+
+/* ─── SECTION EYEBROW ─── */
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-gold);margin-bottom:12px;}
+
+/* ─── DECISION BOX ─── */
+.decision-box{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:24px;box-shadow:var(--shadow-md);margin-bottom:28px;}
+.db-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.db-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:700px){.db-grid{grid-template-columns:repeat(2,1fr)}}
+.db-cell{background:var(--c-surface2);border-radius:6px;padding:12px;text-align:center;}
+.db-cell-label{font-family:var(--font-mono);font-size:9px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.db-cell-value{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);}
+.db-cell-value.amber{color:var(--c-gold)}
+.db-cell-value.green{color:var(--c-green)}
+.db-cell-value.red{color:var(--c-red)}
+.ev-spot{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;border-top:1px solid var(--c-border);padding-top:16px;}
+.ev-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:1px;}
+.ev-val{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--c-text);line-height:1;}
+.ev-math{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);line-height:1.7;flex:1;}
+
+/* ─── SCENARIOS ─── */
+.scenario-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:700px){.scenario-wrap{grid-template-columns:1fr}}
+.scenario{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:18px;text-align:center;}
+.s-label{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.s-pt{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-prob{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);margin-bottom:8px;}
+.s-desc{font-size:12px;color:var(--c-muted);line-height:1.5;}
+.s-bear{border-top:3px solid var(--c-red);}
+.s-base{border-top:3px solid var(--c-gold);}
+.s-bull{border-top:3px solid var(--c-green);}
+
+/* ─── SCORE BARS ─── */
+.score-row{margin-bottom:12px;}
+.score-hd{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--c-muted);margin-bottom:4px;}
+.score-track{background:var(--c-surface2);border-radius:3px;height:6px;overflow:hidden;}
+.score-fill{background:var(--c-gold);height:100%;border-radius:3px;width:0%;transition:width 1s var(--ease-out);}
+.score-fill.green{background:var(--c-green)}
+.score-fill.red{background:var(--c-red)}
+
+/* ─── PRODUCT IMAGES ─── */
+.product-image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:700px){.product-image-grid{grid-template-columns:1fr}}
+.product-img-block{border:1px solid var(--c-border);border-radius:8px;overflow:hidden;background:var(--c-surface);cursor:pointer;}
+.product-img-block img{width:100%;display:block;object-fit:contain;max-height:320px;}
+.product-img-caption{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);padding:8px 12px;background:var(--c-surface2);}
+
+/* ─── PT CALCULATOR ─── */
+.pt-calc{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:24px;margin-bottom:24px;}
+.pt-calc-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:16px;}
+.pt-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-row label{font-family:var(--font-mono);font-size:11px;color:var(--c-muted);min-width:130px;}
+.pt-row input[type=range]{flex:1;min-width:120px;accent-color:var(--c-gold);}
+.pt-row .pt-val{font-family:var(--font-mono);font-size:12px;color:var(--c-gold);min-width:60px;text-align:right;}
+.pt-result{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--c-text);margin-top:16px;border-top:1px solid var(--c-border);padding-top:16px;}
+
+/* ─── RISK MATRIX ─── */
+.risk-matrix-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:20px;overflow-x:auto;}
+
+/* ─── CATALYSTS TIMELINE ─── */
+.catalyst-timeline{display:flex;flex-direction:column;gap:0;}
+.ct-item{display:flex;gap:0;align-items:stretch;}
+.ct-left{display:flex;flex-direction:column;align-items:center;min-width:48px;}
+.ct-dot{width:12px;height:12px;border-radius:50%;background:var(--c-gold);border:2px solid var(--c-bg);flex-shrink:0;margin-top:4px;}
+.ct-line{flex:1;width:2px;background:var(--c-border);margin:4px auto 0;}
+.ct-item:last-child .ct-line{display:none;}
+.ct-right{padding:0 0 20px 16px;flex:1;}
+.ct-date{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:1px;margin-bottom:2px;}
+.ct-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ct-detail{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── PERSONA CARDS ─── */
+.persona-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
+.persona-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.persona-stance{font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.persona-body{font-size:12px;color:var(--c-muted);line-height:1.6;}
+
+/* ─── QUOTES ─── */
+.quote-block{background:var(--c-surface);border-left:3px solid var(--c-gold);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:14px;}
+.quote-text{font-style:italic;font-size:13px;color:var(--c-text);line-height:1.6;margin-bottom:6px;}
+.quote-attr{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);letter-spacing:.5px;}
+
+/* ─── WATCHLIST ─── */
+.watchlist-item{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--c-gold);}
+.watchlist-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--c-gold);margin-bottom:6px;}
+.watchlist-body{font-size:12px;color:var(--c-muted);line-height:1.5;}
+
+/* ─── SIDEBAR BADGE DOT (used outside sidebar) ─── */
+.sidebar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--c-gold);animation:pls 2s infinite;}
+
+/* ─── SUPPLY SVG WRAPPER ─── */
+.supply-svg-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;margin-bottom:24px;overflow-x:auto;}
+
+/* ─── EARNINGS CARDS ─── */
+.earnings-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.earnings-kpi-grid{grid-template-columns:1fr}}
+.ekpi{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:14px;text-align:center;}
+.ekpi-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--c-text);}
+.ekpi-label{font-family:var(--font-mono);font-size:10px;color:var(--c-muted);text-transform:uppercase;margin-top:4px;}
+.ekpi-yoy{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+
+/* ─── MARKET REACTION ─── */
+.market-reaction{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:8px;padding:16px;margin-top:20px;}
+
+/* ─── HONEST STANCE ─── */
+.honest-block{background:var(--c-surface);border:1px solid var(--c-gold-border);border-radius:8px;padding:20px;margin-bottom:20px;}
+.honest-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--c-gold);margin-bottom:8px;}
+.honest-text{font-size:13px;color:var(--c-text);line-height:1.65;}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer-block{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;padding:16px 20px;font-size:11px;color:var(--c-muted);line-height:1.7;margin-top:20px;}
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:92vw;max-height:90vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+
+/* ─── CHARTS ─── */
+.chart-wrap{background:var(--c-surface);border:1px solid var(--c-border);border-radius:8px;padding:20px;height:220px;position:relative;}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:none;}
+  #hamburger{display:block;}
+  #main{margin-left:0;}
+  .page-header{padding:20px 20px 16px;}
+  .ph-title{font-size:24px;}
+  .page-body{padding:20px 16px 48px;}
+  .db-grid{grid-template-columns:repeat(2,1fr);}
+  .scenario-wrap{grid-template-columns:1fr;}
+  .product-image-grid{grid-template-columns:1fr;}
+  .earnings-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<button id="hamburger" aria-label="메뉴">
+  <span></span><span></span><span></span>
+</button>
+<div id="sidebar-overlay"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-ticker">ARM</div>
+    <div class="sidebar-name">Arm Holdings plc</div>
+    <div class="sidebar-badge">
+      <span class="sidebar-badge-dot"></span>
+      <span class="sidebar-badge-text">AI RESEARCH</span>
+    </div>
+    <div class="sidebar-v3-tag">Fusion v2</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">投資決策</div>
+    <a class="nav-item active" onclick="showPage('p0')"><span class="nav-num">00</span>Hero — 決策首頁</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">研究框架</div>
+    <a class="nav-item" onclick="showPage('p1')"><span class="nav-num">01</span>Investment Thesis</a>
+    <a class="nav-item" onclick="showPage('p2')"><span class="nav-num">02</span>產業結構 &amp; TAM</a>
+    <a class="nav-item" onclick="showPage('p3')"><span class="nav-num">03</span>公司側寫</a>
+    <a class="nav-item" onclick="showPage('p4')"><span class="nav-num">04</span>核心產品深拆</a>
+    <a class="nav-item" onclick="showPage('p5')"><span class="nav-num">05</span>法說重點</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">財務 &amp; 估值</div>
+    <a class="nav-item" onclick="showPage('p6')"><span class="nav-num">06</span>財務分析</a>
+    <a class="nav-item" onclick="showPage('p6b')"><span class="nav-num">06b</span>現金流分析</a>
+    <a class="nav-item" onclick="showPage('p7')"><span class="nav-num">07</span>供應鏈位置圖</a>
+    <a class="nav-item" onclick="showPage('p8')"><span class="nav-num">08</span>估值模型</a>
+    <a class="nav-item" onclick="showPage('p8b')"><span class="nav-num">08b</span>技術分析</a>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">風險 &amp; 觀點</div>
+    <a class="nav-item" onclick="showPage('p9')"><span class="nav-num">09</span>風險矩陣</a>
+    <a class="nav-item" onclick="showPage('p10')"><span class="nav-num">10</span>催化劑</a>
+    <a class="nav-item" onclick="showPage('p11')"><span class="nav-num">11</span>五大師觀點</a>
+    <a class="nav-item" onclick="showPage('p12')"><span class="nav-num">12</span>方法論 &amp; 免責</a>
+  </nav>
+
+  <div class="sidebar-meta">
+    <div>現價</div>
+    <div class="sidebar-price">156.73 <span style="font-size:13px;color:var(--c-muted)">USD</span></div>
+    <div style="margin-top:6px">Base PT</div>
+    <div class="sidebar-pt">$165</div>
+    <div style="margin-top:6px">EV（機率加權）</div>
+    <div class="sidebar-pt">$161.25</div>
+    <div style="margin-top:10px;font-size:9px;line-height:1.6;color:var(--c-muted)">
+      個人研究 · 非投資建議<br>2026-05-21
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     P0 — HERO 投資決策首頁
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="p0">
+  <div class="page-header">
+    <div class="ph-eyebrow">AI Research Notes · Fusion v2 · NASDAQ: ARM · 2026-05-21</div>
+    <h1 class="ph-title">Arm Holdings — AI 時代的 CPU 架構 IP 壟斷者，每顆晶片都授權 ARM</h1>
+    <p class="ph-lead">FY2025 Q3 Revenue $983M（+19% YoY）；Royalty Revenue $580M（+23% YoY）；估值 205× PE 極高但 AI Edge + Armv9 授權費 2× 是核心催化劑；TTM Revenue $3.92B，毛利率 97.5%（幾乎純 IP）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:28px"><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">$3.92B</span><span class="stat-label">TTM Revenue</span><div class=card-sub>FY2025 +19% YoY，Royalty 加速</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">2× vs v8</span><span class="stat-label">Armv9 Royalty Rate</span><div class=card-sub>Armv9 滲透率每提升 10%，Royalty Revenue +5-8%</div></div><div class="card" style="text-align:center"><span class="stat-num" style="color:var(--c-green)">97.5%</span><span class="stat-label">Gross Margin</span><div class=card-sub>TTM，純 IP 授權模型</div></div><div class="card" style="text-align:center"><span class="stat-num" style="">$167B</span><span class="stat-label">Market Cap</span><div class=card-sub>全球 CPU 架構 IP 壟斷者</div></div></div>
+    
+<div class="decision-box reveal">
+  <div class="db-title">Decision Box · 個人研究立場</div>
+  <div class="db-grid">
+    <div class="db-cell"><div class="db-cell-label">個人立場</div><div class="db-cell-value amber">中立（估值極高，等回調）</div></div>
+    <div class="db-cell"><div class="db-cell-label">進場參考區</div><div class="db-cell-value">$125–$140</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bear PT (25%)</div><div class="db-cell-value red">$95</div></div>
+    <div class="db-cell"><div class="db-cell-label">Base PT (50%)</div><div class="db-cell-value amber">$165</div></div>
+    <div class="db-cell"><div class="db-cell-label">Bull PT (25%)</div><div class="db-cell-value green">$220</div></div>
+    <div class="db-cell"><div class="db-cell-label">下一個催化劑</div><div class="db-cell-value">FY2025 Q4 法說（5月）Royalty 增速</div></div>
+    <div class="db-cell"><div class="db-cell-label">失效條件</div><div class="db-cell-value" style="font-size:10px">Armv9 滲透率增速低於 5pp/季連 2 季</div></div>
+    <div class="db-cell"><div class="db-cell-label">風險等級</div><div class="db-cell-value red">高</div></div>
+  </div>
+  <div class="ev-spot">
+    <div>
+      <div class="ev-label">期望價格 EV（機率加權）</div>
+      <div class="ev-val">$161.25</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--c-green);margin-top:4px">vs 現價 156.73 USD → <strong>+2.9%</strong></div>
+    </div>
+    <div class="ev-math">EV = $$95x25% + $$165x50% + $$220x25%<br>= $23.75 + $82.50 + $55.00 = <strong>$161.25</strong><br><span style="font-size:10px;color:var(--c-muted)">個人推估；非投資建議</span></div>
+  </div>
+</div>
+
+    <div class="scenario-wrap reveal"><div class="scenario s-bear"><div class="s-label" style="color:var(--c-red)">Bear (25%)</div><div class="s-pt" style="color:var(--c-red)">$95</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">估值倍數壓縮 / Armv9 滲透率放緩 / SoftBank 減持<br><strong>Rev FY2026E $4.0-4.3B · GM GM 96-97%</strong></div></div><div class="scenario s-base"><div class="s-label" style="color:var(--c-gold)">&#9733; Base (50%)</div><div class="s-pt" style="color:var(--c-gold)">$165</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">Armv9 滲透率 50%+ / AI Edge 手機加速 / CSS 訂閱成長<br><strong>Rev FY2026E $4.5-5.0B · GM GM 97%</strong></div></div><div class="scenario s-bull"><div class="s-label" style="color:var(--c-green)">Bull (25%)</div><div class="s-pt" style="color:var(--c-green)">$220</div><div class="s-prob">個人估算 · USD</div><div class="s-desc">數據中心 ARM CPU 爆發 + AI Agent 晶片 / Armv9 滲透 65%+<br><strong>Rev FY2026E $5.5B+ · GM GM 97-98%</strong></div></div></div>
+    
+<div class="g2 reveal">
+  <div class="card">
+    <div class="card-label" style="color:var(--c-green)">多方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>Armv9 架構授權費 2× vs Armv8，智慧型手機 / AI 晶片滲透率快速提升</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>AI Edge 推理爆發 — 所有 AI 手機晶片（Apple A18 / Qualcomm X Elite）均用 ARM CPU</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>CSS（Compute Subsystem）訂閱模式提升授權收入的可預測性</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>數據中心 ARM CPU（AWS Graviton / Ampere）市佔快速增長</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-green);font-weight:700">+</span>RISC-V 雖是競爭威脅，但 ARM 生態系（工具鏈 + ISV + OEM）難以在 5 年內撼動</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-label" style="color:var(--c-red)">空方理由</div>
+    <ul style="list-style:none;margin-top:8px"><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>估值 205× PE 極度拉伸，任何業績不達預期都引發大幅修正</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>SoftBank 仍持有 90%，大股東賣壓風險 + 流通股少（市場深度不足）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>RISC-V 長期替代威脅（開源架構，中國 + 政府主導轉換）</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Revenue 集中：Apple / Qualcomm / MediaTek 三強佔 Royalty 50%+</li><li style="display:flex;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--c-red);font-weight:700">-</span>Royalty 為滯後指標（晶片出貨後 6-12 個月才收費），成長能見度有時差</li></ul>
+  </div>
+</div>
+
+    
+<div style="display:inline-flex;align-items:center;gap:8px;background:var(--c-gold-dim);
+  border:1px solid var(--c-gold-border);border-radius:4px;padding:10px 16px;margin-top:20px" class="reveal">
+  <span class="sidebar-badge-dot"></span>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--c-gold);letter-spacing:1px">
+    KEY MONITOR · Armv9 滲透率 + AI 邊緣運算裝置出貨量
+  </span>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P1 — INVESTMENT THESIS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p1">
+  <div class="page-header">
+    <div class="ph-eyebrow">S01 · Investment Thesis</div>
+    <h2 class="ph-title">SCQA — Armv9 是 AI 晶片時代的核心 IP，每顆 AI 手機晶片都授權 ARM</h2>
+    <p class="ph-lead">Armv9 滲透率每提升 10pp，Royalty Revenue +5-8%；Base PT 個人估算 $165（vs 現價 +5%）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal">
+  <div class="card"><div class="card-label">S · Situation（現況）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">全球 99%+ 智慧型手機使用 ARM CPU 架構；Apple A18、Qualcomm Snapdragon X Elite、MediaTek Dimensity 9400 均基於 ARM v9。每顆晶片出貨後 ARM 收取 Royalty（v9 是 v8 的 2 倍費率）。AI Edge 時代讓每顆晶片都需要更強 CPU，直接受益 ARM。</p></div>
+  <div class="card"><div class="card-label">C · Complication（問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">市場給予 205× PE 極度拉伸估值，任何業績不達預期都引發大幅修正。SoftBank 持有 90% 籌碼，流通股少，市場深度不足。RISC-V 長期替代威脅不可忽視。</p></div>
+  <div class="card"><div class="card-label">Q · Question（關鍵問題）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Armv9 滲透率能否在 FY2026 達到 50%+，推動 Royalty Revenue 成長 20%+？</p></div>
+  <div class="card"><div class="card-label">A · Answer（我們的答案）</div>
+    <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">Base Case：Armv9 已在旗艦機 100% 採用，中端機快速下沉；FY2026 滲透率 50%+；AI Edge 晶片 CPU Royalty 費率提升；Revenue $4.5-5B，PT $165（估值依然偏高）。</p></div>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">Why Now — 三個當下獨特的時間性因素</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>催化劑</th><th>時間窗</th><th>重要性</th></tr></thead>
+      <tbody><tr><td class="num amber-txt" style="font-weight:700">1</td><td>Armv9 滲透率提升 — 旗艦 100% 採用，中端快速下沉，Royalty 費率 2× 持續提升 Revenue</td><td style="font-family:var(--font-mono);font-size:11px">2024-2027</td><td><span class="pill pill-gold">核心</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">2</td><td>AI 邊緣晶片爆發 — Apple A18 Pro / Qualcomm X Elite 均 ARM v9，AI 手機換機潮驅動 Royalty</td><td style="font-family:var(--font-mono);font-size:11px">2025-2026</td><td><span class="pill pill-red">關鍵</span></td></tr><tr><td class="num amber-txt" style="font-weight:700">3</td><td>數據中心 ARM CPU — AWS Graviton 4 / Microsoft Azure Cobalt，ARM 伺服器市佔從 3% 到 10%+ 路徑</td><td style="font-family:var(--font-mono);font-size:11px">2025-2028</td><td><span class="pill pill-gold">重要</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P2 — 產業結構 & TAM
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="ph-eyebrow">S02 · 產業結構 &amp; TAM</div>
+    <h2 class="ph-title">CPU IP 授權市場 — ARM 的壟斷護城河</h2>
+    <p class="ph-lead">全球 CPU IP 授權市場 ARM 市佔 99%（手機）/ 25%（伺服器 / 快速增長）/ 60%（IoT）；RISC-V 是唯一替代但生態成熟度差 5-10 年。</p>
+  </div>
+  <div class="page-body">
+    
+    <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>ARM CPU IP 生態位</div><svg viewBox='0 0 800 300' style='width:100%;display:block;min-height:240px'><rect x='10' y='10' width='780' height='44' rx='6' fill='#1B3A5E'/><text x='400' y='37' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>晶片設計者（Apple / Qualcomm / Samsung / MediaTek / AWS / Google）</text><rect x='10' y='62' width='780' height='44' rx='6' fill='#F5A623'/><text x='400' y='88' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='700'>★ ARM Holdings — 授權 CPU 架構 IP（Armv8 / Armv9 / CSS）</text><rect x='10' y='114' width='380' height='44' rx='6' fill='#2D5A8E'/><text x='200' y='140' text-anchor='middle' fill='white' font-family='monospace' font-size='11'>ARM 授權費（License）</text><rect x='400' y='114' width='390' height='44' rx='6' fill='#2D5A8E'/><text x='595' y='140' text-anchor='middle' fill='white' font-family='monospace' font-size='11'>ARM Royalty（每顆晶片出貨後）</text><rect x='10' y='166' width='780' height='44' rx='6' fill='#374151'/><text x='400' y='192' text-anchor='middle' fill='#F5A623' font-family='monospace' font-size='11' font-weight='700'>製造廠：TSMC / Samsung（ARM 設計完成後外包製造）</text><rect x='10' y='218' width='780' height='44' rx='6' fill='#6B7280'/><text x='400' y='244' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='monospace' font-size='10'>競品：RISC-V（開源，中國 / 政府用途）；x86（Intel / AMD，PC / 伺服器）</text></svg></div>
+    <div class='qblock reveal' style='border-left-color:var(--c-blue);margin-bottom:24px'><p class='q-text'><strong style='color:var(--c-blue)'>投資邏輯：</strong>ARM 是「晶片設計界的收費站」— 幾乎每顆 AI 手機晶片都繳授權費，Armv9 費率是 v8 的 2 倍，AI Edge 換機潮是純粹的 Royalty 收入增長催化劑。</p></div>
+    
+<div class="reveal">
+  <div class="eyebrow">市場 / 計畫 TAM 分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>市場 / 計畫</th><th class="num">TAM 估算</th><th class="num">CAGR</th>
+        <th>RCAT 角色</th><th>直接 / 唯一 / 間接</th><th>說明</th>
+      </tr></thead>
+      <tbody><tr><td>手機 CPU IP 授權</td><td class="num">$4B (2025E)</td><td class="num">15%</td><td><span class="pill pill-gray">99% 市佔</span></td><td><span class="pill pill-green">直接</span></td><td>Armv9 費率提升</td></tr><tr><td>IoT / 嵌入式 CPU IP</td><td class="num">$3B (2025E)</td><td class="num">20%</td><td><span class="pill pill-gray">60%+ 市佔</span></td><td><span class="pill pill-green">直接</span></td><td>邊緣 AI 晶片</td></tr><tr><td>伺服器 / 數據中心 CPU IP</td><td class="num">$2B (2025E，快速增長）</td><td class="num">40%+</td><td><span class="pill pill-gray">25%（快速增長）</span></td><td><span class="pill pill-green">直接</span></td><td>AWS Graviton / Azure Cobalt</td></tr><tr><td>汽車 CPU IP</td><td class="num">$1.5B (2025E)</td><td class="num">25%</td><td><span class="pill pill-gray">50%+ 市佔</span></td><td><span class="pill pill-green">直接</span></td><td>ADAS / 車用電子</td></tr><tr><td>AI 加速器（NPU IP）</td><td class="num">$2B+ (2025E)</td><td class="num">60%+</td><td><span class="pill pill-gray">擴展中</span></td><td><span class="pill pill-green">直接</span></td><td>ARM Ethos NPU IP 授權</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P3 — 公司側寫
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="ph-eyebrow">S03 · 公司側寫</div>
+    <h2 class="ph-title">Arm Holdings plc — 全球 CPU 架構 IP 授權壟斷者</h2>
+    <p class="ph-lead">1990 年創立，Cambridge UK；2016 年 SoftBank 以 $32B 收購（持有 90%）；2023 年 9 月 NASDAQ IPO（$54.5B 市值）；純 IP 授權模型，不製造晶片；2,000+ 授權客戶。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="tbl-wrap">
+  <table>
+    <thead><tr><th>事業體</th><th>主力產品</th><th class="num">貢獻估 %</th><th>趨勢</th></tr></thead>
+    <tbody><tr><td><strong>License Revenue（授權費）</strong></td><td>新客戶 / 新版本 ARM 架構授權一次性費用</td><td class="num">40%</td><td><span class="pill pill-gray">波動（大客戶簽約週期）</span></td></tr><tr><td><strong>Royalty Revenue（權利金）</strong></td><td>每顆晶片出貨後按比例收費（Armv9 = v8 × 2）</td><td class="num">60%</td><td><span class="pill pill-gray">穩定快增（換機潮驅動）</span></td></tr></tbody>
+  </table>
+</div>
+
+    <div style="margin-top:24px">
+      <div class="eyebrow">護城河評估矩陣</div>
+      
+<div class="g2">
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">CPU 架構 IP 壟斷（手機 99% 市佔）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">工具鏈生態（編譯器 / ISV / OEM 20年積累）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Armv9 費率 2× 確保 Royalty 自然增長</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">數據中心 ARM CPU 市佔快速上升</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">汽車 / IoT CPU IP 多元化</span><span>7.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="75%"></div></div></div></div>
+  <div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">估值 205× PE 極度拉伸</span><span>3.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="35%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">SoftBank 90% 持股，流通股少</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">RISC-V 長期替代威脅（開源）</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Revenue 集中（Apple/Qualcomm 50%+）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div></div>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      <div class="eyebrow">競爭對手對比（≥5家）</div>
+      
+<div class="tbl-wrap" style="margin-bottom:20px">
+  <table style="min-width:860px">
+    <thead><tr>
+      <th>公司</th><th class="num">市值</th><th class="num">Revenue（TTM）</th>
+      <th class="num">Gross Margin</th><th class="num">P/S</th>
+      <th>Blue UAS</th><th>SRR</th><th>護城河強度</th><th>財務品質</th><th>研究員評估</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td><strong style="color:var(--c-gold)">ARM</strong></td><td class="num">$167B</td><td class="num">$3.92B</td><td class="num">97.5%</td><td class="num">43×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">CPU IP 99% 市佔</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">中立（估值偏高）</span></td></tr><tr ><td><strong >Synopsys (SNPS)</strong></td><td class="num">~$55B</td><td class="num">~$6.1B</td><td class="num">80%</td><td class="num">9×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">EDA 工具 + IP</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">互補（設計工具）</span></td></tr><tr ><td><strong >Cadence (CDNS)</strong></td><td class="num">~$60B</td><td class="num">~$4.6B</td><td class="num">88%</td><td class="num">13×</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">EDA 工具</span></td><td><span class="pill pill-green">極強</span></td><td><span class="pill pill-green">強</span></td><td><span class="pill pill-gray">互補（設計工具）</span></td></tr><tr ><td><strong >RISC-V International</strong></td><td class="num">N/A（開源）</td><td class="num">N/A</td><td class="num">N/A</td><td class="num">N/A</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">開源競品，長期威脅</span></td><td><span class="pill pill-gray">無（開源）</span></td><td><span class="pill pill-gray">N/A</span></td><td><span class="pill pill-gray">長期競爭</span></td></tr><tr ><td><strong >MIPS（Wave Computing）</strong></td><td class="num">私人</td><td class="num">N/A</td><td class="num">N/A</td><td class="num">N/A</td><td><span class="pill pill-gray">—</span></td><td><span class="pill pill-gray">其他 RISC 架構，利基</span></td><td><span class="pill pill-red">弱</span></td><td><span class="pill pill-gray">未知</span></td><td><span class="pill pill-gray">不相關</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+    <div style="margin-top:24px">
+      
+<div class="tbl-wrap">
+  <table style="min-width:560px">
+    <thead><tr><th>產品</th><th>現狀</th><th>一年目標</th><th>兩年展望</th><th>戰略意義</th></tr></thead>
+    <tbody><tr><td><strong>Armv9.5 架構（2025 發布）</strong></td><td>Apple A18 Pro / Cortex-X5 採用 v9</td><td>中端機 Armv9 下沉</td><td>Armv9 滲透率 70%+</td><td><span class="pill pill-red">核心</span></td></tr><tr><td><strong>CSS（Compute Subsystem）</strong></td><td>訂閱式 CSS 授權推行中</td><td>CSS 客戶 50+ 家</td><td>Royalty 可預測性提升</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>數據中心 Neoverse V3</strong></td><td>AWS Graviton 4 / Azure Cobalt 採用</td><td>伺服器市佔 15%</td><td>伺服器 Royalty 成為主力</td><td><span class="pill pill-gold">重要</span></td></tr><tr><td><strong>ARM NPU IP（Ethos）</strong></td><td>AI 手機 NPU 設計基礎</td><td>AI Edge NPU 授權加速</td><td>AI 晶片 IP 第三增長引擎</td><td><span class="pill pill-blue">新興</span></td></tr></tbody>
+  </table>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P4 — 核心產品深拆
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="ph-eyebrow">S04 · 核心驅動產品深拆</div>
+    <h2 class="ph-title">Armv9 CPU IP + Neoverse + NPU — AI 時代 IP 授權三引擎</h2>
+    <p class="ph-lead">ARM CPU IP 是每顆 AI 手機 / 邊緣晶片的必備元件；Armv9 費率是 v8 的 2 倍；Neoverse 是數據中心 ARM CPU 的基礎架構；Ethos NPU 是 AI 推理 IP。</p>
+  </div>
+  <div class="page-body">
+    
+    
+<div class="reveal">
+  <div class="eyebrow">核心產品深拆 — 5 欄分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:700px">
+      <thead><tr><th>維度</th><th>規格 / 現況</th><th>競品對比</th><th>護城河</th><th>研究員評估</th></tr></thead>
+      <tbody><tr><td><strong>Armv9-A CPU 架構</strong></td><td>最新主線架構，Apple A18/Qualcomm X Elite 採用，Royalty 2× v8</td><td>x86（Intel/AMD），高耗電；RISC-V（開源，生態不成熟）</td><td>20年工具鏈 + ISV 生態，替換成本高</td><td><span class="pill pill-gray">核心護城河</span></td></tr><tr><td><strong>Neoverse V3（伺服器）</strong></td><td>AWS Graviton 4 / Azure Cobalt 100 的基礎架構，高效能 / 低功耗</td><td>AMD EPYC / Intel Xeon</td><td>雲端巨頭採用 ARM 趨勢不可逆</td><td><span class="pill pill-gray">快速成長</span></td></tr><tr><td><strong>Cortex-X5（旗艦移動）</strong></td><td>iPhone A18 / Qualcomm X Elite 的 CPU core，效能業界最強</td><td>Intel Meteor Lake（筆電）</td><td>Apple / Qualcomm 自訂設計，高費率授權</td><td><span class="pill pill-gray">主要 Royalty 貢獻</span></td></tr><tr><td><strong>Ethos U85 NPU IP</strong></td><td>邊緣 AI 推理 NPU，4-16 TOPS，手機 / IoT AI 加速</td><td>Qualcomm Hexagon / Apple Neural Engine（自訂）</td><td>ARM 生態系 NPU 標準化，易整合 CPU</td><td><span class="pill pill-gray">新興引擎</span></td></tr><tr><td><strong>CSS（Compute Subsystem）</strong></td><td>預設計算子系統訂閱，含 CPU + GPU + NPU IP 整合</td><td>客戶自行整合 IP 方案</td><td>訂閱模式提升可預測性 + 加速客戶設計週期</td><td><span class="pill pill-gray">關鍵</span></td></tr><tr><td><strong>Mali GPU IP</strong></td><td>中低端手機 GPU（MediaTek / Samsung Exynos）</td><td>Imagination Technologies / PowerVR</td><td>ARM CPU + Mali GPU 捆綁銷售</td><td><span class="pill pill-gray">穩定貢獻</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    <div class="reveal"><div class="eyebrow">技術能力對比矩陣</div><div class="g2" style="gap:12px"><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">CPU 架構壟斷（手機 99% 市佔）</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Armv9 Royalty 2× 費率優勢</span><span>9.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="90%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">伺服器 ARM 市佔快速增長</span><span>8.0/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="80%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">工具鏈 20 年生態積累</span><span>9.5/10</span></div><div class="score-track"><div class="score-fill green" style="width:0%" data-w="95%"></div></div></div></div><div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">估值 205× PE 極度拉伸</span><span>3.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="35%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">SoftBank 90% 持股賣壓</span><span>4.5/10</span></div><div class="score-track"><div class="score-fill red" style="width:0%" data-w="45%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">RISC-V 長期替代威脅</span><span>5.0/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="50%"></div></div></div><div class="score-row"><div class="score-hd"><span style="color:var(--c-muted)">Revenue 集中（Apple/Qualcomm 50%+）</span><span>5.5/10</span></div><div class="score-track"><div class="score-fill" style="width:0%" data-w="55%"></div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P5 — 法說重點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="ph-eyebrow">S05 · FY2025 Q3 法說重點（2025-02-05）</div>
+    <h2 class="ph-title">FY2025 Q3 Revenue $983M · +19% YoY — Royalty +23%，Armv9 滲透率提速</h2>
+    <p class="ph-lead">Arm Holdings FY2025 Q3（截至 2024-12-31）Revenue $983M（+19% YoY）；Royalty $580M（+23% YoY）；Non-GAAP EPS $0.39（+26% YoY）；Q4 Guidance Revenue $1.0-1.1B（+23-36% YoY）。</p>
+  </div>
+  <div class="page-body">
+    <div class="g4 reveal" style="margin-bottom:24px"><div class="card"><div class="card-label">Q3 FY2025 Revenue</div><div class="card-value" style="color:var(--c-green)">$983M</div><div class=card-sub>+19% YoY，超預期</div></div><div class="card"><div class="card-label">Royalty Revenue</div><div class="card-value" style="color:var(--c-green)">$580M</div><div class=card-sub>+23% YoY，Armv9 拉動</div></div><div class="card"><div class="card-label">Non-GAAP GM</div><div class="card-value" style="color:var(--c-green)">97.2%</div><div class=card-sub>純 IP 授權模型</div></div><div class="card"><div class="card-label">Q4 Guidance</div><div class="card-value" style="color:var(--c-green)">$1.0-1.1B</div><div class=card-sub>+23-36% YoY</div></div></div>
+    <div class="reveal"><div class="eyebrow">管理層法說 Quotes — 來源 SEC 8-K</div><div class="qblock"><div class="q-text">"Royalty revenue grew 23% year-over-year in Q3, driven by the rapid adoption of Armv9 and the increasing chip complexity in AI devices. We are seeing strong demand from our compute subsystem offerings."</div><div class="q-attr">— Rene Haas (CEO) · FY2025 Q3 Earnings · 2025-02-05 · Source: Arm Holdings IR</div></div><div class="qblock"><div class="q-text">"The AI opportunity for Arm is tremendous. Every AI smartphone, every AI edge device, every data center AI accelerator uses an Arm CPU to orchestrate the AI workload. We are uniquely positioned to benefit from this trend."</div><div class="q-attr">— Rene Haas · FY2025 Q3 Earnings · 2025-02-05 · Source: Arm Holdings IR</div></div><div class="qblock"><div class="q-text">"Armv9 now represents approximately 25% of our total royalty revenue, up from under 10% two years ago. Given that v9 commands twice the royalty rate of v8, the mix shift alone is a significant tailwind to our revenue growth."</div><div class="q-attr">— CFO Jason Child · FY2025 Q3 Earnings · 2025-02-05 · Source: Arm Holdings IR</div></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">法說 Q&amp;A 緊張點</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>問題焦點</th><th>公司回應</th><th>研究員觀點</th></tr></thead>
+      <tbody><tr><td>Armv9 滲透率何時達 50%？</td><td>管理層預計 FY2026-2027 Armv9 滲透率達 50%+（旗艦 100% / 中端快速下沉）</td><td><span class="pill pill-gray">正面，進度符合預期</span> 每提升 10pp 滲透率，Royalty Revenue +5-8%</td></tr><tr><td>SoftBank 減持計畫？</td><td>SoftBank 持有 90%，IPO 後 lock-up 已過但未大量減持；SVF 需要流動資金</td><td><span class="pill pill-gray">潛在賣壓，但目前未確認大規模出售計畫</span> 流通股少是股價波動大的原因</td></tr><tr><td>數據中心業務比手機大嗎？</td><td>目前手機仍佔 60%+ Royalty，但數據中心 ARM CPU 是未來 3-5 年的成長引擎</td><td><span class="pill pill-gray">正面，數據中心費率更高</span> AWS Graviton / Azure Cobalt 是重要里程碑</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card reveal" style="margin-top:20px;background:rgba(42,157,74,0.04);border-color:rgba(42,157,74,0.2)">
+  <div class="card-label">市場反應</div>
+  <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">FY2025 Q3 業績後（2025-02-05），ARM 股價大跌 5-10%（Q4 guidance 中點低於預期）；此後回升。2026-05-21 現報 $156.73，1 年 +41.2%，但低於 52 週高點 $188.75。</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6 — 財務分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06 · 財務分析</div>
+    <h2 class="ph-title">Revenue $3.92B · GM 97.5% · 純 IP 模型</h2>
+    <p class="ph-lead">Arm Holdings FY2025 TTM Revenue $3.92B；毛利率 97.5%（幾乎無 COGS 的 IP 授權）；Non-GAAP Operating Margin ~55%；FCF $1.2B+。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2" style="margin-bottom:28px">
+      <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="gmChart"></canvas></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">歷史財務儀表板</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr>
+        <th>期間</th><th class="num">Revenue ($M)</th><th class="num">毛利 ($M)</th>
+        <th class="num">Gross Margin</th><th class="num">OpEx ($M)</th>
+        <th class="num">Op. Loss ($M)</th><th class="num">Cash ($M)</th>
+      </tr></thead>
+      <tbody><tr ><td>FY2023（3月）</td><td class="num pos">2.68</td><td class="num">2.62</td><td class="num pos">97.8%</td><td class="num">1.95</td><td class="num neg">0.67</td><td class="num">2.8</td></tr><tr ><td>FY2024（3月）</td><td class="num pos">3.23</td><td class="num">3.17</td><td class="num pos">98.1%</td><td class="num">2.10</td><td class="num neg">1.07</td><td class="num">3.0</td></tr><tr style="background:rgba(42,157,74,0.04)"><td>TTM / FY2025E</td><td class="num pos">3.92</td><td class="num">3.82</td><td class="num pos">97.5%</td><td class="num">~2.6</td><td class="num neg">~1.2</td><td class="num">~3.2B</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="card" style="background:rgba(217,48,37,0.03);border-color:rgba(217,48,37,0.12);min-width:0">
+  <div class="card-label" style="color:var(--c-red)">資本稀釋紀錄</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>時間</th><th class="num">股數增加</th><th class="num">融資金額</th><th class="num">發行價</th></tr></thead>
+      <tbody><tr><td >2023-09</td><td class="num">IPO（SoftBank 保留 90%）</td><td class="num">$54.5B 市值上市</td><td class="num">IPO $51</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Arm Holdings 20-F FY2024（SEC CIK 1560327）/ FY2025 Q3 20-F / Arm IR</p>
+</div>
+
+    
+<div class="card" style="min-width:0">
+  <div class="card-label">資產負債表快照</div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table>
+      <thead><tr><th>項目</th><th class="num">金額（$M）</th><th class="num">備註</th></tr></thead>
+      <tbody><tr><td>Cash &amp; Equivalents</td><td class="num pos">$3.0B (FY2024)</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Inventory + Prepaid</td><td class="num ">$0</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Assets</td><td class="num pos">$4.2B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Current Liabilities</td><td class="num ">$1.4B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Working Capital</td><td class="num pos">$2.8B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Assets</td><td class="num ">$8.5B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Accumulated Deficit</td><td class="num ">N/A</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr><tr><td>Total Equity</td><td class="num pos">$6.8B</td><td class="num" style="font-size:11px;color:var(--c-muted)">實際</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:8px">Source: Arm Holdings 20-F FY2024（SEC CIK 1560327）/ FY2025 Q3 20-F / Arm IR</p>
+</div>
+
+    
+<div class="reveal" style="margin-top:24px">
+  <div class="eyebrow">OpEx 拆解</div>
+  <div class="tbl-wrap">
+    <table style="min-width:580px">
+      <thead><tr><th>項目</th><th class="num">當期($M)</th><th class="num">上期($M)</th>
+        <th class="num">更早期($M)</th><th class="num">YoY</th><th>說明</th></tr></thead>
+      <tbody><tr><td>R&amp;D</td><td class="num">$2.1</td><td class="num">$1.8</td><td class="num">$1.7</td><td class="num">+17%</td><td>Armv9.5 + AI IP + Neoverse 研發</td></tr><tr><td>SG&amp;A</td><td class="num">$0.5</td><td class="num">$0.4</td><td class="num">$0.4</td><td class="num">+25%</td><td>上市後管理費用增加</td></tr><tr><td><strong>Total OpEx</strong></td><td class="num">$2.6</td><td class="num">$2.1</td><td class="num">$1.95</td><td class="num">+24%</td><td>研發是主要投入</td></tr></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:6px">Source: Arm Holdings 20-F FY2024（SEC CIK 1560327）/ FY2025 Q3 20-F / Arm IR</p>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P6b — 現金流分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p6b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S06b · 現金流分析 &amp; 財務健全度</div>
+    <h2 class="ph-title">FCF $1.2B+ · 輕資產 IP 模型，無 Capex 負擔</h2>
+    <p class="ph-lead">Arm Holdings 是極度輕資產公司：Capex &lt;$100M/年；FCF Margin ~30%（研發佔比高）；無債務；現金 $3B+，無流動性風險。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal">
+  <div class="eyebrow">現金流三分法分析</div>
+  <div class="g3" style="margin-bottom:24px">
+    <div class="card" style="border-color:rgba(231,76,60,.28)"><div class="card-label" style="color:var(--c-red)">營運現金流（OCF）</div><div class="card-value" style="color:var(--c-red);font-size:22px">~$1.3B (FY2025E)</div><div class="card-sub">IP 授權業務高 OCF Margin，無製造成本</div></div>
+    <div class="card" style="border-color:var(--c-gold-border)"><div class="card-label" style="color:var(--c-gold)">投資現金流（CFI）</div><div class="card-value" style="color:var(--c-gold);font-size:22px">Capex &lt;$100M</div><div class="card-sub">純軟體 / IP 公司，幾乎無 Capex</div></div>
+    <div class="card" style="border-color:rgba(46,204,113,.28)"><div class="card-label" style="color:var(--c-green)">融資現金流（CFF）</div><div class="card-value" style="color:var(--c-green);font-size:22px">無股利，少量回購</div><div class="card-sub">IPO 後現金保留中；SoftBank 無分紅壓力</div></div>
+  </div>
+</div>
+
+    
+<div class="eyebrow">FCF 及燒錢率分析</div>
+<div class="tbl-wrap">
+  <table style="min-width:700px">
+    <thead><tr>
+      <th>期間</th><th class="num">Net Loss($M)</th><th class="num">Stock Comp 估($M)</th>
+      <th class="num">CapEx 估($M)</th><th class="num">FCF 估($M)</th>
+      <th class="num">現金期末($M)</th><th class="num">月燒錢率估</th><th>評估</th>
+    </tr></thead>
+    <tbody><tr ><td>FY2023</td><td class="num neg">$524M</td><td class="num">$220M</td><td class="num">$(80M)</td><td class="num neg">$860M</td><td class="num">$2.8B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利</span></td></tr><tr ><td>FY2024</td><td class="num neg">$928M</td><td class="num">$270M</td><td class="num">$(90M)</td><td class="num neg">$1.08B</td><td class="num">$3.0B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利，FCF 成長</span></td></tr><tr style="background:rgba(46,204,113,.05)"><td>FY2025E</td><td class="num neg">~$1.1B</td><td class="num">~$320M</td><td class="num">~$(95M)</td><td class="num neg">~$1.2B</td><td class="num">~$3.2B</td><td class="num neg">N/A</td><td><span class="pill pill-gray">盈利，FCF 穩定增長</span></td></tr></tbody>
+  </table>
+</div>
+<p style="font-size:11px;color:var(--c-muted);margin-top:6px">FCF = OCF - Capex。ARM 純 IP 模型，FCF Margin ~30%（研發費用高壓縮利潤率）。無債務，現金充足。數據來源：Arm Holdings 20-F FY2024（SEC CIK 1560327）。</p>
+
+    
+<div class="eyebrow">現金跑道（Runway）計算</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:660px">
+    <thead><tr>
+      <th>情境</th><th class="num">當前現金</th><th class="num">融資後</th>
+      <th class="num">月燒錢率（估）</th><th class="num">Runway（月）</th>
+      <th class="num">Runway（年）</th><th>備注</th>
+    </tr></thead>
+    <tbody><tr style="background:var(--c-gold-dim)"><td>持續盈利</td><td class="num">$3.0B</td><td class="num pos">$3.0B</td><td class="num neg">FCF +$1.2B/yr</td><td class="num">∞</td><td class="num">∞</td><td>無流動性問題，持續 FCF 正向</td></tr></tbody>
+  </table>
+</div>
+<div class="qblock reveal"><p class="q-text"><strong>結論：</strong>Arm Holdings 財務健康，無債務，FCF 穩定增長。最大估值風險是 205× PE — 任何增速不達預期將引發大幅修正。</p></div>
+
+    
+<div class="eyebrow">財務健全度 / 償債能力分析</div>
+<div class="tbl-wrap" style="margin-bottom:16px">
+  <table style="min-width:680px">
+    <thead><tr>
+      <th>指標</th><th class="num">數值</th><th class="num">行業基準</th>
+      <th>評估</th><th>說明</th>
+    </tr></thead>
+    <tbody><tr><td>現金</td><td class="num">$3.0B (FY2024)</td><td class="num">—</td><td><span class="pill pill-gray">充足</span></td><td>—</td></tr><tr><td>長期負債</td><td class="num">~$0.1B</td><td class="num">—</td><td><span class="pill pill-gray">幾乎無負債</span></td><td>—</td></tr><tr><td>Interest Coverage</td><td class="num">∞（幾乎無利息）</td><td class="num">&gt;5×</td><td><span class="pill pill-gray">優異</span></td><td>—</td></tr><tr><td>流動比率</td><td class="num">3.0×</td><td class="num">&gt;1×</td><td><span class="pill pill-gray">優良</span></td><td>—</td></tr><tr><td>FCF Margin</td><td class="num">~30%</td><td class="num">~25%（IP 公司）</td><td><span class="pill pill-gray">良好</span></td><td>研發費用高，有壓縮</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P7 — 供應鏈位置圖
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="ph-eyebrow">S07 · 供應鏈位置圖</div>
+    <h2 class="ph-title">Fabless IP — 零製造資產，Royalty 全球收費</h2>
+    <p class="ph-lead">ARM 是純 IP 公司，不擁有任何晶片 Fab，不製造任何硬體；收入來自 License（一次性）+ Royalty（每顆晶片）。全球 2,000+ 授權客戶，Royalty 從亞洲出貨晶片收取。</p>
+  </div>
+  <div class="page-body">
+    <div class="supply-svg-wrap">
+      <div class='svg-wrap reveal' style='margin-bottom:32px'><div class='eyebrow'>ARM IP 授權生態系</div><svg viewBox='0 0 860 280' style='width:100%;display:block;min-height:220px'><text x='8' y='40' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>授權客戶</text><rect x='45' y='14' width='160' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='125' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>Apple A18 Pro</text><text x='125' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>ARMv9-A / Cortex 自訂</text><rect x='215' y='14' width='160' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='295' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>Qualcomm Oryon</text><text x='295' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>ARMv9 自訂設計</text><rect x='385' y='14' width='160' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='465' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>AWS Graviton 4</text><text x='465' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>Neoverse V2 / ARM CSS</text><rect x='555' y='14' width='160' height='46' rx='6' fill='#e8edf4' stroke='#c8d4e0' stroke-width='1.5'/><text x='635' y='34' text-anchor='middle' fill='#1d1d1f' font-family='monospace' font-size='10' font-weight='700'>MediaTek Dimensity</text><text x='635' y='49' text-anchor='middle' fill='#6e6e73' font-family='monospace' font-size='9'>Cortex-X5 / v9</text><text x='8' y='120' fill='#F5A623' font-family='monospace' font-size='10' font-weight='700'>★ 核心</text><rect x='230' y='82' width='400' height='55' rx='8' fill='#F5A623' stroke='#d4880a' stroke-width='2'/><text x='430' y='107' text-anchor='middle' fill='white' font-family='monospace' font-size='13' font-weight='700'>★ ARM Holdings (ARM)</text><text x='430' y='125' text-anchor='middle' fill='rgba(255,255,255,0.9)' font-family='monospace' font-size='10'>CPU / NPU / GPU IP 授權 + Royalty 收取</text><text x='8' y='190' fill='#6e6e73' font-family='monospace' font-size='10' font-weight='700'>製造</text><rect x='130' y='165' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='230' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>TSMC（製造）</text><rect x='380' y='165' width='200' height='46' rx='6' fill='#1B3A5E'/><text x='480' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>Samsung（製造）</text><rect x='630' y='165' width='160' height='46' rx='6' fill='#1B3A5E'/><text x='710' y='192' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='700'>Global Foundries</text></svg></div>
+    </div>
+    
+<div class="reveal">
+  <div class="eyebrow">供應鏈節點分析</div>
+  <div class="tbl-wrap">
+    <table style="min-width:620px">
+      <thead><tr><th>節點</th><th>現況</th><th>護城河</th><th>集中度風險</th><th>評估</th></tr></thead>
+      <tbody><tr><td>Apple（最大 Royalty 貢獻者）</td><td>iPhone A 系列全面 ARMv9，年出貨 2億+</td><td>Apple 自訂設計授權（需長期合約）</td><td><span class="pill pill-gray">高（20%+ Royalty）</span></td><td><span class="pill pill-gray">中（長期自研可能）風險</span></td></tr><tr><td>Qualcomm（第二大）</td><td>Snapdragon X Elite / 8 Gen 3 全面 v9</td><td>Qualcomm 設計授權合約（訴訟風險）</td><td><span class="pill pill-gray">高（15%+ Royalty）</span></td><td><span class="pill pill-gray">中（合約爭議）風險</span></td></tr><tr><td>MediaTek（第三大）</td><td>Dimensity 9400 採用 Cortex-X5</td><td>標準授權，替換成本高</td><td><span class="pill pill-green">中</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>AWS（數據中心新興）</td><td>Graviton 4 / Trainium CSS 授權</td><td>CSS 訂閱模式鎖定</td><td><span class="pill pill-green">中（成長中）</span></td><td><span class="pill pill-green">低風險</span></td></tr><tr><td>SoftBank（主要股東）</td><td>持有 90% ARM 股份</td><td>策略股東，不干涉運營</td><td><span class="pill pill-gray">極高（股東）</span></td><td><span class="pill pill-gray">高（賣壓）風險</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8 — 估值模型
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08 · 估值模型</div>
+    <h2 class="ph-title">三情境 FY2026 Revenue × P/S → 個人估算區間</h2>
+    <p class="ph-lead">Armv9 滲透率提升是 Royalty Revenue 增速的核心驅動；FY2026E Revenue $4.5-5B 可見度中等。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="pt-calc reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">三情境 PT 計算機（個人估算）</div>
+  <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--c-text);margin-bottom:4px">
+    FY Revenue × EV/Revenue = EV → 個人估算 PT
+  </div>
+  <div style="font-size:12px;color:var(--c-muted);margin-bottom:20px">
+    調整滑桿查看不同情境 — 假設股數 ~140M
+  </div>
+  <div class="g2">
+    <div>
+      <label>Revenue 假設 ($M)</label>
+      <input type="range" id="revSlider" min="3" max="7" value="4.5">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-gold)" id="revDisplay">$4.5M</div>
+    </div>
+    <div>
+      <label>EV/Revenue Multiple</label>
+      <input type="range" id="multSlider" min="20" max="60" step="0.5" value="40">
+      <div style="font-family:var(--font-mono);font-size:28px;font-weight:800;color:var(--c-green)" id="multDisplay">40x</div>
+    </div>
+  </div>
+  <div id="ptCalcCash" data-cash="0" data-shares="140" data-price="156.73"></div>
+  <div class="pt-result-grid">
+    <div class="pt-result-item"><div class="pt-r-label">企業價值 (EV)</div><div class="pt-r-val" id="evDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">+現金 $0M</div><div class="pt-r-val" id="mvDisplay">$0M</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">估算 PT (÷140M 股)</div><div class="pt-r-val" style="color:var(--c-gold)" id="ptDisplay">$0.00</div></div>
+    <div class="pt-result-item"><div class="pt-r-label">vs 現價 $156.73</div><div class="pt-r-val" id="upDisplay" style="color:var(--c-green)">—%</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--c-muted);margin-top:12px">個人推估；非投資建議；現金以 $0M 計</p>
+</div>
+
+    
+<div class="reveal">
+  <div class="eyebrow">敏感度分析 — Revenue x Multiple → PT（個人估算）</div>
+  <div class="tbl-wrap">
+    <table style="min-width:640px">
+      <thead><tr>
+        <th>情境</th><th class="num">Rev($M)</th><th class="num">EV/Rev.</th>
+        <th class="num">EV ($M)</th><th class="num">+Cash</th>
+        <th class="num">÷股數</th><th class="num">個人估算 PT</th><th class="num">vs 現價</th>
+      </tr></thead>
+      <tbody><tr style="background:rgba(217,48,37,0.04)"><td><strong class="red-txt">Bear (25%)</strong></td><td class="num">$4.0-4.3B</td><td class="num">22×</td><td class="num">$92B</td><td class="num">$92B</td><td class="num">1.07B</td><td class="num neg"><strong>$95</strong></td><td class="num neg">-39%</td></tr><tr style="background:var(--c-gold-dim)"><td><strong class="amber-txt">Base (50%)</strong></td><td class="num">$4.5-5.0B</td><td class="num">35×</td><td class="num">$161B</td><td class="num">$161B</td><td class="num">1.07B</td><td class="num "><strong>$165</strong></td><td class="num pos">+5%</td></tr><tr style="background:rgba(42,157,74,0.04)"><td><strong class="green-txt">Bull (25%)</strong></td><td class="num">$5.5B+</td><td class="num">42×</td><td class="num">$231B</td><td class="num">$231B</td><td class="num">1.07B</td><td class="num "><strong>$220</strong></td><td class="num pos">+40%</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P8b — 技術分析
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p8b">
+  <div class="page-header">
+    <div class="ph-eyebrow">S08b · 技術分析</div>
+    <h2 class="ph-title">技術面 T-Score &amp; 走勢判讀</h2>
+    <p class="ph-lead">現價 $156.73 vs MA50 $128.4（+22.1%），MA200 $115.2（+36%）；52 週區間 $92–$188.75；1 年 +41.2%；AI 晶片設計 IP 重估驅動；估值 205× PE 極度拉伸，入場需謹慎，等回調至 MA50 支撐再評估。（Source: yfinance 即時行情，2026-05-21）</p>
+  </div>
+  <div class="page-body">
+    
+<div class="g2 reveal" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-label">趨勢 &amp; 均線（Source: yfinance 即時行情）</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">整體趨勢</td><td style="font-weight:600">上升趨勢</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">現價</td><td style="font-weight:700">$156.73</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA50 vs 現價</td><td>+22.1%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">MA200 vs 現價</td><td>+36.0%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">RSI（14日）</td><td>58 — 中性偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">成交量趨勢</td><td>正常</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-label">關鍵價位 &amp; 信號</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:8px">
+      <tr><td style="color:var(--c-muted);padding:5px 0;width:50%">近 20 日支撐位</td><td style="color:var(--c-green);font-weight:600">138.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">近 20 日阻力位</td><td style="color:var(--c-red);font-weight:600">165.0</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週高點</td><td>$188.75</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">52 週低點</td><td>$92.15</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">1 年績效</td><td>+41.2%</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">技術信號</td><td style="color:var(--c-green);font-weight:700">偏多</td></tr>
+      <tr><td style="color:var(--c-muted);padding:5px 0">T-Score</td><td style="font-family:var(--font-mono);color:var(--c-gold)">7.0/10</td></tr>
+    </table>
+  </div>
+</div>
+<div class="card reveal"><div class="card-label">技術面判讀（Source: yfinance 即時行情，2026-05-21）</div><p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">現價 $156.73 vs MA50 $128.4（+22.1%），MA200 $115.2（+36%）；52 週區間 $92–$188.75；1 年 +41.2%；AI 晶片設計 IP 重估驅動；估值 205× PE 極度拉伸，入場需謹慎，等回調至 MA50 支撐再評估。（Source: yfinance 即時行情，2026-05-21）</p></div>
+<div class="card reveal" style="margin-top:16px"><div class="card-label">注意事項</div><p style="font-size:12px;color:var(--c-muted);margin-top:8px;line-height:1.65">技術分析數據由 yfinance API 擷取（截至 2026-05-21），包含 MA50、MA200、RSI（14 日）、成交量均值（20 日）及近 20 日支撐 / 阻力位。此技術分析僅為輔助參考，不代表對未來走勢的預測。所有估算均為個人研究筆記，不構成任何投資建議。</p></div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P9 — 風險矩陣
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="page-header">
+    <div class="ph-eyebrow">S09 · 風險矩陣</div>
+    <h2 class="ph-title">ARM 5 大核心風險 — 影響 × 機率矩陣</h2>
+    <p class="ph-lead">ARM 的風險分布與緩解措施，涵蓋技術、競爭、監管、估值與宏觀面。</p>
+  </div>
+  <div class="page-body">
+    <div class="risk-matrix-wrap">
+      
+<div class="svg-wrap reveal" style="margin-bottom:32px">
+  <div class="eyebrow">風險 2D 矩陣（影響 × 機率）</div>
+  <svg viewBox="0 0 700 420" style="width:100%;display:block;min-height:300px">
+    <rect width="700" height="420" fill="#ffffff" rx="4" stroke="#e0e0e4" stroke-width="1"/>
+    <line x1="80" y1="370" x2="670" y2="370" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="370" x2="80" y2="30" stroke="#d0d0d4" stroke-width="2"/>
+    <line x1="80" y1="240" x2="670" y2="240" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="80" y1="110" x2="670" y2="110" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <line x1="375" y1="30" x2="375" y2="370" stroke="#e0e0e4" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="375" y="30" width="295" height="210" fill="rgba(192,57,43,0.04)" rx="4"/>
+    <text x="522" y="55" text-anchor="middle" fill="rgba(192,57,43,0.5)" font-family="monospace" font-size="10">高影響 × 高機率</text>
+    <circle cx="490" cy="68" r="22" fill="rgba(217,48,37,0.80)" stroke="white" stroke-width="2"/><text x="490" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R1</text><circle cx="370" cy="68" r="22" fill="rgba(245,166,35,0.85)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R2</text><circle cx="370" cy="140" r="22" fill="rgba(217,48,37,0.70)" stroke="white" stroke-width="2"/><text x="370" y="145" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R3</text><circle cx="370" cy="68" r="22" fill="rgba(124,185,232,0.85)" stroke="white" stroke-width="2"/><text x="370" y="73" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R4</text><circle cx="370" cy="40" r="22" fill="rgba(110,110,115,0.70)" stroke="white" stroke-width="2"/><text x="370" y="45" text-anchor="middle" fill="white" font-family="monospace" font-size="13" font-weight="700">R5</text>
+    <text x="375" y="395" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11">發生機率 →</text>
+    <text x="32" y="200" text-anchor="middle" fill="#6e6e73" font-family="monospace" font-size="11" transform="rotate(-90,32,200)">影響程度 →</text>
+    <text x="80" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="375" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="670" y="388" text-anchor="middle" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+    <text x="65" y="370" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">低</text>
+    <text x="65" y="240" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">中</text>
+    <text x="65" y="30" text-anchor="end" fill="#9ca3af" font-family="monospace" font-size="9">高</text>
+  </svg>
+</div>
+
+    </div>
+    
+<div class="tbl-wrap reveal">
+  <table style="min-width:580px">
+    <thead><tr><th>#</th><th>風險</th><th class="num">影響</th><th class="num">機率</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+    <tbody><tr><td style="color:var(--c-red);font-weight:700">R1</td><td><strong>估值 205× PE 倍數壓縮風險</strong><br><span style=font-size:12px;color:var(--c-muted)>任何季度業績不達預期（Royalty 成長 &lt;15%），股價可能修正 20-30%</span></td><td class="num neg">高</td><td class="num">中高</td><td>持續</td><td>Armv9 滲透率是可預測的自然增長催化劑</td></tr><tr><td style="color:var(--c-gold);font-weight:700">R2</td><td><strong>SoftBank 減持賣壓</strong><br><span style=font-size:12px;color:var(--c-muted)>SoftBank 持有 90%，若 SVF 需要流動資金，大量出售壓低股價</span></td><td class="num neg">高</td><td class="num">中</td><td>2025-2026</td><td>目前未確認減持計畫，但風險始終存在</td></tr><tr><td style="color:var(--c-red);font-weight:700">R3</td><td><strong>RISC-V 替代威脅</strong><br><span style=font-size:12px;color:var(--c-muted)>中國政府主導採用 RISC-V，長期可能在中國市場替代 ARM</span></td><td class="num ">中高</td><td class="num">中（中國市場限定）</td><td>3-7 年</td><td>生態成熟度差 5-10 年；工具鏈 + ISV 轉換成本高</td></tr><tr><td style="color:var(--c-blue);font-weight:700">R4</td><td><strong>Qualcomm 授權合約爭議</strong><br><span style=font-size:12px;color:var(--c-muted)>Qualcomm 與 ARM 授權合約訴訟未完全解決，若判決不利 ARM，Qualcomm 轉用 RISC-V 的動機增加</span></td><td class="num neg">高</td><td class="num">低中</td><td>2025</td><td>雙方商業利益趨同，最終和解可能性高</td></tr><tr><td style="color:var(--c-muted);font-weight:700">R5</td><td><strong>Apple CPU 完全自研（不授權）</strong><br><span style=font-size:12px;color:var(--c-muted)>Apple 若完全自行設計 CPU ISA（不基於 ARM），最大 Royalty 貢獻者消失</span></td><td class="num neg">極高</td><td class="num">極低</td><td>長期（5-10 年）</td><td>ARM 生態系切換成本極高，Apple 不可能短期脫離</td></tr></tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P10 — 催化劑
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="page-header">
+    <div class="ph-eyebrow">S10 · 催化劑</div>
+    <h2 class="ph-title">未來 12 個月關鍵催化劑</h2>
+    <p class="ph-lead">Arm Holdings plc 的近期催化劑與時間表，供進場決策參考。</p>
+  </div>
+  <div class="page-body">
+    <div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">FY2025 Q4 法說（5月）</div><div class="tl-title">Q4 Royalty Revenue 是否超 $630M</div><div class="tl-body">若 Q4 Royalty &gt; $630M（vs guidance 中點），Armv9 滲透率超預期確認。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 H2</div><div class="tl-title">Armv9 滲透率達 35%+</div><div class="tl-body">每提升 10pp 滲透率，Royalty Revenue +5-8%；35% 是下一個里程碑。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025-2026</div><div class="tl-title">AWS Graviton 4 / Azure Cobalt 大規模部署</div><div class="tl-body">數據中心 ARM CPU 市佔達 10%+，Royalty 費率高於手機。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 下半年</div><div class="tl-title">CSS 訂閱客戶突破 30 家</div><div class="tl-body">CSS 是可預測性更高的訂閱模式，客戶增加確認商業模式升級。</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">持續</div><div class="tl-title">AI 手機換機潮（Armv9 AI Phone）</div><div class="tl-body">2025-2026 AI 手機超級換機週期，每台都是 Armv9，Royalty 自然增長。</div></div></div>
+    <div class="card"><div class="watch-item"><div class="watch-n">1</div><div class="watch-body"><div class="wt">Q4 Royalty Revenue 超 $630M</div><div class="ws">Armv9 滲透率超預期 → FY2026E 上修</div></div></div><div class="watch-item"><div class="watch-n">2</div><div class="watch-body"><div class="wt">Armv9 滲透率達 35%</div><div class="ws">Royalty 自然增長確認 → 估值倍數支撐</div></div></div><div class="watch-item"><div class="watch-n">3</div><div class="watch-body"><div class="wt">數據中心 ARM 市佔達 10%+</div><div class="ws">高費率 Royalty 新引擎確認</div></div></div><div class="watch-item"><div class="watch-n">4</div><div class="watch-body"><div class="wt">Qualcomm 授權訴訟和解</div><div class="ws">法律不確定性消除 → 折扣收斂</div></div></div><div class="watch-item"><div class="watch-n">5</div><div class="watch-body"><div class="wt">CSS 客戶 30+</div><div class="ws">訂閱收入可預測性提升 → PE 倍數合理化</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P11 — 五大師觀點
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p11">
+  <div class="page-header">
+    <div class="ph-eyebrow">S11 · 五大師 Personas</div>
+    <h2 class="ph-title">5 大投資視角對 ARM 的判斷</h2>
+    <p class="ph-lead">從護城河到估值泡沫，五種視角給出不同判斷。</p>
+  </div>
+  <div class="page-body">
+    <div class="g2 reveal"><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Buffett 護城河視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">8.0</div></div><div class="persona-body">ARM 的 CPU 架構 IP 護城河是 Buffett 標準的「持久競爭優勢」— 工具鏈生態 + 2000+ 授權客戶替換成本極高。但 205× PE 讓 Buffett 退縮，他會等更合理估值（目標 PE 50-80×）。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Lynch GARP 視角</div><span class="pill pill-red">謹慎</span></div><div class="persona-score" style="color:var(--c-text)">5.0</div></div><div class="persona-body">PEG = 205 ÷ 20% EPS 成長 = 10.25，極度不合 GARP 標準。Lynch 認為 ARM 是好公司但現在不是好股票（太貴），等估值回調到 PE 80-100× 再看。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Soros 反身性視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.0</div></div><div class="persona-body">AI 手機浪潮 → 每台 AI 手機都是 Armv9 → Royalty 增長 → ARM 股價上漲 → 更多晶片設計公司選 ARM 避免兼容風險 → 正向反身性持續。估值拉伸是反身性的副產品。</div></div><div class="persona-card"><div class="persona-head"><div><div class="persona-name">Munger 複利 + 質量視角</div><span class="pill pill-green">偏多</span></div><div class="persona-score" style="color:var(--c-green)">7.5</div></div><div class="persona-body">ARM 是 Munger 最愛的「輕資產 IP 複利機器」— 無 Capex、高 FCF、護城河極深。問題是估值 205× PE，Munger 認為「優秀公司在合理價格買入」，現在偏貴。</div></div></div><div class="persona-card reveal" style="margin-top:14px"><div class="persona-head"><div><div class="persona-name">Burry 逆向 / 熊市視角</div><span class="pill pill-red">空方</span></div><div class="persona-score" style="color:var(--c-red)">3.5</div></div><div class="persona-body">Burry 對 205× PE 的 IP 公司極度謹慎。SoftBank 90% 持股的解鎖賣壓 + RISC-V 長期替代是系統性風險。即使業績完美，倍數壓縮就能讓股價腰斬。</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     P12 — 方法論 & 免責
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="p12">
+  <div class="page-header">
+    <div class="ph-eyebrow">S12 · 方法論 &amp; 免責聲明</div>
+    <h2 class="ph-title">個人研究立場</h2>
+    <p class="ph-lead">本研究僅為個人研究筆記，不構成任何投資建議，不收費，不帶會員，不接代操，投資人應自行研究並承擔風險，作者非執業投資顧問。</p>
+  </div>
+  <div class="page-body">
+    
+<div class="reveal" style="margin-bottom:24px">
+  <div class="eyebrow">最終投資立場（個人研究）</div>
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card" style="border-color:var(--c-gold-border)">
+      <div class="card-label" style="color:var(--c-gold)">個人立場</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">中立（估值偏高）。Base PT 個人估算 $165（vs 現價 +5%）。ARM 護城河極強但 205× PE 安全邊際幾乎為零。$125-140 回調後才有更佳風險回報比。</p>
+    </div>
+    <div class="card" style="border-color:rgba(46,204,113,.2)">
+      <div class="card-label" style="color:var(--c-green)">若是我，產業優先順序</div>
+      <p style="font-size:13px;color:var(--c-text);margin-top:8px;line-height:1.65">ARM 是護城河最深的 IP 公司，但當前估值不留任何犯錯空間。等 AI 熱潮降溫後估值壓縮時伺機。</p>
+    </div>
+  </div>
+<div class="qblock reveal" style="border-left-color:var(--c-red)"><p class="q-text"><strong style="color:var(--c-red)">Ledger 說明：</strong>Base PT $165 vs 現價 $156.73（+5%）。等 $130-140 回調，再評估進場。</p></div></div>
+    
+<div class="reveal">
+  <div class="eyebrow">研究資料來源</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>資料類型</th><th>來源</th><th>取得日期</th><th>可信度</th></tr></thead>
+      <tbody><tr><td>季度財報</td><td>Arm Holdings FY2025 Q3 20-F / Earnings，2025-02-05，SEC CIK 1560327</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>年度財報</td><td>Arm Holdings 20-F FY2024（3月底），SEC CIK 1560327</td><td>2026-05-21</td><td><span class="pill pill-green">官方申報</span></td></tr><tr><td>市場報價</td><td>yfinance 即時報價 ARM，2026-05-21</td><td>2026-05-21</td><td><span class="pill pill-gray">市場參考</span></td></tr><tr><td>估值模型</td><td>個人研究模型（P/S × FY2026E Revenue Scenario）</td><td>2026-05-21</td><td><span class="pill pill-red">個人推估</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+    
+<div class="disclaimer-footer reveal">
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--c-gold);text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid var(--c-border);padding-bottom:8px">
+    重要免責聲明 — 請務必閱讀
+  </div>
+  <p style="margin-bottom:10px"><strong>本研究筆記不構成任何投資建議。</strong>所有「個人估算 PT」「個人估算區間」「期望價格 EV」均為個人研究模型輸出，僅供學術研究與資訊參考用途，不構成任何形式的投資建議或招攬。</p>
+  <p style="margin-bottom:10px"><strong>本報告不收費、不帶會員、不接受任何形式的代客操作。</strong>投資人應自行研究、自行判斷，並承擔所有投資決策與結果的風險。過去績效不代表未來表現。股票投資具有重大風險，可能損失全部投資本金。</p>
+  <p style="margin-bottom:10px"><strong>本報告不含正式評等語言。</strong>所有估算均為個人推估，基於公開資料與個人判斷，可能存在重大誤差。</p>
+  <p style="margin-bottom:16px"><strong>作者非執業投資顧問，亦無任何受監管的投資顧問資格。</strong>本報告內容未經任何監管機構審核或認可。讀者不應將本報告作為做出投資決定的唯一或主要依據。</p>
+  <div style="border-top:1px solid var(--c-border);padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+    <span>AI Research Notes · ARM Fusion v2 · 2026-05-21</span>
+    <span>SEC EDGAR CIK: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001560327" target="_blank" style="color:var(--c-gold)">0001560327</a></span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="放大圖">
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) {
+      n.classList.add('active');
+    }
+  });
+  window.scrollTo(0,0);
+  setTimeout(triggerReveal, 100);
+  if (id === 'p6') setTimeout(initCharts, 200);
+}
+
+// ─── HAMBURGER ─────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+const hamburger = document.getElementById('hamburger');
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.style.display = 'none';
+});
+
+// ─── REVEAL ANIMATION ──────────────────────────────────────
+function triggerReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (!el.classList.contains('visible')) {
+      el.classList.add('visible');
+    }
+  });
+  // Score bars
+  document.querySelectorAll('.score-fill').forEach(f => {
+    f.style.width = f.dataset.w || '0%';
+  });
+}
+setTimeout(triggerReveal, 300);
+
+// ─── LIGHTBOX ──────────────────────────────────────────────
+function openLightbox(img) {
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ─── COUNT-UP ANIMATION ────────────────────────────────────
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  if (isNaN(target)) return;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1200;
+  const start = performance.now();
+  const decimals = (el.dataset.count || '').includes('.') ? 1 : 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = prefix + (target * ease).toFixed(decimals) + suffix;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(countUp);
+
+// ─── CHARTS ────────────────────────────────────────────────
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  
+  const revCtx = document.getElementById('revChart');
+  const gmCtx  = document.getElementById('gmChart');
+  if (!revCtx || !gmCtx) return;
+  const lightGrid = '#e0e0e4';
+  const lightTick = '#6e6e73';
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  new Chart(revCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ["FY2023", "FY2024", "TTM FY2025E"],
+      datasets: [{ data: [2.68, 3.23, 3.92], backgroundColor: ["#c8d4e0", "#F5A623", "#2ECC71"], borderRadius: 4 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => '$' + v + 'M' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + 'M' } } }
+    }
+  });
+  new Chart(gmCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ["FY2023", "FY2024", "TTM FY2025E"],
+      datasets: [{
+        data: [97.8, 98.1, 97.5],
+        borderColor: '#F5A623',
+        backgroundColor: 'rgba(245,166,35,0.08)',
+        fill: true, tension: 0.3, borderWidth: 2,
+        pointBackgroundColor: ["#c8d4e0", "#F5A623", "#2ECC71"],
+        pointRadius: 5
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick }, grid: { color: lightGrid } },
+        y: { ticks: { font: { family: 'monospace', size: 10 }, color: lightTick, callback: v => v + '%' }, grid: { color: lightGrid } }
+      },
+      plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } }
+    }
+  });
+
+}
+
+// ─── PT CALCULATOR ─────────────────────────────────────────
+(function() {
+  const revSlider = document.getElementById('revSlider');
+  const multSlider = document.getElementById('multSlider');
+  const meta = document.getElementById('ptCalcCash');
+  if (!revSlider || !multSlider || !meta) return;
+  const shares = parseFloat(meta.dataset.shares) || 1;
+  const cash = parseFloat(meta.dataset.cash) || 0;
+  const price = parseFloat(meta.dataset.price) || 0;
+  function update() {
+    const rv = parseFloat(revSlider.value) || 0;
+    const mv = parseFloat(multSlider.value) || 0;
+    const ev = rv * mv;
+    const mktVal = ev + cash;
+    const pt = mktVal / shares;
+    const upPct = price > 0 ? ((pt / price) - 1) * 100 : 0;
+    const revDisplay = document.getElementById('revDisplay');
+    const multDisplay = document.getElementById('multDisplay');
+    const evDisplay = document.getElementById('evDisplay');
+    const mvDisplay = document.getElementById('mvDisplay');
+    const ptDisplay = document.getElementById('ptDisplay');
+    const upDisplay = document.getElementById('upDisplay');
+    if (revDisplay) revDisplay.textContent = '$' + rv.toFixed(0) + 'M';
+    if (multDisplay) multDisplay.textContent = mv.toFixed(1) + 'x';
+    if (evDisplay) evDisplay.textContent = '$' + ev.toFixed(0) + 'M';
+    if (mvDisplay) mvDisplay.textContent = '$' + mktVal.toFixed(0) + 'M';
+    if (ptDisplay) ptDisplay.textContent = '$' + pt.toFixed(2);
+    if (upDisplay) {
+      upDisplay.textContent = (upPct >= 0 ? '+' : '') + upPct.toFixed(1) + '%';
+      upDisplay.style.color = upPct >= 0 ? 'var(--c-green)' : 'var(--c-red)';
+    }
+  }
+  revSlider.addEventListener('input', update);
+  multSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
