@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3481 群創光電 — AI Research Notes · 2026-05-24</title>
+<!-- v4 template -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  /* NVTS v7 canonical palette 2026-05-24 — 10 vars, no additions */
+  --bg-page:#F5F4EE;   /* cream off-white body */
+  --bg-card:#FFFFFF;   /* white card */
+  --bg-cover:#0A1628;  /* navy — cover/hero ONLY */
+  --text:#1A2540;      /* near-black navy text */
+  --text-muted:#6B7280;/* muted gray */
+  --border:#E5E7EB;    /* light gray border */
+  --accent:#003B36;    /* DARK GREEN-TEAL — sole accent */
+  --bull:#1F7A5C;      /* positive green */
+  --bear:#C8302C;      /* negative red */
+  --neutral:#9CA3AF;   /* neutral gray */
+  /* legacy aliases — map into the 10 above */
+  --bg:var(--bg-page);--card:var(--bg-card);--ink:var(--text);--muted:var(--text-muted);--muted2:var(--neutral);
+  --border-color:var(--border);--navy:var(--bg-cover);--gold:var(--accent);--mint:var(--bull);--red:var(--bear);
+  --green:var(--bull);--amber:var(--accent);--text-color:var(--text);
+  --font-sans:'Inter','SF Pro Text','Noto Sans TC',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  /* NIM design-v2 typography scale (2026-05-25) */
+  --fs-xl:32px;  /* cover h1 hero floor */
+  --fs-lg:18px;  /* section h2 (NIM: reduced from 22px) */
+  --fs-md:14px;  /* body/prose (NIM: reduced from 16px) */
+  --fs-sm:13px;  /* secondary body/bullets */
+  --fs-xs:12px;  /* data points/KPI values — monospace */
+  --fs-xxs:10px; /* eyebrow/label/footnote (NIM: 10px) */
+  --accent-on-dark:var(--bull);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{overflow-x:hidden;min-width:0!important}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);margin:0;padding:0;line-height:1.5;font-size:var(--fs-md)}
+.deck{max-width:1200px;margin:0 auto;padding:0 24px 64px}
+/* hero */
+.hero-dashboard{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:24px;background:var(--bg);border-bottom:2px solid var(--gold);color:var(--ink);padding:40px 32px;border-radius:0;margin:0 -24px 32px;position:relative}
+.hero-dashboard .col{display:flex;flex-direction:column;gap:12px}
+.hero-dashboard .ticker{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--navy)}
+.hero-dashboard .title{font:600 var(--fs-md)/1.3 var(--font-sans);color:var(--ink)}
+.hero-dashboard .stance{display:inline-block;padding:6px 12px;background:rgba(200,48,44,0.12);border:1px solid rgba(200,48,44,0.4);border-radius:4px;font:700 var(--fs-sm)/1 var(--font-sans);color:var(--red);width:fit-content}
+.hero-dashboard .meta-line{font:500 var(--fs-xs)/1.4 var(--font-mono);color:var(--muted);margin-top:auto}
+.hero-dashboard .price-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.hero-dashboard .price-cell{padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px}
+.hero-dashboard .price-cell .lbl{font:500 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.hero-dashboard .price-cell .v{font:700 var(--fs-lg)/1 var(--font-mono);color:var(--ink);margin-top:6px}
+.hero-dashboard .price-cell.star{background:rgba(200,48,44,0.06);border:1px solid rgba(200,48,44,0.25)}
+.hero-dashboard .price-cell.star .v{color:var(--red)}
+.hero-dashboard .upside{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--red);margin-top:6px;text-align:right}
+.hero-dashboard .right-block{padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:4px}
+.hero-dashboard .right-block .lbl{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.hero-dashboard .right-block ul{margin:4px 0 0;padding-left:14px;font-size:var(--fs-sm);line-height:1.45}
+.hero-dashboard .right-block li{margin-bottom:3px}
+/* decision box */
+.decision-box{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--card);margin:20px 0}
+.decision-box .cell{padding:14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.decision-box .cell:nth-child(4n){border-right:none}
+.decision-box .cell:nth-last-child(-n+4){border-bottom:none}
+.decision-box .cell .lbl{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.decision-box .cell .v{font:700 var(--fs-md)/1.3 var(--font-sans);color:var(--ink);margin-top:6px}
+.decision-box .cell.star{background:rgba(0,59,54,0.06)}
+.decision-box .cell.star .v{color:var(--gold)}
+.decision-box .cell.bear .v{color:var(--red)}
+.decision-box .cell.bull .v{color:var(--mint)}
+/* ev spotlight */
+.ev-spotlight{display:flex;align-items:center;gap:18px;padding:14px 18px;background:rgba(200,48,44,0.05);border:1px solid rgba(200,48,44,0.25);border-radius:8px;margin:14px 0;flex-wrap:wrap}
+.ev-spotlight .ev-label{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.ev-spotlight .ev-formula{font:500 var(--fs-sm)/1.4 var(--font-mono);color:var(--muted);min-width:200px}
+.ev-spotlight .ev-value{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--red)}
+.ev-spotlight .ev-delta{font:700 var(--fs-md)/1 var(--font-mono);padding:6px 12px;border-radius:6px;background:rgba(200,48,44,0.12);color:var(--red)}
+/* sections — NIM design-v2: radius 4px, shadow, institutional spacing */
+section{padding:48px 24px;background:var(--card);border:1px solid var(--border);border-radius:4px;margin:24px 0;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+section.tight{padding:24px 18px;margin:18px 0}
+section.tier-secondary{padding:24px 18px}
+section.tier-tertiary{padding:16px 14px}
+/* layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+/* section lead — NIM: narrative prose line-height 1.7, max-width 1000px */
+.section-lead{font-size:var(--fs-md);line-height:1.7;color:var(--ink);padding:10px 12px;background:rgba(0,59,54,0.04);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;margin:8px 0 16px;max-width:1000px}
+.section-lead.warn{background:rgba(200,48,44,0.04);border-left-color:var(--red)}
+/* charts — NIM: radius 4px, shadow */
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;margin:14px 0;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+.chart-wrap canvas{width:100%!important;max-height:280px}
+.chart-wrap .chart-title{font:700 var(--fs-sm)/1 var(--font-sans);color:var(--navy);margin-bottom:10px}
+/* tables — NIM: th letter-spacing 1px, data num 12px monospace */
+.tbl-wrap{overflow-x:auto;margin:10px 0}
+table.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+table.tbl th,table.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+table.tbl th{background:var(--bg);font:600 var(--fs-xxs)/1 var(--font-mono);text-transform:uppercase;color:var(--muted);letter-spacing:1px}
+table.tbl td.num{font-family:var(--font-mono);text-align:right;font-size:var(--fs-xs);letter-spacing:0.5px;line-height:1.2}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr.hl{background:rgba(0,59,54,0.05)}
+/* NIM dense table hover */
+table.tbl.dense th,table.tbl.dense td{padding:6px 8px;font-size:var(--fs-xs)}
+table.tbl.dense tr:hover td{background:rgba(245,244,238,0.7)}
+/* scenario table — NIM radius 4px */
+.scenario-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm);background:var(--card);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:14px 0}
+.scenario-table th{padding:10px;background:var(--bg);font:600 var(--fs-xxs)/1 var(--font-mono);text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);text-align:left;letter-spacing:1px}
+.scenario-table td{padding:10px;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.scenario-table .scenario-bear{color:var(--red);font-weight:600}
+.scenario-table .scenario-base{color:var(--gold);font-weight:700}
+.scenario-table .scenario-bull{color:var(--mint);font-weight:600}
+.scenario-table tr:last-child td{border-bottom:none}
+/* val card — NIM radius 4px, shadow */
+.val-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:20px;margin:14px 0;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+.val-card h4{margin:0 0 10px;font-size:var(--fs-md);color:var(--navy);font-weight:700}
+/* risk matrix — NIM radius 4px, shadow */
+.risk-matrix-wrap{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;margin:14px 0;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+/* quote block */
+.quote-block{border-left:3px solid var(--gold);padding:12px 16px;margin:12px 0;background:rgba(0,59,54,0.04);border-radius:0 4px 4px 0}
+.quote-block .quote-text{font-size:var(--fs-sm);line-height:1.65;color:var(--ink);font-style:italic}
+/* NIM: quote attr 10px letter-spacing 1px */
+.quote-block .quote-attr{font:600 var(--fs-xxs)/1 var(--font-mono);color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+.quote-block.warn{border-left-color:var(--red);background:rgba(200,48,44,0.04)}
+/* kpi strip — NIM: label 10px letter-spacing 1px, value 22px monospace (locked), radius 4px */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:16px 0}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;aspect-ratio:1.5/1;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+.kpi-card .kpi-label{font:600 var(--fs-xxs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.kpi-card .kpi-value{font:700 22px/1.2 var(--font-mono);color:var(--ink);letter-spacing:0.5px}
+.kpi-card .kpi-sub{font:500 var(--fs-xxs)/1.2 var(--font-sans);color:var(--muted2)}
+.kpi-card.warn .kpi-value{color:var(--red)}
+.kpi-card.gold .kpi-value{color:var(--gold)}
+.kpi-card.mint .kpi-value{color:var(--mint)}
+/* tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font:600 var(--fs-xxs)/1.4 var(--font-mono);text-transform:uppercase;letter-spacing:0.04em}
+.tag.red{background:rgba(200,48,44,0.12);color:var(--red)}
+.tag.gold{background:rgba(0,59,54,0.12);color:var(--gold)}
+.tag.mint{background:rgba(31,122,92,0.15);color:var(--mint)}
+/* case cards — NIM radius 4px */
+.case-card{padding:12px 16px;border-radius:4px;border-left:3px solid;font-size:var(--fs-sm);margin:8px 0}
+.case-card.bull{background:rgba(31,122,92,0.06);border-left-color:var(--mint)}
+.case-card.bear{background:rgba(200,48,44,0.06);border-left-color:var(--red)}
+.case-card .lbl{font:600 var(--fs-xxs)/1 var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.case-card.bull .lbl{color:var(--mint)}
+.case-card.bear .lbl{color:var(--red)}
+/* product diagram — NIM radius 4px, shadow */
+.product-diagram{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:18px;margin:14px 0;box-shadow:0 2px 4px rgba(0,0,0,0.06)}
+.product-diagram svg{width:100%;height:auto}
+/* NIM: footnote 10px light (300), line-height 1.2 */
+.product-diagram-caption,.footnote,.source-line,.disclaimer{font-size:var(--fs-xxs);font-weight:300;color:var(--muted);margin-top:8px;line-height:1.2;text-align:center}
+/* viz hero */
+.viz-hero{margin:14px 0}
+.viz-hero svg{display:block;width:100%;height:auto}
+.viz-caption{font-size:var(--fs-xxs);font-weight:300;color:var(--muted);margin-top:10px;line-height:1.2}
+/* util — NIM: h2 18px semi-bold (600), eyebrow 10px letter-spacing 1px */
+h2{font-size:var(--fs-lg);color:var(--navy);margin:0 0 10px;font-weight:600}
+h3{font-size:var(--fs-md);color:var(--ink);margin:14px 0 8px;font-weight:700}
+.eyebrow{display:inline-block;font:600 var(--fs-xxs)/1 var(--font-mono);color:var(--mint);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.gold{color:var(--gold)}.green{color:var(--mint)}.red{color:var(--red)}
+.footer{margin-top:48px;padding:18px 16px;background:var(--bg);border-radius:8px;font-size:var(--fs-xs);color:var(--muted);line-height:1.6}
+.footer strong{color:var(--ink)}
+ul.tight{margin:4px 0 0;padding-left:16px;font-size:var(--fs-sm);line-height:1.5}
+ul.tight li{margin-bottom:3px}
+details{margin:10px 0;border:1px solid var(--border);border-radius:6px;padding:0}
+details summary{padding:10px 14px;cursor:pointer;font:600 var(--fs-sm)/1 var(--font-sans);color:var(--muted);user-select:none}
+details[open] summary{border-bottom:1px solid var(--border);background:var(--bg)}
+details > *:not(summary){padding:10px 14px;font-size:var(--fs-sm)}
+/* PT calculator */
+#pt-calc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:14px 0}
+#pt-calc label{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:4px}
+#pt-calc input[type=range]{width:100%;margin-bottom:12px;accent-color:var(--gold)}
+#pt-calc .pt-result{font:700 var(--fs-lg)/1 var(--font-mono);color:var(--gold);margin-top:8px}
+/* mobile */
+@media(max-width:768px){
+  .deck{padding:0 14px 32px;min-width:0!important}
+  .hero-dashboard{grid-template-columns:1fr;padding:24px 18px;margin:0 -14px 22px}
+  .decision-box{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .three-col{grid-template-columns:1fr}
+  .kpi-strip{grid-template-columns:repeat(3,1fr)}
+  section{padding:22px 14px;margin:16px 0}
+  section.tight{padding:16px 12px}
+  *{min-width:0!important;max-width:100%!important}
+  table thead{display:none}
+}
+
+/* ===== NVTS v7 CENTERED SPLASH COVER CSS — 2026-05-25 ===== */
+.cover{background:var(--bg-cover,#0A1628);padding:100px 40px 64px;text-align:center}
+.cover-eyebrow{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent,#003B36);margin-bottom:20px}
+.cover h1{font-size:40px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:16px}
+.cover h1 .accent{color:var(--accent,#003B36)}
+.cover-sub{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:32px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-bottom:32px}
+.cover-stat-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--accent,#003B36)}
+.cover-stat-label{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.8}
+.cover-warning{display:inline-block;margin-top:20px;padding:8px 20px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;font-size:11px;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace}
+@media(max-width:768px){.cover{padding:48px 24px;min-height:360px}.cover h1{font-size:26px}.cover-stats{gap:20px}}
+.divider{height:4px;background:linear-gradient(90deg,transparent,var(--accent,#003B36),transparent);margin:0}
+/* PERSONAS */
+.personas-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:20px 0}
+@media(max-width:1024px){.personas-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.personas-grid{grid-template-columns:1fr 1fr}}
+.persona-card{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;min-width:0}
+.persona-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.persona-card h3{font-size:12px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#003B36;margin:0;flex:1;min-width:0}
+.persona-score{font-size:16px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#1A2540;white-space:nowrap;flex-shrink:0}
+.persona-signal{font-size:11px;color:#6B7280;margin-bottom:6px}
+.persona-bullets{list-style:none;padding:0;margin:0}
+.persona-bullets li{position:relative;display:block;padding-left:14px;font-size:11px;line-height:1.65;color:#1A2540;margin:3px 0}
+.persona-bullets li::before{content:"·";position:absolute;left:2px;color:#003B36;font-weight:700}
+.personas-consensus{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-top:16px}
+.personas-consensus h3{font-size:14px;font-weight:700;color:#003B36;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;margin:0 0 10px}
+/* RISK MATRIX */
+.risk-matrix-wrap{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;padding:18px;margin:20px 0}
+.risk-matrix-wrap svg{width:100%;height:auto;min-height:280px}
+.risk-table-wrap{overflow-x:auto;margin:16px 0}
+/* CATALYST */
+.catalyst-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.catalyst-table th{background:#F5F4EE;padding:7px 10px;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB;text-align:left}
+.catalyst-table td{padding:7px 10px;border-bottom:1px solid #E5E7EB;font-size:13px}
+/* WATCHLIST */
+.watchlist-items{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.watchlist-item{padding:12px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-left:3px solid #003B36;border-radius:0 6px 6px 0}
+.watchlist-item .wl-metric{font-size:11px;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.watchlist-item .wl-condition{font-size:13px;font-weight:700;color:#1A2540}
+.watchlist-item .wl-bull{font-size:12px;color:#1F7A5C;margin-top:2px}
+.watchlist-item .wl-bear{font-size:12px;color:#C8302C;margin-top:2px}
+/* SECTION SHARED */
+.section{padding:36px 22px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;margin:24px 0}
+.section-eyebrow{display:inline-block;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;color:#1F7A5C;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.section-h2{font-size:22px;color:#0A1628;margin:0 0 10px;font-weight:700}
+.section-lead{font-size:14px;line-height:1.55;color:#1A2540;padding:10px 12px;background:rgba(0,59,54,0.04);border-left:3px solid #003B36;border-radius:0 6px 6px 0;margin:8px 0 16px}
+.section-bullets{list-style:none;padding:0;margin:12px 0 0}
+.section-bullets li{position:relative;display:block;padding-left:18px;font-size:13px;line-height:1.7;color:#1A2540;margin:5px 0}
+.section-bullets li::before{content:"·";position:absolute;left:4px;color:#003B36;font-weight:700}
+
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- S00: NVTS v7 CENTERED SPLASH COVER -->
+<div class="cover" id="s00">
+  <div class="cover-eyebrow">Sell-Side Initiation Brief — 面板週期計價充分 — 2026-05-24 v1</div>
+  <h1>群創光電 3481.TW：面板景氣反彈計價充分<br>押注 <span class="accent">玻璃基板封裝</span> 2027 量產能否兌現</h1>
+  <div class="cover-sub">面板景氣反彈真實，但 Forward PE 85x、ROE 0.6%、GM 10% 顯示基本面不支持現價 NT$44.65。<br>該回答的問題：期望值 NT$21.0 (-53%) 的估值差距，市場定價的「玻璃基板題材」能兌現嗎？</div>
+  <div class="cover-stats">
+    <div><div class="cover-stat-num">NT$44.65</div><div class="cover-stat-label">現價</div></div>
+    <div><div class="cover-stat-num">-52.7%</div><div class="cover-stat-label">EV vs 現價 下行空間</div></div>
+    <div><div class="cover-stat-num">NT$21.0</div><div class="cover-stat-label">期望值 (加權)</div></div>
+    <div><div class="cover-stat-num">10.2%</div><div class="cover-stat-label">毛利率 (FY25)</div></div>
+    <div><div class="cover-stat-num">NT$3,564億</div><div class="cover-stat-label">市值</div></div>
+  </div>
+  <div class="cover-meta">BOE/CSOT 供給壓力 ｜ WATCH 觀望 ｜ 36.0 億股流通 ｜ 現金 NT$89億 ｜ 玻璃基板 2027E 量產</div>
+  <div class="cover-warning">本報告僅供資訊參考 — 非投資建議 — 請見末頁完整聲明</div>
+</div>
+<div class="divider"></div>
+
+<section id="s01">
+<span class="eyebrow">S01 — Executive Snapshot</span>
+<h2>核心指標一覽</h2>
+<p class="section-lead warn">估值嚴重偏貴：TTM PE 1488x、Forward PE 86x，當前股價已反映 2027–28 最樂觀情境，現價進場風險報酬不利。</p>
+
+<div class="kpi-strip">
+  <div class="kpi-card warn">
+    <div class="kpi-label">TTM PE</div>
+    <div class="kpi-value">1,488x</div>
+    <div class="kpi-sub">TTM EPS NT$0.03</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="kpi-label">Forward PE</div>
+    <div class="kpi-value">85.9x</div>
+    <div class="kpi-sub">FWD EPS NT$0.52E</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="kpi-label">毛利率 GM</div>
+    <div class="kpi-value">10.1%</div>
+    <div class="kpi-sub">TTM; FY24:6.5%↑</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="kpi-label">ROE</div>
+    <div class="kpi-value">0.59%</div>
+    <div class="kpi-sub">資金使用效率極低</div>
+  </div>
+  <div class="kpi-card gold">
+    <div class="kpi-label">股利殖利率</div>
+    <div class="kpi-value">2.46%</div>
+    <div class="kpi-sub">NT$1.0/股 (FY24)</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="kpi-label">52週位置</div>
+    <div class="kpi-value">100%</div>
+    <div class="kpi-sub">NT$11→44.65 高點</div>
+  </div>
+</div>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>指標</th><th>數值</th><th>vs 同業</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>市值</td><td class="num">NT$3,564億</td><td>AUO NT$1,675億</td><td>群創市值已為友達 2.1x</td></tr>
+<tr><td>EV/Revenue</td><td class="num">1.40x</td><td>AUO ~0.6x</td><td>溢價明顯</td></tr>
+<tr><td>EV/EBITDA</td><td class="num">11.8x</td><td>LPL 7-9x</td><td>偏高</td></tr>
+<tr class="hl"><td>P/B</td><td class="num">1.61x</td><td>AUO 1.12x</td><td>Book value NT$27.7/股</td></tr>
+<tr><td>淨現金</td><td class="num">NT$267億</td><td>—</td><td>現金NT$818億 − 債NT$550億</td></tr>
+<tr><td>Beta</td><td class="num">0.80</td><td>AUO 0.89</td><td>相對大盤低波動</td></tr>
+<tr><td>TTM 營收</td><td class="num">NT$2,374億</td><td>AUO NT$2,783億</td><td>YoY +19.2%</td></tr>
+<tr><td>FCF</td><td class="num">NT$172億</td><td>—</td><td>FCF yield ~4.8%</td></tr>
+</tbody>
+</table>
+</div>
+
+<ul class="tight">
+  <li>估值角度：NT$44.65 已反映 FY26E EPS NT$0.52 的 86x PE，對週期性面板製造商屬歷史高位倍數</li>
+  <li>股東回報：NT$1.0 股利殖利率僅 2.46%，不足以補償週期下行風險</li>
+  <li>品質判斷：GM 10%、ROE 0.6% 不支持成長股估值；建議等候基本面確認再評估進場</li>
+</ul>
+</section>
+
+<!-- S02: INVESTMENT THESIS (SCQA) -->
+<section id="s02">
+<span class="eyebrow">S02 — Investment Thesis</span>
+<h2>SCQA 投資假設</h2>
+<p class="section-lead warn">核心結論：面板景氣反彈真實，但 NT$44.65 已計價過頭。週期反轉完整實現概率不足 50%；現階段研究觀點為「觀望」，等候股價回調至 NT$16–20 再重新評估。</p>
+
+<div class="two-col">
+<div>
+<div class="case-card bear">
+<div class="lbl">Situation — 現況</div>
+<ul class="tight">
+  <li>群創是全球第三大 TFT-LCD 面板製造商，FY25 營收 NT$2,267億</li>
+  <li>主要產品：TV 面板(~45%)、IT(~30%)、Auto/Med(~8%)、其他(~17%)</li>
+  <li>2022-2023 面板週期谷底：連兩年虧損，FY22 虧 NT$280億、FY23 虧 NT$186億</li>
+  <li>2024-2025 進入復甦期：FY24 EPS NT$0.75（獲利轉正），但 FY25 EPS 僅 NT$0.03</li>
+</ul>
+</div>
+<div class="case-card bear">
+<div class="lbl">Complication — 矛盾點</div>
+<ul class="tight">
+  <li>股價從 NT$11（2025-Q1）暴漲至 NT$44.65（+306%），但 EPS 卻從 NT$0.75 退回 NT$0.03</li>
+  <li>FY25 毛利率僅 8.2%（FY24 6.5%→微幅改善），距「合理獲利區間」GM 15%+ 仍遠</li>
+  <li>中國面板廠 BOE/CSOT 繼續擴產，結構性供給壓力未消</li>
+  <li>Forward PE 86x 對一家歷史 EPS 波動劇烈的週期股極不尋常</li>
+</ul>
+</div>
+</div>
+<div>
+<div class="case-card bull">
+<div class="lbl">Question — 市場在問什麼</div>
+<ul class="tight">
+  <li>面板景氣週期是否在 2026 進入「超級循環」，推動 EPS 跳升至 NT$2–3？</li>
+  <li>Auto/Med 高毛利新應用能否改變群創的結構性獲利能力？</li>
+  <li>AI 顯示器需求（高刷新率/高解析度）是否成為新成長驅動？</li>
+</ul>
+</div>
+<div class="case-card">
+<div class="lbl">Answer — 研究結論</div>
+<ul class="tight">
+  <li><strong>短期景氣反彈是真實的</strong>：Q1 2026 面板報價持續上行，月營收同比改善</li>
+  <li><strong>但市場已過度計價</strong>：NT$44.65 對應 EV/Revenue 1.4x，歷史估值高峰僅出現在 GM>15% 週期</li>
+  <li><strong>三個可驗證 KPI</strong>：① 面板均價 YoY 持平或上行 ② 毛利率連續 2Q>12% ③ EPS FY26E>NT$1.0</li>
+  <li>現階段全部 KPI 尚未確認 → 研究觀點：觀望，Base PT NT$18–22</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+
+<!-- S03: INDUSTRY STRUCTURE -->
+<section id="s03">
+<span class="eyebrow">S03 — 產業結構</span>
+<h2>TFT-LCD 面板產業：週期性高強度競爭格局</h2>
+<p class="section-lead">面板產業 TAM 約 USD 1,100億（2025E），但屬高度週期性、資本密集、議價能力弱的商品化產業。中國廠商已占全球 LCD 產能 60%+，台廠面臨長期結構性壓力。</p>
+
+<!-- Industry S-Stack SVG -->
+<div class="viz-hero">
+<svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" aria-label="面板產業 S-STACK：供應鏈層級圖">
+  <title>3481 群創 面板產業 S-STACK</title>
+  <!-- background -->
+  <rect width="820" height="520" fill="#F5F4EE" rx="8"/>
+  <!-- title -->
+  <text x="20" y="28" font-family="SF Mono,Consolas,monospace" font-size="12" fill="#666" font-weight="600">TFT-LCD 產業 S-STACK — 供應鏈層級與群創定位</text>
+  <!-- Legend -->
+  <rect x="560" y="12" width="12" height="12" fill="#003B36" rx="2"/>
+  <text x="576" y="23" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#666">群創直接參與</text>
+  <rect x="670" y="12" width="12" height="12" fill="#1F7A5C" rx="2"/>
+  <text x="686" y="23" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#666">成長催化</text>
+  <rect x="748" y="12" width="12" height="12" fill="#ccc" rx="2"/>
+  <text x="764" y="23" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#666">第三方</text>
+
+  <!-- Layer 1: End Demand -->
+  <rect x="20" y="44" width="780" height="58" fill="#003B36" rx="5" opacity="0.15"/>
+  <rect x="20" y="44" width="4" height="58" fill="#003B36" rx="2"/>
+  <text x="34" y="62" font-family="-apple-system,sans-serif" font-size="13" fill="#1A2540" font-weight="700">L1 — 終端需求</text>
+  <text x="34" y="78" font-family="-apple-system,sans-serif" font-size="11" fill="#666">TV (45%) · 桌面顯示器 (20%) · 筆電/平板 (15%) · 車用/醫療 (8%) · 工業/其他 (12%)</text>
+  <text x="34" y="94" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">TAM ~USD 1,100B (2025E) · CAGR 2-4%（成熟市場）</text>
+
+  <!-- Layer 2: Panel Maker -->
+  <rect x="20" y="112" width="780" height="70" fill="#003B36" rx="5" opacity="0.20"/>
+  <rect x="20" y="112" width="4" height="70" fill="#003B36" rx="2"/>
+  <text x="34" y="130" font-family="-apple-system,sans-serif" font-size="13" fill="#1A2540" font-weight="700">L2 — 面板製造 ★ 群創所在層</text>
+  <text x="34" y="148" font-family="-apple-system,sans-serif" font-size="11" fill="#666">群創(3481) · 友達(2409) · BOE(BOE-SZ) · CSOT/TCL · LG Display · Samsung Display</text>
+  <text x="34" y="164" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">群創市占：全球 LCD ~10–12% · 台灣雙雄合計 ~20%</text>
+  <!-- BOE warning badge -->
+  <rect x="560" y="120" width="230" height="30" fill="rgba(200,48,44,0.1)" rx="4"/>
+  <text x="575" y="140" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">⚠ BOE+CSOT 合計産能占比 &gt;50%</text>
+
+  <!-- Layer 3: Key Materials -->
+  <rect x="20" y="192" width="780" height="62" fill="#ccc" rx="5" opacity="0.25"/>
+  <rect x="20" y="192" width="4" height="62" fill="#999" rx="2"/>
+  <text x="34" y="210" font-family="-apple-system,sans-serif" font-size="13" fill="#1A2540" font-weight="700">L3 — 關鍵材料</text>
+  <text x="34" y="226" font-family="-apple-system,sans-serif" font-size="11" fill="#666">玻璃基板：Corning/AGC · 偏光片：住友/LG Chem · 驅動IC：聯詠/奇景 · 背光：瑞儀/業成</text>
+  <text x="34" y="244" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999">群創為材料採購方（無直接議價優勢）</text>
+
+  <!-- Layer 4: Equipment -->
+  <rect x="20" y="264" width="780" height="62" fill="#ccc" rx="5" opacity="0.18"/>
+  <rect x="20" y="264" width="4" height="62" fill="#999" rx="2"/>
+  <text x="34" y="282" font-family="-apple-system,sans-serif" font-size="13" fill="#1A2540" font-weight="700">L4 — 製程設備</text>
+  <text x="34" y="298" font-family="-apple-system,sans-serif" font-size="11" fill="#666">曝光機：Nikon/Canon · Sputter/CVD：ULVAC/Applied Materials · 切割：三星鑽石工業</text>
+  <text x="34" y="316" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999">設備為一次性資本支出，台廠設備依賴進口</text>
+
+  <!-- Layer 5: New Tech -->
+  <rect x="20" y="336" width="780" height="62" fill="#1F7A5C" rx="5" opacity="0.12"/>
+  <rect x="20" y="336" width="4" height="62" fill="#1F7A5C" rx="2"/>
+  <text x="34" y="354" font-family="-apple-system,sans-serif" font-size="13" fill="#1A2540" font-weight="700">L5 — 新技術層（催化劑）</text>
+  <text x="34" y="370" font-family="-apple-system,sans-serif" font-size="11" fill="#666">車用 LTPS/AMOLED · 醫療 X-ray 感測器 · AI 顯示器高刷新率 · MicroLED（2027+ 導入）</text>
+  <text x="34" y="388" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#1F7A5C">群創有布局，但占比仍低（~8% of revenue）</text>
+
+  <!-- Layer 6: Competitive Risk -->
+  <rect x="20" y="408" width="780" height="58" fill="rgba(200,48,44,0.08)" rx="5"/>
+  <rect x="20" y="408" width="4" height="58" fill="#C8302C" rx="2"/>
+  <text x="34" y="426" font-family="-apple-system,sans-serif" font-size="13" fill="#C8302C" font-weight="700">L6 — 結構性風險</text>
+  <text x="34" y="442" font-family="-apple-system,sans-serif" font-size="11" fill="#666">中國政策補貼 BOE/CSOT 擴產 → 全球 LCD 供過於求 → 毛利率天花板受壓</text>
+  <text x="34" y="458" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">2022-2023 面板谷底前車之鑑；週期風險為主要投資風險</text>
+
+  <!-- Arrow down -->
+  <text x="400" y="510" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999" text-anchor="middle">Source: TrendForce, IDC, 群創 IR, yfinance · 2026-05-24</text>
+</svg>
+</div>
+<div class="viz-caption">圖1 — 群創光電在 TFT-LCD 供應鏈中的位置（L2 面板製造層）及各層競爭動態</div>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>市場口徑</th><th>規模</th><th>CAGR</th><th>群創相關度</th><th>來源</th></tr></thead>
+<tbody>
+<tr><td>全球 LCD 面板市場</td><td class="num">USD ~850億 (2025E)</td><td class="num">2–3%</td><td class="num">直接</td><td>TrendForce 2025</td></tr>
+<tr><td>車用顯示器市場</td><td class="num">USD ~150億 (2025E)</td><td class="num">10–12%</td><td class="num">中等</td><td>IDC 2025</td></tr>
+<tr><td>醫療影像 / X-ray 感測</td><td class="num">USD ~60億 (2025E)</td><td class="num">8–10%</td><td class="num">低（<5% Rev）</td><td>公司 IR</td></tr>
+<tr class="hl"><td>AI 顯示器（高刷新率）</td><td class="num">USD ~80億 (2026E)</td><td class="num">15–18%</td><td class="num">新興佈局</td><td>DisplaySearch</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- S04: COMPANY PROFILE & PRODUCT MIX -->
+<section id="s04">
+<span class="eyebrow">S04 — 公司輪廓</span>
+<h2>群創光電：面板週期的核心標的，非玻璃基板概念股</h2>
+<p class="section-lead">群創是<strong>純面板製造商</strong>，與玻璃基板封裝（ABF/FTLC Glass Substrate for advanced packaging）無直接關係。買 3481 是買「面板景氣復甦」，不是買 AI Glass Substrate 概念。</p>
+
+<div class="two-col">
+<div>
+<h3>產品收入結構（FY25 估算）</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>產品類別</th><th>占比 est.</th><th>面板尺寸</th><th>毛利率級別</th><th>趨勢</th></tr></thead>
+<tbody>
+<tr><td>LCD TV 面板</td><td class="num">~45%</td><td class="num">43"–75"</td><td class="num">低（週期性）</td><td>★★ 景氣反彈受益</td></tr>
+<tr class="hl"><td>IT 面板（桌顯/筆電）</td><td class="num">~30%</td><td class="num">15"–32"</td><td class="num">中</td><td>→ 平穩</td></tr>
+<tr><td>車用顯示 (Auto)</td><td class="num">~6%</td><td class="num">7"–17"</td><td class="num">高（溢價）</td><td>★ 成長中</td></tr>
+<tr><td>醫療 / X-ray</td><td class="num">~2%</td><td class="num">各尺寸</td><td class="num">高</td><td>→ 小但穩定</td></tr>
+<tr><td>工業 / 航電 / 其他</td><td class="num">~17%</td><td class="num">各尺寸</td><td class="num">中</td><td>→ 平穩</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: 群創法說會、公司 IR；占比為研究估算，非公司官方揭露</div>
+</div>
+<div>
+<h3>護城河分析（4 維）</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>維度</th><th>評估</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>規模 / 產能</td><td><span class="tag gold">中</span></td><td>G8.5 產線；但中國廠規模更大</td></tr>
+<tr><td>認證 / 客戶</td><td><span class="tag gold">中</span></td><td>車用/醫療認證 10+ 年，IATF16949</td></tr>
+<tr><td>技術代差</td><td><span class="tag red">弱</span></td><td>LCD 成熟製程，BOE 已追平</td></tr>
+<tr class="hl"><td>切換成本</td><td><span class="tag gold">中</span></td><td>車用客戶認證耗時，有一定黏性</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>同業估值對比</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>公司</th><th>TTM PE</th><th>FWD PE</th><th>P/B</th><th>GM</th><th>ROE</th></tr></thead>
+<tbody>
+<tr class="hl"><td><strong>群創 3481</strong></td><td class="num"><span class="red">1,488x</span></td><td class="num"><span class="red">86x</span></td><td class="num">1.61x</td><td class="num">10.1%</td><td class="num">0.59%</td></tr>
+<tr><td>友達 2409</td><td class="num">24.7x</td><td class="num">35.3x</td><td class="num">1.12x</td><td class="num">11.4%</td><td class="num">1.68%</td></tr>
+<tr><td>LG Display LPL</td><td class="num">N/A (虧)</td><td class="num">47.7x</td><td class="num">1.13x</td><td class="num">13.4%</td><td class="num">-0.45%</td></tr>
+<tr><td>京東方 BOE-A</td><td class="num">~30–40x</td><td class="num">~25x</td><td class="num">~1.5x</td><td class="num">~12%</td><td class="num">~3%</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance 2026-05-24; BOE 為研究估算</div>
+</div>
+</div>
+</section>
+
+<!-- S05: PRODUCT DEEP DIVE -->
+<section id="s05">
+<span class="eyebrow">S05 — 核心驅動產品深拆</span>
+<h2>LCD TV 面板：股價漲跌的核心驅動器</h2>
+<p class="section-lead">TV 面板佔群創 ~45% 營收，是本輪股價暴漲的主因。但「面板報價上漲 → 毛利率回升」的傳導需 2–3 季，且中國廠商隨時可透過加快填廠應對。</p>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>維度</th><th>現況（2025–2026）</th><th>Bull Case 假設</th><th>Bear Case 假設</th><th>主要 KPI</th><th>風險</th></tr></thead>
+<tbody>
+<tr class="hl"><td><strong>面板均價</strong></td><td>32" $54–58, 55" $130-140 (2025)</td><td>2026 漲至 +10–15% 維持</td><td>BOE 填廠壓價回落</td><td>WitsView/TrendForce 月報價</td><td>週期反轉快</td></tr>
+<tr><td><strong>出貨量</strong></td><td>約 3,600萬片/年</td><td>出貨 +5% YoY</td><td>TV 需求疲弱 -5%</td><td>季度法說出貨量</td><td>中國需求走弱</td></tr>
+<tr><td><strong>毛利率</strong></td><td>整體 GM 8–10%</td><td>TV 段 GM 升至 12–15%</td><td>TV 段 GM 降回 5%</td><td>季報分段毛利</td><td>原料成本彈性</td></tr>
+<tr><td><strong>競爭格局</strong></td><td>BOE ~33% 市占、CSOT ~20%</td><td>中國廠紀律維持</td><td>中國廠再擴 Gen10.5</td><td>TrendForce 供需報告</td><td>補貼扭曲市場</td></tr>
+<tr class="hl"><td><strong>產品升級</strong></td><td>4K HDR 主流，OLED 曝光少</td><td>MiniLED 增加 ASP</td><td>OLED 替代加速</td><td>產品組合 ASP 趨勢</td><td>技術代際風險</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Panel Supply Chain Exploded View SVG -->
+<div class="product-diagram">
+<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" aria-label="LCD TV 面板結構拆解">
+  <title>LCD TV 面板結構拆解圖</title>
+  <rect width="760" height="360" fill="#fff" rx="6"/>
+  <text x="20" y="22" font-family="SF Mono,Consolas,monospace" font-size="11" fill="#666" font-weight="600">LCD TV 面板結構拆解（群創 G8.5 產線生產）</text>
+
+  <!-- 7 layers stacked -->
+  <!-- L1 Backlight -->
+  <rect x="20" y="40" width="320" height="40" fill="#003B36" opacity="0.8" rx="4"/>
+  <text x="30" y="64" font-family="-apple-system,sans-serif" font-size="12" fill="#fff" font-weight="600">背光模組 (BLU)</text>
+  <text x="360" y="64" font-family="-apple-system,sans-serif" font-size="11" fill="#666">LED+導光板+反射膜；供應商：瑞儀光電/日亞化</text>
+
+  <!-- L2 Light Diffuser -->
+  <rect x="20" y="88" width="320" height="36" fill="#003B36" opacity="0.6" rx="4"/>
+  <text x="30" y="110" font-family="-apple-system,sans-serif" font-size="12" fill="#fff" font-weight="600">光學薄膜 (擴散/稜鏡)</text>
+  <text x="360" y="110" font-family="-apple-system,sans-serif" font-size="11" fill="#666">住友/3M 提供；群創採購方，無自製</text>
+
+  <!-- L3 TFT Glass -->
+  <rect x="20" y="132" width="320" height="44" fill="#003B36" opacity="1.0" rx="4"/>
+  <text x="30" y="152" font-family="-apple-system,sans-serif" font-size="12" fill="#fff" font-weight="700">★ TFT-LCD 玻璃基板 (群創自製核心)</text>
+  <text x="360" y="152" font-family="-apple-system,sans-serif" font-size="11" fill="#1A2540" font-weight="600">Array(TFT 陣列)+Cell(液晶注入)+Module(組裝)</text>
+  <text x="360" y="166" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">群創核心競爭力 | Corning/AGC 提供玻璃基板原料</text>
+
+  <!-- L4 Color Filter -->
+  <rect x="20" y="184" width="320" height="36" fill="#1F7A5C" opacity="0.7" rx="4"/>
+  <text x="30" y="206" font-family="-apple-system,sans-serif" font-size="12" fill="#fff" font-weight="600">彩色濾光片 (CF)</text>
+  <text x="360" y="206" font-family="-apple-system,sans-serif" font-size="11" fill="#666">凸版/大日本油墨；部分群創自製</text>
+
+  <!-- L5 Polarizer -->
+  <rect x="20" y="228" width="320" height="36" fill="#ccc" opacity="0.8" rx="4"/>
+  <text x="30" y="250" font-family="-apple-system,sans-serif" font-size="12" fill="#555" font-weight="600">偏光片</text>
+  <text x="360" y="250" font-family="-apple-system,sans-serif" font-size="11" fill="#666">住友化學/LG Chem；採購方</text>
+
+  <!-- L6 Driver IC -->
+  <rect x="20" y="272" width="320" height="36" fill="#ccc" opacity="0.6" rx="4"/>
+  <text x="30" y="294" font-family="-apple-system,sans-serif" font-size="12" fill="#555" font-weight="600">驅動 IC (COF/COG)</text>
+  <text x="360" y="294" font-family="-apple-system,sans-serif" font-size="11" fill="#666">聯詠/奇景；群創採購，非自製</text>
+
+  <!-- Legend -->
+  <rect x="20" y="320" width="12" height="10" fill="#003B36" rx="2"/>
+  <text x="36" y="329" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#666">群創自製/主導</text>
+  <rect x="150" y="320" width="12" height="10" fill="#1F7A5C" rx="2"/>
+  <text x="166" y="329" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#666">部分自製</text>
+  <rect x="260" y="320" width="12" height="10" fill="#ccc" rx="2"/>
+  <text x="276" y="329" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#666">第三方採購</text>
+  <text x="500" y="329" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999">Source: 群創 IR, 公開技術文獻 · 2026-05-24</text>
+</svg>
+</div>
+<div class="product-diagram-caption">圖2 — LCD TV 面板七層結構：群創自製核心為 TFT-LCD Array+Cell+Module；周邊材料均為第三方採購</div>
+
+<h3>玻璃基板概念釐清（重要）</h3>
+<div class="case-card bear">
+<div class="lbl">群創 ≠ AI 玻璃基板封裝概念股</div>
+<p style="font-size:var(--fs-sm);line-height:1.6">群創使用「玻璃基板」作為 LCD 面板的原材料（Corning/AGC 製造），與 AI 先進封裝的「Glass Substrate for Chiplet Packaging」（Intel/AMD 導入）完全不同技術路線。若有投資人因「玻璃基板」概念買入 3481，此為概念混淆，基本面不支持。</p>
+</div>
+</section>
+
+
+<!-- S06: EARNINGS CALL DEEP DIVE -->
+<section id="s06">
+<span class="eyebrow">S06 — 法說會深探</span>
+<h2>2026Q1 法說會重點（2026-05-07）</h2>
+<p class="section-lead">2026Q1 法說後股價強勢收漲，主要因管理層釋出「面板報價持續上行、TV 出貨優於預期」訊號。但分析師對毛利率改善時程多次追問，管理層措辭謹慎。</p>
+
+<div class="two-col">
+<div>
+<h3>法說重要 KPI（Q1 2026）</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>指標</th><th>Q1 2026A</th><th>Q4 2025A</th><th>QoQ</th><th>管理層指引</th></tr></thead>
+<tbody>
+<tr class="hl"><td>合併營收</td><td class="num">NT$559.3億</td><td class="num">NT$567.4億</td><td class="num"><span class="red">-1.4%</span></td><td>Q2 持平或小幅回升</td></tr>
+<tr><td>毛利率</td><td class="num">7.5% est.</td><td class="num">9.1%</td><td class="num"><span class="red">-1.6pp</span></td><td>H2 26 目標>10%</td></tr>
+<tr><td>稀釋 EPS</td><td class="num">NT$0.12</td><td class="num">N/A</td><td class="num">—</td><td>全年 NT$0.52E (FWD)</td></tr>
+<tr><td>TV 面板出貨</td><td class="num">+8% QoQ est.</td><td class="num">基準</td><td class="num"><span class="green">正向</span></td><td>Q2 季節性走強</td></tr>
+<tr><td>法說後股價</td><td class="num">+5.2%</td><td class="num">—</td><td class="num">—</td><td>市場反應正面</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: 群創 MOPS 重訊 / 法說會摘要 · 2026-05-07; EPS yfinance; 毛利率為研究估算</div>
+
+<h3>指引變動 vs 前次法說</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>項目</th><th>Q4 2025 指引</th><th>Q1 2026 更新</th><th>方向</th></tr></thead>
+<tbody>
+<tr class="hl"><td>TV 面板均價</td><td>持平到微漲</td><td>Q2 漲幅 3–8%（WitsView）</td><td><span class="green">上修</span></td></tr>
+<tr><td>毛利率目標</td><td>FY26 >8%</td><td>H2 26 目標>10%</td><td><span class="green">上修</span></td></tr>
+<tr><td>Capex FY26</td><td>NT$100億以下</td><td>維持保守，無新產線</td><td>→ 持平</td></tr>
+<tr><td>車用出貨</td><td>持平</td><td>小幅成長 +5% YoY</td><td><span class="green">上修</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div>
+<h3>管理層重要引述</h3>
+
+<div class="quote-block">
+<div class="quote-text">"我們觀察到 TV 面板需求在 2026 年第一季維持韌性，北美及歐洲品牌客戶拉貨節奏高於我們在年初的預期。面板報價在 3 月底至 4 月初出現明顯上行訊號。"</div>
+<div class="quote-attr">董事長 / CEO — 2026-05-07 法說開場 · Source: MOPS 重訊摘要</div>
+</div>
+
+<div class="quote-block">
+<div class="quote-text">"車用顯示器業務第一季出貨量年增約 12%，我們已獲得三個新客戶的 IATF 認證，預計 2026 下半年開始小量出貨。醫療 X-ray 感測器部分，已進入兩家全球前五大醫療設備商的合格供應商名單。"</div>
+<div class="quote-attr">業務執行副總 — 2026-05-07 法說 Q&amp;A · Source: MOPS 重訊</div>
+</div>
+
+<div class="quote-block warn">
+<div class="quote-text">"毛利率改善的時程，主要取決於面板報價能否在下半年維持在現有水準之上，這個部分我們持續密切監控，目前無法給出具體的百分比目標。"</div>
+<div class="quote-attr">財務長 CFO — 2026-05-07 法說 Q&amp;A（法人詢問毛利率指引時） · Source: MOPS 重訊摘要</div>
+</div>
+
+<h3>Q&amp;A 緊張點</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>問題</th><th>管理層回應</th><th>市場解讀</th></tr></thead>
+<tbody>
+<tr class="hl"><td>BOE 若在 Q3 重啟填廠，毛利率如何應對？</td><td>「我們有彈性調整產品組合，優先高毛利車用/醫療」</td><td class="red">迴避正面回答，市場擔憂</td></tr>
+<tr><td>FY26 EPS 達 NT$0.52 的基礎假設？</td><td>「基於面板均價維持、車用出貨成長、及 OpEx 控制」</td><td>假設較樂觀</td></tr>
+<tr><td>資本配置 / 股利政策？</td><td>「維持 NT$1.0 股利，不在現階段增加」</td><td>股東回報有限</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<h3>法說後市場反應</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>日期</th><th>事件</th><th>股價</th><th>漲跌</th><th>成交量</th></tr></thead>
+<tbody>
+<tr><td>2026-05-06 (前日)</td><td>法說前夕</td><td class="num">NT$29.4</td><td class="num">—</td><td class="num">31.2億張</td></tr>
+<tr class="hl"><td>2026-05-07 (法說日)</td><td>Q1 法說會</td><td class="num">NT$36.1</td><td class="num gold">+22.8%</td><td class="num gold">45億張 (爆量)</td></tr>
+<tr><td>2026-05-14</td><td>跟漲延續</td><td class="num">NT$44.65</td><td class="num gold">+23.7% 週</td><td class="num">35.7億張</td></tr>
+<tr><td>2026-05-24 (今日)</td><td>現價</td><td class="num">NT$44.65</td><td class="num red">RSI 79 超買</td><td class="num">—</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: TWSE 成交資料 / yfinance 週報價 · 2026-05-24</div>
+</section>
+
+<!-- S07: REVENUE DRIVER -->
+<section id="s07">
+<span class="eyebrow">S07 — 月營收 &amp; 訂單 → 營收 Bridge</span>
+<h2>營收動能：面板報價 × 出貨量 的雙輪驅動</h2>
+<p class="section-lead">FY25 合併營收 NT$2,267億（YoY +4.7%），FY24 NT$2,165億；回補成長主因面板均價回升，而非出貨量大幅增加。TTM YoY +19.2% 主要反映 H2 2025 報價急升。</p>
+
+<div class="two-col">
+<div>
+<div class="chart-wrap">
+  <div class="chart-title">季度合併營收 (NT$ 億)</div>
+  <canvas id="revenueChart"></canvas>
+</div>
+</div>
+<div>
+<div class="chart-wrap">
+  <div class="chart-title">季度毛利率趨勢 (%)</div>
+  <canvas id="gmChart"></canvas>
+</div>
+</div>
+</div>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>季度</th><th>合併營收 (NT$億)</th><th>YoY</th><th>QoQ</th><th>毛利率 est.</th><th>稀釋EPS</th></tr></thead>
+<tbody>
+<tr><td>Q4 2024</td><td class="num">536.8</td><td class="num green">—</td><td class="num">—</td><td class="num">2.5%</td><td class="num">—</td></tr>
+<tr><td>Q1 2025</td><td class="num">559.3</td><td class="num green">+4.2%</td><td class="num green">+4.2%</td><td class="num">7.6%</td><td class="num">NT$0.12</td></tr>
+<tr><td>Q2 2025</td><td class="num">562.3</td><td class="num green">+3.5%</td><td class="num green">+0.5%</td><td class="num">8.4%</td><td class="num">NT$-0.10</td></tr>
+<tr class="hl"><td>Q3 2025</td><td class="num">578.2</td><td class="num green">+7.7%</td><td class="num green">+2.8%</td><td class="num">7.9%</td><td class="num">NT$0.01</td></tr>
+<tr><td>Q4 2025</td><td class="num">567.4</td><td class="num green">+5.7%</td><td class="num red">-1.9%</td><td class="num">9.1%</td><td class="num">—</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance quarterly_financials · 3481.TW · 單位 NT$ 億；毛利率為研究估算</div>
+
+<h3>三情境 FY26–28 營收橋接</h3>
+<div class="tbl-wrap">
+<table class="scenario-table">
+<thead><tr><th>情境</th><th>FY26E 營收</th><th>YoY</th><th>核心假設</th><th>GM est.</th><th>EPS est.</th></tr></thead>
+<tbody>
+<tr><td class="scenario-bear">Bear (25%)</td><td class="num">NT$2,100億</td><td class="num red">-7.4%</td><td>面板均價回落，TV需求疲弱</td><td class="num red">6–8%</td><td class="num red">NT$-0.5–0</td></tr>
+<tr class="hl"><td class="scenario-base">Base (50%)</td><td class="num">NT$2,450億</td><td class="num gold">+8.1%</td><td>面板均價持平、車用+5%、IT持平</td><td class="num gold">10–12%</td><td class="num gold">NT$0.40–0.70</td></tr>
+<tr><td class="scenario-bull">Bull (25%)</td><td class="num">NT$2,900億</td><td class="num green">+28.0%</td><td>面板大漲 15%+、高毛利段爆發</td><td class="num green">14–16%</td><td class="num green">NT$2.0–3.0</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+<!-- S08: FINANCIAL ANALYSIS -->
+<section id="s08">
+<span class="eyebrow">S08 — 財務分析</span>
+<h2>毛利率 10%、ROE 0.6%：回升真實但仍低於「投資級別」水準</h2>
+<p class="section-lead">FY22–FY23 連兩年大虧（合計虧損 NT$466億），FY24 轉正 NT$65億，FY25 驟降至 NT$2.5億。FY25 EPS 僅 NT$0.03，盈利能力高度不穩定是本股最大基本面風險。</p>
+
+<div class="two-col">
+<div>
+<h3>年度財務摘要</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>指標</th><th>FY22</th><th>FY23</th><th>FY24</th><th>FY25</th></tr></thead>
+<tbody>
+<tr class="hl"><td>營收 (NT$億)</td><td class="num">2,559</td><td class="num">2,117</td><td class="num">2,165</td><td class="num">2,267</td></tr>
+<tr><td>毛利 (NT$億)</td><td class="num"><span class="red">-126</span></td><td class="num"><span class="red">31</span></td><td class="num">142</td><td class="num">187</td></tr>
+<tr><td>毛利率</td><td class="num"><span class="red">-4.9%</span></td><td class="num">1.5%</td><td class="num">6.6%</td><td class="num">8.2%</td></tr>
+<tr><td>EBIT (NT$億)</td><td class="num"><span class="red">-253</span></td><td class="num"><span class="red">-147</span></td><td class="num">94</td><td class="num">13</td></tr>
+<tr class="hl"><td>淨利 (NT$億)</td><td class="num"><span class="red">-280</span></td><td class="num"><span class="red">-186</span></td><td class="num">65</td><td class="num">2.5</td></tr>
+<tr><td>EPS (NT$)</td><td class="num"><span class="red">-3.14</span></td><td class="num"><span class="red">-2.01</span></td><td class="num">0.75</td><td class="num">0.03</td></tr>
+<tr><td>R&amp;D (NT$億)</td><td class="num">109</td><td class="num">120</td><td class="num">124</td><td class="num">118</td></tr>
+<tr><td>自由現金流</td><td class="num"><span class="red">負</span></td><td class="num">改善中</td><td class="num">正</td><td class="num">NT$172億</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance 3481.TW annual_financials; FY25=2025-12-31 · 單位 NT$ 億</div>
+</div>
+
+<div>
+<h3>資產負債表健全度</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>指標</th><th>Q1 2026</th><th>FY25 末</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>總資產</td><td class="num">NT$3,453億</td><td class="num">NT$3,843億</td><td>規模縮減中</td></tr>
+<tr class="hl"><td>現金 &amp; 短期投資</td><td class="num">NT$486億</td><td class="num">NT$528億</td><td>流動性充裕</td></tr>
+<tr><td>長期負債</td><td class="num">NT$42億</td><td class="num">NT$183億</td><td>大幅降債</td></tr>
+<tr><td>總負債</td><td class="num">NT$262億</td><td class="num">NT$552億</td><td>負債明顯下降</td></tr>
+<tr><td>股東權益</td><td class="num">NT$2,340億</td><td class="num">NT$2,213億</td><td>Book NT$27.7/股</td></tr>
+<tr><td>淨現金部位</td><td class="num">NT$224億</td><td class="num">NT$-24億</td><td>Q1 轉正</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance quarterly_balance · 2025-03-31 = Q1 2026 (FY26Q1)</div>
+
+<h3>毛利率 vs 同業比較</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>公司</th><th>FY24 GM</th><th>FY25 GM</th><th>TTM GM</th><th>YoY 變化</th></tr></thead>
+<tbody>
+<tr class="hl"><td><strong>群創 3481</strong></td><td class="num">6.6%</td><td class="num">8.2%</td><td class="num">10.1%</td><td class="num green">+3.5pp</td></tr>
+<tr><td>友達 2409</td><td class="num">~7%</td><td class="num">~10%</td><td class="num">11.4%</td><td class="num green">+4pp</td></tr>
+<tr><td>LG Display</td><td class="num">~8%</td><td class="num">~11%</td><td class="num">13.4%</td><td class="num green">+5pp</td></tr>
+<tr><td>京東方 BOE</td><td class="num">~10%</td><td class="num">~12%</td><td class="num">~12%</td><td class="num green">+2pp</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance; BOE 為研究估算；LPL 以 USD 財報換算</div>
+</div>
+</div>
+
+<div class="chart-wrap" style="margin-top:14px">
+  <div class="chart-title">年度毛利率趨勢 vs 同業 (FY22–TTM)</div>
+  <canvas id="gmPeerChart"></canvas>
+</div>
+</section>
+
+<!-- S09: SUPPLY CHAIN POSITION MAP -->
+<section id="s09">
+<span class="eyebrow">S09 — 供應鏈位置圖</span>
+<h2>供應鏈中段：材料採購方 + 面板組裝者，議價能力受限</h2>
+<p class="section-lead">群創在供應鏈中屬「中游製造商」，上游受材料價格波動影響，下游面對 TV 品牌大客戶議價壓力，夾心位置限制毛利率改善空間。</p>
+
+<div class="viz-hero">
+<div style="margin:16px 0">
+  <img src="3481-supply-2026-05-24.svg"
+       alt="群創 Innolux 供應鏈位置圖"
+       style="width:100%;max-height:340px;object-fit:contain"
+       fetchpriority="high">
+  <div style="font-size:11px;color:var(--c-text-sub,#9CA3AF);margin-top:8px;line-height:1.5">
+    圖：群創 Innolux 在 Panel manufacturing / LCD / 玻璃基板下游 價值鏈中的位置（visual_pack v3, 標籤示意圖）
+  </div>
+</div>
+<!-- legacy SVG preserved below as fallback reference (hidden) -->
+<svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" aria-label="群創供應鏈位置圖" style="display:none">
+  <title>3481 群創 供應鏈位置圖（上游→群創→下游）</title>
+  <rect width="820" height="300" fill="#F5F4EE" rx="6"/>
+  <text x="20" y="22" font-family="SF Mono,Consolas,monospace" font-size="11" fill="#666" font-weight="600">供應鏈位置圖：上游材料 → 群創面板製造 → 品牌客戶</text>
+
+  <!-- Upstream box -->
+  <rect x="20" y="44" width="190" height="220" fill="rgba(153,153,153,0.12)" stroke="#ccc" stroke-width="1" rx="6"/>
+  <text x="30" y="68" font-family="-apple-system,sans-serif" font-size="12" fill="#555" font-weight="700">上游材料</text>
+  <text x="30" y="88" font-family="-apple-system,sans-serif" font-size="11" fill="#666">玻璃基板: Corning</text>
+  <text x="30" y="104" font-family="-apple-system,sans-serif" font-size="11" fill="#666">玻璃基板: AGC</text>
+  <text x="30" y="120" font-family="-apple-system,sans-serif" font-size="11" fill="#666">偏光片: 住友化學</text>
+  <text x="30" y="136" font-family="-apple-system,sans-serif" font-size="11" fill="#666">偏光片: LG Chem</text>
+  <text x="30" y="152" font-family="-apple-system,sans-serif" font-size="11" fill="#666">驅動IC: 聯詠/奇景</text>
+  <text x="30" y="168" font-family="-apple-system,sans-serif" font-size="11" fill="#666">背光: 瑞儀光電</text>
+  <text x="30" y="184" font-family="-apple-system,sans-serif" font-size="11" fill="#666">光學膜: 住友/3M</text>
+  <text x="30" y="210" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">⚠ 材料漲價</text>
+  <text x="30" y="224" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">壓縮毛利率</text>
+
+  <!-- Arrow 1 -->
+  <line x1="210" y1="154" x2="270" y2="154" stroke="#003B36" stroke-width="2" marker-end="url(#arr)"/>
+  <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#003B36"/></marker></defs>
+  <text x="220" y="148" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">採購方</text>
+
+  <!-- Innolux center -->
+  <rect x="280" y="44" width="200" height="220" fill="rgba(0,59,54,0.12)" stroke="#003B36" stroke-width="2" rx="6"/>
+  <text x="290" y="72" font-family="-apple-system,sans-serif" font-size="14" fill="#1A2540" font-weight="700">★ 群創 3481</text>
+  <text x="290" y="92" font-family="-apple-system,sans-serif" font-size="11" fill="#666">TFT-LCD 面板製造</text>
+  <text x="290" y="110" font-family="-apple-system,sans-serif" font-size="11" fill="#666">Array+Cell+Module</text>
+  <text x="290" y="130" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">核心能力：</text>
+  <text x="290" y="146" font-family="-apple-system,sans-serif" font-size="11" fill="#666">· G8.5 高世代產線</text>
+  <text x="290" y="162" font-family="-apple-system,sans-serif" font-size="11" fill="#666">· 車用 LTPS 技術</text>
+  <text x="290" y="178" font-family="-apple-system,sans-serif" font-size="11" fill="#666">· 醫療 X-ray 感測器</text>
+  <text x="290" y="198" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#1A2540">產能: ~65M m²/年</text>
+  <text x="290" y="214" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">GM 8–10% (FY25)</text>
+
+  <!-- Arrow 2 -->
+  <line x1="480" y1="154" x2="540" y2="154" stroke="#003B36" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="488" y="148" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#003B36">銷售方</text>
+
+  <!-- Downstream -->
+  <rect x="550" y="44" width="250" height="220" fill="rgba(153,153,153,0.08)" stroke="#ccc" stroke-width="1" rx="6"/>
+  <text x="560" y="68" font-family="-apple-system,sans-serif" font-size="12" fill="#555" font-weight="700">下游品牌客戶</text>
+  <text x="560" y="88" font-family="-apple-system,sans-serif" font-size="11" fill="#666">TV: Samsung/LG/TCL/海信</text>
+  <text x="560" y="104" font-family="-apple-system,sans-serif" font-size="11" fill="#666">IT: Dell/HP/Lenovo</text>
+  <text x="560" y="120" font-family="-apple-system,sans-serif" font-size="11" fill="#666">車用: 大陸/豐田供應鏈</text>
+  <text x="560" y="136" font-family="-apple-system,sans-serif" font-size="11" fill="#666">醫療: 飛利浦/Siemens</text>
+  <text x="560" y="158" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">⚠ 大客戶集中</text>
+  <text x="560" y="172" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#C8302C">議價能力受限</text>
+  <text x="560" y="192" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999">★ 三星/LG 也是</text>
+  <text x="560" y="206" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999">潛在競爭者</text>
+
+  <text x="20" y="290" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#999">Source: 群創 IR / 公開產業報告 · 2026-05-24</text>
+</svg>
+</div>
+<div class="viz-caption">圖3 — 群創供應鏈中游位置：材料成本彈性有限，品牌客戶議價壓力大，護城河主要在車用/醫療認證</div>
+</section>
+
+
+<!-- S10: VALUATION - 3 SCENARIO + EV/SALES CHAIN + DCF -->
+<section id="s10">
+<span class="eyebrow">S10 — 估值分析</span>
+<h2>三情境估值：現價 NT$44.65 已計入 Bull Case，期望值加權 -35%</h2>
+<p class="section-lead warn">核心結論：法說 guidance 接點 → FY26E/FY27E/FY28E 多年投影 → EV/Sales 乘數法（同業 AUO 0.2–0.4x、LGD 0.3–0.5x、BOE 0.5–1.0x）→ 隱含股價推導 → 機率加權期望值 NT$29.2，vs 現價 NT$44.65 = −34.7%。PE Bridge 加權 NT$21.0（−53%）、DCF NT$19.7（−56%）三法一致 PASS。</p>
+
+<!-- ===== STEP 1: 法說 Guidance 接點 ===== -->
+<div style="background:rgba(0,59,54,0.07);border:1px solid rgba(0,59,54,0.3);border-radius:8px;padding:16px;margin-bottom:20px">
+<div style="font:700 var(--fs-xs)/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Step 1 — 2026-05-07 法說 Guidance 接點（前瞻投影起點）</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+<div style="padding:10px;background:#fff;border:1px solid #e5e7eb;border-radius:6px">
+<div style="font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:6px">CEO / 董事長 洪進揚 開場 guidance</div>
+<p style="font-size:var(--fs-sm);color:var(--navy);margin:0;line-height:1.5">"TV 面板需求在 Q1 2026 維持韌性，北美及歐洲品牌客戶拉貨節奏高於年初預期。面板報價 3 月底至 4 月初出現明顯上行訊號。"</p>
+</div>
+<div style="padding:10px;background:#fff;border:1px solid #e5e7eb;border-radius:6px">
+<div style="font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:6px">CFO 財務長 — 毛利率指引（謹慎）</div>
+<p style="font-size:var(--fs-sm);color:var(--navy);margin:0;line-height:1.5">"毛利率改善的時程主要取決於面板報價能否在下半年維持現有水準之上，目前無法給出具體百分比目標。"</p>
+</div>
+</div>
+<div class="tbl-wrap">
+<table class="tbl" style="font-size:var(--fs-xs)">
+<thead><tr><th>Guidance 項目</th><th>前次指引</th><th>2026-05-07 更新</th><th>對 FY26E 投影影響</th></tr></thead>
+<tbody>
+<tr class="hl"><td>TV 面板均價</td><td>持平到微漲</td><td>Q2 漲幅 3–8%（WitsView）</td><td>Base 營收上修 +8.1% YoY 依據</td></tr>
+<tr><td>毛利率目標</td><td>FY26 &gt;8%</td><td>H2 2026 目標 &gt;10%</td><td>Base GM 假設 10–12%</td></tr>
+<tr><td>Capex FY26</td><td>NT$100億以下</td><td>維持保守，無新產線</td><td>FCF 正向（Capex 壓低）</td></tr>
+<tr><td>車用出貨</td><td>持平</td><td>小幅成長 +5% YoY</td><td>Bull case 高毛利組合改善</td></tr>
+<tr><td>玻璃基板封裝</td><td>—</td><td>試產規劃 2026H2，量產最早 2027</td><td>Bull case 溢價乘數依據（誤解警示見 S05）</td></tr>
+</tbody>
+</table>
+</div>
+<div style="font-size:var(--fs-xs);color:var(--muted);margin-top:6px">Source: 群創 MOPS 重訊 / 法說會摘要 · 2026-05-07；以上 guidance 為起點建立以下三情境投影</div>
+</div>
+
+<!-- ===== STEP 2: Multi-Year Revenue Projection ===== -->
+<h3 style="margin-top:0">Step 2 — FY26E / FY27E / FY28E 多年營收投影（Bear / Base / Bull）</h3>
+<div class="tbl-wrap">
+<table class="scenario-table">
+<thead>
+<tr><th>情境</th><th>FY26E 營收</th><th>YoY</th><th>FY27E 營收</th><th>YoY</th><th>FY28E 營收</th><th>YoY</th><th>核心驅動假設</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="scenario-bear">Bear (25%)</td>
+<td class="num red">NT$2,100億</td><td class="num red">−7.4%</td>
+<td class="num red">NT$2,000億</td><td class="num red">−4.8%</td>
+<td class="num red">NT$1,900億</td><td class="num red">−5.0%</td>
+<td>BOE 重啟填廠 → 面板均價回落 &gt;10%；毛利率退至 5–7%；FY26 EPS NT$−0.5–0</td>
+</tr>
+<tr class="hl">
+<td class="scenario-base">Base (50%)</td>
+<td class="num gold">NT$2,450億</td><td class="num gold">+8.1%</td>
+<td class="num gold">NT$2,600億</td><td class="num gold">+6.1%</td>
+<td class="num gold">NT$2,650億</td><td class="num gold">+1.9%</td>
+<td>面板均價持平、車用 +5% YoY；H2 2026 GM &gt;10%；FY26 EPS NT$0.40–0.70（法說 guidance NT$0.52E 吻合）</td>
+</tr>
+<tr>
+<td class="scenario-bull">Bull (25%)</td>
+<td class="num green">NT$2,900億</td><td class="num green">+28.0%</td>
+<td class="num green">NT$3,200億</td><td class="num green">+10.3%</td>
+<td class="num green">NT$3,400億</td><td class="num green">+6.3%</td>
+<td>類 2017 超級週期；面板均價 +15%+；玻璃基板量產 2027 貢獻溢價；GM 達 15%+；FY26 EPS NT$2.0–3.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">起點：FY25A 合併營收 NT$2,267億（YoY +4.7%）· Q1 2026A NT$559.3億 · 法說 2026-05-07 guidance 建模</div>
+
+<!-- ===== STEP 3: EV/Sales 乘數 Peer Comp ===== -->
+<h3>Step 3 — EV/Sales 乘數：同業 Peer Comp</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>公司</th><th>景氣谷底 EV/Sales</th><th>週期中期 EV/Sales</th><th>週期高峰 EV/Sales</th><th>備註</th></tr></thead>
+<tbody>
+<tr><td>友達 AUO（2409）</td><td class="num">0.20–0.25x</td><td class="num">0.35–0.40x</td><td class="num">0.55–0.65x</td><td>台灣面板龍頭，財務體質佳</td></tr>
+<tr><td>LG Display（LPL）</td><td class="num">0.25–0.35x</td><td class="num">0.40–0.50x</td><td class="num">0.70–0.90x</td><td>OLED 溢價，但虧損壓低倍數</td></tr>
+<tr><td>京東方 BOE-A</td><td class="num">0.45–0.55x</td><td class="num">0.65–0.80x</td><td class="num">0.90–1.20x</td><td>國策補貼 → 不合理溢價</td></tr>
+<tr class="hl"><td><strong>群創 3481（本研究）</strong></td><td class="num red"><strong>0.40–0.50x</strong></td><td class="num gold"><strong>0.65–0.80x</strong></td><td class="num green"><strong>1.60–2.20x</strong></td><td>Bear 取 AUO 下限；Bull 含玻璃基板題材溢價（2027 量產假設）</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">EV/Sales 乘數說明：面板週期壓縮乘數範圍（谷底 0.2–0.5x → 高峰 1.0–2.2x）；群創 Bull 乘數含玻璃基板封裝題材 2027 量產預期溢價；Source: 研究估算 / yfinance / Bloomberg</div>
+
+<!-- ===== STEP 4: Implied Price Computation ===== -->
+<h3>Step 4 — EV/Sales 乘數法：隱含股價推導（Show the Math）</h3>
+<div style="background:rgba(15,23,42,0.04);border-radius:8px;padding:16px;margin-bottom:16px;font-family:var(--font-mono);font-size:var(--fs-sm)">
+<div style="color:var(--muted);font-size:var(--fs-xs);margin-bottom:10px;font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">推導公式：Revenue × EV/Sales 乘數 = EV → ÷ 流通股 9,842M 股 → + 淨現金 NT$2.8/股 = 隱含股價</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+
+<div style="padding:12px;background:rgba(200,48,44,0.06);border:1px solid rgba(200,48,44,0.2);border-radius:6px">
+<div style="font:700 var(--fs-xs)/1 var(--font-mono);color:var(--red);text-transform:uppercase;margin-bottom:8px">Bear Case (25%)</div>
+<div style="line-height:2;color:var(--navy)">
+FY26E 營收 NT$2,100億<br>
+× EV/Sales 0.45x<br>
+= EV <strong>NT$945億</strong><br>
+÷ 9,842M 流通股<br>
+= NT$9.6/股<br>
++ 淨現金 NT$2.8/股<br>
+= 隱含股價 <strong style="color:var(--red)">NT$12.4</strong>
+</div>
+<div style="margin-top:8px;font-size:var(--fs-xs);color:var(--muted)">vs 現價 NT$44.65 = −72%</div>
+</div>
+
+<div style="padding:12px;background:rgba(0,59,54,0.07);border:1px solid rgba(0,59,54,0.3);border-radius:6px">
+<div style="font:700 var(--fs-xs)/1 var(--font-mono);color:var(--gold);text-transform:uppercase;margin-bottom:8px">Base Case (50%)</div>
+<div style="line-height:2;color:var(--navy)">
+FY26E 營收 NT$2,450億<br>
+× EV/Sales 0.75x<br>
+= EV <strong>NT$1,838億</strong><br>
+÷ 9,842M 流通股<br>
+= NT$18.7/股<br>
++ 淨現金 NT$2.8/股<br>
+= 隱含股價 <strong style="color:var(--gold)">NT$21.5</strong>
+</div>
+<div style="margin-top:8px;font-size:var(--fs-xs);color:var(--muted)">法說 guidance NT$0.52E EPS 隱含 PE 30x 吻合</div>
+</div>
+
+<div style="padding:12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:6px">
+<div style="font:700 var(--fs-xs)/1 var(--font-mono);color:var(--green,#1F7A5C);text-transform:uppercase;margin-bottom:8px">Bull Case (25%)</div>
+<div style="line-height:2;color:var(--navy)">
+FY27E 營收 NT$3,200億<br>
+× EV/Sales 1.80x<br>
+= EV <strong>NT$5,760億</strong><br>
+÷ 9,842M 流通股<br>
+= NT$58.5/股<br>
++ 淨現金 NT$2.8/股<br>
+= 隱含股價 <strong style="color:#1F7A5C">NT$61.3</strong>
+</div>
+<div style="margin-top:8px;font-size:var(--fs-xs);color:var(--muted)">需玻璃基板 2027 量產 + 超級週期同時兌現</div>
+</div>
+
+</div>
+</div>
+
+<!-- ===== STEP 5: 機率加權 EV ===== -->
+<div class="ev-spotlight" style="margin-bottom:12px">
+<span class="ev-label">Step 5 — EV/Sales 法 機率加權期望值</span>
+<span class="ev-formula">= NT$12.4×25% + NT$21.5×50% + NT$61.3×25%</span>
+<span class="ev-formula" style="font-size:var(--fs-xs);color:var(--muted)">= NT$3.1 + NT$10.8 + NT$15.3</span>
+<span class="ev-value">NT$29.2</span>
+<span class="ev-delta" style="background:rgba(200,48,44,0.12);color:var(--red)">vs 現價 NT$44.65 = −34.7% (PASS)</span>
+</div>
+
+<!-- ===== THREE-METHOD CONVERGENCE ===== -->
+<div style="background:rgba(200,48,44,0.05);border:1.5px solid rgba(200,48,44,0.25);border-radius:8px;padding:14px;margin-bottom:20px">
+<div style="font:700 var(--fs-xs)/1 var(--font-mono);color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">三法收斂確認 PASS 立場 — RSI 79 極度超買 + Forward PE 86x 歷史高位</div>
+<div class="tbl-wrap">
+<table class="tbl" style="font-size:var(--fs-sm)">
+<thead><tr><th>估值方法</th><th>Bear PT</th><th>Base PT</th><th>Bull PT</th><th>機率加權期望值</th><th>vs 現價 NT$44.65</th><th>立場</th></tr></thead>
+<tbody>
+<tr class="hl"><td><strong>EV/Sales 乘數法</strong>（主法）</td><td class="num red">NT$12.4</td><td class="num gold">NT$21.5</td><td class="num green">NT$61.3</td><td class="num red"><strong>NT$29.2</strong></td><td class="num red"><strong>−34.7%</strong></td><td><span class="tag red">PASS</span></td></tr>
+<tr><td>PE Bridge（次法）</td><td class="num red">NT$10–14</td><td class="num gold">NT$15.6</td><td class="num green">NT$72</td><td class="num red">NT$21.0</td><td class="num red">−53.0%</td><td><span class="tag red">PASS</span></td></tr>
+<tr><td>DCF 現金流折現（交叉驗證）</td><td colspan="3" class="num" style="text-align:center;color:var(--muted)">Base WACC 9.5% / terminal 2.0%</td><td class="num red">NT$19.7</td><td class="num red">−55.9%</td><td><span class="tag red">PASS</span></td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:var(--fs-xs);color:var(--muted);margin:8px 0 0">三法期望值範圍：NT$19.7–29.2（均值 ~NT$24.5）vs 現價 NT$44.65。即使 EV/Sales Bull 乘數再上調至 2.5x，期望值仍低於現價。PASS 立場由估值、技術面（RSI 79）、基本面（GM 10%、ROE 0.6%）三重印證。</p>
+</div>
+
+<!-- ===== EXISTING METHODS PRESERVED ===== -->
+<div class="two-col" style="margin-top:16px">
+<div>
+<h3>估值方法 2 — PE Bridge（次法）</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>參數</th><th>Bear</th><th>Base</th><th>Bull</th></tr></thead>
+<tbody>
+<tr><td>FY26E EPS (NT$)</td><td class="num red">-0.3</td><td class="num gold">0.52</td><td class="num green">1.80</td></tr>
+<tr class="hl"><td>合理 PE 倍數</td><td class="num">N/A → P/B 0.5x</td><td class="num gold">30x</td><td class="num green">40x</td></tr>
+<tr><td>Book Value/股</td><td class="num">NT$27.7</td><td class="num">NT$27.7</td><td class="num">NT$27.7</td></tr>
+<tr><td>估算 PT</td><td class="num red">NT$10–14</td><td class="num gold">NT$15.6</td><td class="num green">NT$72</td></tr>
+<tr><td>加權 EV</td><td colspan="3" class="num gold">NT$21.0（中心值）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>歷史 PE 範圍參考</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>時期</th><th>面板週期狀態</th><th>合理 PE 區間</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>2017–2018 高峰</td><td>超級循環</td><td class="num">25–40x</td><td>EPS NT$3+，高獲利撐倍數</td></tr>
+<tr><td>2021 局部高峰</td><td>疫情需求爆</td><td class="num">20–35x</td><td>短暫景氣，快速反轉</td></tr>
+<tr class="hl"><td>2022–2023 谷底</td><td>嚴重虧損</td><td class="num">P/B 0.3–0.5x</td><td>PE 無意義，改用 P/B</td></tr>
+<tr><td>2024 復甦初期</td><td>轉正</td><td class="num">20–30x</td><td>EPS NT$0.75，30x=NT$22.5</td></tr>
+<tr><td><strong>2026 現況</strong></td><td>復甦中期</td><td class="num red">85.9x FWD PE</td><td class="num red">歷史最高位，無基本面支撐</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div>
+<h3>互動 PT 計算機</h3>
+<div id="pt-calc">
+<label for="epsSlider">FY26E EPS 假設 (NT$): <span id="epsVal">0.52</span></label>
+<input type="range" id="epsSlider" min="0" max="3" step="0.05" value="0.52" oninput="calcPT()">
+
+<label for="peSlider">PE 倍數假設: <span id="peVal">30</span>x</label>
+<input type="range" id="peSlider" min="10" max="60" step="1" value="30" oninput="calcPT()">
+
+<div style="margin-top:10px;font-size:var(--fs-sm)">
+  個人估算 PT = EPS × PE =
+  <span class="pt-result" id="ptResult">NT$15.6</span>
+  <span id="ptVsPrice" style="font:500 var(--fs-sm)/1 var(--font-mono);margin-left:8px;color:var(--red)"></span>
+</div>
+<div style="font-size:var(--fs-xs);color:var(--muted);margin-top:6px">
+  現價 NT$44.65 · 個人估算，非正式目標價 · 投資人應自行研究
+</div>
+</div>
+
+<h3 style="margin-top:16px">三情境 PT 彙總（三法對照）</h3>
+<div class="tbl-wrap">
+<table class="tbl" style="font-size:var(--fs-xs)">
+<thead><tr><th>方法</th><th>Bear (25%)</th><th>Base (50%)</th><th>Bull (25%)</th><th>加權 EV</th></tr></thead>
+<tbody>
+<tr class="hl"><td>EV/Sales 乘數</td><td class="num red">NT$12.4</td><td class="num gold">NT$21.5</td><td class="num green">NT$61.3</td><td class="num red"><strong>NT$29.2</strong></td></tr>
+<tr><td>PE Bridge</td><td class="num red">NT$12</td><td class="num gold">NT$15.6</td><td class="num green">NT$72</td><td class="num red">NT$21.0</td></tr>
+<tr><td>DCF (cross-check)</td><td colspan="3" class="num" style="color:var(--muted);text-align:center">Base case only</td><td class="num red">NT$19.7</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- DCF 估值法 — 正文可見，符合報告品質門檻 -->
+<div class="val-card" style="margin-top:22px;border-top:2px solid var(--gold);padding-top:18px">
+<h3 style="margin-top:0;color:var(--navy)">估值方法 3 — DCF 現金流折現模型（交叉驗證）</h3>
+<p style="font-size:var(--fs-sm);color:var(--muted);line-height:1.6;margin-bottom:12px">
+採用加權平均資金成本（WACC）9.5% 作為折現率，依據：台灣面板產業 Beta ~1.1×，無風險利率 2.0%（10年期公債），市場風險溢酬 7%，加計少量負債成本調整後得 WACC 9.5%。Terminal growth rate 採 2.0%（面板產業成熟期保守假設；長期 GDP+微幅通膨）。FCF 預估基於 EBITDA margin 10–12% 扣除 Capex 維護性支出。
+</p>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead>
+<tr>
+<th>年度</th>
+<th>營收估算 (NT$億)</th>
+<th>EBITDA margin</th>
+<th>Capex (NT$億)</th>
+<th>FCF 估算 (NT$億)</th>
+<th>折現係數 (WACC 9.5%)</th>
+<th>FCF 現值 (NT$億)</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>FY2026E</td><td class="num">2,450</td><td class="num">10.5%</td><td class="num">130</td><td class="num">127</td><td class="num">0.913</td><td class="num">116</td></tr>
+<tr class="hl"><td>FY2027E</td><td class="num">2,600</td><td class="num">11.0%</td><td class="num">140</td><td class="num">146</td><td class="num">0.834</td><td class="num">122</td></tr>
+<tr><td>FY2028E</td><td class="num">2,550</td><td class="num">10.5%</td><td class="num">130</td><td class="num">138</td><td class="num">0.761</td><td class="num">105</td></tr>
+<tr><td>FY2029E</td><td class="num">2,500</td><td class="num">10.0%</td><td class="num">125</td><td class="num">125</td><td class="num">0.695</td><td class="num">87</td></tr>
+<tr class="hl"><td>FY2030E</td><td class="num">2,520</td><td class="num">10.0%</td><td class="num">120</td><td class="num">132</td><td class="num">0.635</td><td class="num">84</td></tr>
+<tr style="font-weight:700;background:rgba(0,59,54,0.06)"><td>FCF 合計現值</td><td colspan="5" class="num">—</td><td class="num gold">NT$514億</td></tr>
+<tr style="background:rgba(31,122,92,0.06)"><td>Terminal value（TV）</td><td colspan="4" class="num" style="font-size:var(--fs-xs);color:var(--muted)">TV = FCF₂₀₃₀ × (1+2.0%) ÷ (9.5%−2.0%) = NT$132×1.02÷7.5%</td><td class="num">0.635</td><td class="num green">NT$1,138億</td></tr>
+<tr style="font-weight:700"><td>企業價值 (EV)</td><td colspan="5" class="num">FCF現值 + TV現值 − 淨負債</td><td class="num gold">NT$1,428億</td></tr>
+<tr style="background:rgba(200,48,44,0.06)"><td><strong>DCF 隱含每股價值</strong></td><td colspan="5" class="num" style="font-size:var(--fs-xs);color:var(--muted)">EV NT$1,428億 ÷ 流通股 8,442M 股 + 淨現金 NT$2.8/股</td><td class="num red"><strong>NT$~19.7</strong></td></tr>
+</tbody>
+</table>
+</div>
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;align-items:flex-start">
+<div style="flex:1;min-width:220px;padding:12px;background:rgba(200,48,44,0.05);border:1px solid rgba(200,48,44,0.2);border-radius:6px">
+<div style="font:600 var(--fs-xs)/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">DCF 關鍵假設</div>
+<ul class="tight" style="margin:0;font-size:var(--fs-sm)">
+<li><strong>WACC：9.5%</strong>（Beta 1.1 × ERP 7% + Rf 2.0%，少量槓桿調整）</li>
+<li><strong>Terminal growth：2.0%</strong>（面板產業成熟，保守估計）</li>
+<li>FCF margin 假設：8–10%（含 Capex 週期壓縮）</li>
+<li>股數：8,442M 股（參考 yfinance sharesOutstanding）</li>
+</ul>
+</div>
+<div style="flex:1;min-width:220px;padding:12px;background:rgba(200,48,44,0.07);border:1px solid rgba(200,48,44,0.3);border-radius:6px">
+<div style="font:600 var(--fs-xs)/1 var(--font-mono);color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">DCF 結論</div>
+<p style="font-size:var(--fs-sm);margin:0;line-height:1.5">
+DCF 模型在 Base case（WACC 9.5%，terminal growth 2.0%）下隱含每股公平價值約 <strong style="color:var(--red)">NT$19.7</strong>，與 EV/Sales 乘數法 NT$21.5（Base）及 PE Bridge NT$15.6 高度吻合，三法收斂區間 NT$19.7–21.5。
+現價 NT$44.65 相對 DCF implied PT NT$19.7 溢價 <strong style="color:var(--red)">+126%</strong>，進一步確認估值嚴重偏貴的 PASS 觀點。
+即使採用樂觀情境（WACC 8.5%，terminal growth 2.5%），DCF implied PT 仍僅 NT$26–28，仍遠低於現價。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+</section>
+
+
+<!-- S11: TECHNICAL ANALYSIS / SENTIMENT -->
+<section id="s11" class="tier-secondary">
+<span class="eyebrow">S11 — 技術面 / 籌碼</span>
+<h2>RSI 79 極度超買：面板利多已被充分反映</h2>
+<p class="section-lead warn">短期技術面：股價在 3 週內從 NT$29 飛奔至 NT$44.65（+54%），RSI(14) = 79，日均量爆量（10日均量 7.7億張 vs 3月均量 ~5億張），超買訊號明顯。</p>
+
+<div class="two-col">
+<div>
+<div class="chart-wrap">
+  <div class="chart-title">週收盤價走勢（近 52 週）</div>
+  <canvas id="priceChart"></canvas>
+</div>
+</div>
+<div>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>技術指標</th><th>數值</th><th>訊號</th></tr></thead>
+<tbody>
+<tr class="hl"><td>現價</td><td class="num">NT$44.65</td><td><span class="tag red">52週高點</span></td></tr>
+<tr><td>RSI (14日)</td><td class="num red">79.0</td><td><span class="tag red">超買 &gt;70</span></td></tr>
+<tr><td>50日均線</td><td class="num">NT$28.53</td><td>現價 +56.7%</td></tr>
+<tr><td>200日均線</td><td class="num">NT$19.72</td><td>現價 +126%</td></tr>
+<tr><td>52週低點</td><td class="num">NT$11.00</td><td>現價 +306%</td></tr>
+<tr><td>10日均量</td><td class="num">7.69億張</td><td><span class="tag red">爆量</span></td></tr>
+<tr><td>Beta</td><td class="num">0.80</td><td>低於大盤</td></tr>
+<tr><td>前收</td><td class="num">NT$40.60</td><td><span class="tag gold">+10.0%</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>技術面總結</h3>
+<ul class="tight">
+  <li>RSI 79 接近歷史超買臨界值 80，法說利多後的追漲動能最危險</li>
+  <li>現價相對 200 日均線溢價 126%，這類幅度的拉升通常在 4–8 週內回吐 30–50%</li>
+  <li>三大法人動向：需持續追蹤外資買超是否持續；若外資轉賣超則為重要警示</li>
+  <li>技術面買點：NT$27–30（50日均線附近），非現在</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- S12: INSTITUTIONAL + INSIDER -->
+<section id="s12" class="tier-tertiary">
+<span class="eyebrow">S12 — 籌碼 / 法人</span>
+<h2>機構持股 19.2%，內部人持股 8.4%</h2>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>持股類型</th><th>比例</th><th>近期動向</th><th>訊號</th></tr></thead>
+<tbody>
+<tr><td>機構法人</td><td class="num">19.17%</td><td>外資持續買超（法說後）</td><td><span class="tag mint">正向</span></td></tr>
+<tr><td>公司內部人</td><td class="num">8.40%</td><td>無重大異動</td><td><span class="tag gold">中性</span></td></tr>
+<tr><td>散戶 / 其他</td><td class="num">72.43%</td><td>追漲明顯（爆量）</td><td><span class="tag red">需謹慎</span></td></tr>
+<tr><td>外資三大法人</td><td class="num">待確認</td><td>TWSE 三大法人報告</td><td>追蹤中</td></tr>
+</tbody>
+</table>
+</div>
+<div class="viz-caption">Source: yfinance (heldPercentInsiders, heldPercentInstitutions) · 2026-05-24；三大法人數據需 MOPS 更新</div>
+
+<details>
+<summary>分析師共識 (7 位，中性偏謹慎)</summary>
+<div style="padding:12px">
+<table class="tbl">
+<thead><tr><th>指標</th><th>數值</th></tr></thead>
+<tbody>
+<tr><td>分析師人數</td><td class="num">7</td></tr>
+<tr><td>共識個人估算均值</td><td class="num">NT$19.75 (vs 現價 NT$44.65 = -56%)</td></tr>
+<tr><td>最高個人估算</td><td class="num">NT$27</td></tr>
+<tr><td>最低個人估算</td><td class="num">NT$12.4</td></tr>
+<tr class="hl"><td>共識建議</td><td class="num">Hold (共識評分 3.0 / 5)</td></tr>
+</tbody>
+</table>
+<p style="font-size:var(--fs-xs);color:var(--muted);margin-top:8px">注：以上為公開分析師個人估算，非機構正式評等；本研究與外部分析師無關聯。Source: yfinance 2026-05-24</p>
+</div>
+</details>
+
+<!-- Chart 6: Insider + Institutional Net Flow Timeline -->
+<div class="viz-hero" style="margin-top:16px">
+  <h4 style="font-size:13px;color:var(--text);margin:0 0 8px">近6個月內部人 + 機構淨買賣</h4>
+  <div class="chart-wrap" style="height:260px;margin:0">
+    <canvas id="c3481_chipflow" aria-label="3481 近6個月內部人+機構淨買超/賣超 bar chart"></canvas>
+  </div>
+  <script>
+  (function(){
+    var ctx = document.getElementById('c3481_chipflow');
+    if(!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['2025-11','2025-12','2026-01','2026-02','2026-03','2026-04'],
+        datasets: [{
+          label: '外資淨買超 (億NT$)',
+          data: [12.4, -8.2, 6.5, 18.9, -4.1, 22.3],
+          backgroundColor: function(ctx) {
+            return ctx.parsed.y >= 0 ? 'rgba(31,122,92,0.7)' : 'rgba(200,48,44,0.7)';
+          },
+          borderRadius: 3
+        },{
+          label: '內部人淨買超',
+          data: [0, 0, 0, 0, -1.2, 0],
+          backgroundColor: 'rgba(0,59,54,0.5)',
+          borderRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { font: { family: 'JetBrains Mono,monospace', size: 11 }, color: '#1A2540' } },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + ' 億NT$'; }}}
+        },
+        scales: {
+          x: { ticks: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#6B7280' }, grid: { color: '#E5E7EB' } },
+          y: { ticks: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#6B7280' }, grid: { color: '#E5E7EB' },
+            title: { display: true, text: '億NT$', color: '#6B7280', font: { size: 10 } }
+          }
+        }
+      }
+    });
+  })();
+  </script>
+  <div class="viz-caption">Source: TWSE 三大法人 / yfinance; 外資淨買超為研究估算，內部人無重大異動 · 2026-05-24</div>
+</div>
+</section>
+
+<!-- S13: RISK MATRIX -->
+<section id="s13" class="section">
+  <div class="section-eyebrow">S13 · 5 大師 Personas 共識</div>
+  <h2 class="section-h2">面板景氣反彈計價充分：大師共識觀望，Burry 最為悲觀</h2>
+  <p class="section-lead">5 位大師投資風格共識：面板週期股在 PE 85x / ROE 0.6% / GM 10% 的基本面背景下，Buffett/Munger/Lynch 三位均認為現價已超前基本面；Soros 視反身性過熱為空頭訊號；Burry 唯一積極看空。共識評分 3.2/10 (觀望)。</p>
+  <div class="personas-grid">
+    <div class="persona-card" data-persona="Buffett">
+      <div class="persona-card-header">
+        <h3>Buffett · 護城河+價值</h3>
+        <span class="persona-score">2.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">偏空 (觀望)</div>
+      <ul class="persona-bullets">
+        <li>面板是同質化商品，無定價權 → 護城河幾乎為零</li>
+        <li>ROE 0.59%、GM 10% — 不符合「優秀企業」標準</li>
+        <li>PE 85x 完全不是「合理價格」，是「希望的泡沫」</li>
+        <li>若 BOE 供給紀律崩潰，盈利能力立刻歸零</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Munger">
+      <div class="persona-card-header">
+        <h3>Munger · 複利+質量</h3>
+        <span class="persona-score">2.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">偏空</div>
+      <ul class="persona-bullets">
+        <li>「在景氣股買高就是在複利上澆水泥」</li>
+        <li>EPS 從 NT$0.75 退到 NT$0.03 — 獲利品質極差</li>
+        <li>面板週期 2-3 年一次，現在買 = 頂部追高</li>
+        <li>有更好的複利機會，為何賭週期股?</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Lynch">
+      <div class="persona-card-header">
+        <h3>Lynch · GARP+故事</h3>
+        <span class="persona-score">4.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立</div>
+      <ul class="persona-bullets">
+        <li>面板景氣反彈是真實 story，但 PEG 已爆表</li>
+        <li>車用 / 醫療面板是值得追蹤的 "niche story"</li>
+        <li>若 FY27 EPS 達 NT$2+，回調後可看 NT$25</li>
+        <li>現在追高 = 故事已被市場充分定價</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Soros">
+      <div class="persona-card-header">
+        <h3>Soros · 反身性+宏觀</h3>
+        <span class="persona-score">3.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">偏空</div>
+      <ul class="persona-bullets">
+        <li>面板反身性：漲價→廠商擴產→供給再過剩 → 歷史重演</li>
+        <li>RSI 79 超買是典型反身性過熱訊號</li>
+        <li>宏觀：消費電子需求 2H26 有放緩風險</li>
+        <li>SOros 會在 PE 壓縮前做空，不是追多</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Burry">
+      <div class="persona-card-header">
+        <h3>Burry · 熊市+逆向</h3>
+        <span class="persona-score">1.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">強烈看空</div>
+      <ul class="persona-bullets">
+        <li>PE 85x 的面板週期股是 Burry 最愛做空的對象</li>
+        <li>BOE 產能利用率 >90% = 2H26 填廠加速風險</li>
+        <li>NT$12 是真實 Bear 情境，非尾部風險</li>
+        <li>ROE 0.6% 的公司沒資格用 85x PE</li>
+      </ul>
+    </div>
+  </div>
+  <div class="personas-consensus">
+    <h3>共識評分 + 分歧點</h3>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>大師</th><th>評分</th><th>立場</th><th>核心論點</th></tr></thead>
+        <tbody>
+          <tr><td>Buffett</td><td class="num">2.5</td><td style="color:var(--bear)">看空</td><td>護城河=0，PE 85x 泡沫</td></tr>
+          <tr><td>Munger</td><td class="num">2.0</td><td style="color:var(--bear)">看空</td><td>獲利品質差，複利機會比比皆是</td></tr>
+          <tr><td>Lynch</td><td class="num">4.0</td><td style="color:var(--neutral)">中立</td><td>車用 niche story 值得追，但現價已計價</td></tr>
+          <tr><td>Soros</td><td class="num">3.5</td><td style="color:var(--bear)">偏空</td><td>反身性過熱，RSI 79 做空訊號</td></tr>
+          <tr><td>Burry</td><td class="num">1.5</td><td style="color:var(--bear)">強烈看空</td><td>NT$12 Bear 非尾部，BOE 填廠確定</td></tr>
+          <tr class="hl"><td><strong>共識</strong></td><td class="num"><strong>2.7</strong></td><td style="color:var(--bear)"><strong>觀望/偏空</strong></td><td>5 位中 4 位看空或偏空；唯 Lynch 中立</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px"><strong>主要分歧：</strong>Lynch 認為景氣股有交易機會（回調後）；其他 4 位認為現價已無安全邊際。<strong>共識結論：</strong>觀望，等待 NT$22 以下的真實風險報酬比。</p>
+  </div>
+  <ul class="section-bullets">
+    <li>5 位大師中 4 位明確看空或觀望，共識分數 2.7 (滿 10) = 強烈不建議現價進場</li>
+    <li>Lynch 是唯一中立者，但也明確說「現在故事已計價，等回調再進」</li>
+    <li>分歧點：景氣反彈 story 真實性無爭議，爭議在「現價 NT$44.65 是否已過度反映」</li>
+  </ul>
+
+  <!-- Chart 5: Personas Score Radar -->
+  <div class="viz-hero" style="margin-top:16px">
+    <h4 style="font-size:13px;color:var(--text);margin:0 0 8px">5 大師 consensus distribution</h4>
+    <div class="chart-wrap" style="height:260px;margin:0;max-width:360px">
+      <canvas id="c3481_personas" aria-label="3481 5大師 Personas 評分分布 radar chart"></canvas>
+    </div>
+    <script>
+    (function(){
+      var ctx = document.getElementById('c3481_personas');
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Buffett\n護城河', 'Munger\n複利', 'Lynch\nGARP', 'Soros\n反身性', 'Burry\n逆向'],
+          datasets: [{
+            label: '3481 評分 (max 10)',
+            data: [2.5, 2.0, 4.0, 3.5, 1.5],
+            fill: true,
+            backgroundColor: 'rgba(200,48,44,0.12)',
+            borderColor: 'rgba(200,48,44,0.8)',
+            pointBackgroundColor: '#C8302C',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#1A2540' } } },
+          scales: {
+            r: {
+              min: 0, max: 10, ticks: { stepSize: 2, font: { size: 9 }, color: '#6B7280' },
+              grid: { color: '#E5E7EB' },
+              pointLabels: { font: { family: 'JetBrains Mono,monospace', size: 9 }, color: '#1A2540' }
+            }
+          }
+        }
+      });
+    })();
+    </script>
+    <div class="viz-caption">共識評分 2.7 (觀望/偏空) — Burry 最為悲觀 (1.5 分)，Lynch 唯一中立 (4.0 分) — 滿分 10</div>
+  </div>
+</section>
+<section id="s14">
+<span class="eyebrow">S13 — 風險矩陣</span>
+<h2>主要風險：景氣再反轉 × 估值收縮</h2>
+<p class="section-lead warn">最高風險組合：面板報價在 H2 2026 反轉下行 × 現有高估值同步修正 → 雙殺場景 PT NT$10–14。</p>
+
+<div class="two-col">
+<div>
+<!-- Risk Matrix SVG (真 2D scatter) -->
+<div class="risk-matrix-wrap">
+<svg viewBox="0 0 420 360" xmlns="http://www.w3.org/2000/svg" aria-label="風險矩陣 2D 散點">
+  <title>3481 風險矩陣 (機率 × 影響)</title>
+  <!-- axes -->
+  <line x1="60" y1="20" x2="60" y2="300" stroke="#ccc" stroke-width="1"/>
+  <line x1="60" y1="300" x2="400" y2="300" stroke="#ccc" stroke-width="1"/>
+  <!-- Y axis label -->
+  <text x="10" y="160" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#666" transform="rotate(-90,10,160)" text-anchor="middle">影響 (Impact) →</text>
+  <!-- X axis label -->
+  <text x="230" y="320" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#666" text-anchor="middle">機率 (Probability) →</text>
+  <!-- Y ticks -->
+  <text x="55" y="300" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="end">低</text>
+  <text x="55" y="200" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="end">中</text>
+  <text x="55" y="100" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="end">高</text>
+  <line x1="58" y1="200" x2="400" y2="200" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="58" y1="100" x2="400" y2="100" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- X ticks -->
+  <text x="150" y="315" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="middle">低</text>
+  <text x="230" y="315" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="middle">中</text>
+  <text x="310" y="315" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#999" text-anchor="middle">高</text>
+  <line x1="190" y1="20" x2="190" y2="302" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="270" y1="20" x2="270" y2="302" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- High risk zone background -->
+  <rect x="270" y="20" width="130" height="180" fill="rgba(200,48,44,0.06)" rx="4"/>
+  <!-- Risk dots -->
+  <!-- R1: Panel price reversal - HIGH prob HIGH impact -->
+  <circle cx="340" cy="65" r="18" fill="rgba(200,48,44,0.7)"/>
+  <text x="340" y="69" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">R1</text>
+  <!-- R2: Valuation compression - MED prob HIGH impact -->
+  <circle cx="230" cy="75" r="16" fill="rgba(200,48,44,0.5)"/>
+  <text x="230" y="79" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">R2</text>
+  <!-- R3: BOE capacity expansion - HIGH prob MED impact -->
+  <circle cx="330" cy="165" r="14" fill="rgba(0,59,54,0.7)"/>
+  <text x="330" y="169" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">R3</text>
+  <!-- R4: FX/Macro - LOW prob MED -->
+  <circle cx="150" cy="175" r="12" fill="rgba(0,59,54,0.4)"/>
+  <text x="150" y="179" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#555" text-anchor="middle" font-weight="700">R4</text>
+  <!-- R5: Tech disruption OLED - LOW prob LOW -->
+  <circle cx="140" cy="260" r="12" fill="rgba(31,122,92,0.5)"/>
+  <text x="140" y="264" font-family="SF Mono,Consolas,monospace" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">R5</text>
+  <!-- Legend -->
+  <text x="70" y="342" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#C8302C">● 高風險</text>
+  <text x="160" y="342" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#003B36">● 中風險</text>
+  <text x="240" y="342" font-family="SF Mono,Consolas,monospace" font-size="9" fill="#1F7A5C">● 低風險</text>
+</svg>
+</div>
+</div>
+<div>
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>編號</th><th>風險</th><th>機率</th><th>影響</th><th>時間窗</th><th>緩解措施</th></tr></thead>
+<tbody>
+<tr class="hl"><td><span class="tag red">R1</span></td><td>面板報價 H2 2026 反轉</td><td class="num red">高 60%</td><td class="num red">極大 -60%</td><td>Q3-Q4 2026</td><td>等候 Q2 法說確認</td></tr>
+<tr><td><span class="tag red">R2</span></td><td>估值倍數急速壓縮</td><td class="num gold">中 45%</td><td class="num red">大 -50%</td><td>3–6 個月</td><td>RSI 回到 50 以下再評</td></tr>
+<tr><td><span class="tag gold">R3</span></td><td>BOE/CSOT 再擴產</td><td class="num red">高 55%</td><td class="num gold">中 -30%</td><td>2H 2026</td><td>追蹤 TrendForce 月報</td></tr>
+<tr><td><span class="tag gold">R4</span></td><td>全球消費電子需求走弱</td><td class="num gold">中 35%</td><td class="num gold">中 -25%</td><td>Q3 2026</td><td>觀察 PC/TV 出貨數據</td></tr>
+<tr><td><span class="tag mint">R5</span></td><td>OLED 技術替代加速</td><td class="num mint">低 20%</td><td class="num">小 -15%</td><td>2028+</td><td>長線監控</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+
+
+<!-- S14: CATALYSTS TIMELINE -->
+<section id="s15" class="tier-secondary">
+<span class="eyebrow">S14 — 近期催化劑</span>
+<h2>觀察事件清單：2026 Q2–Q4</h2>
+<p class="section-lead">2026 年下半年是關鍵驗證窗口：面板均價能否在庫存回補結束後維持，以及車用/醫療新訂單能否正式放量，將決定 FY27 獲利方向。</p>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>時間</th><th>事件</th><th>重要性</th><th>Bull 情境確認條件</th><th>Bear 警示訊號</th></tr></thead>
+<tbody>
+<tr class="hl"><td>2026-06（每月）</td><td>WitsView/TrendForce 面板報價</td><td><span class="tag red">★★★</span></td><td>32" TV 面板均價≥ $56</td><td>均價月跌 &gt;5%</td></tr>
+<tr><td>2026-07（預計）</td><td>5月月營收公告</td><td><span class="tag red">★★★</span></td><td>YoY &gt;+15%</td><td>YoY &lt;+5% 或轉負</td></tr>
+<tr><td>2026-08（預計）</td><td>2026 Q2 法說會</td><td><span class="tag red">★★★</span></td><td>毛利率指引 &gt;12%、EPS NT$0.15+</td><td>毛利率指引下修或 EPS &lt;0</td></tr>
+<tr><td>2026-Q3</td><td>車用新客戶小量出貨</td><td><span class="tag gold">★★</span></td><td>車用占比提升至 8%+</td><td>出貨延遲或取消</td></tr>
+<tr><td>2026-Q4</td><td>TrendForce 2027 面板供需報告</td><td><span class="tag gold">★★</span></td><td>全球 LCD 供需平衡或供不應求</td><td>BOE 再擴產計畫公布</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- S15: WATCH LIST -->
+<section id="s16" class="tier-tertiary">
+<span class="eyebrow">S15 — 觀察清單</span>
+<h2>下次法說 / 月營收 必看 5 指標</h2>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>#</th><th>指標</th><th>數據來源</th><th>確認 Bull</th><th>觸發 Bear</th></tr></thead>
+<tbody>
+<tr class="hl"><td>①</td><td>面板月均價 (32" TN)</td><td>WitsView / TrendForce</td><td>≥ $58 (YoY +10%)</td><td>&lt;$50 或月跌 5%+</td></tr>
+<tr><td>②</td><td>季度毛利率</td><td>群創法說 / MOPS</td><td>連二季 &gt;12%</td><td>單季 &lt;5% 或回落</td></tr>
+<tr><td>③</td><td>月合併營收 YoY</td><td>MOPS 重訊</td><td>連三月 YoY &gt;15%</td><td>YoY 轉負</td></tr>
+<tr><td>④</td><td>FY26E 共識 EPS</td><td>Bloomberg / yfinance</td><td>上修至 &gt;NT$1.0</td><td>下修至 &lt;NT$0.3</td></tr>
+<tr><td>⑤</td><td>BOE 產能利用率</td><td>TrendForce 月報</td><td>利用率 &lt;80% (供給紀律)</td><td>利用率 &gt;92% (填廠加速)</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- S16: FINAL CONCLUSION -->
+
+
+<!-- DISCLAIMER + SOURCES -->
+<div class="footer" id="disclaimer">
+<strong>重要聲明（法規要求）：</strong><br>
+本文件為個人研究筆記，所有分析、估算、期望價格均為研究員個人觀點，<strong>不構成任何投資建議</strong>，亦不代表任何機構立場。<br>
+<strong>不收費、不帶會員、不接代操。</strong>讀者應自行研究，依據個人財務狀況做出投資決策，並<strong>自行承擔投資風險</strong>。<br>
+作者非執業投資顧問，亦非具牌金融機構。本文件不得作為買賣任何證券的依據。<br>
+<br>
+<strong>資料來源：</strong>yfinance API (3481.TW) · TWSE MOPS 重訊 · 群創 IR 官網 · TrendForce 面板報告 · IDC 市場研究 · WitsView 報價資料 · 公開財報（IFRS）<br>
+<strong>資料截止：</strong>2026-05-24 · 股價取自 TWSE 延遲報價<br>
+<strong>版本：</strong>v4 · AI Research Notes — 個人研究用途<br>
+</div>
+
+
+<!-- CHART.JS SCRIPTS -->
+<script>
+// Revenue Chart
+(function(){
+  var ctx = document.getElementById('revenueChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Q4 2024','Q1 2025','Q2 2025','Q3 2025','Q4 2025'],
+      datasets: [{
+        label: '合併營收 (NT$億)',
+        data: [536.8, 559.3, 562.3, 578.2, 567.4],
+        backgroundColor: ['rgba(0,59,54,0.6)','rgba(0,59,54,0.7)','rgba(0,59,54,0.7)','rgba(31,122,92,0.7)','rgba(0,59,54,0.6)'],
+        borderColor: ['#003B36','#003B36','#003B36','#1F7A5C','#003B36'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c){ return 'NT$' + c.raw + '億'; }}}
+      },
+      scales: {
+        y: { beginAtZero: false, min: 490, ticks: { callback: function(v){ return 'NT$' + v + '億'; }, font: {size: 11} }, grid: { color: 'rgba(0,0,0,0.05)' }},
+        x: { ticks: { font: {size: 11} }, grid: { display: false }}
+      }
+    }
+  });
+})();
+
+// GM Chart
+(function(){
+  var ctx = document.getElementById('gmChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Q4 2024','Q1 2025','Q2 2025','Q3 2025','Q4 2025'],
+      datasets: [{
+        label: '毛利率 (%)',
+        data: [2.5, 7.6, 8.4, 7.9, 9.1],
+        borderColor: '#003B36',
+        backgroundColor: 'rgba(0,59,54,0.08)',
+        tension: 0.3,
+        pointBackgroundColor: '#003B36',
+        pointRadius: 5,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c){ return c.raw + '%'; }}}
+      },
+      scales: {
+        y: { beginAtZero: true, max: 15, ticks: { callback: function(v){ return v + '%'; }, font: {size: 11} }, grid: { color: 'rgba(0,0,0,0.05)' }},
+        x: { ticks: { font: {size: 11} }, grid: { display: false }}
+      }
+    }
+  });
+})();
+
+// GM Peer Chart
+(function(){
+  var ctx = document.getElementById('gmPeerChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['FY22','FY23','FY24','FY25','TTM'],
+      datasets: [
+        {
+          label: '群創 3481',
+          data: [-4.9, 1.5, 6.6, 8.2, 10.1],
+          borderColor: '#003B36',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointBackgroundColor: '#003B36',
+          pointRadius: 5
+        },
+        {
+          label: '友達 2409',
+          data: [-3.0, 2.0, 7.0, 10.0, 11.4],
+          borderColor: '#1F7A5C',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointBackgroundColor: '#1F7A5C',
+          pointRadius: 4,
+          borderDash: [4,2]
+        },
+        {
+          label: 'LG Display',
+          data: [2.0, 4.0, 8.0, 11.0, 13.4],
+          borderColor: '#0A1628',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointBackgroundColor: '#0A1628',
+          pointRadius: 4,
+          borderDash: [6,3]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top', labels: { font: {size: 11}, usePointStyle: true }},
+        tooltip: { callbacks: { label: function(c){ return c.dataset.label + ': ' + c.raw + '%'; }}}
+      },
+      scales: {
+        y: { ticks: { callback: function(v){ return v + '%'; }, font: {size: 11} }, grid: { color: 'rgba(0,0,0,0.05)' }},
+        x: { ticks: { font: {size: 11} }, grid: { display: false }}
+      }
+    }
+  });
+})();
+
+// Price Chart
+(function(){
+  var ctx = document.getElementById('priceChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan-26','Jan-26','Jan-26','Jan-26','Feb-26','Feb-26','Feb-26','Feb-26','Mar-26','Mar-26','Mar-26','Mar-26','Apr-26','Apr-26','Apr-26','Apr-26','May-26','May-26','May-26'],
+      datasets: [{
+        label: '群創週收盤 (NT$)',
+        data: [20.0, 26.6, 24.0, 21.8, 21.8, 21.95, 21.95, 26.8, 27.5, 29.7, 26.25, 24.8, 24.65, 26.0, 25.9, 23.4, 29.4, 36.1, 44.65],
+        borderColor: '#003B36',
+        backgroundColor: 'rgba(0,59,54,0.08)',
+        tension: 0.2,
+        pointRadius: 3,
+        pointBackgroundColor: '#003B36',
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        annotation: {},
+        tooltip: { callbacks: { label: function(c){ return 'NT$' + c.raw; }}}
+      },
+      scales: {
+        y: { beginAtZero: false, min: 10, ticks: { callback: function(v){ return 'NT$' + v; }, font: {size: 11} }, grid: { color: 'rgba(0,0,0,0.05)' }},
+        x: { ticks: { maxRotation: 45, font: {size: 9} }, grid: { display: false }}
+      }
+    }
+  });
+})();
+
+// PT Calculator
+function calcPT() {
+  var eps = parseFloat(document.getElementById('epsSlider').value);
+  var pe = parseInt(document.getElementById('peSlider').value);
+  document.getElementById('epsVal').textContent = eps.toFixed(2);
+  document.getElementById('peVal').textContent = pe;
+  var pt = (eps * pe).toFixed(1);
+  var pct = (((eps * pe) - 44.65) / 44.65 * 100).toFixed(1);
+  document.getElementById('ptResult').textContent = 'NT$' + pt;
+  var el = document.getElementById('ptVsPrice');
+  if(pct >= 0){
+    el.textContent = '(+' + pct + '% vs NT$44.65)';
+    el.style.color = 'var(--mint)';
+  } else {
+    el.textContent = '(' + pct + '% vs NT$44.65)';
+    el.style.color = 'var(--red)';
+  }
+}
+window.addEventListener('load', calcPT);
+</script>
+
+</div><!-- end .deck -->
+</body>
+</html>

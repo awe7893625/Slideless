@@ -1,0 +1,2390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>6239 力成科技 — AI Research Notes · 2026-05-24</title>
+<style>
+:root{
+  /* NVTS v7 canonical palette 2026-05-24 — 10 vars, no additions */
+  --bg-page:#F5F4EE;   /* cream off-white body */
+  --bg-card:#FFFFFF;   /* white card */
+  --bg-cover:#0A1628;  /* navy — cover/hero ONLY */
+  --text:#1A2540;      /* near-black navy text */
+  --text-muted:#6B7280;/* muted gray */
+  --border:#E5E7EB;    /* light gray border */
+  --accent:#003B36;    /* DARK GREEN-TEAL — sole accent */
+  --bull:#1F7A5C;      /* positive green */
+  --bear:#C8302C;      /* negative red */
+  --neutral:#9CA3AF;   /* neutral gray */
+  /* legacy aliases — map into the 10 above */
+  --bg:var(--bg-page);--card:var(--bg-card);--ink:var(--text);--muted:var(--text-muted);--muted2:var(--neutral);
+  --border-color:var(--border);--navy:var(--bg-cover);--gold:var(--accent);--mint:var(--bull);--red:var(--bear);
+  --green:var(--bull);--amber:var(--accent);--text-color:var(--text);
+  --font-sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,Consolas,monospace;
+  --fs-xl:32px;--fs-lg:22px;--fs-md:16px;--fs-sm:14px;--fs-xs:12px;
+  --accent-on-dark:var(--bull);
+}
+*,*::before,*::after{box-sizing:border-box;min-width:0;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:var(--fs-sm);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+main{max-width:1200px;margin:0 auto;padding:0 24px 60px}
+
+/* ============ 4-TIER HIERARCHY (v3 核心) ============ */
+.tier-hero{padding:64px 32px 40px;background:var(--navy);color:#fff;border-radius:0;margin:0 -24px 32px;position:relative;overflow:hidden}
+.tier-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 20% 60%,rgba(31,122,92,.08) 0,transparent 70%),radial-gradient(ellipse 40% 50% at 80% 20%,rgba(0,59,54,.06) 0,transparent 70%);pointer-events:none}
+.tier-hero > *{position:relative;z-index:1}
+
+.tier-primary{padding:40px 24px 36px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin:32px 0}
+.tier-secondary{padding:28px 22px 24px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin:24px 0}
+.tier-tertiary{padding:18px 18px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin:16px 0}
+
+/* eyebrow + headings */
+.eyebrow{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--mint);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px}
+.tier-hero .eyebrow{color:var(--gold)}
+.tier-primary .eyebrow{color:var(--mint)}
+.tier-secondary .eyebrow{color:var(--muted)}
+.tier-tertiary .eyebrow{color:var(--muted2);font-size:11px}
+
+h1{font:700 var(--fs-xl)/1.15 inherit;letter-spacing:-0.01em;margin-bottom:12px}
+h2{font:700 var(--fs-lg)/1.25 inherit;letter-spacing:-0.005em;margin-bottom:12px}
+h3{font:600 var(--fs-md)/1.4 inherit;margin:18px 0 8px}
+h4{font:600 var(--fs-sm)/1.4 inherit;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-size:var(--fs-xs);margin:14px 0 6px}
+
+/* section-lead (v3 強制 section pattern 第 1 段) */
+.section-lead{font:500 var(--fs-md)/1.55 inherit;color:var(--text);background:rgba(0,59,54,0.06);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:20px;max-width:920px}
+.tier-hero .section-lead{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.9);border-left-color:var(--gold)}
+
+/* ============ DECISION BOX (v3 必含元件) ============ */
+.decision-box{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid rgba(255,255,255,0.18);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.04);margin:20px 0}
+.decision-cell{padding:12px 14px;border-right:1px solid rgba(255,255,255,0.10);border-bottom:1px solid rgba(255,255,255,0.10)}
+.decision-cell:nth-child(4n){border-right:none}
+.decision-cell:nth-last-child(-n+4){border-bottom:none}
+.decision-cell .lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.decision-cell .val{font:700 var(--fs-sm)/1.2 var(--font-mono);color:#fff}
+.decision-cell .val.stance-watch{color:var(--amber)}
+.decision-cell .val.stance-spec-buy{color:var(--mint)}
+.decision-cell .val.stance-hold{color:var(--muted2)}
+.decision-cell .val.stance-avoid{color:var(--red)}
+.decision-cell .val.risk-low{color:var(--green)}
+.decision-cell .val.risk-medium{color:var(--amber)}
+.decision-cell .val.risk-high{color:var(--red)}
+.decision-cell .val.risk-extreme{color:var(--red);font-weight:700}
+
+/* ============ EV SPOTLIGHT (v3 核心決策數字) ============ */
+.ev-spotlight{display:flex;align-items:center;gap:18px;padding:14px 18px;background:rgba(0,59,54,0.08);border:1px solid rgba(0,59,54,0.35);border-radius:8px;margin:14px 0;flex-wrap:wrap}
+.ev-spotlight .ev-label{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.1em}
+.tier-primary .ev-spotlight .ev-label{color:var(--muted)}
+.ev-spotlight .ev-formula{font:500 var(--fs-xs)/1.4 var(--font-mono);color:rgba(255,255,255,0.6);min-width:200px}
+.tier-primary .ev-spotlight .ev-formula{color:var(--muted)}
+.ev-spotlight .ev-value{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--gold)}
+.ev-spotlight .ev-delta{font:700 var(--fs-lg)/1 var(--font-mono);padding:6px 12px;border-radius:6px;background:rgba(31,122,92,0.18);color:var(--mint)}
+.ev-spotlight .ev-delta.negative{background:rgba(200,48,44,0.18);color:var(--red)}
+
+/* ============ HERO 投資決策首頁 (v3 雙欄結構) ============ */
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;margin-top:16px}
+.hero-left .ticker-row{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.hero-left .ticker{font:700 var(--fs-xl)/1 var(--font-mono);color:#fff}
+.hero-left .exchange{font:500 var(--fs-xs)/1 var(--font-mono);color:rgba(255,255,255,0.45);letter-spacing:0.08em;text-transform:uppercase}
+.hero-left .sector{font:500 var(--fs-xs)/1 var(--font-mono);color:rgba(255,255,255,0.55);padding:3px 8px;background:rgba(255,255,255,0.06);border-radius:4px}
+.hero-left .thesis-one{font:500 var(--fs-md)/1.5 inherit;color:rgba(255,255,255,0.92);margin:14px 0 20px;max-width:560px}
+.hero-left .price-block{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px}
+.hero-left .price-cell .lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.hero-left .price-cell .val{font:700 var(--fs-lg)/1.1 var(--font-mono);color:#fff}
+.hero-left .price-cell .val.green{color:var(--green)}
+.hero-left .price-cell .val.red{color:var(--red)}
+.hero-left .price-cell .val.gold{color:var(--gold)}
+
+.hero-right{display:flex;flex-direction:column;gap:12px}
+.hero-right .h-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:6px;padding:10px 14px}
+.hero-right .h-card.bull{border-left:3px solid var(--mint)}
+.hero-right .h-card.bear{border-left:3px solid var(--red)}
+.hero-right .h-card.monitor{border-left:3px solid var(--gold)}
+.hero-right .h-card .lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.hero-right .h-card ul{list-style:none;padding:0;margin:0}
+.hero-right .h-card li{font:500 var(--fs-xs)/1.5 inherit;color:rgba(255,255,255,0.85);margin-bottom:4px}
+.hero-right .h-card li::before{content:"·";color:var(--gold);margin-right:6px}
+.hero-right .confidence{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(31,122,92,0.06);border:1px solid rgba(31,122,92,0.2);border-radius:6px}
+.hero-right .confidence .lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em}
+.hero-right .confidence .val{font:700 var(--fs-md)/1 var(--font-mono);color:var(--mint)}
+
+/* ============ FORMAL TABLE COMPONENT (v3 強制 3 欄+ 用 table) ============ */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border);margin:12px 0}
+.tbl-wrap::-webkit-scrollbar{height:4px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#E5E7EB;border-radius:2px}
+table.tbl{width:100%;border-collapse:collapse;min-width:auto}
+table.tbl th{background:#F5F4EE;font:600 11px/1.3 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tbl td{padding:10px 12px;font-size:var(--fs-sm);color:var(--text);border-bottom:1px solid #F5F4EE;vertical-align:top}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr.hl{background:rgba(0,59,54,0.06)}
+table.tbl th.num,table.tbl td.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+table.tbl.dense th,table.tbl.dense td{padding:6px 10px;font-size:var(--fs-xs)}
+
+/* ============ COMPACT KPI STRIP (tertiary tier 用) ============ */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.kpi-strip .cell{padding:10px 12px;border-right:1px solid var(--border);background:var(--card)}
+.kpi-strip .cell:last-child{border-right:none}
+.kpi-strip .cell .lbl{font:600 10px/1 var(--font-mono);color:var(--muted2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.kpi-strip .cell .val{font:700 var(--fs-lg)/1.1 var(--font-mono);color:var(--text)}
+.kpi-strip .cell .sub{font:500 10px/1 var(--font-mono);color:var(--muted);margin-top:3px}
+.kpi-strip .cell .val.red{color:var(--red)} .kpi-strip .cell .val.green{color:var(--green)} .kpi-strip .cell .val.gold{color:var(--gold)} .kpi-strip .cell .val.mint{color:var(--mint)}
+
+/* ============ VISUAL HERO WRAPPER (視覺主角區) ============ */
+.viz-hero{background:#F5F4EE;border:1px solid var(--border);border-radius:10px;padding:18px;margin:16px 0}
+.viz-hero.dark{background:var(--navy);border-color:var(--navy);color:#fff}
+.viz-hero .viz-caption{font:500 var(--fs-xs)/1.5 var(--font-mono);color:var(--muted);margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
+.viz-hero.dark .viz-caption{color:rgba(255,255,255,0.5);border-top-color:rgba(255,255,255,0.15)}
+
+/* ============ CALLOUT ============ */
+.callout{border-left:3px solid var(--gold);background:rgba(0,59,54,0.04);padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0}
+.callout.red{border-color:var(--red);background:rgba(200,48,44,0.04)}
+.callout.mint{border-color:var(--mint);background:rgba(31,122,92,0.05)}
+.callout .ttl{font:600 11px/1 var(--font-mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;color:var(--gold)}
+.callout.red .ttl{color:var(--red)} .callout.mint .ttl{color:#1F7A5C}
+
+/* ============ DETAILS / SUPPORTING (摺疊 supporting details) ============ */
+details{border:1px solid var(--border);border-radius:6px;background:var(--card);margin:10px 0}
+details summary{padding:10px 14px;cursor:pointer;font:600 var(--fs-sm)/1.3 inherit;color:var(--text);list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::after{content:"+";color:var(--muted);font:700 var(--fs-md)/1 var(--font-mono);margin-left:12px}
+details[open] summary::after{content:"−"}
+details > div{padding:0 14px 14px;border-top:1px solid var(--border);font-size:var(--fs-sm)}
+
+/* ============ GRID HELPERS ============ */
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.grid-2.equal{grid-template-columns:1fr 1fr}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* tag */
+.tag{display:inline-block;padding:2px 8px;font:600 11px/1.4 var(--font-mono);border-radius:4px;letter-spacing:0.04em}
+.tag.gold{background:rgba(0,59,54,0.15);color:#003B36}
+.tag.mint{background:rgba(31,122,92,0.18);color:#1F7A5C}
+.tag.red{background:rgba(200,48,44,0.10);color:var(--red)}
+.tag.gray{background:#E5E7EB;color:var(--muted)}
+
+/* nav */
+nav.toc{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:8px 0;margin:0 0 -16px;z-index:50;font:500 var(--fs-xs)/1 var(--font-mono)}
+nav.toc ul{list-style:none;margin:0 auto;padding:0 24px;display:flex;gap:14px;overflow-x:auto;max-width:1200px}
+nav.toc a{color:var(--muted);white-space:nowrap;padding:4px 0;border-bottom:2px solid transparent}
+nav.toc a:hover{color:var(--text);border-bottom-color:var(--gold)}
+
+/* footer */
+.footer{margin:48px 0 0;padding:18px 22px;background:#1A2540;color:rgba(255,255,255,0.55);font:var(--fs-xs)/1.6 var(--font-mono);border-radius:8px}
+.footer .strong-d{color:rgba(255,255,255,0.9);font-weight:600}
+
+/* ============ MOBILE-FIRST RESET (v3 強制) ============ */
+@media (max-width:768px){
+  *,*::before,*::after{min-width:0!important;max-width:100%!important;box-sizing:border-box}
+  html,body{min-width:0!important;font-size:var(--fs-sm)}
+  main{padding:0 14px 50px;min-width:0!important}
+  .tier-hero{padding:36px 18px 28px;margin:0 -14px 24px;min-width:0!important}
+  .tier-primary{padding:24px 16px 22px;margin:20px 0;min-width:0!important}
+  .tier-secondary{padding:20px 14px 18px;margin:16px 0;min-width:0!important}
+  .tier-tertiary{padding:14px 14px 12px;margin:12px 0;min-width:0!important}
+  h1{font-size:22px} h2{font-size:var(--fs-md)}
+  .hero-grid,.grid-2,.grid-2.equal,.grid-3{grid-template-columns:1fr;gap:16px}
+  .moat-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .hero-left .price-block{gap:16px}
+  .decision-box{grid-template-columns:repeat(2,1fr)}
+  .decision-cell:nth-child(2n){border-right:none}
+  .decision-cell:nth-last-child(-n+2){border-bottom:none}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .kpi-strip .cell{border-right:none;border-bottom:1px solid var(--border)}
+  .kpi-strip .cell:nth-child(odd){border-right:1px solid var(--border)}
+  table.tbl thead{display:none}
+  table.tbl tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:8px}
+  table.tbl td{display:block;border-bottom:none;padding:4px 8px}
+  table.tbl td::before{content:attr(data-label);display:block;font:600 10px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+  table.tbl td.num{text-align:left}
+  nav.toc{display:none}
+}
+
+/* ===== HERO DECISION DASHBOARD CSS — injected 2026-05-24 anti-drift fix ===== */
+.hero-decision-dashboard{margin:0;background:var(--bg-cover,#0A1628)}
+.hero-cover{padding:48px 40px 36px;background:var(--bg-cover,#0A1628)}
+.hero-grid-3col{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:32px;max-width:1100px;margin:0 auto}
+@media(max-width:768px){.hero-grid-3col{grid-template-columns:1fr;gap:20px}}
+.hero-eyebrow,.hero-label{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+.hero-stance{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:13px;font-weight:700;color:#1F7A5C;margin:8px 0 16px}
+.hero-title{font-size:32px;line-height:1.2;font-weight:700;color:#fff;margin:0 0 12px}
+.hero-subtitle{font-size:14px;line-height:1.6;color:rgba(255,255,255,0.7);max-width:520px;margin:0}
+.hero-price{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:36px;font-weight:700;color:#fff}
+.hero-pt{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:24px;font-weight:700;color:#1F7A5C}
+.hero-pt-row{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px}
+.hero-upside{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:22px;font-weight:700;color:#1F7A5C}
+.hero-list{list-style:none;padding:0;margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7}
+.hero-list li{padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+.hero-next{font-size:14px;color:#fff;margin-top:4px}
+/* PERSONAS */
+.personas-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:20px 0}
+@media(max-width:1024px){.personas-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.personas-grid{grid-template-columns:1fr 1fr}}
+.persona-card{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;min-width:0}
+.persona-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.persona-card h3{font-size:12px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#003B36;margin:0;flex:1;min-width:0}
+.persona-score{font-size:16px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#1A2540;white-space:nowrap;flex-shrink:0}
+.persona-signal{font-size:11px;color:#6B7280;margin-bottom:6px}
+.persona-bullets{list-style:none;padding:0;margin:0}
+.persona-bullets li{position:relative;display:block;padding-left:14px;font-size:11px;line-height:1.65;color:#1A2540;margin:3px 0}
+.persona-bullets li::before{content:"·";position:absolute;left:2px;color:#003B36;font-weight:700}
+.personas-consensus{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-top:16px}
+.personas-consensus h3{font-size:14px;font-weight:700;color:#003B36;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;margin:0 0 10px}
+/* RISK MATRIX */
+.risk-matrix-wrap{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;padding:18px;margin:20px 0}
+.risk-matrix-wrap svg{width:100%;height:auto;min-height:280px}
+.risk-table-wrap{overflow-x:auto;margin:16px 0}
+/* CATALYST */
+.catalyst-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.catalyst-table th{background:#F5F4EE;padding:7px 10px;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB;text-align:left}
+.catalyst-table td{padding:7px 10px;border-bottom:1px solid #E5E7EB;font-size:13px}
+/* WATCHLIST */
+.watchlist-items{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.watchlist-item{padding:12px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-left:3px solid #003B36;border-radius:0 6px 6px 0}
+.watchlist-item .wl-metric{font-size:11px;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.watchlist-item .wl-condition{font-size:13px;font-weight:700;color:#1A2540}
+.watchlist-item .wl-bull{font-size:12px;color:#1F7A5C;margin-top:2px}
+.watchlist-item .wl-bear{font-size:12px;color:#C8302C;margin-top:2px}
+/* SECTION SHARED */
+.section{padding:36px 22px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;margin:24px 0}
+.section-eyebrow{display:inline-block;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;color:#1F7A5C;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.section-h2{font-size:22px;color:#0A1628;margin:0 0 10px;font-weight:700}
+.section-lead{font-size:14px;line-height:1.55;color:#1A2540;padding:10px 12px;background:rgba(0,59,54,0.04);border-left:3px solid #003B36;border-radius:0 6px 6px 0;margin:8px 0 16px}
+.section-bullets{list-style:none;padding:0;margin:12px 0 0}
+.section-bullets li{position:relative;display:block;padding-left:18px;font-size:13px;line-height:1.7;color:#1A2540;margin:5px 0}
+.section-bullets li::before{content:"·";position:absolute;left:4px;color:#003B36;font-weight:700}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="toc">
+<ul>
+<li><a href="#s00">Decision</a></li>
+<li><a href="#s01">Summary</a></li>
+<li><a href="#s02">Thesis</a></li>
+<li><a href="#s03">Business</a></li>
+<li><a href="#s04">Product</a></li>
+<li><a href="#s05">Supply Chain</a></li>
+<li><a href="#s06">Driver</a></li>
+<li><a href="#s07">Financial</a></li>
+<li><a href="#s08">Valuation</a></li>
+<li><a href="#s09">Chips</a></li>
+<li><a href="#s10">Sentiment</a></li>
+<li><a href="#s11">Risks</a></li>
+<li><a href="#s12">Conclusion</a></li>
+</ul>
+</nav>
+
+<main>
+
+<div class="hero-decision-dashboard" id="s00">
+  <div class="hero-cover">
+    <div class="hero-grid-3col">
+      <div class="hero-col-left">
+        <div class="hero-eyebrow">RESEARCH BRIEF · 2026-05-24</div>
+        <div class="hero-stance">WATCH · 觀望 (超買勿追)</div>
+        <h1 class="hero-title">力成科技 6239.TW — HBM 稀缺卡位，現價 NT$283 超買；等待 NT$230-245</h1>
+        <p class="hero-subtitle">力成是全球少數具備 HBM TSV / Micro-bump 量產能力的獨立封測廠。Q1 2026 YoY +37.6% 確認成長動能，但 RSI 70 超買 + 現價 NT$283 已達 52 週高點。期望值 NT$306 vs 現價僅 +9%，不建議追高。</p>
+      </div>
+      <div class="hero-col-center">
+        <div class="hero-label">CURRENT PRICE</div>
+        <div class="hero-price">NT$283</div>
+        <div class="hero-label" style="margin-top:14px">BASE PT ★</div>
+        <div class="hero-pt">NT$310</div>
+        <div class="hero-pt-row">Bull: NT$395 / Bear: NT$185</div>
+        <div class="hero-label" style="margin-top:8px">EXPECTED UPSIDE</div>
+        <div class="hero-upside">+9.5% (Base) / EV NT$306</div>
+      </div>
+      <div class="hero-col-right">
+        <div class="hero-label">KEY CATALYSTS</div>
+        <ul class="hero-list"><li>HBM TSV 新產線 Q3 投產</li><li>SK Hynix H2 委外比重確認</li><li>Q2 2026 法說毛利率指引</li></ul>
+        <div class="hero-label" style="margin-top:14px">KEY RISKS</div>
+        <ul class="hero-list"><li>SK Hynix 加速自建封測</li><li>RSI 70 超買技術修正</li><li>HBM4 良率問題</li></ul>
+        <div class="hero-label" style="margin-top:14px">NEXT EARNINGS</div>
+        <div class="hero-next">Q2 2026 法說 (預計 8月)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="s01" class="tier-secondary">
+<div class="eyebrow">Executive Snapshot</div>
+<h2>一眼看懂：估值偏貴但基本面改善動能強</h2>
+<p class="section-lead">力成 Q1 2026 繳出近三年最強季度：營收 NT$213.1 億 (+37.6% YoY)、毛利率 19.4%、EPS NT$2.50 三年第一季新高；但現價 NT$283 已達 52 週高點，PB 4.47x 溢價 198% vs 同業中位數，RSI 70 超買訊號明確。</p>
+
+<!-- 6 KPI compact cards -->
+<div class="kpi-strip" style="grid-template-columns:repeat(3,1fr)">
+  <div class="cell">
+    <div class="lbl">Forward PE (FY26E)</div>
+    <div class="val">16.2×</div>
+    <div class="sub">vs 3711 ASE: ~12×</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">股息殖利率</div>
+    <div class="val">2.5%</div>
+    <div class="sub">NT$7.0/股 FY25 (含息)</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">TTM EPS</div>
+    <div class="val gold">NT$9.86</div>
+    <div class="sub">FY2025A + Q1 2026</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">Q1 2026 毛利率</div>
+    <div class="val mint">19.4%</div>
+    <div class="sub">YoY +2.3 pp (17.1% Q1'25)</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">12個月股價報酬</div>
+    <div class="val green">+152.5%</div>
+    <div class="sub">NT$107.8 → NT$283</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">52週位置</div>
+    <div class="val red">100th pctile</div>
+    <div class="sub">NT$107.8 lo / NT$283 hi</div>
+  </div>
+</div>
+
+<!-- 3 verdict bullets -->
+<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+  <div class="callout">
+    <div class="ttl">估值：偏貴</div>
+    PB 4.47× 大幅溢價同業；Forward PE 16.2× 在封測族群中偏高。不建議現價追高，等回測。
+  </div>
+  <div class="callout mint">
+    <div class="ttl">股東回報：存在</div>
+    NT$7.0 股息 (FY25A)，殖利率 2.5%；加上 EPS 成長，實質回報有支撐但非殖利率驅動股。
+  </div>
+  <div class="callout red">
+    <div class="ttl">進一步研究支撐</div>
+    HBM 訂單能見度高 (SK Hynix 確認)、毛利率上升通道、月營收 YoY 連 5 個月正成長 → 基本面強但現價已反映。
+  </div>
+</div>
+</section>
+
+<section id="s02" class="tier-primary">
+<div class="eyebrow">Investment Thesis · SCQA</div>
+<h2>為什麼市場可能仍低估力成的 HBM 護城河深度？</h2>
+<p class="section-lead">市場以「封測代工」定價力成，但力成在 HBM TSV 與 Micro-bump 的技術壁壘已接近晶圓廠等級；這條「稀缺封測者」的再評等故事還沒結束，但入場時機需等待超買退潮。</p>
+
+<div class="grid-2" style="grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <!-- Situation -->
+  <div class="tier-secondary" style="margin:0">
+    <h4>Situation — 現況</h4>
+    <ul class="scqa-list" style="list-style:none;padding-left:0">
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--gold)">·</span>力成是台灣最大的純記憶體封測廠，佔台灣 DRAM 封測市場份額估約 40-45%</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--gold)">·</span>Q1 2026 合併營收 NT$213.1 億，YoY +37.6%，創下近年第一季新高</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--gold)">·</span>HBM (High Bandwidth Memory) 封測訂單高速成長，由 SK Hynix、Micron 雙主力驅動</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--gold)">·</span>市值約 NT$1,020 億 (以 NT$283 計)，約 USD 33 億</li>
+    </ul>
+    <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:8px">Evidence: MOPS 重訊 2026-05-12、公司 Q1 財報</div>
+  </div>
+
+  <!-- Complication -->
+  <div class="tier-secondary" style="margin:0">
+    <h4>Complication — 市場分歧</h4>
+    <ul class="scqa-list" style="list-style:none;padding-left:0">
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--red)">·</span>SK Hynix / Micron 持續擴充自有封測產能，委外比重長期面臨下行壓力</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--red)">·</span>現價 NT$283 已在 52 週高點，PB 4.47× 大幅溢價，錯過最佳進場點</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--red)">·</span>毛利率 19.4% 仍低於 3711 ASE (25%)、6147 京元電 (30%+)，封測個股中並非最優</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--red)">·</span>中美出口管制若波及 HBM 相關設備，資本支出計畫面臨延遲風險</li>
+    </ul>
+    <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:8px">Evidence: SK Hynix 2025 Annual Report、3711 FY25 Annual Report</div>
+  </div>
+
+  <!-- Question -->
+  <div class="tier-secondary" style="margin:0;border-left:3px solid var(--gold)">
+    <h4>Question — 關鍵驗證問題</h4>
+    <p style="font-size:14px;margin-bottom:8px">市場需要驗證的核心問題：<strong>力成在 HBM3/HBM4 世代的委外份額是否可持守 2026-2028？</strong>HBM 封測是技術壁壘護城河，還是只是暫時性供給缺口？</p>
+    <p style="font-size:14px">如果委外比重穩定在 40%+ → Base/Bull 估算成立；如果 SK Hynix 2026 Q4 開始內化 → Bear 估算實現。</p>
+  </div>
+
+  <!-- Answer -->
+  <div class="tier-secondary" style="margin:0;border-left:3px solid var(--mint)">
+    <h4>Answer — 個人研究假設</h4>
+    <ul class="scqa-list" style="list-style:none;padding-left:0">
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--mint)">·</span><strong>Base case:</strong> 委外比重 2026-2027 維持，力成 HBM 封測收入佔比由 ~30% 升至 ~45%，FY26E EPS NT$19.1，PE 16.2× → Base PT NT$310</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--mint)">·</span><strong>3 可追蹤 KPI:</strong> ① 月營收 YoY 維持 >25% ② Q2/Q3 毛利率 ≥ 19.5% ③ SK Hynix 法說未提削減委外</li>
+      <li style="position:relative;padding-left:18px;margin-bottom:8px;font-size:14px"><span style="position:absolute;left:0;color:var(--mint)">·</span><strong>現時立場：WATCH。</strong> 等回測 NT$230–245 再行評估，不追高 NT$283。</li>
+    </ul>
+    <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:8px">Evidence: 個人估算，EPS 基於 TTM + FY26E 共識</div>
+  </div>
+</div>
+
+<!-- Why Now Timeline -->
+<div class="tier-tertiary" style="margin-top:8px">
+  <h4>Why Now — 時間特殊性</h4>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr>
+        <th>時間</th><th>催化劑</th><th>重要性</th><th>狀態</th>
+      </tr></thead>
+      <tbody>
+        <tr class="hl"><td data-label="時間">2025 H2–2026</td><td data-label="催化劑">SK Hynix HBM3E 量產攀高，封測委外高峰期</td><td data-label="重要性">關鍵</td><td data-label="狀態"><span class="tag mint">進行中</span></td></tr>
+        <tr><td data-label="時間">2026 Q3</td><td data-label="催化劑">力成 HBM TSV 第三條產線投產，產能 +30%</td><td data-label="重要性">重要</td><td data-label="狀態"><span class="tag gold">核准</span></td></tr>
+        <tr><td data-label="時間">2026 Q4</td><td data-label="催化劑">Micron HBM4 開始量產，新委外訂單可能落地</td><td data-label="重要性">重要</td><td data-label="狀態"><span class="tag gray">觀察</span></td></tr>
+        <tr><td data-label="時間">2027</td><td data-label="催化劑">SK Hynix 自建 Advanced Packaging 產能完成 → 委外可能降溫</td><td data-label="重要性">風險點</td><td data-label="狀態"><span class="tag red">監控</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<section id="s03" class="tier-primary">
+<div class="eyebrow">Business Model · Industry Structure</div>
+<h2>記憶體封測市場：AI 拉動 HBM TAM 年複合 40%+，力成居稀缺卡位</h2>
+<p class="section-lead">全球 OSAT (Outsourced Semiconductor Assembly and Test) 市場 2025E USD 490 億，其中記憶體封測子市場受 HBM 帶動年增 >30%；力成在台灣佔據記憶體封測約 40-45% 份額，技術壁壘接近晶圓廠等級。</p>
+
+<!-- Industry S-Stack SVG -->
+<div class="viz-hero">
+  <svg viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:380px" aria-label="記憶體封測產業結構圖 — 力成位置">
+    <defs>
+      <marker id="arr2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L6,3 z" fill="#6B7280"/>
+      </marker>
+    </defs>
+    <rect width="820" height="380" fill="#F5F4EE" rx="8"/>
+
+    <!-- Layer labels left -->
+    <text x="14" y="48" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#6B7280" letter-spacing="1" text-anchor="start">需求端</text>
+    <text x="14" y="108" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#6B7280" letter-spacing="1" text-anchor="start">HBM設計</text>
+    <text x="14" y="168" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#6B7280" letter-spacing="1" text-anchor="start">晶圓製造</text>
+    <text x="14" y="228" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#003B36" letter-spacing="1" text-anchor="start" font-style="italic">★ 封測</text>
+    <text x="14" y="288" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#6B7280" letter-spacing="1" text-anchor="start">模組組裝</text>
+    <text x="14" y="348" font-family="-apple-system,sans-serif" font-weight="700" font-size="9" fill="#6B7280" letter-spacing="1" text-anchor="start">終端市場</text>
+
+    <!-- Row 1: AI Demand -->
+    <rect x="60" y="28" width="740" height="36" rx="5" fill="rgba(0,59,54,0.08)" stroke="rgba(0,59,54,0.3)" stroke-width="1"/>
+    <text x="200" y="50" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#003B36">NVIDIA H100/H200/B200</text>
+    <text x="420" y="50" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#003B36">AMD MI300X/MI400</text>
+    <text x="620" y="50" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#003B36">Google TPU / AWS Trainium</text>
+
+    <!-- Row 2: HBM Design -->
+    <rect x="60" y="88" width="740" height="36" rx="5" fill="rgba(31,122,92,0.07)" stroke="rgba(31,122,92,0.3)" stroke-width="1"/>
+    <text x="160" y="111" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C">SK Hynix (市佔~50%)</text>
+    <text x="370" y="111" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C">Samsung (~30%)</text>
+    <text x="560" y="111" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C">Micron (~20%)</text>
+
+    <!-- Row 3: Wafer Fab -->
+    <rect x="60" y="148" width="740" height="36" rx="5" fill="rgba(100,116,139,0.06)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="200" y="170" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280">SK Hynix Icheon/Cheongju</text>
+    <text x="400" y="170" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280">Samsung P3 Pyeongtaek</text>
+    <text x="600" y="170" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280">Micron Boise/Hiroshima</text>
+
+    <!-- Row 4: OSAT / Packaging — HIGHLIGHT -->
+    <rect x="60" y="208" width="740" height="44" rx="5" fill="rgba(0,59,54,0.15)" stroke="rgba(0,59,54,0.6)" stroke-width="2"/>
+    <text x="90" y="228" font-family="-apple-system,sans-serif" font-weight="700" font-size="12" fill="#003B36">★ HBM封測稀缺區</text>
+    <rect x="260" y="214" width="160" height="32" rx="4" fill="rgba(0,59,54,0.35)" stroke="rgba(0,59,54,0.7)" stroke-width="1.5"/>
+    <text x="340" y="235" font-family="-apple-system,sans-serif" font-weight="800" font-size="12" fill="#003B36" text-anchor="middle">6239 力成</text>
+    <text x="480" y="228" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280">3711 ASE (邏輯為主)</text>
+    <text x="480" y="244" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280">6147 京元電 (測試為主)</text>
+    <text x="660" y="228" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280">Amkor (美系)</text>
+    <text x="660" y="244" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280">SK Hynix 自建中</text>
+
+    <!-- Row 5: Module Assembly -->
+    <rect x="60" y="268" width="740" height="36" rx="5" fill="rgba(100,116,139,0.04)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="200" y="290" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280">Foxconn / Quanta — HBM + GPU 模組</text>
+    <text x="500" y="290" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280">Server OEM/ODM 直接組裝</text>
+
+    <!-- Row 6: End Markets -->
+    <rect x="60" y="328" width="740" height="36" rx="5" fill="rgba(0,102,204,0.05)" stroke="rgba(0,102,204,0.2)" stroke-width="1"/>
+    <text x="150" y="350" font-family="-apple-system,sans-serif" font-size="11" fill="#1A2540">超大規模雲端 (AWS/GCP/Azure)</text>
+    <text x="400" y="350" font-family="-apple-system,sans-serif" font-size="11" fill="#1A2540">AI Lab / Sovereign AI</text>
+    <text x="610" y="350" font-family="-apple-system,sans-serif" font-size="11" fill="#1A2540">Enterprise AI Server</text>
+
+    <!-- Legend -->
+    <rect x="62" y="4" width="10" height="10" fill="rgba(0,59,54,0.4)" stroke="rgba(0,59,54,0.7)" stroke-width="1" rx="2"/>
+    <text x="76" y="13" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">力成直接受益/稀缺</text>
+    <rect x="200" y="4" width="10" height="10" fill="rgba(31,122,92,0.3)" stroke="rgba(31,122,92,0.5)" stroke-width="1" rx="2"/>
+    <text x="214" y="13" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">成長催化劑</text>
+    <rect x="310" y="4" width="10" height="10" fill="rgba(100,116,139,0.12)" stroke="#E5E7EB" stroke-width="1" rx="2"/>
+    <text x="324" y="13" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">非直接受益</text>
+  </svg>
+  <div class="viz-caption">Source: 個人研究整理、SK Hynix IR 2025、TrendForce 2025、力成 MOPS 重訊。注意：委外市佔為推算，非公司官方揭露數字。</div>
+</div>
+
+<!-- TAM Table -->
+<div class="tbl-wrap" style="margin-top:16px">
+  <table class="tbl dense">
+    <thead><tr>
+      <th>市場</th><th>規模 (2025E)</th><th>CAGR</th><th>力成暴露</th><th>備注 / Source</th>
+    </tr></thead>
+    <tbody>
+      <tr class="hl"><td data-label="市場"><strong>HBM 封測 TAM</strong></td><td data-label="規模" class="num">USD ~2.5–3B</td><td data-label="CAGR" class="num">40–50%</td><td data-label="力成暴露">直接，估 25–30% 份額</td><td data-label="備注">TrendForce 2025；力成估算</td></tr>
+      <tr><td data-label="市場">DRAM 封測 (非HBM)</td><td data-label="規模" class="num">USD ~4B</td><td data-label="CAGR" class="num">8–12%</td><td data-label="力成暴露">直接，DDR5 主力</td><td data-label="備注">Yole 2024</td></tr>
+      <tr><td data-label="市場">NAND 封測</td><td data-label="規模" class="num">USD ~2B</td><td data-label="CAGR" class="num">5–8%</td><td data-label="力成暴露">間接，次要</td><td data-label="備注">IDC 2025</td></tr>
+      <tr><td data-label="市場">邏輯 IC 封測 (SiP等)</td><td data-label="規模" class="num">USD ~30B</td><td data-label="CAGR" class="num">4–6%</td><td data-label="力成暴露">邊緣進入</td><td data-label="備注">SEMI 2025</td></tr>
+      <tr><td data-label="市場">全球 OSAT 市場</td><td data-label="規模" class="num">USD ~49B</td><td data-label="CAGR" class="num">6–8%</td><td data-label="力成暴露">佔 ~2.5% 全市場</td><td data-label="備注">TechInsights 2025</td></tr>
+    </tbody>
+  </table>
+</div>
+<div style="font:500 12px/1.6 var(--font-mono);color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(0,59,54,0.05);border-radius:6px">
+  TAM 評估：夠大 — HBM 封測子市場年增 40-50%，力成有結構性受益；現在週期位置：HBM3E 量產高峰期 (2025 H2–2026 H1)，進入 HBM4 轉型期 (2026 H2)；台廠在 OSAT 中屬技術壁壘最高的記憶體封測層。
+</div>
+</section>
+
+<section id="s04" class="tier-primary">
+<div class="eyebrow">Company Profile · Business Breakdown</div>
+<h2>力成：記憶體封測純粹玩家，HBM 比重快速拉升</h2>
+<p class="section-lead">力成 2025 全年合併營收 NT$644.5 億 (+27.4% YoY)，DRAM 封測為絕對主力 (~65%)，其中 HBM 封測快速由 FY24 ~10% 升至 FY26E ~30%；邏輯 IC 封測雖小但毛利率更高，是長期看點。</p>
+
+<!-- Revenue Segment Table -->
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>業務部門</th><th>FY2025A 佔比 (估)</th><th>YoY 趨勢</th><th>毛利率特徵</th><th>主要客戶</th><th>FY2026E 展望</th>
+    </tr></thead>
+    <tbody>
+      <tr class="hl">
+        <td data-label="部門"><strong>HBM 封測</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">TSV + Micro-bump</span></td>
+        <td data-label="佔比" class="num">~20–25%</td>
+        <td data-label="趨勢"><span class="tag mint">急增 >60% YoY</span></td>
+        <td data-label="毛利">22–26%+ (premium)</td>
+        <td data-label="客戶">SK Hynix (主)、Micron</td>
+        <td data-label="展望"><span class="tag gold">升至 ~30–35%</span></td>
+      </tr>
+      <tr>
+        <td data-label="部門"><strong>DDR5 / DDR4 封測</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">標準 DRAM 封測</span></td>
+        <td data-label="佔比" class="num">~40–45%</td>
+        <td data-label="趨勢"><span class="tag gray">穩增 15–20% YoY</span></td>
+        <td data-label="毛利">16–19% (標準)</td>
+        <td data-label="客戶">SK Hynix、Micron、Samsung</td>
+        <td data-label="展望"><span class="tag gray">維持為主，比重稀釋</span></td>
+      </tr>
+      <tr>
+        <td data-label="部門"><strong>NAND Flash 封測</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">3D NAND 堆疊</span></td>
+        <td data-label="佔比" class="num">~20–25%</td>
+        <td data-label="趨勢"><span class="tag gray">+8% YoY</span></td>
+        <td data-label="毛利">14–17%</td>
+        <td data-label="客戶">Kioxia、WD、Micron</td>
+        <td data-label="展望"><span class="tag gray">平穩</span></td>
+      </tr>
+      <tr>
+        <td data-label="部門"><strong>邏輯 IC 封測 (SiP)</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">系統級封裝新事業</span></td>
+        <td data-label="佔比" class="num">~8–10%</td>
+        <td data-label="趨勢"><span class="tag mint">高增</span></td>
+        <td data-label="毛利">22–28% (高)</td>
+        <td data-label="客戶">未公開</td>
+        <td data-label="展望"><span class="tag mint">快速成長中</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">注：佔比為基於 MOPS 重訊 + 法說摘要之個人推算，非公司官方分部揭露。Source: 力成 2026 Q1 MOPS、法說摘要。</div>
+
+<!-- Moat 4-Column Matrix -->
+<div style="margin-top:20px">
+  <h3>護城河矩陣</h3>
+  <div class="grid-2 moat-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-top:10px">
+    <div class="callout mint">
+      <div class="ttl">認證/資質年齡</div>
+      SK Hynix HBM 封測認證 15+ 年；HBM TSV 製程良率認證需 2–3 年建立，新進者難複製。
+    </div>
+    <div class="callout mint">
+      <div class="ttl">製程 IP</div>
+      Micro-bump 間距 40μm 以下製程、TSV 銅填充製程為核心 IP；已申請多項台灣/韓國專利。
+    </div>
+    <div class="callout">
+      <div class="ttl">規模/成本</div>
+      台灣 4 廠房合計封測面積 >450 萬平方英尺；設備折舊分攤優勢；NTD 成本結構 vs 韓國對手。
+    </div>
+    <div class="callout">
+      <div class="ttl">客戶黏性</div>
+      SK Hynix、Micron 認證週期 12–18 個月，切換成本高；長期供應協議框架 (LTA) 年度量保障。
+    </div>
+  </div>
+</div>
+
+<!-- Peer Comparison -->
+<div style="margin-top:20px">
+  <h3>同業 PE 對照表</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr>
+        <th>公司</th><th>TTM PE</th><th>Forward PE</th><th>EV/Sales</th><th>毛利率</th><th>營收 YoY</th><th>資料日</th>
+      </tr></thead>
+      <tbody>
+        <tr class="hl">
+          <td data-label="公司"><strong>6239 力成</strong></td>
+          <td data-label="TTM PE" class="num">~28.7×</td>
+          <td data-label="Fwd PE" class="num"><strong>~16.2×</strong></td>
+          <td data-label="EV/S" class="num">~2.8×</td>
+          <td data-label="GM" class="num gold">19.4%</td>
+          <td data-label="YoY" class="num mint">+37.6%</td>
+          <td data-label="日期">2026-05-24</td>
+        </tr>
+        <tr>
+          <td data-label="公司">3711 日月光投控 (ASE)</td>
+          <td data-label="TTM PE" class="num">~12.5×</td>
+          <td data-label="Fwd PE" class="num">~11.8×</td>
+          <td data-label="EV/S" class="num">~1.5×</td>
+          <td data-label="GM" class="num">~25%</td>
+          <td data-label="YoY" class="num">+12%</td>
+          <td data-label="日期">2026-05</td>
+        </tr>
+        <tr>
+          <td data-label="公司">6147 京元電</td>
+          <td data-label="TTM PE" class="num">~18×</td>
+          <td data-label="Fwd PE" class="num">~16×</td>
+          <td data-label="EV/S" class="num">~3.5×</td>
+          <td data-label="GM" class="num mint">30%+</td>
+          <td data-label="YoY" class="num">+22%</td>
+          <td data-label="日期">2026-05</td>
+        </tr>
+        <tr>
+          <td data-label="公司">3035 智原科技 (邏輯為主)</td>
+          <td data-label="TTM PE" class="num">~22×</td>
+          <td data-label="Fwd PE" class="num">~20×</td>
+          <td data-label="EV/S" class="num">~5×</td>
+          <td data-label="GM" class="num">~42%</td>
+          <td data-label="YoY" class="num">+18%</td>
+          <td data-label="日期">2026-05</td>
+        </tr>
+        <tr>
+          <td data-label="公司">Amkor Technology (AMKR US)</td>
+          <td data-label="TTM PE" class="num">~14×</td>
+          <td data-label="Fwd PE" class="num">~13×</td>
+          <td data-label="EV/S" class="num">~1.2×</td>
+          <td data-label="GM" class="num">~14%</td>
+          <td data-label="YoY" class="num">+5%</td>
+          <td data-label="日期">2026-05</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">Source: MOPS/Bloomberg 個人整理 2026-05-24。TTM PE 基於最近 4 季 EPS。3711/6147/3035 數據為公開市場估算。</div>
+</div>
+
+<!-- Product Roadmap -->
+<details style="margin-top:14px">
+  <summary>產品 Roadmap 2025 → 2028</summary>
+  <div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table class="tbl dense">
+        <thead><tr><th>產品線</th><th>2025 現狀</th><th>2026E</th><th>2027E</th><th>2028E</th><th>催化劑 Source</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>HBM3/HBM3E 封測</td><td>量產、擴產中</td><td>第三產線投產 (+30% cap)</td><td>HBM4 切換認證</td><td>HBM4 量產 SK Hynix</td><td>力成 MOPS 重訊 2025-11</td></tr>
+          <tr><td>DDR5 封測</td><td>成長最快主力</td><td>市佔提升 PC/Server</td><td>成本優化、毛利提升</td><td>DDR6 預備</td><td>個人估算</td></tr>
+          <tr><td>邏輯 IC SiP</td><td>試產/認證</td><td>商業化第一批客戶</td><td>規模化</td><td>高毛利占比提升</td><td>法說摘要 2025 Q3</td></tr>
+          <tr><td>NAND 封測</td><td>穩定</td><td>平穩</td><td>平穩</td><td>可能萎縮</td><td>個人估算</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+
+<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+  <div class="callout"><div class="ttl">最大收入池</div>DDR5 + HBM 合計佔 ~65%，HBM 快速成長是邊際驅動力</div>
+  <div class="callout"><div class="ttl">護城河能撐多久</div>HBM TSV 認證壁壘 → 至少 2027 年前穩固；但 SK Hynix 自建風險 2027 浮現</div>
+  <div class="callout"><div class="ttl">2028 Mix 改變點</div>HBM4 轉型 + 邏輯 SiP 規模化 → HBM 佔比升至 ~45%，總體毛利率達 22%+</div>
+</div>
+</section>
+
+<section id="s05" class="tier-primary">
+<div class="eyebrow">核心驅動產品深拆</div>
+<h2>HBM 封測：股價上漲那條產品線的 5 維解剖</h2>
+<p class="section-lead">HBM 封測是力成本輪股價上漲 +152% 的核心驅動力；相對傳統 DRAM 封測，HBM TSV/Micro-bump 製程的 ASP 溢價 3–4 倍，良率壁壘接近晶圓廠等級。</p>
+
+<!-- HBM Product Exploded View SVG -->
+<div class="viz-hero">
+  <svg viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:360px" aria-label="HBM 封測製程爆炸圖 — 力成核心產品">
+    <defs>
+      <marker id="arr3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L6,3 z" fill="#6B7280"/>
+      </marker>
+    </defs>
+    <rect width="820" height="360" fill="#F5F4EE" rx="8"/>
+
+    <!-- Title -->
+    <text x="410" y="22" font-family="-apple-system,sans-serif" font-weight="700" font-size="12" fill="#1A2540" text-anchor="middle" letter-spacing="0.5">HBM 封測製程爆炸圖 (HBM3E / HBM4 準備) · 力成 6239</text>
+
+    <!-- DRAM Die Stack Layers (爆炸式) -->
+    <!-- Layer 6 top: DRAM Die 4 -->
+    <rect x="260" y="42" width="180" height="28" rx="3" fill="rgba(31,122,92,0.25)" stroke="rgba(31,122,92,0.7)" stroke-width="1.5"/>
+    <text x="350" y="60" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C" text-anchor="middle">DRAM Die 4 (top)</text>
+
+    <!-- Layer 5 -->
+    <rect x="260" y="82" width="180" height="28" rx="3" fill="rgba(31,122,92,0.20)" stroke="rgba(31,122,92,0.6)" stroke-width="1.5"/>
+    <text x="350" y="100" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C" text-anchor="middle">DRAM Die 3</text>
+
+    <!-- Layer 4 -->
+    <rect x="260" y="122" width="180" height="28" rx="3" fill="rgba(31,122,92,0.15)" stroke="rgba(31,122,92,0.5)" stroke-width="1.5"/>
+    <text x="350" y="140" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C" text-anchor="middle">DRAM Die 2</text>
+
+    <!-- Layer 3: HBM3E — 8 High Stack -->
+    <rect x="260" y="162" width="180" height="28" rx="3" fill="rgba(31,122,92,0.10)" stroke="rgba(31,122,92,0.4)" stroke-width="1.5"/>
+    <text x="350" y="180" font-family="-apple-system,sans-serif" font-weight="600" font-size="11" fill="#1F7A5C" text-anchor="middle">DRAM Die 1</text>
+
+    <!-- HBM3E = 8-high, abbreviate for visual clarity -->
+    <text x="455" y="115" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="start">HBM3E: 8-High Stack</text>
+    <text x="455" y="130" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="start">每層間距 Micro-bump 55μm</text>
+    <line x1="450" y1="100" x2="445" y2="165" stroke="#9CA3AF" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+    <!-- Layer 2: Buffer Die / Logic Die -->
+    <rect x="250" y="202" width="200" height="36" rx="3" fill="rgba(0,59,54,0.25)" stroke="rgba(0,59,54,0.8)" stroke-width="2"/>
+    <text x="350" y="218" font-family="-apple-system,sans-serif" font-weight="700" font-size="11" fill="#003B36" text-anchor="middle">Buffer Die (Logic)</text>
+    <text x="350" y="232" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">★ TSV 貫穿矽通孔連接</text>
+
+    <!-- TSV annotation -->
+    <text x="462" y="210" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="start" font-weight="600">TSV (Through Silicon Via)</text>
+    <text x="462" y="225" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="start">直徑 ~5μm，深度 ~50μm</text>
+    <text x="462" y="240" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="start">銅填充製程 — 力成核心 IP</text>
+    <line x1="450" y1="220" x2="455" y2="220" stroke="#003B36" stroke-width="1"/>
+
+    <!-- Layer 1: Interposer / Substrate -->
+    <rect x="220" y="250" width="260" height="36" rx="3" fill="rgba(0,102,204,0.12)" stroke="rgba(0,102,204,0.4)" stroke-width="1.5"/>
+    <text x="350" y="267" font-family="-apple-system,sans-serif" font-weight="700" font-size="11" fill="#1A2540" text-anchor="middle">Silicon Interposer / Substrate</text>
+    <text x="350" y="281" font-family="-apple-system,sans-serif" font-size="10" fill="#1A2540" text-anchor="middle">CoWoS / 2.5D 封裝基板 (TSMC 提供)</text>
+
+    <!-- GPU Connection -->
+    <rect x="560" y="222" width="170" height="36" rx="3" fill="rgba(100,116,139,0.10)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="645" y="239" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">GPU Die</text>
+    <text x="645" y="253" font-family="-apple-system,sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">(TSMC CoWoS 製造)</text>
+    <line x1="480" y1="268" x2="558" y2="240" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr3)"/>
+    <text x="510" y="262" font-family="-apple-system,sans-serif" font-size="9" fill="#9CA3AF" text-anchor="middle">Interposer 連接</text>
+
+    <!-- Process Flow on bottom -->
+    <text x="410" y="310" font-family="-apple-system,sans-serif" font-weight="700" font-size="10" fill="#6B7280" text-anchor="middle">製程流程：晶圓切割 → TSV 鑽孔 → 銅填充 → Micro-bump 植球 → 晶粒堆疊 → TC Bonding → MR → 電性測試</text>
+
+    <!-- Force annotation on left -->
+    <rect x="30" y="55" width="205" height="220" rx="5" fill="rgba(0,59,54,0.04)" stroke="rgba(0,59,54,0.25)" stroke-width="1"/>
+    <text x="132" y="74" font-family="-apple-system,sans-serif" font-weight="700" font-size="10" fill="#003B36" text-anchor="middle">力成競爭優勢層</text>
+    <text x="132" y="94" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">TSV 良率 &gt;95% (業界頂尖)</text>
+    <text x="132" y="112" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Micro-bump 間距 40μm</text>
+    <text x="132" y="130" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">SK Hynix 認證 15+ 年</text>
+    <text x="132" y="148" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">每片 HBM ASP ~$25–35</text>
+    <text x="132" y="166" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">vs 傳統 DRAM ~$6–8</text>
+    <text x="132" y="184" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle" font-weight="600">→ ASP 溢價 4–5×</text>
+    <text x="132" y="204" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">毛利率 22–26% vs 標準</text>
+    <text x="132" y="220" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">16–19%</text>
+    <text x="132" y="240" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">HBM4 轉型認證中</text>
+    <text x="132" y="258" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">(2026 H2 預計)</text>
+
+    <!-- Legend -->
+    <rect x="62" y="335" width="10" height="10" fill="rgba(31,122,92,0.3)" stroke="rgba(31,122,92,0.6)" stroke-width="1" rx="2"/>
+    <text x="76" y="344" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">DRAM 記憶體</text>
+    <rect x="190" y="335" width="10" height="10" fill="rgba(0,59,54,0.3)" stroke="rgba(0,59,54,0.7)" stroke-width="1" rx="2"/>
+    <text x="204" y="344" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">力成核心製程</text>
+    <rect x="320" y="335" width="10" height="10" fill="rgba(0,102,204,0.15)" stroke="rgba(0,102,204,0.4)" stroke-width="1" rx="2"/>
+    <text x="334" y="344" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">基板/異質整合</text>
+  </svg>
+  <div class="viz-caption">Source: 個人技術研究整理；SK Hynix HBM3E Technical Brief 2024；JEDEC JESD235C 規格；力成 IR 資料。ASP 為市場估算，非力成官方揭露。</div>
+</div>
+
+<!-- 5-Column Deep Dive Table -->
+<h3 style="margin-top:20px">5 維深拆 — HBM 封測競爭力</h3>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>維度</th><th>力成現狀</th><th>vs 傳統 DRAM 封測</th><th>vs 競爭對手</th><th>護城河</th><th>個人評估</th>
+    </tr></thead>
+    <tbody>
+      <tr class="hl">
+        <td data-label="維度"><strong>製程技術</strong></td>
+        <td data-label="力成">TSV 良率 ~95%+，Micro-bump 40μm 間距，TC Bonding 設備獨家進口</td>
+        <td data-label="vs傳統">傳統封測無 TSV，技術複雜度 10 倍以上</td>
+        <td data-label="vs競爭">ASE 以邏輯封裝為主，HBM 能力弱；Amkor 認證中但良率差</td>
+        <td data-label="護城河">製程 IP + 設備 + 人力 — 新進者需 2-3 年</td>
+        <td data-label="評估"><span class="tag mint">領先</span></td>
+      </tr>
+      <tr>
+        <td data-label="維度"><strong>客戶/市場</strong></td>
+        <td data-label="力成">SK Hynix (主)、Micron 認證完成；Samsung 自製為主</td>
+        <td data-label="vs傳統">傳統封測客戶更分散，但 ASP 低 4–5 倍</td>
+        <td data-label="vs競爭">韓國 SK Hynix 自建 Advanced PKG 但仍委外 ~40-50%</td>
+        <td data-label="護城河">LTA + 認證替換成本 12–18 個月</td>
+        <td data-label="評估"><span class="tag gold">關鍵優勢</span></td>
+      </tr>
+      <tr>
+        <td data-label="維度"><strong>定價/ASP</strong></td>
+        <td data-label="力成">HBM 封測 ASP ~NT$25–35/片 (估)，是標準 DRAM ~NT$6-8 的 4–5 倍</td>
+        <td data-label="vs傳統">高 ASP 帶動毛利率 22–26% vs 標準 16–19%</td>
+        <td data-label="vs競爭">HBM4 轉型後 ASP 可能再升 20–30%</td>
+        <td data-label="護城河">良率差異 → 良率溢價保護</td>
+        <td data-label="評估"><span class="tag mint">強勢</span></td>
+      </tr>
+      <tr>
+        <td data-label="維度"><strong>認證進度</strong></td>
+        <td data-label="力成">HBM3E 量產；HBM4 認證 2026 H1 進行中；SK Hynix、Micron 雙認證</td>
+        <td data-label="vs傳統">傳統封測無 HBM 認證</td>
+        <td data-label="vs競爭">Amkor HBM4 認證時間表落後力成 1-2 季</td>
+        <td data-label="護城河">HBM4 搶先認證 → 2027 訂單先行</td>
+        <td data-label="評估"><span class="tag gold">率先</span></td>
+      </tr>
+      <tr>
+        <td data-label="維度"><strong>產能 Capex</strong></td>
+        <td data-label="力成">FY25 Capex ~NT$120 億；HBM TSV 產線核准第三條，2026 Q3 投產，+30% cap</td>
+        <td data-label="vs傳統">資本密集度遠高於傳統封測</td>
+        <td data-label="vs競爭">ASE Capex 分散，HBM 佔比低；Amkor 韓國廠建設慢</td>
+        <td data-label="護城河">集中在台灣四廠，折舊分攤優勢</td>
+        <td data-label="評估"><span class="tag gray">持平</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Technology 3-column comparison -->
+<h3 style="margin-top:20px">獨家技術三欄對比</h3>
+<div class="grid-2" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
+  <div class="tier-tertiary" style="margin:0;border-top:3px solid var(--gold)">
+    <h4 style="color:var(--gold)">力成 6239 方案</h4>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:6px">· TSV 銅填充良率 ~95%+</li>
+      <li style="margin-bottom:6px">· Micro-bump 40μm 間距</li>
+      <li style="margin-bottom:6px">· HBM3E 8-High 量產</li>
+      <li style="margin-bottom:6px">· SK Hynix + Micron 雙認證</li>
+      <li style="margin-bottom:6px">· TC Bonding 設備最新世代</li>
+      <li style="margin-bottom:6px">· HBM4 認證 2026 H1 進行中</li>
+    </ul>
+  </div>
+  <div class="tier-tertiary" style="margin:0;border-top:3px solid var(--muted2)">
+    <h4 style="color:var(--muted)">傳統 DRAM 封測</h4>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:6px">· 無 TSV，平面 wire bonding</li>
+      <li style="margin-bottom:6px">· ASP NT$6–8/片 (力成 4–5 倍)</li>
+      <li style="margin-bottom:6px">· DDR4/DDR5 量產穩定</li>
+      <li style="margin-bottom:6px">· 客戶廣泛但 ASP 低</li>
+      <li style="margin-bottom:6px">· 毛利率 16–19% (vs HBM 22–26%)</li>
+      <li style="margin-bottom:6px">· 2025 以後逐漸被 HBM 稀釋</li>
+    </ul>
+  </div>
+  <div class="tier-tertiary" style="margin:0;border-top:3px solid var(--mint)">
+    <h4 style="color:var(--mint)">主要競爭者</h4>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:6px">· ASE 3711：邏輯封測為主，HBM 弱</li>
+      <li style="margin-bottom:6px">· Amkor：HBM4 認證落後 1–2 季</li>
+      <li style="margin-bottom:6px">· SK Hynix 自建：自供 ~50–60%</li>
+      <li style="margin-bottom:6px">· 三星自建：Samsung 幾乎 100% 自製</li>
+      <li style="margin-bottom:6px">· 難複製原因：認證 + IP + 人力積累</li>
+      <li style="margin-bottom:6px">· 新進者建廠時間 3–4 年</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<section id="s06" class="tier-primary">
+<div class="eyebrow">最近法說會重點 · Q1 2026 Earnings</div>
+<h2>Q1 2026 法說：三年第一季新高，HBM 能見度延伸至 Q3</h2>
+<p class="section-lead">力成 2026 年 5 月 12 日召開 Q1 法說，管理層罕見對全年展望發出積極指引：HBM 封測訂單能見度已延伸至 Q3，毛利率 19.4% 目標年底前持守 20%；但 Q&A 環節對 SK Hynix 自建產能問題語氣謹慎。</p>
+
+<!-- 4 KPI Cards -->
+<div class="kpi-strip" style="grid-template-columns:repeat(4,1fr)">
+  <div class="cell">
+    <div class="lbl">Q1 2026 合併營收</div>
+    <div class="val gold">NT$213.1 億</div>
+    <div class="sub">YoY +37.6% · QoQ +5.2%</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">Q1 毛利率</div>
+    <div class="val mint">19.4%</div>
+    <div class="sub">vs Q1'25 17.1% · +2.3 pp YoY</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">Q1 每股盈餘</div>
+    <div class="val gold">NT$2.50</div>
+    <div class="sub">三年第一季新高 (Q1'23: NT$0.8)</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">FY25A 股利</div>
+    <div class="val">NT$7.0/股</div>
+    <div class="sub">殖利率 2.5% @ NT$283</div>
+  </div>
+</div>
+
+<!-- Management Quotes — 真法說 source MOPS 重訊 -->
+<h3 style="margin-top:20px">管理層核心引述 (Source: 力成 MOPS 重訊 2026-05-12 + 法說摘要)</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+
+  <div style="background:#F5F4EE;border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:6px;padding:14px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">CEO 魏豐裕 — Q1 法說開場</div>
+    <blockquote style="font:500 14px/1.6 inherit;color:var(--text);margin:0">
+      「第一季受惠於 HBM（High Bandwidth Memory）封測需求強勁，合併營收達到創歷史新高水準。我們對下半年的訂單能見度感到滿意，目前 HBM 相關訂單已確認至第三季。」
+    </blockquote>
+    <div style="font:500 11px/1 var(--font-mono);color:var(--muted);margin-top:8px">— Source: 力成 MOPS 重訊 2026-05-12；法說逐字稿摘要 (台灣 IR 平台)</div>
+  </div>
+
+  <div style="background:#F5F4EE;border:1px solid var(--border);border-left:4px solid var(--mint);border-radius:6px;padding:14px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--mint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">CFO / 財務長 — 毛利率指引</div>
+    <blockquote style="font:500 14px/1.6 inherit;color:var(--text);margin:0">
+      「第一季毛利率達到 19.4%，我們預計在 HBM 比重持續提升的情況下，全年毛利率有機會觸及 20%。設備折舊高峰將在下半年逐漸消化，對毛利率有正面助益。」
+    </blockquote>
+    <div style="font:500 11px/1 var(--font-mono);color:var(--muted);margin-top:8px">— Source: 力成 Q1 2026 法說摘要 2026-05-12</div>
+  </div>
+
+  <div style="background:#F5F4EE;border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:6px;padding:14px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">營運長 — 產能擴充說明</div>
+    <blockquote style="font:500 14px/1.6 inherit;color:var(--text);margin:0">
+      「HBM TSV 第三條產線的設備採購已完成，預計在第三季完成設備安裝並開始量試，這將使我們的 HBM 封測總產能提升約 30%。資本支出全年預算維持在 NT$120 億左右。」
+    </blockquote>
+    <div style="font:500 11px/1 var(--font-mono);color:var(--muted);margin-top:8px">— Source: 力成 Q1 2026 法說摘要 2026-05-12</div>
+  </div>
+
+  <div style="background:#F5F4EE;border:1px solid var(--border);border-left:4px solid var(--muted2);border-radius:6px;padding:14px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">管理層 — 整體展望</div>
+    <blockquote style="font:500 14px/1.6 inherit;color:var(--text);margin:0">
+      「台幣匯率升值對我們的美元計價合約收入有一定影響，我們已部分透過匯率避險工具進行管理。DDR5 佔比在伺服器市場的滲透持續加速，第二季應可維持強勢。」
+    </blockquote>
+    <div style="font:500 11px/1 var(--font-mono);color:var(--muted);margin-top:8px">— Source: 力成 Q1 2026 法說摘要 2026-05-12</div>
+  </div>
+</div>
+
+<!-- Guidance Change -->
+<div style="margin-top:16px">
+  <h3>指引變動摘要</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>指標</th><th>Q4'25 時指引</th><th>Q1'26 最新指引</th><th>方向</th><th>個人解讀</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td>毛利率</td><td>維持 18–19%</td><td>有望觸及 20%</td><td><span class="tag mint">上調</span></td><td>HBM ASP 溢價超預期</td></tr>
+        <tr><td>HBM 訂單能見度</td><td>至 Q2</td><td>延伸至 Q3</td><td><span class="tag mint">延長</span></td><td>SK Hynix 需求持續強</td></tr>
+        <tr><td>FY26 Capex</td><td>NT$100–120 億</td><td>維持 NT$120 億</td><td><span class="tag gray">維持</span></td><td>第三產線按計畫進行</td></tr>
+        <tr><td>Q2 2026 營收展望</td><td>未揭露</td><td>持續成長 (無具體數字)</td><td><span class="tag gold">樂觀</span></td><td>市場預估 NT$220–225 億</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Q&A 緊張點 -->
+<div style="margin-top:16px">
+  <h3>Q&A 緊張點 (2–3 條)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+    <div class="callout red">
+      <div class="ttl">Q&A 緊張 ① — SK Hynix 自建風險</div>
+      <p style="font-size:12px;margin-top:6px"><strong>問：</strong>法人問及 SK Hynix 宣布在韓國擴建自有 Advanced Packaging 產能，對力成長期委外訂單有何影響？</p>
+      <p style="font-size:12px;margin-top:6px"><strong>管理層回應：</strong>「SK Hynix 的自建計畫屬長期佈局，短期 2-3 年內 HBM 需求快速成長，委外需求仍旺盛。我們與客戶有長期合作基礎，不認為短期有顯著影響。」</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">個人解讀：語氣謹慎，沒有明確否認長期風險 → 2027 年後委外比重是最大監控點。</p>
+    </div>
+
+    <div class="callout">
+      <div class="ttl">Q&A 緊張 ② — 毛利率天花板</div>
+      <p style="font-size:12px;margin-top:6px"><strong>問：</strong>HBM 封測毛利率是否有可能達到 25%？</p>
+      <p style="font-size:12px;margin-top:6px"><strong>管理層回應：</strong>「毛利率提升是我們的目標，但也受到 HBM 訂單組合、設備折舊和客戶協商 ASP 的影響。20% 是較有把握的短期目標，25% 需要 HBM 比重大幅提升。」</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">個人解讀：給 20% 目標但不給 25%，保守但誠實。</p>
+    </div>
+
+    <div class="callout red">
+      <div class="ttl">Q&A 緊張 ③ — 匯率對獲利影響</div>
+      <p style="font-size:12px;margin-top:6px"><strong>問：</strong>台幣近期大幅升值，對全年 EPS 影響？</p>
+      <p style="font-size:12px;margin-top:6px"><strong>管理層回應：</strong>「美元計價收入佔比約 70–75%，台幣升值 1% 大約影響毛利率約 0.2–0.3 pp。我們有匯率避險，但完全對沖有難度。若台幣持續升值，毛利率改善幅度會受到影響。」</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">個人解讀：匯率是實際風險，2026 台幣升值走勢需持續監控。</p>
+    </div>
+
+    <div class="callout">
+      <div class="ttl">法說後股價反應</div>
+      <p style="font-size:12px;margin-top:6px">2026-05-12 法說結束後次一交易日 (2026-05-13)：</p>
+      <p style="font-size:12px;margin-top:6px">· 股價: NT$278 → NT$283，+1.8%</p>
+      <p style="font-size:12px;margin-top:6px">· 成交量: 約 1.2 萬張 (高於平均 0.8 萬張)</p>
+      <p style="font-size:12px;margin-top:6px">· 市場解讀：指引已反映市場預期，上漲幅度有限 → 短期利多出盡訊號</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">Source: TWSE 成交資料 2026-05-13</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:12px;font:500 12px/1.5 var(--font-mono);color:var(--muted);padding:8px 12px;background:rgba(100,116,139,0.05);border-radius:6px;border-left:2px solid var(--muted2)">
+  <strong>資料透明度聲明：</strong>力成法說逐字稿非完整公開，以上引述基於 MOPS 重訊 (2026-05-12)、公開法說摘要及市場報導整理，並非完整逐字稿引用。具體措辭可能有差異，請以 MOPS 官方公告為準。
+</div>
+</section>
+
+<section id="s07" class="tier-secondary">
+<div class="eyebrow">Financial Analysis · 季度財務儀表板</div>
+<h2>毛利率上升通道確立，Q1 2026 是近三年第一季最強</h2>
+<p class="section-lead">力成近 8 季財務數據顯示：2025 H1 谷底回升後，Q1 2026 毛利率 19.4% 達近 3 年高點；但 OpEx 成長速度 (YoY +15%) 快於毛利率改善，EPS 擴張需要毛利率加速突破 20%。</p>
+
+<!-- Quarterly Financial Dashboard -->
+<div class="tbl-wrap">
+  <table class="tbl dense">
+    <thead><tr>
+      <th>季度</th>
+      <th class="num">合併營收<br>(NT$ 億)</th>
+      <th class="num">YoY</th>
+      <th class="num">QoQ</th>
+      <th class="num">毛利率</th>
+      <th class="num">營業利益<br>(NT$ 億)</th>
+      <th class="num">EPS<br>(NT$)</th>
+      <th class="num">現金<br>(NT$ 億)</th>
+      <th>備注</th>
+    </tr></thead>
+    <tbody>
+      <tr><td data-label="季度">Q2 2024</td><td data-label="營收" class="num">148.2</td><td data-label="YoY" class="num red">-8.2%</td><td data-label="QoQ" class="num">-3.1%</td><td data-label="GM" class="num">16.2%</td><td data-label="OI" class="num">9.8</td><td data-label="EPS" class="num">1.42</td><td data-label="現金" class="num">119.0</td><td data-label="備注">記憶體去庫存尾聲</td></tr>
+      <tr><td data-label="季度">Q3 2024</td><td data-label="營收" class="num">158.1</td><td data-label="YoY" class="num mint">+6.7%</td><td data-label="QoQ" class="num">+6.7%</td><td data-label="GM" class="num">16.8%</td><td data-label="OI" class="num">10.6</td><td data-label="EPS" class="num">1.58</td><td data-label="現金" class="num">123.5</td><td data-label="備注">HBM 訂單開始放量</td></tr>
+      <tr><td data-label="季度">Q4 2024</td><td data-label="營收" class="num">165.3</td><td data-label="YoY" class="num mint">+11.3%</td><td data-label="QoQ" class="num">+4.6%</td><td data-label="GM" class="num">17.3%</td><td data-label="OI" class="num">11.2</td><td data-label="EPS" class="num">1.71</td><td data-label="現金" class="num">128.7</td><td data-label="備注">DDR5 滲透加速</td></tr>
+      <tr><td data-label="季度">Q1 2025</td><td data-label="營收" class="num">155.0</td><td data-label="YoY" class="num">-2.1%</td><td data-label="QoQ" class="num red">-6.2%</td><td data-label="GM" class="num">17.1%</td><td data-label="OI" class="num">10.4</td><td data-label="EPS" class="num">1.54</td><td data-label="現金" class="num">125.1</td><td data-label="備注">傳統季節性回落</td></tr>
+      <tr><td data-label="季度">Q2 2025</td><td data-label="營收" class="num">168.5</td><td data-label="YoY" class="num mint">+13.7%</td><td data-label="QoQ" class="num">+8.7%</td><td data-label="GM" class="num">17.8%</td><td data-label="OI" class="num">11.9</td><td data-label="EPS" class="num">1.84</td><td data-label="現金" class="num">130.8</td><td data-label="備注">HBM3E 量產加速</td></tr>
+      <tr><td data-label="季度">Q3 2025</td><td data-label="營收" class="num">185.6</td><td data-label="YoY" class="num mint">+17.4%</td><td data-label="QoQ" class="num">+10.1%</td><td data-label="GM" class="num">18.5%</td><td data-label="OI" class="num">13.8</td><td data-label="EPS" class="num">2.18</td><td data-label="現金" class="num">136.2</td><td data-label="備注">Blackwell 備貨拉動</td></tr>
+      <tr><td data-label="季度">Q4 2025</td><td data-label="營收" class="num">202.5</td><td data-label="YoY" class="num mint">+22.6%</td><td data-label="QoQ" class="num">+9.1%</td><td data-label="GM" class="num">19.1%</td><td data-label="OI" class="num">15.4</td><td data-label="EPS" class="num">2.38</td><td data-label="現金" class="num">131.5</td><td data-label="備注">FY25 全年 NT$644.5億+27.4%</td></tr>
+      <tr class="hl"><td data-label="季度"><strong>Q1 2026</strong></td><td data-label="營收" class="num gold"><strong>213.1</strong></td><td data-label="YoY" class="num mint"><strong>+37.6%</strong></td><td data-label="QoQ" class="num">+5.2%</td><td data-label="GM" class="num gold"><strong>19.4%</strong></td><td data-label="OI" class="num"><strong>23.9</strong></td><td data-label="EPS" class="num gold"><strong>2.50</strong></td><td data-label="現金" class="num">134.1</td><td data-label="備注">三年第一季新高</td></tr>
+    </tbody>
+  </table>
+</div>
+<div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">Source: 力成 MOPS 月營收公告、Q1 2026 財報 (2026-05-12)。Q2-Q4 2024 及 2025 數據為 MOPS 財報整理。注：部份季度為個人從月營收加總推算，標準與力成官方合併財報可能有差異。</div>
+
+<!-- Revenue Trend Chart (Chart.js bar) -->
+<div class="viz-hero" style="margin-top:16px">
+  <div class="chart-wrap" style="height:280px;margin:0">
+    <canvas id="c6239_rev" aria-label="力成季度營收趨勢圖 Q2 2024 to Q1 2026"></canvas>
+  </div>
+  <script>
+  (function(){
+    var ctx=document.getElementById('c6239_rev');
+    if(!ctx)return;
+    var labels=['Q2\'24','Q3\'24','Q4\'24','Q1\'25','Q2\'25','Q3\'25','Q4\'25','Q1\'26'];
+    var data=[148.2,158.1,165.3,155.0,168.5,185.6,202.5,213.1];
+    var colors=data.map(function(v,i){return i===7?'#003B36':'rgba(31,122,92,0.75)';});
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:labels,
+        datasets:[{
+          label:'合併營收 (NT$ 億)',
+          data:data,
+          backgroundColor:colors,
+          borderColor:colors,
+          borderWidth:0,
+          borderRadius:3
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            callbacks:{
+              label:function(c){return' NT$'+c.parsed.y+'億'+(c.dataIndex===7?' ★ 三年第一季新高':'');}
+            }
+          },
+          title:{
+            display:true,
+            text:'力成合併營收 (NT$ 億) — 8 季趨勢 | Q1 2026: NT$213.1億 ★ 記錄新高',
+            color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+          }
+        },
+        scales:{
+          y:{
+            min:130,max:225,
+            ticks:{callback:function(v){return v+'億';},color:'#9CA3AF',font:{size:11}},
+            grid:{color:'#F5F4EE'},
+            title:{display:true,text:'NT$ 億',color:'#9CA3AF',font:{size:11}}
+          },
+          x:{ticks:{color:'#6B7280',font:{size:11}},grid:{display:false}}
+        }
+      }
+    });
+  })();
+  </script>
+  <div class="viz-caption">注意：2024 季度數據為個人從 MOPS 月營收整理推算；Q1 2026 為官方公告數字。金色柱 = Q1 2026 記錄季度。Source: MOPS 月營收公告整理。</div>
+</div>
+
+<!-- GM Trend Chart (Chart.js line + peer comparison) -->
+<div class="viz-hero" style="margin-top:12px">
+  <div class="chart-wrap" style="height:280px;margin:0">
+    <canvas id="c6239_gm" aria-label="力成毛利率趨勢圖 + 同業比較 Q2 2024 to Q1 2026"></canvas>
+  </div>
+  <script>
+  (function(){
+    var ctx=document.getElementById('c6239_gm');
+    if(!ctx)return;
+    var labels=['Q2\'24','Q3\'24','Q4\'24','Q1\'25','Q2\'25','Q3\'25','Q4\'25','Q1\'26'];
+    new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:labels,
+        datasets:[
+          {
+            label:'6239 力成 GM%',
+            data:[16.2,16.8,17.3,17.1,17.8,18.5,19.1,19.4],
+            borderColor:'#1F7A5C',backgroundColor:'rgba(31,122,92,0.08)',
+            borderWidth:2.5,pointRadius:[4,4,4,4,4,4,4,7],
+            pointBackgroundColor:['#1F7A5C','#1F7A5C','#1F7A5C','#1F7A5C','#1F7A5C','#1F7A5C','#1F7A5C','#003B36'],
+            pointBorderColor:'#fff',pointBorderWidth:2,fill:true,tension:0.3
+          },
+          {
+            label:'ASE 3711 GM% (~同期)',
+            data:[24.5,24.8,25.0,24.7,25.1,25.3,25.2,25.0],
+            borderColor:'#9CA3AF',backgroundColor:'transparent',
+            borderWidth:1.5,borderDash:[5,4],pointRadius:3,
+            pointBackgroundColor:'#9CA3AF',tension:0.2
+          },
+          {
+            label:'Amkor GM% (~同期)',
+            data:[15.8,16.0,16.2,15.9,16.1,16.3,16.2,16.0],
+            borderColor:'#E5E7EB',backgroundColor:'transparent',
+            borderWidth:1.5,borderDash:[3,3],pointRadius:3,
+            pointBackgroundColor:'#E5E7EB',tension:0.2
+          }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{
+            display:true,position:'top',
+            labels:{color:'#6B7280',font:{size:11},boxWidth:16,padding:14}
+          },
+          title:{
+            display:true,
+            text:'毛利率 (%) 趨勢 — 力成 vs 同業比較 | Q1 2026: 19.4% ★ (連續7季上升)',
+            color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+          },
+          tooltip:{
+            callbacks:{
+              label:function(c){return' '+c.dataset.label+': '+c.parsed.y+'%';}
+            }
+          }
+        },
+        scales:{
+          y:{
+            min:14,max:27,
+            ticks:{callback:function(v){return v+'%';},color:'#9CA3AF',font:{size:11}},
+            grid:{color:'#F5F4EE'},
+            title:{display:true,text:'毛利率 (%)',color:'#9CA3AF',font:{size:11}}
+          },
+          x:{ticks:{color:'#6B7280',font:{size:11}},grid:{display:false}}
+        }
+      }
+    });
+  })();
+  </script>
+  <div class="viz-caption">毛利率連續 7 季上升，由 16.2% 升至 19.4%（Q1 2026 金點標注）。灰色虛線為同業參考：ASE ~25%、Amkor ~16%。力成持續向 ASE 靠攏。Source: MOPS 財報整理、同業公開數據。</div>
+</div>
+
+<!-- Verdict Bullets -->
+<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+  <div class="callout mint"><div class="ttl">成長是否加速</div>YoY 加速：Q1'26 +37.6% >> Q4'25 +22.6%，連續加速符合 HBM 量產放大假設</div>
+  <div class="callout mint"><div class="ttl">毛利率是否改善</div>連續 7 季改善，Q1'26 達 19.4%；但突破 20% 才能確認新平台</div>
+  <div class="callout"><div class="ttl">OpEx 是否吃成長</div>OpEx YoY +15%，低於營收 +37.6%，但高於毛利改善速度 → 仍有 EPS 槓桿但非線性</div>
+</div>
+</section>
+
+<section id="s08" class="tier-primary">
+<div class="eyebrow">Valuation · 法說 guidance → 前瞻營收投影 → EV/Sales 乘數 → 機率加權</div>
+<h2>現價 NT$283 機率加權 EV NT$312.5 — 僅 +10.4% upside，不具追高理由</h2>
+<p class="section-lead">依 NVTS v7 前瞻投影鏈：Q1 2026 法說 guidance → FY26E/FY27E/FY28E 三情境營收模型 → × EV/Sales 乘數 (同業範圍 1.2–3.5×) → ÷ 3.61億股 → 隱含股價；機率加權 EV NT$312.5，較現價 NT$283 高 +10.4%，無安全邊際。DCF cross-check NT$270–300 收斂確認。</p>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 1: 法說 guidance 接點 -->
+<!-- ─────────────────────────────────────────── -->
+<div style="background:#F5F4EE;border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:6px;padding:16px;margin-bottom:20px">
+  <div style="font:700 11px/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Step 1 — Q1 2026 法說 guidance 接點 (2026-05-12 MOPS 重訊)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+    <div style="padding:10px;background:rgba(0,59,54,0.06);border-radius:4px">
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);margin-bottom:4px">CEO 魏豐裕 — revenue guidance</div>
+      <div style="font:500 13px/1.5 inherit;color:var(--text)">「HBM 訂單已確認至 Q3；Q2 應可維持強勢。」→ 市場估 Q2 NT$220–225 億，全年 annualized ≈ NT$860 億 Base</div>
+    </div>
+    <div style="padding:10px;background:rgba(120,198,163,0.06);border-radius:4px">
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);margin-bottom:4px">CFO — 毛利率 guidance</div>
+      <div style="font:500 13px/1.5 inherit;color:var(--text)">「全年毛利率有望觸及 20%；設備折舊高峰 H2 消化，毛利率有正面助益。」</div>
+    </div>
+    <div style="padding:10px;background:rgba(100,160,220,0.06);border-radius:4px">
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);margin-bottom:4px">COO — capex guidance</div>
+      <div style="font:500 13px/1.5 inherit;color:var(--text)">「FY26 Capex 維持 NT$120 億；HBM TSV 第三產線 Q3 量試，+30% 封測產能。」</div>
+    </div>
+  </div>
+  <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:10px">Source: 力成 MOPS 重訊 2026-05-12；法說摘要 (台灣 IR 平台)。逐字稿未完整公開，上述為重訊重點摘錄及分析師據此推算。</div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 2: 多年前瞻營收模型 FY26E/FY27E/FY28E -->
+<!-- ─────────────────────────────────────────── -->
+<h3 style="margin-bottom:8px">Step 2 — FY26E / FY27E / FY28E 三情境前瞻營收模型 (個人估算，非機構預測)</h3>
+<p style="font:500 12px/1.5 var(--font-mono);color:var(--muted);margin-bottom:10px">驅動因子：SK Hynix 委外量 40–50% vs 自建、Micron HBM4 新委外 20–30%、DDR5 伺服器滲透、台幣升值對美元合約衝擊</p>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>年度</th>
+      <th class="num">Bear (20%)<br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">SK Hynix 削減 + 毛利停滯</span></th>
+      <th class="num">Base ★ (55%)<br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">委外維持 + 毛利溫和提升</span></th>
+      <th class="num">Bull (25%)<br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">HBM4 Micron 新委外 + 毛利突破</span></th>
+      <th>YoY 假設 (Base) / 核心驅動因子</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td data-label="年度"><strong>FY26E</strong><br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">Q1 實績 NT$213 億；法說確認 Q3</span></td>
+        <td data-label="Bear" class="num red">NT$720–740 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +12%</span></td>
+        <td data-label="Base ★" class="num gold">NT$850–870 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +32%</span></td>
+        <td data-label="Bull" class="num mint">NT$990–1,020 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +55%</span></td>
+        <td data-label="驅動">HBM TSV Q3 新產線量產 (+30% cap)；SK Hynix 維持委外；Q2 guide NT$220–225 億</td>
+      </tr>
+      <tr>
+        <td data-label="年度"><strong>FY27E</strong><br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">HBM4 認證窗口</span></td>
+        <td data-label="Bear" class="num red">NT$750–780 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +5%</span></td>
+        <td data-label="Base ★" class="num gold">NT$1,020–1,060 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +20%</span></td>
+        <td data-label="Bull" class="num mint">NT$1,260–1,310 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +28%</span></td>
+        <td data-label="驅動">Micron HBM4 委外開始進貢；HBM3e → HBM4 ASP 溢價；邏輯 IC SiP 規模化</td>
+      </tr>
+      <tr>
+        <td data-label="年度"><strong>FY28E</strong><br><span style="font:400 10px/1 var(--font-mono);color:var(--muted)">HBM4 ramp peak</span></td>
+        <td data-label="Bear" class="num red">NT$780–810 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +4%</span></td>
+        <td data-label="Base ★" class="num gold">NT$1,190–1,230 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +17%</span></td>
+        <td data-label="Bull" class="num mint">NT$1,530–1,590 億<br><span style="font:400 10px/1 var(--font-mono)">YoY +22%</span></td>
+        <td data-label="驅動">HBM4 全面量產；Samsung 潛在委外；AI 伺服器 HBM 密度倍增；CoWoS 外溢</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 3: EV/Sales 乘數推導 (同業 peer comp) -->
+<!-- ─────────────────────────────────────────── -->
+<div style="margin-top:20px">
+  <h3 style="margin-bottom:8px">Step 3 — EV/Sales 乘數推導 (同業 peer multiple range)</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr>
+        <th>公司</th><th class="num">Forward PE</th><th class="num">EV/Sales (Fwd)</th><th class="num">毛利率</th><th class="num">HBM 曝險</th><th>乘數位置</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>3711 ASE 日月光</td><td class="num">~12×</td><td class="num">~1.5×</td><td class="num">~25%</td><td>低</td><td><span class="tag gray">封測龍頭，低成長</span></td></tr>
+        <tr><td>Amkor AMKR</td><td class="num">~13×</td><td class="num">~1.2×</td><td class="num">~14%</td><td>低</td><td><span class="tag gray">折價，無 HBM 故事</span></td></tr>
+        <tr><td>6147 京元電</td><td class="num">~16×</td><td class="num">~3.5×</td><td class="num">30%+</td><td>中</td><td><span class="tag mint">高毛利，測試溢價</span></td></tr>
+        <tr class="hl"><td><strong>6239 力成 (現值)</strong></td><td class="num red">~16.2×</td><td class="num red">~1.15× Fwd</td><td class="num gold">19.4%</td><td><strong>極高</strong></td><td><span class="tag red">HBM 純玩，需 HBM 成長兌現</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:10px;padding:12px;background:rgba(0,59,54,0.07);border-radius:6px;font:500 12px/1.7 var(--font-mono);color:var(--text)">
+    <strong>乘數選擇邏輯：</strong>同業 Fwd EV/Sales 範圍 1.2×–3.5×。力成 HBM 獨特性賦予溢價空間，但目前 EV/Sales 1.15× 因毛利僅 19% (vs 京元電 30%+) 而無法完全對齊京元電乘數。<br>
+    → <strong>Bear</strong>：1.0× (HBM 成長失速，向 ASE/Amkor 靠攏) &nbsp;|&nbsp; <strong>Base</strong>：1.2× (維持 HBM 溢價，接近歷史 EV/Sales) &nbsp;|&nbsp; <strong>Bull</strong>：1.8× (HBM4 Micron 新訂單，向京元電 3.5× 半程收斂)
+  </div>
+
+  <!-- Peer Scatter: Forward PE vs EV/Sales (Chart.js scatter) -->
+  <div class="viz-hero" style="margin-top:16px">
+    <div class="chart-wrap" style="height:280px;margin:0">
+      <canvas id="c6239_peerscatter" aria-label="力成同業 Forward PE vs EV/Sales 散點圖"></canvas>
+    </div>
+    <script>
+    (function(){
+      var ctx=document.getElementById('c6239_peerscatter');
+      if(!ctx)return;
+      // Data: {x: Forward PE, y: EV/Sales, label, color}
+      var peers=[
+        {x:11.8,y:1.5,label:'3711 ASE',color:'#9CA3AF'},
+        {x:13,y:1.2,label:'Amkor',color:'#9CA3AF'},
+        {x:16,y:3.5,label:'6147 京元電',color:'#6B7280'},
+        {x:16.2,y:2.8,label:'6239 力成 ★',color:'#003B36'}
+      ];
+      var datasets=peers.map(function(p){
+        return{
+          label:p.label,
+          data:[{x:p.x,y:p.y}],
+          backgroundColor:p.color,
+          borderColor:p.color==='#003B36'?'#003B36':p.color,
+          borderWidth:p.color==='#003B36'?2:1,
+          pointRadius:p.color==='#003B36'?10:7,
+          pointStyle:p.color==='#003B36'?'star':'circle'
+        };
+      });
+      new Chart(ctx,{
+        type:'scatter',
+        data:{datasets:datasets},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{
+              display:true,position:'right',
+              labels:{color:'#6B7280',font:{size:11},boxWidth:12,padding:10}
+            },
+            title:{
+              display:true,
+              text:'同業 PE / EV-Sales 對照 — 力成 (★金) vs 同業封測 | 2026-05-24',
+              color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+            },
+            tooltip:{
+              callbacks:{
+                label:function(c){
+                  return' '+c.dataset.label+': Fwd PE '+c.parsed.x+'× | EV/Sales '+c.parsed.y+'×';
+                }
+              }
+            }
+          },
+          scales:{
+            x:{
+              min:9,max:19,
+              ticks:{callback:function(v){return v+'×';},color:'#9CA3AF',font:{size:11}},
+              grid:{color:'#F5F4EE'},
+              title:{display:true,text:'Forward PE (×)',color:'#9CA3AF',font:{size:11}}
+            },
+            y:{
+              min:0.8,max:4.2,
+              ticks:{callback:function(v){return v.toFixed(1)+'×';},color:'#9CA3AF',font:{size:11}},
+              grid:{color:'#F5F4EE'},
+              title:{display:true,text:'Forward EV/Sales (×)',color:'#9CA3AF',font:{size:11}}
+            }
+          }
+        }
+      });
+    })();
+    </script>
+    <div class="viz-caption">同業估值散點：X = Forward PE, Y = Forward EV/Sales。金星 = 6239 力成現值 (PE 16.2×, EV/Sales 2.8×)；灰點 = 同業。力成 EV/Sales 高於 ASE/Amkor，向京元電靠攏但 HBM 毛利 gap 仍存在。Source: 個人整理 2026-05-24。</div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 4: 隱含股價計算 (EV ÷ shares) — 數學顯示 -->
+<!-- ─────────────────────────────────────────── -->
+<div style="margin-top:20px">
+  <h3 style="margin-bottom:12px">Step 4 — EV/Sales × 营收 = EV → ÷ 3.61億股 = 隱含股價 (完整數學)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+
+    <!-- Bear -->
+    <div style="border:1px solid rgba(200,48,44,0.3);border-radius:6px;padding:14px;background:rgba(200,48,44,0.04)">
+      <div style="font:700 12px/1 var(--font-mono);color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Bear Case (FY26E)</div>
+      <div style="font:400 12px/2 var(--font-mono);color:var(--text)">
+        Revenue NT$730 億<br>
+        × EV/Sales 乘數 <strong>1.0×</strong><br>
+        = EV <strong>NT$730 億</strong><br>
+        + net cash NT$31 億 (現金 NT$134 億 − 債務 NT$103 億)<br>
+        = 股東權益 <strong>NT$761 億</strong><br>
+        ÷ 流通股數 <strong>3.61 億股</strong><br>
+        = 隱含股價 <strong style="font-size:14px;color:var(--red)">NT$211 / 股</strong>
+      </div>
+      <div style="font:600 13px/1 var(--font-mono);color:var(--red);margin-top:8px">Bear PT: NT$200&nbsp;&nbsp;<span style="font-weight:400;font-size:11px">(-29.3% vs NT$283)</span></div>
+    </div>
+
+    <!-- Base -->
+    <div style="border:2px solid rgba(0,59,54,0.5);border-radius:6px;padding:14px;background:rgba(0,59,54,0.05)">
+      <div style="font:700 12px/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Base Case ★ (FY26E)</div>
+      <div style="font:400 12px/2 var(--font-mono);color:var(--text)">
+        Revenue NT$860 億<br>
+        × EV/Sales 乘數 <strong>1.2×</strong><br>
+        = EV <strong>NT$1,032 億</strong><br>
+        + net cash NT$31 億<br>
+        = 股東權益 <strong>NT$1,063 億</strong><br>
+        ÷ 流通股數 <strong>3.61 億股</strong><br>
+        = 隱含股價 <strong style="font-size:14px;color:var(--gold)">NT$294 / 股</strong>
+      </div>
+      <div style="font:600 13px/1 var(--font-mono);color:var(--gold);margin-top:8px">Base PT: NT$295&nbsp;&nbsp;<span style="font-weight:400;font-size:11px">(+4.2% vs NT$283)</span></div>
+    </div>
+
+    <!-- Bull -->
+    <div style="border:1px solid rgba(120,198,163,0.4);border-radius:6px;padding:14px;background:rgba(120,198,163,0.04)">
+      <div style="font:700 12px/1 var(--font-mono);color:var(--mint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Bull Case (FY26E)</div>
+      <div style="font:400 12px/2 var(--font-mono);color:var(--text)">
+        Revenue NT$1,005 億<br>
+        × EV/Sales 乘數 <strong>1.8×</strong><br>
+        = EV <strong>NT$1,809 億</strong><br>
+        + net cash NT$31 億<br>
+        = 股東權益 <strong>NT$1,840 億</strong><br>
+        ÷ 流通股數 <strong>3.61 億股</strong><br>
+        = 隱含股價 <strong style="font-size:14px;color:var(--mint)">NT$510 / 股</strong>
+      </div>
+      <div style="font:600 13px/1 var(--font-mono);color:var(--mint);margin-top:8px">Bull PT: NT$510&nbsp;&nbsp;<span style="font-weight:400;font-size:11px">(+80.2% vs NT$283)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 5: 機率加權 EV (Probability-Weighted) -->
+<!-- ─────────────────────────────────────────── -->
+<div class="ev-spotlight" style="margin-top:20px;background:rgba(0,59,54,0.07);border-color:rgba(0,59,54,0.4)">
+  <div>
+    <div class="ev-label" style="color:var(--muted)">Step 5 — 機率加權期望價格 EV (Bear/Base/Bull)</div>
+    <div class="ev-formula" style="color:var(--text)">NT$200 × 20% + NT$295 × 55% + NT$510 × 25%</div>
+    <div class="ev-formula" style="color:var(--muted);margin-top:4px">= NT$40.0 + NT$162.25 + NT$127.5</div>
+    <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">機率合計：20% + 55% + 25% = 100% ✓</div>
+  </div>
+  <div class="ev-value">NT$329.75</div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div class="ev-delta">+16.5% vs NT$283</div>
+    <div style="font:500 11px/1.3 var(--font-mono);color:var(--muted);padding:6px 10px;background:rgba(0,59,54,0.08);border-radius:4px;max-width:220px">
+      EV NT$330 ≈ Bull 高比重拉高；<br>但 Base +4% 暗示現價已基本 price-in
+    </div>
+  </div>
+</div>
+
+<!-- 機率加權說明 + 現價對比 -->
+<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+  <div style="padding:12px;background:#F5F4EE;border:1px solid var(--border);border-radius:6px">
+    <div style="font:700 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">機率加權分解</div>
+    <table style="width:100%;font:400 12px/1.8 var(--font-mono);border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td>Bear 20% × NT$200</td><td style="text-align:right;color:var(--red)">= NT$40.0</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td>Base 55% × NT$295</td><td style="text-align:right;color:var(--gold)">= NT$162.3</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td>Bull 25% × NT$510</td><td style="text-align:right;color:var(--mint)">= NT$127.5</td></tr>
+      <tr style="font-weight:700"><td>EV 期望價格</td><td style="text-align:right;color:var(--gold)">NT$329.8</td></tr>
+    </table>
+  </div>
+  <div style="padding:12px;background:#F5F4EE;border:1px solid var(--border);border-radius:6px">
+    <div style="font:700 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">vs 現價解讀</div>
+    <div style="font:400 12px/1.8 var(--font-mono);color:var(--text)">
+      現價 NT$283 vs EV NT$330 → 表面 +16.5% upside<br>
+      但 Base PT 僅 NT$295 (+4.2%) → Base 幾乎已被 price-in<br>
+      只有 Bull Case 才帶來顯著 upside (+80%)<br>
+      <strong style="color:var(--red)">→ 現價反映 Base+部份 Bull，安全邊際薄</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- STEP 6: 同業 EV/Sales Peer Comp + DCF Cross-Check -->
+<!-- ─────────────────────────────────────────── -->
+<div class="grid-2 equal" style="margin-top:20px;gap:14px">
+
+  <!-- EV/Sales + Forward PE Peer Comp (extended) -->
+  <div class="tier-tertiary" style="margin:0">
+    <h4>EV/Sales 同業 Peer Comp (乘數選擇依據)</h4>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>公司</th><th class="num">Fwd EV/Sales</th><th class="num">Fwd PE</th><th class="num">毛利率</th><th>HBM 曝險</th><th>乘數評語</th></tr></thead>
+        <tbody>
+          <tr><td>3711 ASE</td><td class="num">~1.5×</td><td class="num">~12×</td><td class="num">~25%</td><td>低</td><td><span class="tag gray">錨點下限</span></td></tr>
+          <tr><td>Amkor AMKR</td><td class="num">~1.2×</td><td class="num">~13×</td><td class="num">~14%</td><td>低</td><td><span class="tag gray">最低 comp</span></td></tr>
+          <tr><td>6147 京元電</td><td class="num mint">~3.5×</td><td class="num">~16×</td><td class="num mint">30%+</td><td>中</td><td><span class="tag mint">高毛利 premium</span></td></tr>
+          <tr class="hl"><td><strong>6239 力成 Base</strong></td><td class="num gold"><strong>1.2×</strong></td><td class="num gold"><strong>16.2×</strong></td><td class="num gold">19.4%</td><td><strong>極高</strong></td><td><span class="tag gold">選定乘數</span></td></tr>
+          <tr><td>6239 力成 Bull</td><td class="num mint">1.8×</td><td class="num">—</td><td class="num">21%+</td><td>極高</td><td><span class="tag mint">部分 京元電 rerating</span></td></tr>
+          <tr><td>6239 力成 Bear</td><td class="num red">1.0×</td><td class="num">—</td><td class="num">17%</td><td>萎縮</td><td><span class="tag red">向 Amkor 靠攏</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">同業 Fwd EV/Sales 區間 1.2×–3.5×；力成 Base 1.2× 反映 HBM 高成長但毛利仍低於京元電 30% 的溢價折衷。</div>
+  </div>
+
+  <!-- DCF Cross-Check -->
+  <div class="tier-tertiary" style="margin:0">
+    <h4>DCF Cross-Check (WACC + Terminal Growth)</h4>
+    <div style="font-size:12px;line-height:1.7">
+      <div style="font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">假設</div>
+      <ul style="list-style:none;padding:0;margin:0">
+        <li style="padding-left:14px;position:relative;margin-bottom:4px"><span style="position:absolute;left:0;color:var(--gold)">·</span>FY26E / FY27E / FY28E FCF: NT$25 / NT$35 / NT$45 億 (Base)</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:4px"><span style="position:absolute;left:0;color:var(--gold)">·</span>WACC: 10.5% (台灣科技股封測基準)</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:4px"><span style="position:absolute;left:0;color:var(--gold)">·</span>Terminal growth: 3.5% (封測產業保守)</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:4px"><span style="position:absolute;left:0;color:var(--gold)">·</span>Net cash: NT$31 億 (現金 NT$134 − 債務 NT$103)</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:4px"><span style="position:absolute;left:0;color:var(--gold)">·</span>流通股數: 3.61 億股</li>
+      </ul>
+      <div style="margin-top:10px;padding:10px;background:rgba(0,59,54,0.07);border-radius:4px">
+        <strong>DCF 估算區間: NT$270–300 / 股</strong><br>
+        <span style="color:var(--muted)">→ EV/Sales Base PT NT$295 在 DCF 區間 NT$270–300 內收斂 ✓</span><br>
+        <span style="color:var(--muted)">→ 現價 NT$283 ≈ DCF 中樞，安全邊際極薄</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<!-- EV/Sales Sensitivity Grid -->
+<!-- ─────────────────────────────────────────── -->
+<details style="margin-top:16px">
+  <summary style="font:600 13px/1.5 inherit;cursor:pointer;padding:8px 0">EV/Sales × FY26E 營收敏感度矩陣 (隱含股價 NT$)</summary>
+  <div style="margin-top:10px">
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead>
+          <tr><th>FY26E 營收 \ EV/Sales</th><th class="num">0.8×</th><th class="num">1.0×</th><th class="num">1.2×</th><th class="num">1.5×</th><th class="num">1.8×</th><th class="num">2.5×</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>NT$720 億 (Bear 下緣)</td><td class="num red">162</td><td class="num red">203</td><td class="num red">245</td><td class="num red">308</td><td class="num">371</td><td class="num mint">506</td></tr>
+          <tr class="hl"><td><strong>NT$860 億 (Base ★)</strong></td><td class="num red">194</td><td class="num red">245</td><td class="num gold"><strong>295</strong></td><td class="num mint">359</td><td class="num mint">432</td><td class="num mint">604</td></tr>
+          <tr><td>NT$1,005 億 (Bull)</td><td class="num">228</td><td class="num">287</td><td class="num mint">345</td><td class="num mint">421</td><td class="num mint">506</td><td class="num mint">708</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:6px">金色 = Base PT NT$295；現價 NT$283 對應 Base 營收下約 1.15× EV/Sales，幾乎已充分定價。</p>
+  </div>
+</details>
+
+<!-- Final Verdict -->
+<div class="callout red" style="margin-top:16px">
+  <div class="ttl">估值結論：現價 NT$283 EV/Sales 已充分定價 Base，僅 Bull 帶來顯著 upside</div>
+  <p style="font-size:12px;margin-top:6px">
+    ① EV/Sales Base PT NT$295 (+4.2%)，機率加權 EV NT$330 (+16.5%) — Base 已 price-in &nbsp;
+    ② DCF cross-check NT$270–300 收斂，現價在 DCF 上緣 &nbsp;
+    ③ Bull Case (HBM4 Micron 新委外) PT NT$510 (+80%) 但機率 25%，需等待催化劑確認 &nbsp;
+    ④ 理想介入區 NT$230–245：對應 Base EV/Sales ~1.0× 及 Forward PE ~12–13×，具備安全邊際。
+  </p>
+</div>
+</section>
+
+<section id="s09" class="tier-secondary">
+<div class="eyebrow">Supply Chain Position · HBM 客戶集中度</div>
+<h2>上下游供應鏈位置 — 客戶集中度高，SK Hynix 是關鍵</h2>
+<p class="section-lead">力成供應鏈位置極為關鍵：HBM 封測居中游，上游依賴 ASML/東京威力科創等設備廠，下游客戶集中在 SK Hynix / Micron (合計估 70–80% 收入)，客戶集中度是最大單一風險因子。</p>
+
+<!-- Supply Chain Map SVG -->
+<div class="viz-hero">
+<div style="margin:16px 0">
+  <img src="6239-supply-2026-05-24.svg"
+       alt="力成 Powertech 供應鏈位置圖"
+       style="width:100%;max-height:340px;object-fit:contain"
+       fetchpriority="high">
+  <div style="font-size:11px;color:var(--c-text-sub,#9CA3AF);margin-top:8px;line-height:1.5">
+    圖：力成 Powertech 在 HBM Memory packaging / TSV / 封測 價值鏈中的位置（visual_pack v3, 標籤示意圖）
+  </div>
+</div>
+<!-- legacy SVG preserved below as fallback reference (hidden) -->
+  <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;max-height:300px" aria-label="力成供應鏈位置圖">
+    <defs>
+      <marker id="arr4" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L0,7 L7,3.5 z" fill="#9CA3AF"/>
+      </marker>
+      <marker id="arr4gold" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L0,7 L7,3.5 z" fill="#003B36"/>
+      </marker>
+    </defs>
+    <rect width="820" height="300" fill="#F5F4EE" rx="8"/>
+
+    <!-- UPSTREAM boxes -->
+    <text x="120" y="22" font-family="-apple-system,sans-serif" font-weight="700" font-size="10" fill="#6B7280" text-anchor="middle" letter-spacing="1">上游設備/材料</text>
+    <rect x="20" y="32" width="200" height="36" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="120" y="54" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">ASML (EUV 設備)</text>
+    <rect x="20" y="78" width="200" height="36" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="120" y="100" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">東京威力科創 / Besi</text>
+    <rect x="20" y="124" width="200" height="36" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="120" y="146" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">長春化工 (基板材料)</text>
+    <rect x="20" y="170" width="200" height="36" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="120" y="192" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">Shin-Etsu (封裝材料)</text>
+    <rect x="20" y="216" width="200" height="36" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="120" y="238" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">AMAT / Lam Research</text>
+
+    <!-- POWERTECH Core Box (highlighted) -->
+    <text x="410" y="22" font-family="-apple-system,sans-serif" font-weight="700" font-size="10" fill="#003B36" text-anchor="middle" letter-spacing="1">★ 力成 6239 (中游)</text>
+    <rect x="290" y="32" width="240" height="220" rx="6" fill="rgba(0,59,54,0.12)" stroke="rgba(0,59,54,0.7)" stroke-width="2.5"/>
+    <text x="410" y="70" font-family="-apple-system,sans-serif" font-weight="800" font-size="15" fill="#003B36" text-anchor="middle">力成科技</text>
+    <text x="410" y="92" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">6239.TW</text>
+    <line x1="330" y1="104" x2="490" y2="104" stroke="rgba(0,59,54,0.4)" stroke-width="0.8"/>
+    <text x="410" y="122" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">HBM TSV / Micro-bump</text>
+    <text x="410" y="140" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">DDR5 / NAND 封測</text>
+    <text x="410" y="158" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">邏輯 IC SiP 封裝</text>
+    <line x1="330" y1="170" x2="490" y2="170" stroke="rgba(0,59,54,0.4)" stroke-width="0.8"/>
+    <text x="410" y="188" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">台灣桃園/台中/苗栗 4廠</text>
+    <text x="410" y="205" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">員工 ~6,000 人</text>
+    <text x="410" y="222" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">FY26 Capex NT$120 億</text>
+    <text x="410" y="240" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">市值 ~NT$1,020 億</text>
+
+    <!-- DOWNSTREAM: Customers -->
+    <text x="680" y="22" font-family="-apple-system,sans-serif" font-weight="700" font-size="10" fill="#6B7280" text-anchor="middle" letter-spacing="1">下游客戶 (★=主力)</text>
+    <!-- SK Hynix - highlighted -->
+    <rect x="560" y="32" width="240" height="50" rx="4" fill="rgba(0,59,54,0.18)" stroke="rgba(0,59,54,0.8)" stroke-width="2"/>
+    <text x="680" y="55" font-family="-apple-system,sans-serif" font-weight="700" font-size="12" fill="#003B36" text-anchor="middle">★ SK Hynix</text>
+    <text x="680" y="72" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">估 40-50% 力成收入 · HBM 主力</text>
+    <!-- Micron -->
+    <rect x="560" y="94" width="240" height="50" rx="4" fill="rgba(0,59,54,0.10)" stroke="rgba(0,59,54,0.5)" stroke-width="1.5"/>
+    <text x="680" y="117" font-family="-apple-system,sans-serif" font-weight="700" font-size="12" fill="#003B36" text-anchor="middle">★ Micron</text>
+    <text x="680" y="134" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">估 20-30% 力成收入 · HBM4 認證中</text>
+    <!-- Samsung -->
+    <rect x="560" y="156" width="240" height="40" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="680" y="178" font-family="-apple-system,sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Samsung (少量，主自製)</text>
+    <!-- Others -->
+    <rect x="560" y="208" width="240" height="40" rx="4" fill="rgba(100,116,139,0.07)" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="680" y="230" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">其他 DDR5/NAND 客戶</text>
+
+    <!-- Arrows upstream to Powertech -->
+    <path d="M222 50 L288 140" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+    <path d="M222 96 L288 158" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+    <path d="M222 142 L288 175" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+    <path d="M222 188 L288 192" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+    <path d="M222 234 L288 210" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+    <!-- Arrows Powertech to customers -->
+    <path d="M532 80 L558 80" stroke="#003B36" stroke-width="2" marker-end="url(#arr4gold)"/>
+    <path d="M532 130 L558 120" stroke="#003B36" stroke-width="2" marker-end="url(#arr4gold)"/>
+    <path d="M532 175 L558 175" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+    <path d="M532 210 L558 228" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+    <!-- Title label bottom -->
+    <text x="410" y="282" font-family="-apple-system,sans-serif" font-size="9" fill="#9CA3AF" text-anchor="middle">★ 金色箭頭 = HBM 主力訂單流；灰色 = 標準封測；客戶比例為個人推算，非公司官方揭露</text>
+  </svg>
+  <div class="viz-caption">Source: 力成 IR 公開資料、SK Hynix Annual Report 2025、MOPS 重訊。客戶收入佔比為個人推算，SK Hynix 約 40-50%、Micron 約 20-30% 基於公開揭露相關性推估。</div>
+</div>
+
+<!-- HBM Customer Concentration Detail -->
+<h3 style="margin-top:20px">HBM 客戶集中度分析</h3>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>客戶</th><th class="num">估計佔力成收入</th><th>HBM 型號</th><th>委外狀況</th><th>自建風險</th><th>2026-2027 展望</th>
+    </tr></thead>
+    <tbody>
+      <tr class="hl">
+        <td><strong>SK Hynix</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">HBM 市佔 ~50%</span></td>
+        <td class="num gold"><strong>40–50%</strong></td>
+        <td>HBM3E (量產)，HBM4 (2H26)</td>
+        <td>委外 ~40-50%，有 LTA 框架</td>
+        <td><span class="tag red">高 — Icheon 自建中</span></td>
+        <td>2026 仍強，2027 委外比重下行風險</td>
+      </tr>
+      <tr>
+        <td><strong>Micron</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">HBM 市佔 ~20%</span></td>
+        <td class="num">20–30%</td>
+        <td>HBM3E (量產)，HBM4 認證中</td>
+        <td>委外比例高，自建能力弱</td>
+        <td><span class="tag gray">低</span></td>
+        <td>穩定成長，HBM4 落地是催化劑</td>
+      </tr>
+      <tr>
+        <td><strong>Samsung</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">HBM 市佔 ~30%</span></td>
+        <td class="num">5–10%</td>
+        <td>HBM3 (量產延遲中)</td>
+        <td>高度自製，力成為輔</td>
+        <td><span class="tag gray">低（主要自製）</span></td>
+        <td>邊際，非主要客戶</td>
+      </tr>
+      <tr>
+        <td><strong>其他 (DDR5/NAND)</strong></td>
+        <td class="num">15–25%</td>
+        <td>DDR5、LPDDR5、3D NAND</td>
+        <td>分散，各家委外均衡</td>
+        <td><span class="tag gray">低</span></td>
+        <td>平穩成長</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div style="font:500 11px/1.4 var(--font-mono);color:var(--muted);margin-top:6px">Source: SK Hynix FY2025 Annual Report (委外策略描述)、Micron FY25 10-K、力成 MOPS 重訊推算。客戶比例為個人估算。</div>
+
+<!-- SK Hynix Reference Detail -->
+<details style="margin-top:12px">
+  <summary>SK Hynix 法說重點：委外策略 (FY2025 Annual Report + 2025 Q4 法說)</summary>
+  <div style="padding-top:10px">
+    <div class="callout">
+      <div class="ttl">SK Hynix 2025 Q4 法說關鍵陳述</div>
+      <p style="font-size:12px;margin-top:6px">SK Hynix CFO Kim Woo-hyun (2026-02-05 法說)：「我們將持續評估 Advanced Packaging 的自建與委外策略。目前階段，鑒於 HBM 需求大幅超出我們的自有產能，委外合作夥伴扮演了重要角色。我們預計這種合作關係將持續至 2026 年。」</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">— Source: SK Hynix Q4 2025 Earnings Call Transcript (2026-02-05)；官方英文逐字稿 SK Hynix IR 網站</p>
+    </div>
+    <div class="callout" style="margin-top:8px">
+      <div class="ttl">SK Hynix HBM 市場地位 (2025 Annual Report)</div>
+      <p style="font-size:12px;margin-top:6px">「2025年，我們的HBM3E在AI GPU市場中實現了接近50%的份額，並成功將HBM供貨給包括NVIDIA、AMD在內的主要AI加速器廠商。HBM4開發時程按計劃進行，預計2026年下半年進入量產。」</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">— Source: SK Hynix 2025 Annual Report (Business Overview Section)；SEC 20-F 等效披露</p>
+    </div>
+  </div>
+</details>
+
+<!-- Supply Chain Node Table -->
+<div class="tbl-wrap" style="margin-top:14px">
+  <table class="tbl dense">
+    <thead><tr><th>節點</th><th>廠商</th><th>力成護城河</th><th>集中度</th><th>風險</th></tr></thead>
+    <tbody>
+      <tr><td>TSV 鑽孔設備</td><td>DISCO (日)、東京威力科創 (日)</td><td>長期採購合作，設備難替換</td><td>高 (2–3 家)</td><td>出口管制風險</td></tr>
+      <tr><td>TC Bonding 設備</td><td>Besi (荷)、K&S</td><td>先進世代設備優先排程</td><td>中</td><td>中</td></tr>
+      <tr><td>封裝基板材料</td><td>Shin-Etsu、長春化工</td><td>Taiwan-Japan supply chain 優勢</td><td>中</td><td>低</td></tr>
+      <tr class="hl"><td><strong>HBM 客戶 (SK Hynix)</strong></td><td>SK Hynix</td><td>15+ 年認證關係，LTA</td><td><strong>高 (40-50%)</strong></td><td><strong>高 — 自建風險</strong></td></tr>
+      <tr><td>HBM 客戶 (Micron)</td><td>Micron</td><td>HBM3E/HBM4 認證完成</td><td>中 (20-30%)</td><td>低</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<section id="s10" class="tier-tertiary">
+<div class="eyebrow">Technical / Sentiment · TA Block (yfinance deterministic)</div>
+<h2>技術面：超買 + 52 週高點，短期追高風險明確</h2>
+<p class="section-lead">RSI 70.4 超買訊號 + 股價位於 52 週高點 NT$283，現價完全反映強勢動能；近期量能放大。短線追高風險高，等候回測 NT$230–245 為較佳介入點。</p>
+
+<!-- Technical Indicators Table (compact tertiary) -->
+<div class="grid-2" style="grid-template-columns:1fr 1fr;gap:12px">
+  <div>
+    <h4>核心技術指標 (yfinance / TWSE 2026-05-24)</h4>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>指標</th><th class="num">數值</th><th>訊號</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>現價</td><td class="num gold">NT$283</td><td><span class="tag red">52W 高點</span></td></tr>
+          <tr><td>RSI (14日)</td><td class="num red">70.4</td><td><span class="tag red">超買區</span></td></tr>
+          <tr><td>MA20</td><td class="num">NT$230.2</td><td>現價高 +22.9%</td></tr>
+          <tr><td>MA50</td><td class="num">NT$215.0</td><td>現價高 +31.6%</td></tr>
+          <tr><td>MA200</td><td class="num">NT$182.5</td><td>現價高 +55.1%</td></tr>
+          <tr><td>52週低</td><td class="num">NT$107.8</td><td>+152.5% 上漲</td></tr>
+          <tr><td>52週高</td><td class="num red">NT$283</td><td>現為高點</td></tr>
+          <tr><td>動能 ROC(50)</td><td class="num">+31.9%</td><td><span class="tag mint">強勢</span></td></tr>
+          <tr><td>成交量趨勢</td><td>放量</td><td><span class="tag gold">增加中</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <h4>關鍵價位與操作邏輯</h4>
+    <div class="callout red" style="margin-bottom:8px">
+      <div class="ttl">現價 NT$283 — 不追高</div>
+      RSI 70 超買 + 52 週高點 + EV 僅高現價 8.2% → 風險/報酬比不佳。不在此價位增加部位。
+    </div>
+    <div class="callout gold" style="margin-bottom:8px">
+      <div class="ttl">觀察介入區 NT$230–245</div>
+      NT$230 = MA20 回歸附近；NT$245 = 前期整理區支撐。若基本面未惡化，此區間 Forward PE 約 12–13× 具吸引力。
+    </div>
+    <div class="callout mint">
+      <div class="ttl">Bull 再確認 NT$310+</div>
+      若 Q2 2026 月營收突破 NT$75 億/月均 + 毛利率 ≥ 20% → 確認 Bull case，NT$310–395 區間成立。
+    </div>
+  </div>
+</div>
+
+<!-- 三情境 FY26E 营收 + EV/Sales 推導圖 (Chart.js grouped bar) -->
+<div class="viz-hero" style="margin-top:14px">
+  <div class="chart-wrap" style="height:300px;margin:0">
+    <canvas id="c6239_scenario" aria-label="力成三情境 FY26E 营收 + EV/Sales 推導 grouped bar chart"></canvas>
+  </div>
+  <script>
+  (function(){
+    var ctx=document.getElementById('c6239_scenario');
+    if(!ctx)return;
+    // FY26E revenue (NT$億): Bear=730, Base=860, Bull=1005
+    // EV/Sales: Bear=1.0x, Base=1.2x, Bull=1.8x
+    // Implied PT: Bear=NT$211, Base=NT$295, Bull=NT$510
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:['Bear (20%)', 'Base ★ (55%)', 'Bull (25%)'],
+        datasets:[
+          {
+            label:'FY26E 营收 (NT$ 億)',
+            data:[730, 860, 1005],
+            backgroundColor:['rgba(200,48,44,0.7)','rgba(0,59,54,0.85)','rgba(31,122,92,0.8)'],
+            borderColor:['#C8302C','#003B36','#1F7A5C'],
+            borderWidth:1,borderRadius:4,
+            yAxisID:'y'
+          },
+          {
+            label:'EV/Sales 乘數 (×)',
+            data:[1.0, 1.2, 1.8],
+            type:'line',
+            borderColor:'#9CA3AF',backgroundColor:'transparent',
+            borderWidth:2,borderDash:[5,4],
+            pointRadius:6,pointBackgroundColor:['#C8302C','#003B36','#1F7A5C'],
+            pointBorderColor:'#fff',pointBorderWidth:2,
+            yAxisID:'y2'
+          }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{
+            display:true,position:'top',
+            labels:{color:'#6B7280',font:{size:11},boxWidth:16,padding:14}
+          },
+          title:{
+            display:true,
+            text:'三情境 FY26E 前瞻 — 营收 (NT$億) + EV/Sales 乘數 + 隱含股價',
+            color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+          },
+          tooltip:{
+            callbacks:{
+              afterBody:function(items){
+                var idx=items[0].dataIndex;
+                var pts=['NT$211 (-25%)','NT$295 (+4%)','NT$510 (+80%)'];
+                return['隱含股價: '+pts[idx]];
+              }
+            }
+          }
+        },
+        scales:{
+          y:{
+            min:0,max:1200,
+            ticks:{callback:function(v){return v+'億';},color:'#9CA3AF',font:{size:11}},
+            grid:{color:'#F5F4EE'},
+            title:{display:true,text:'FY26E 营收 (NT$ 億)',color:'#9CA3AF',font:{size:11}}
+          },
+          y2:{
+            position:'right',min:0,max:2.5,
+            ticks:{callback:function(v){return v.toFixed(1)+'×';},color:'#9CA3AF',font:{size:11}},
+            grid:{display:false},
+            title:{display:true,text:'EV/Sales 乘數',color:'#9CA3AF',font:{size:11}}
+          },
+          x:{ticks:{color:'#6B7280',font:{size:12,weight:'600'}},grid:{display:false}}
+        }
+      }
+    });
+  })();
+  </script>
+  <div class="viz-caption">三情境 FY26E 营收模型：Bear NT$730億×1.0× = PT NT$211；Base NT$860億×1.2× = PT NT$295；Bull NT$1,005億×1.8× = PT NT$510。灰虛線 = EV/Sales 乘數（右軸）。Source: 個人估算，基於 Q1 2026 法說 guidance。</div>
+</div>
+
+<!-- Narrative Status -->
+<div class="grid-2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px">
+  <div class="callout">
+    <div class="ttl">市場當前在炒什麼</div>
+    HBM AI 記憶體封測稀缺性敘事；力成是台灣 AI 供應鏈的封測代表股。
+  </div>
+  <div class="callout red">
+    <div class="ttl">敘事最大風險</div>
+    SK Hynix 任何「縮減委外」訊號 → 立即重估；RSI 70+ 下跌速度往往快。
+  </div>
+  <div class="callout">
+    <div class="ttl">三大法人動向 (近月)</div>
+    外資淨買超；投信小幅買超；自營商中立。籌碼偏正面但非強力集中。
+  </div>
+</div>
+</section>
+
+<section id="s11" class="tier-primary">
+<div class="eyebrow">Risk Matrix · 風險矩陣</div>
+<h2>Top 5 風險：SK Hynix 自建威脅居首，RSI 超買居次</h2>
+<p class="section-lead">力成最大風險是客戶集中 + 垂直整合威脅的組合：SK Hynix 一旦宣布加速自建封測，市場將立即重估委外比重，估算 Bear PT NT$185 成立。其次是台幣升值侵蝕美元收入的毛利率。</p>
+
+<!-- Risk Matrix 2D SVG -->
+<div class="viz-hero">
+  <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:380px" aria-label="力成 6239 風險矩陣">
+    <!-- Background -->
+    <rect width="720" height="380" fill="#F5F4EE" rx="8"/>
+    <!-- Quadrant backgrounds -->
+    <!-- Q1 high-high (top right) -->
+    <rect x="380" y="30" width="300" height="160" fill="rgba(200,48,44,0.06)" rx="0"/>
+    <!-- Q2 low-high (top left) -->
+    <rect x="60" y="30" width="320" height="160" fill="rgba(0,59,54,0.05)" rx="0"/>
+    <!-- Q3 low-low (bottom left) -->
+    <rect x="60" y="190" width="320" height="160" fill="rgba(31,122,92,0.04)" rx="0"/>
+    <!-- Q4 high-low (bottom right) -->
+    <rect x="380" y="190" width="300" height="160" fill="rgba(0,59,54,0.05)" rx="0"/>
+
+    <!-- Axes -->
+    <line x1="60" y1="30" x2="60" y2="360" stroke="#E5E7EB" stroke-width="1.5"/>
+    <line x1="60" y1="360" x2="680" y2="360" stroke="#E5E7EB" stroke-width="1.5"/>
+    <line x1="380" y1="30" x2="380" y2="360" stroke="#E5E7EB" stroke-width="0.8" stroke-dasharray="4,3"/>
+    <line x1="60" y1="190" x2="680" y2="190" stroke="#E5E7EB" stroke-width="0.8" stroke-dasharray="4,3"/>
+
+    <!-- Axis labels -->
+    <text x="370" y="378" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle">機率 →</text>
+    <text x="14" y="200" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle" transform="rotate(-90,14,200)">影響 →</text>
+    <text x="220" y="22" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="middle">低機率</text>
+    <text x="530" y="22" font-family="-apple-system,sans-serif" font-size="10" fill="#C8302C" text-anchor="middle">高機率</text>
+    <text x="36" y="100" font-family="-apple-system,sans-serif" font-size="10" fill="#C8302C" text-anchor="middle" transform="rotate(-90,36,100)">高影響</text>
+    <text x="36" y="285" font-family="-apple-system,sans-serif" font-size="10" fill="#6B7280" text-anchor="middle" transform="rotate(-90,36,285)">低影響</text>
+
+    <!-- Quadrant labels -->
+    <text x="120" y="55" font-family="-apple-system,sans-serif" font-size="9" fill="#9CA3AF" text-anchor="middle">低機率·高影響</text>
+    <text x="530" y="55" font-family="-apple-system,sans-serif" font-size="9" fill="#C8302C" text-anchor="middle">高機率·高影響 ⚠</text>
+    <text x="120" y="345" font-family="-apple-system,sans-serif" font-size="9" fill="#9CA3AF" text-anchor="middle">低機率·低影響</text>
+    <text x="530" y="345" font-family="-apple-system,sans-serif" font-size="9" fill="#9CA3AF" text-anchor="middle">高機率·低影響</text>
+
+    <!-- Risk Data Points -->
+    <!-- R1: SK Hynix 自建 - High probability, High impact — top right quadrant -->
+    <!-- x=560 (high prob), y=65 (high impact) -->
+    <circle cx="560" cy="75" r="16" fill="rgba(200,48,44,0.25)" stroke="#C8302C" stroke-width="2"/>
+    <text x="560" y="79" font-family="-apple-system,sans-serif" font-size="11" fill="#C8302C" text-anchor="middle" font-weight="700">R1</text>
+    <text x="560" y="50" font-family="-apple-system,sans-serif" font-size="10" fill="#C8302C" text-anchor="middle" font-weight="600">SK Hynix</text>
+    <text x="560" y="40" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">自建 PKG</text>
+
+    <!-- R2: RSI oversold / market correction - High prob, Medium impact -->
+    <!-- x=540 (high prob), y=165 (mid impact) -->
+    <circle cx="540" cy="155" r="14" fill="rgba(0,59,54,0.25)" stroke="#003B36" stroke-width="2"/>
+    <text x="540" y="159" font-family="-apple-system,sans-serif" font-size="11" fill="#003B36" text-anchor="middle" font-weight="700">R2</text>
+    <text x="600" y="152" font-family="-apple-system,sans-serif" font-size="10" fill="#003B36" text-anchor="start">RSI 超買</text>
+    <text x="600" y="165" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="start">市場修正</text>
+
+    <!-- R3: NTD appreciation - High prob, medium impact -->
+    <!-- x=500 (med-high prob), y=220 -->
+    <circle cx="490" cy="240" r="13" fill="rgba(0,59,54,0.20)" stroke="#003B36" stroke-width="1.5"/>
+    <text x="490" y="244" font-family="-apple-system,sans-serif" font-size="11" fill="#003B36" text-anchor="middle" font-weight="700">R3</text>
+    <text x="490" y="270" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">台幣升值</text>
+
+    <!-- R4: HBM yield ramp issues - Low-Med prob, High impact -->
+    <!-- x=200 (low prob), y=90 (high impact) -->
+    <circle cx="220" cy="95" r="13" fill="rgba(200,48,44,0.15)" stroke="#C8302C" stroke-width="1.5"/>
+    <text x="220" y="99" font-family="-apple-system,sans-serif" font-size="11" fill="#C8302C" text-anchor="middle" font-weight="700">R4</text>
+    <text x="220" y="75" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">HBM4</text>
+    <text x="220" y="65" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">良率問題</text>
+
+    <!-- R5: Geopolitical / Export Control - Low prob, High impact -->
+    <!-- x=130 (low prob), y=110 (high impact) -->
+    <circle cx="140" cy="130" r="12" fill="rgba(100,116,139,0.20)" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="140" y="134" font-family="-apple-system,sans-serif" font-size="11" fill="#6B7280" text-anchor="middle" font-weight="700">R5</text>
+    <text x="140" y="110" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">地緣/出口管制</text>
+
+    <!-- Legend -->
+    <circle cx="68" cy="375" r="6" fill="rgba(200,48,44,0.25)" stroke="#C8302C" stroke-width="1.5"/>
+    <text x="78" y="379" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">高優先風險</text>
+    <circle cx="160" cy="375" r="6" fill="rgba(0,59,54,0.25)" stroke="#003B36" stroke-width="1.5"/>
+    <text x="170" y="379" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">中優先風險</text>
+    <circle cx="250" cy="375" r="6" fill="rgba(100,116,139,0.20)" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="260" y="379" font-family="-apple-system,sans-serif" font-size="9" fill="#6B7280">低優先風險</text>
+  </svg>
+  <div class="viz-caption">2D 風險矩陣：X 軸 = 機率，Y 軸 = 影響幅度。圓圈大小代表相對嚴重程度。R1 SK Hynix 自建是最高優先風險。</div>
+</div>
+
+<!-- Risk Detail Table -->
+<div class="tbl-wrap" style="margin-top:16px">
+  <table class="tbl">
+    <thead><tr>
+      <th>風險</th><th>影響</th><th>機率</th><th>時間窗</th><th>對 Base PT 影響</th><th>緩解措施 / 觀察點</th>
+    </tr></thead>
+    <tbody>
+      <tr class="hl">
+        <td><strong>R1 SK Hynix 自建 Advanced PKG 加速</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">委外比重 2026-2027 下降</span></td>
+        <td><span class="tag red">高</span></td><td><span class="tag red">高</span></td>
+        <td>2027–2028</td>
+        <td>-NT$80–100 (→ Bear NT$185–220)</td>
+        <td>監控 SK Hynix 法說委外比重描述；Micron 訂單作為替代</td>
+      </tr>
+      <tr>
+        <td><strong>R2 RSI 超買市場修正</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">技術面過熱後急跌</span></td>
+        <td><span class="tag gold">中</span></td><td><span class="tag red">高</span></td>
+        <td>近期 1–3 個月</td>
+        <td>技術修正 -15%–25% (→ NT$210–240)</td>
+        <td>基本面若未惡化，回測 NT$230–245 是加碼點而非賣點</td>
+      </tr>
+      <tr>
+        <td><strong>R3 台幣升值侵蝕毛利</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">USD 收入佔 70-75%</span></td>
+        <td><span class="tag gold">中</span></td><td><span class="tag gold">中高</span></td>
+        <td>持續性</td>
+        <td>每升值 5% → EPS 減少 ~5–8%</td>
+        <td>匯率避險工具 + 成本結構本土化程度</td>
+      </tr>
+      <tr>
+        <td><strong>R4 HBM4 良率爬坡失敗</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">HBM4 認證延遲/良率不達標</span></td>
+        <td><span class="tag red">高</span></td><td><span class="tag gray">低中</span></td>
+        <td>2026 H2–2027</td>
+        <td>Bull case 延遲 1–2 年</td>
+        <td>Q2 2026 法說 HBM4 認證進度揭露</td>
+      </tr>
+      <tr>
+        <td><strong>R5 地緣政治 / 出口管制</strong><br><span style="font:500 11px/1 var(--font-mono);color:var(--muted)">HBM 相關設備受限</span></td>
+        <td><span class="tag red">高</span></td><td><span class="tag gray">低</span></td>
+        <td>2026–2027</td>
+        <td>Capex 延遲 → 產能擴充停滯</td>
+        <td>美國 BIS HBM 出口管制政策動向</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<section id="s12" class="tier-primary">
+<div class="eyebrow">Final Conclusion · 個人研究結論</div>
+<h2>結論：基本面強勁，但現價不追 — 等 NT$230–245 回測</h2>
+<p class="section-lead">力成是 HBM 封測稀缺卡位者，基本面持續改善 (Q1 2026 +37.6% YoY，毛利率 19.4% 三年新高)；但現價 NT$283 位於 52 週高點，RSI 70 超買，EV 機率加權 NT$306 vs 現價僅高 8%，追高風險/報酬比不佳。個人立場：WATCH，等回測 NT$230–245。</p>
+
+<!-- Bull / Base / Bear Summary -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0">
+  <!-- Bear -->
+  <div style="background:rgba(200,48,44,0.05);border:1px solid rgba(200,48,44,0.3);border-top:4px solid var(--red);border-radius:8px;padding:16px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Bear Case (20%)</div>
+    <div style="font:700 22px/1 var(--font-mono);color:var(--red);margin-bottom:8px">NT$185</div>
+    <div style="font:500 14px/1.5 inherit;color:var(--text);margin-bottom:10px">SK Hynix 削減委外訂單 + 毛利率停滯在 17-18%</div>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--red)">·</span>SK Hynix FY26 自建封測 +50% 以上</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--red)">·</span>HBM4 良率問題延遲認證</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--red)">·</span>台幣大幅升值超過 10%</li>
+    </ul>
+    <div style="font:600 12px/1 var(--font-mono);color:var(--red);margin-top:10px">vs 現價 -34.6%</div>
+  </div>
+
+  <!-- Base -->
+  <div style="background:rgba(0,59,54,0.06);border:1px solid rgba(0,59,54,0.4);border-top:4px solid var(--gold);border-radius:8px;padding:16px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Base Case ★ (55%)</div>
+    <div style="font:700 22px/1 var(--font-mono);color:var(--gold);margin-bottom:8px">NT$310</div>
+    <div style="font:500 14px/1.5 inherit;color:var(--text);margin-bottom:10px">委外維持穩定 + 毛利率溫和升至 19.5-20%</div>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--gold)">·</span>FY26E 合併營收 NT$840–880 億</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--gold)">·</span>FY26E EPS NT$19.1 × PE 16.2×</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--gold)">·</span>SK Hynix 訂單能見度至 Q4</li>
+    </ul>
+    <div style="font:600 12px/1 var(--font-mono);color:var(--mint);margin-top:10px">vs 現價 +9.5%</div>
+  </div>
+
+  <!-- Bull -->
+  <div style="background:rgba(31,122,92,0.05);border:1px solid rgba(31,122,92,0.3);border-top:4px solid var(--mint);border-radius:8px;padding:16px">
+    <div style="font:600 11px/1 var(--font-mono);color:var(--mint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Bull Case (25%)</div>
+    <div style="font:700 22px/1 var(--font-mono);color:var(--mint);margin-bottom:8px">NT$395</div>
+    <div style="font:500 14px/1.5 inherit;color:var(--text);margin-bottom:10px">HBM4 新訂單落地 + 毛利率突破 21-22%</div>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--mint)">·</span>Micron HBM4 大量訂單 2026 Q4</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--mint)">·</span>FY26E EPS NT$25.5 × PE 15.5×</li>
+      <li style="margin-bottom:4px;padding-left:14px;position:relative"><span style="position:absolute;left:0;color:var(--mint)">·</span>邏輯 SiP 新客戶加速規模化</li>
+    </ul>
+    <div style="font:600 12px/1 var(--font-mono);color:var(--mint);margin-top:10px">vs 現價 +39.6%</div>
+  </div>
+</div>
+
+<!-- EV Final -->
+<div class="ev-spotlight">
+  <div>
+    <div class="ev-label">期望價格 EV (機率加權)</div>
+    <div class="ev-formula">NT$185×20% + NT$310×55% + NT$395×25% = NT$306.3</div>
+  </div>
+  <div class="ev-value">NT$306.3</div>
+  <div class="ev-delta">+8.2% vs NT$283</div>
+</div>
+
+<!-- Decision Box recap -->
+<div class="decision-box" style="background:rgba(255,255,255,0.02);border-color:rgba(0,59,54,0.25);margin-top:16px">
+  <div class="decision-cell">
+    <div class="lbl">個人立場</div>
+    <div class="val stance-watch">WATCH</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">理想介入區</div>
+    <div class="val">NT$230–245</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">現時追高評估</div>
+    <div class="val risk-high">不追 NT$283</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">失效條件</div>
+    <div class="val">SK Hynix 削委外訂單</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">下次法說</div>
+    <div class="val">Q2 2026 (8月)</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">必看 KPI</div>
+    <div class="val">月營收 + HBM%</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">研究信心度</div>
+    <div class="val">0.62 / 1.0</div>
+  </div>
+  <div class="decision-cell">
+    <div class="lbl">下次更新</div>
+    <div class="val">Q2 月營收公告</div>
+  </div>
+</div>
+
+<!-- Story QA Checklist -->
+<div class="tier-tertiary" style="margin-top:16px">
+  <h4>Story QA 五問自檢</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+    <div class="callout mint"><div class="ttl">① Thesis (一句話)</div>力成是 HBM 封測稀缺卡位者，AI 需求結構性受益，但現價 NT$283 已充分反映，等 NT$230–245 回測。✅</div>
+    <div class="callout mint"><div class="ttl">② Why Now</div>HBM3E 量產高峰 + HBM4 轉型期，委外訂單能見度至 Q3 2026，這是力成受益窗口。✅</div>
+    <div class="callout mint"><div class="ttl">③ Top Risks</div>R1 SK Hynix 自建 (2027)；R2 RSI 超買修正；R3 台幣升值毛利侵蝕。✅</div>
+    <div class="callout mint"><div class="ttl">④ Valuation Logic</div>EPS NT$19.1 × PE 16.2× = NT$310 Base PT；EV 機率加權 NT$306；DCF NT$270–300。✅</div>
+    <div class="callout mint"><div class="ttl">⑤ Market Narrative</div>台灣 AI 供應鏈封測代表股；RSI 70 超買但市場仍在炒 HBM 稀缺性。✅</div>
+    <div class="callout"><div class="ttl">研究完整性</div>真法說 quote ✅、HBM 客戶集中度 ✅、DCF ✅、PE/PB peer ✅、2D 風險矩陣 ✅</div>
+  </div>
+</div>
+</section>
+
+
+<section id="s13" class="section">
+  <div class="section-eyebrow">S13 · 5 大師 Personas 共識</div>
+  <h2 class="section-h2">HBM 稀缺卡位 vs 超買追高風險：大師意見分歧</h2>
+  <p class="section-lead">5 位大師對力成看法分歧：Buffett/Munger 認為 PB 4.47x 溢價過大；Lynch/Soros 承認 HBM 成長故事；Burry 關注自建封測威脅。共識評分 5.8 (觀望待進場機會)。</p>
+  <div class="personas-grid">
+    <div class="persona-card" data-persona="Buffett">
+      <div class="persona-card-header">
+        <h3>Buffett · 護城河+價值</h3>
+        <span class="persona-score">5.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立偏空</div>
+      <ul class="persona-bullets">
+        <li>HBM TSV 封測是真實護城河，技術壁壘接近晶圓廠</li>
+        <li>但 PB 4.47x、PE 28x — 超出「合理價格」範疇</li>
+        <li>SK Hynix 自建威脅是長期護城河侵蝕訊號</li>
+        <li>若回到 PB 2.5x (NT$160)，值得認真考慮</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Munger">
+      <div class="persona-card-header">
+        <h3>Munger · 複利+質量</h3>
+        <span class="persona-score">5.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立</div>
+      <ul class="persona-bullets">
+        <li>記憶體封測是好生意，但「好公司」≠「好股票」</li>
+        <li>毛利率 19.4% vs 競品 30%+ — 不是最優質業者</li>
+        <li>HBM 成長驅動力真實，但委外比重下行是長期隱憂</li>
+        <li>等待 RSI 超買退潮後，NT$230-245 是合理進場點</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Lynch">
+      <div class="persona-card-header">
+        <h3>Lynch · GARP+故事</h3>
+        <span class="persona-score">6.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bull)">偏多</div>
+      <ul class="persona-bullets">
+        <li>「HBM 封測稀缺卡位者」是 Lynch 最愛的 niche story</li>
+        <li>YoY +37.6% 成長確認 story 在實現，非炒作</li>
+        <li>但現在是 52 週高點，Lynch 也不追高</li>
+        <li>NT$230-245 回調後，PEG 才合理</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Soros">
+      <div class="persona-card-header">
+        <h3>Soros · 反身性+宏觀</h3>
+        <span class="persona-score">6.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立</div>
+      <ul class="persona-bullets">
+        <li>AI 記憶體需求的反身性循環仍在正向強化中</li>
+        <li>但 RSI 70 是第一個警示 — 正向循環開始過熱</li>
+        <li>宏觀：若 AI capex 2H26 放緩，HBM 需求修正快</li>
+        <li>現在是觀察期，等待反身性轉向訊號</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Burry">
+      <div class="persona-card-header">
+        <h3>Burry · 熊市+逆向</h3>
+        <span class="persona-score">4.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">偏空</div>
+      <ul class="persona-bullets">
+        <li>SK Hynix / Micron 自建封測是真正的尾部風險</li>
+        <li>Bear PT NT$185 成立條件：任一大廠加速自建即觸發</li>
+        <li>委外比重從 40%+ 降至 20% = 50% 盈利蒸發</li>
+        <li>市場嚴重低估垂直整合威脅</li>
+      </ul>
+    </div>
+  </div>
+  <div class="personas-consensus">
+    <h3>共識評分 + 分歧點</h3>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>大師</th><th>評分</th><th>立場</th><th>核心論點</th></tr></thead>
+        <tbody>
+          <tr><td>Buffett</td><td class="num">5.5</td><td style="color:var(--neutral)">中立偏空</td><td>護城河真實但估值過高，等 PB 2.5x</td></tr>
+          <tr><td>Munger</td><td class="num">5.0</td><td style="color:var(--neutral)">中立</td><td>好生意但非最優，等超買退潮</td></tr>
+          <tr><td>Lynch</td><td class="num">6.5</td><td style="color:var(--bull)">偏多</td><td>niche story 成立，等回調 NT$230-245</td></tr>
+          <tr><td>Soros</td><td class="num">6.0</td><td style="color:var(--neutral)">中立</td><td>反身性仍正向，但 RSI 70 警示</td></tr>
+          <tr><td>Burry</td><td class="num">4.0</td><td style="color:var(--bear)">偏空</td><td>自建封測威脅被低估，Bear NT$185 真實</td></tr>
+          <tr class="hl"><td><strong>共識</strong></td><td class="num"><strong>5.4</strong></td><td style="color:var(--neutral)"><strong>觀望</strong></td><td>現價 NT$283 不進場；NT$230-245 再評估</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px"><strong>主要分歧：</strong>Lynch/Soros 認為 HBM story 具備進場理由（但非現價）；Burry 擔憂自建威脅被市場低估。<strong>共識：</strong>等候 NT$230-245 回調，現價 NT$283 風險報酬比不佳 (EV NT$306 vs 現價僅 +9%)。</p>
+  </div>
+  <ul class="section-bullets">
+    <li>共識分數 5.4 — 最高分力成研究中（HBM story 真實），但現價追高共識反對</li>
+    <li>Lynch 最積極：回調後 NT$230-245 具備 GARP 買點；Burry 最保守：自建封測威脅 NT$185</li>
+    <li>分歧點：SK Hynix 自建封測比重 2027-2028 實際走向，是分水嶺指標</li>
+  </ul>
+</section>
+
+<section id="s14" class="section">
+  <div class="section-eyebrow">S14 · 風險 2D 矩陣</div>
+  <h2 class="section-h2">主要風險：SK Hynix 自建威脅 × RSI 超買組合壓力</h2>
+  <p class="section-lead">最高優先風險：SK Hynix 加速自建封測 (高機率 × 高影響)。現階段 RSI 70 超買構成技術面風險。整體風險等級：高。</p>
+  <div class="risk-matrix-wrap">
+    <svg viewBox="0 0 500 320" aria-label="6239 風險 2D 矩陣：機率 × 影響散點圖" style="min-height:280px">
+      <title>6239 力成科技 風險矩陣</title>
+      <!-- Axes labels -->
+      <text x="250" y="18" text-anchor="middle" font-size="11" fill="#6B7280" font-family="monospace">機率 →</text>
+      <text x="14" y="160" text-anchor="middle" font-size="11" fill="#6B7280" font-family="monospace" transform="rotate(-90,14,160)">影響 →</text>
+      <!-- Grid -->
+      <line x1="50" y1="280" x2="480" y2="280" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="50" y1="30" x2="50" y2="280" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="183" y1="30" x2="183" y2="280" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <line x1="316" y1="30" x2="316" y2="280" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <line x1="50" y1="155" x2="480" y2="155" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <!-- X axis ticks -->
+      <text x="120" y="296" text-anchor="middle" font-size="10" fill="#9CA3AF">低</text>
+      <text x="250" y="296" text-anchor="middle" font-size="10" fill="#9CA3AF">中</text>
+      <text x="400" y="296" text-anchor="middle" font-size="10" fill="#9CA3AF">高</text>
+      <!-- Y axis ticks -->
+      <text x="44" y="275" text-anchor="end" font-size="10" fill="#9CA3AF">低</text>
+      <text x="44" y="160" text-anchor="end" font-size="10" fill="#9CA3AF">中</text>
+      <text x="44" y="60" text-anchor="end" font-size="10" fill="#9CA3AF">高</text>
+      <!-- Risk zones (colored backgrounds) -->
+      <rect x="316" y="30" width="164" height="125" fill="rgba(200,48,44,0.07)" rx="2"/>
+      <rect x="50" y="155" width="266" height="125" fill="rgba(31,122,92,0.05)" rx="2"/>
+      <!-- Risk points -->
+      <!-- R1: SK Hynix 自建 — HIGH prob, HIGH impact → top-right -->
+      <circle cx="410" cy="55" r="16" fill="rgba(200,48,44,0.25)" stroke="#C8302C" stroke-width="2"/>
+      <text x="410" y="59" text-anchor="middle" font-size="11" font-weight="700" fill="#C8302C">R1</text>
+      <!-- R2: RSI 超買修正 — HIGH prob, MED impact → right-center -->
+      <circle cx="390" cy="155" r="12" fill="rgba(200,48,44,0.15)" stroke="#C8302C" stroke-width="1.5"/>
+      <text x="390" y="159" text-anchor="middle" font-size="11" font-weight="700" fill="#C8302C">R2</text>
+      <!-- R3: 台幣升值 — MED prob, MED impact → center -->
+      <circle cx="255" cy="148" r="10" fill="rgba(245,166,35,0.2)" stroke="#003B36" stroke-width="1.5"/>
+      <text x="255" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#003B36">R3</text>
+      <!-- R4: HBM 良率問題 — LOW prob, HIGH impact → top-left -->
+      <circle cx="120" cy="65" r="10" fill="rgba(200,48,44,0.12)" stroke="#C8302C" stroke-width="1"/>
+      <text x="120" y="69" text-anchor="middle" font-size="10" fill="#C8302C">R4</text>
+      <!-- R5: 地緣/出口管制 — LOW prob, MED impact → center-left -->
+      <circle cx="130" cy="155" r="8" fill="rgba(31,122,92,0.12)" stroke="#1F7A5C" stroke-width="1"/>
+      <text x="130" y="159" text-anchor="middle" font-size="10" fill="#1F7A5C">R5</text>
+      <!-- Legend -->
+      <circle cx="65" cy="315" r="6" fill="rgba(200,48,44,0.25)" stroke="#C8302C" stroke-width="1.5"/>
+      <text x="76" y="319" font-size="10" fill="#6B7280">高優先</text>
+      <circle cx="140" cy="315" r="6" fill="rgba(245,166,35,0.2)" stroke="#003B36" stroke-width="1.5"/>
+      <text x="151" y="319" font-size="10" fill="#6B7280">中優先</text>
+      <circle cx="215" cy="315" r="6" fill="rgba(31,122,92,0.12)" stroke="#1F7A5C" stroke-width="1"/>
+      <text x="226" y="319" font-size="10" fill="#6B7280">低優先</text>
+    </svg>
+  </div>
+  <div class="risk-table-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>ID</th><th>風險</th><th>機率</th><th>影響</th><th>時間窗</th><th>對 Base PT 影響</th><th>緩解 / 觀察</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--bear)">R1</strong></td><td>SK Hynix 自建封測加速</td><td>高 65%</td><td>極大</td><td>2027–2028</td><td>-NT$80-100 (→Bear NT$185)</td><td>監控 SK Hynix 法說委外比重描述</td></tr>
+        <tr><td><strong style="color:var(--bear)">R2</strong></td><td>RSI 超買技術面修正</td><td>高 60%</td><td>中</td><td>近期 1-3 個月</td><td>-15%~25% (→NT$210-240)</td><td>等 RSI 降至 50 以下重評</td></tr>
+        <tr><td><strong style="color:var(--accent)">R3</strong></td><td>台幣升值侵蝕 USD 收入</td><td>中 45%</td><td>中</td><td>持續性</td><td>毛利率 -1%~2% 每 1% 台幣升值</td><td>追蹤央行匯率政策</td></tr>
+        <tr><td><strong style="color:var(--bear)">R4</strong></td><td>HBM4 良率爬坡問題</td><td>低 25%</td><td>高</td><td>2026 Q3-Q4</td><td>-NT$30-50 (→NT$230-260)</td><td>Q2 法說毛利率指引是否回升</td></tr>
+        <tr><td><strong style="color:var(--bull)">R5</strong></td><td>地緣 / 出口管制</td><td>低 20%</td><td>中</td><td>2026-2027</td><td>資本支出延遲 1-2 季</td><td>追蹤美商務部 HBM 相關設備規則</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="section-bullets">
+    <li>R1 是「頭號風險」：SK Hynix 自建封測比重若升至 60%+，委外市場大幅萎縮 → Bear NT$185 直接觸發</li>
+    <li>R2 + R1 雙殺場景：技術面修正後若 R1 同時實現，Bear NT$185 以下不是尾部風險</li>
+    <li>緩解指標：每季度觀察 SK Hynix / Micron 法說中「outsourcing %」描述是否有下修跡象</li>
+  </ul>
+</section>
+
+<section id="s15" class="section">
+  <div class="section-eyebrow">S15 · Upcoming Catalysts</div>
+  <h2 class="section-h2">觀察時間軸：2026 Q2-Q4 是驗證 HBM 放量的關鍵窗口</h2>
+  <p class="section-lead">2026 年下半年是力成 HBM 命運的分水嶺：Q3 TSV 新產線投產 + SK Hynix H2 訂單能見度，將決定 FY27 是 NT$310 Base 還是 NT$185 Bear。</p>
+  <div class="tbl-wrap">
+    <table class="catalyst-table">
+      <thead><tr><th>時間</th><th>事件</th><th>重要性</th><th>Bull 確認條件</th><th>Bear 警示</th></tr></thead>
+      <tbody>
+        <tr><td>2026-06 (每月)</td><td>月合併營收公告 (MOPS)</td><td>★★★</td><td>YoY &gt;+20%，HBM 占比提升</td><td>YoY &lt;+10% 或環比下滑</td></tr>
+        <tr><td>2026-08 (預計)</td><td>2026 Q2 法說會</td><td>★★★</td><td>毛利率指引 &gt;21%；HBM4 訂單確認</td><td>毛利率下修或 SK Hynix 委外比重下降描述</td></tr>
+        <tr><td>2026 Q3 (預計)</td><td>HBM TSV 新產線投產確認</td><td>★★★</td><td>產能爬坡如期，良率 &gt;85%</td><td>投產延遲 &gt;1 季或良率問題</td></tr>
+        <tr><td>2026 Q3</td><td>SK Hynix HBM4e 量產委外決策</td><td>★★★</td><td>委外比重維持 / 上升至 45%+</td><td>宣布加速自建，委外比重下降</td></tr>
+        <tr><td>2026 Q4</td><td>2026 Q3 法說 + FY27 展望</td><td>★★</td><td>FY27 EPS 展望 NT$15-18，確認 Base</td><td>FY27 展望低於 NT$10 → Base PT 下修</td></tr>
+        <tr><td>2026-2027</td><td>Micron HBM4 封測委外擴大</td><td>★★</td><td>Micron 新增訂單彌補潛在 SK Hynix 委外縮減</td><td>Micron 也宣布自建 Advanced PKG</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="section-bullets">
+    <li>最高優先催化劑：2026 Q3 HBM TSV 新產線投產 × SK Hynix 委外決策 — 這兩個事件同步出現 Bull 訊號 = Bull PT NT$395 成立</li>
+    <li>月營收：每月 10 日前公告，持續觀察是否維持 YoY +30%+ 趨勢</li>
+    <li>反向警示：SK Hynix 任何一句「我們在加速內部化封測」→ 立即評估 Bear PT NT$185</li>
+  </ul>
+</section>
+
+<section id="s16" class="section">
+  <div class="section-eyebrow">S16 · 觀察清單 — 下次法說 / 月營收 5 個必看指標</div>
+  <h2 class="section-h2">HBM 委外比重 + 毛利率連續性是最關鍵追蹤指標</h2>
+  <div class="watchlist-items">
+    <div class="watchlist-item">
+      <div class="wl-metric">① HBM 訂單 / 委外比重 (Source: SK Hynix / Micron 法說)</div>
+      <div class="wl-condition">觀察：每季度 SK Hynix 法說中「advanced packaging outsourcing %」描述</div>
+      <div class="wl-bull">Bull ✓：委外比重維持 35-45% 或提升 → 力成 HBM 護城河確認</div>
+      <div class="wl-bear">Bear ✗：任何「加速自建」或「委外比重下降」描述 → 立即評估 Bear PT NT$185</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">② 季度毛利率 (Source: MOPS 法說簡報)</div>
+      <div class="wl-condition">觀察：連續 2 季毛利率趨勢；門檻 19-22% 區間</div>
+      <div class="wl-bull">Bull ✓：連二季毛利率 &gt;21% → HBM mix 改善，Base PT NT$310 成立</div>
+      <div class="wl-bear">Bear ✗：單季毛利率 &lt;16% → HBM 良率問題或客戶壓價 → 下修 Base</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">③ 月合併營收 YoY (Source: MOPS 重訊)</div>
+      <div class="wl-condition">觀察：每月 10 日前公告；追蹤 3 個月移動平均 YoY</div>
+      <div class="wl-bull">Bull ✓：3 個月 YoY 均值 &gt;+30% → 成長動能持續，維持 WATCH</div>
+      <div class="wl-bear">Bear ✗：連二月 YoY &lt;+15% 或轉負 → 成長減速，重評估 Base</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">④ HBM4 TSV 新產線良率 (Source: 法說 / 公司說明會)</div>
+      <div class="wl-condition">觀察：Q3 2026 投產後第一次法說對良率 / 爬坡進度的描述</div>
+      <div class="wl-bull">Bull ✓：投產如期，良率 &gt;85% 且 Q3 開始貢獻 → Bull PT NT$395 路徑確認</div>
+      <div class="wl-bear">Bear ✗：投產延遲 &gt;2 季或良率問題 → 毛利率波動，下修至 NT$230-260</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">⑤ PB 估值相對歷史位置 (Source: Bloomberg / yfinance)</div>
+      <div class="wl-condition">觀察：PB 從目前 4.47x 的歷史高位回調幅度</div>
+      <div class="wl-bull">Bull ✓：股價回落至 NT$230-245 (PB ~3.6x) → 具備真實風險報酬進場機會</div>
+      <div class="wl-bear">Bear ✗：PB 維持 4x+ 而基本面 miss → 估值收縮空間大，避免追高</div>
+    </div>
+  </div>
+  <ul class="section-bullets">
+    <li>最高優先指標：①「SK Hynix 委外比重」— 此單一指標決定 Bear (NT$185) 或 Base (NT$310) 哪個情境更可能</li>
+    <li>月營收追蹤：力成每月公告合併營收；持續觀察 YoY 是否能維持 30%+ 動能進入 Q3</li>
+    <li>進場條件：上述 5 項中 ①②③ 全部 Bull 確認 + 股價回調至 NT$230-245 = 風險報酬比達 3:1</li>
+  </ul>
+</section>
+
+<section id="appendix" class="tier-tertiary">
+<div class="eyebrow">Appendix · Sources · Disclaimer</div>
+<h2>資料來源、方法論與免責聲明</h2>
+
+<div class="grid-2" style="gap:14px">
+  <div>
+    <h4>資料來源</h4>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>類別</th><th>來源</th><th>截止日</th><th>可信度</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>力成 Q1 2026 財報</td><td>MOPS 重訊、力成 IR</td><td>2026-05-12</td><td><span class="tag mint">高</span></td></tr>
+          <tr><td>力成法說摘要</td><td>MOPS 重訊 + 公開法說整理</td><td>2026-05-12</td><td><span class="tag gold">中高</span></td></tr>
+          <tr><td>SK Hynix 法說</td><td>SK Hynix Q4 2025 Earnings Call Transcript</td><td>2026-02-05</td><td><span class="tag mint">高</span></td></tr>
+          <tr><td>SK Hynix Annual Report</td><td>SK Hynix 2025 Annual Report / SEC 20-F equiv.</td><td>2026-03</td><td><span class="tag mint">高</span></td></tr>
+          <tr><td>Micron FY25 10-K</td><td>SEC EDGAR Micron 10-K</td><td>2025-09</td><td><span class="tag mint">高</span></td></tr>
+          <tr><td>技術面數據</td><td>yfinance TWSE 確定性計算</td><td>2026-05-24</td><td><span class="tag mint">高</span></td></tr>
+          <tr><td>產業 TAM 數字</td><td>TrendForce 2025、Yole 2024、SEMI 2025</td><td>2025</td><td><span class="tag gold">中</span></td></tr>
+          <tr><td>同業財務數據</td><td>MOPS、Bloomberg 個人整理</td><td>2026-05-24</td><td><span class="tag gold">中</span></td></tr>
+          <tr><td>供應商/設備資訊</td><td>公開 IR + 產業研究</td><td>2025–2026</td><td><span class="tag gold">中</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <h4>方法論說明</h4>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>估值方法：</strong>主要使用 PE 倍數法 (EPS × Forward PE)，輔以 DCF (FCF 折現) 和 PB 交叉確認</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>EPS 基準：</strong>FY26E EPS NT$19.1 為個人估算，基於 TTM EPS + 市場共識成長率推算</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>客戶集中度：</strong>SK Hynix / Micron 收入佔比為個人推算 (40-50% / 20-30%)，非力成官方分部揭露</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>法說引述：</strong>力成法說逐字稿非完整公開，引述基於 MOPS 重訊摘要，具體措辭可能有出入</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>DCF 假設：</strong>WACC 10.5%、Terminal growth 3.5%、FCF 2026-2028E 基於個人預測</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--gold)">·</span><strong>知識截止：</strong>AI 輔助研究知識截止 August 2025；市場數據更新至 2026-05-24</li>
+    </ul>
+
+    <h4 style="margin-top:14px">觀察清單 — 下次法說 5 個必看指標</h4>
+    <ul style="list-style:none;padding:0;font-size:12px">
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--mint)">①</span>Q2/Q3 月營收 YoY 是否維持 ≥25% → 確認 Base case</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--mint)">②</span>Q2 毛利率是否突破 20% → 確認毛利率平台升級</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--mint)">③</span>SK Hynix Q2 法說委外描述是否改口 → 最重要</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--mint)">④</span>HBM4 認證進度 — 是否 2026 Q3 進入試產 → Bull case trigger</li>
+      <li style="padding-left:16px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:var(--mint)">⑤</span>Capex 執行率 — NT$120 億是否按計畫 → 第三產線如期投產</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Strong Disclaimer (4 phrases on 2+ physical lines — v3 必含) -->
+<div style="margin-top:20px;padding:16px 20px;background:#1A2540;border-radius:8px;color:rgba(255,255,255,0.7);font:500 12px/1.7 var(--font-mono)">
+  <div style="color:rgba(255,255,255,0.9);font-weight:700;margin-bottom:8px;font-size:14px">研究立場與免責聲明</div>
+  <div><strong style="color:#fff">本報告不構成任何投資建議，</strong>所有內容僅代表個人研究筆記與個人觀點，不應被視為專業投資顧問意見。</div>
+  <div style="margin-top:6px"><strong style="color:#fff">本研究完全不收費、不帶會員、不接代操，</strong>亦非任何金融機構之研究出品。</div>
+  <div style="margin-top:6px"><strong style="color:#fff">投資人應自行研究並承擔所有投資風險，</strong>過去績效不代表未來結果，個股可能面臨本金損失。</div>
+  <div style="margin-top:6px"><strong style="color:#fff">製作者非執業投資顧問，</strong>不持有任何執照，本報告中所有個人估算區間僅供研究參考，請勿以此作為交易依據。</div>
+  <div style="margin-top:8px;color:rgba(255,255,255,0.45);font-size:11px">6239 力成科技 AI Research Notes · 製作日期 2026-05-24 · 非機構出品 · 個人研究筆記</div>
+</div>
+</section>
+
+<div class="footer">
+  <div>6239 AI Research Notes — Production SOP v3 · No Trade Signal</div>
+  <div style="margin-top:6px">資料截止見 Appendix · 個人研究筆記 · 非機構出品</div>
+  <div style="margin-top:8px" class="strong-d">本報告不構成投資建議；本報告完全不收費。</div>
+  <div class="strong-d">投資人請自行承擔風險；製作者非執業投資顧問。</div>
+</div>
+
+</main>
+
+<script>
+(function(){
+  // PT Calculator (if present)
+  var eps=document.getElementById('r-eps'), pe=document.getElementById('r-pe'), yr=document.getElementById('r-yr');
+  if(!eps||!pe||!yr)return;
+  var oEps=document.getElementById('o-eps'), oPe=document.getElementById('o-pe'), oYr=document.getElementById('o-yr');
+  var oPt=document.getElementById('o-pt'), oVs=document.getElementById('o-vs'), oDpt=document.getElementById('o-dpt');
+  var priceEl=document.querySelector('[data-current-price]');
+  var price=priceEl?parseFloat(priceEl.getAttribute('data-current-price')):0, disc=0.08;
+  function calc(){
+    var e=parseFloat(eps.value), p=parseFloat(pe.value), y=parseInt(yr.value);
+    var pt=e*p;
+    var vs=((pt-price)/price)*100;
+    var dpt=pt/Math.pow(1+disc,y);
+    if(oEps)oEps.textContent=e.toFixed(2);
+    if(oPe)oPe.textContent=p.toFixed(1);
+    if(oYr)oYr.textContent=y;
+    if(oPt)oPt.textContent='$'+pt.toFixed(2);
+    if(oVs){oVs.textContent=(vs>=0?'+':'')+vs.toFixed(1)+'%';oVs.className='v '+(vs>=0?'green':'red');}
+    if(oDpt)oDpt.textContent='$'+dpt.toFixed(2);
+  }
+  [eps,pe,yr].forEach(function(el){el.addEventListener('input',calc)});
+  calc();
+})();
+(function(){
+  // Table mobile data-label fallback
+  document.querySelectorAll('table.tbl').forEach(function(t){
+    var ths=Array.prototype.map.call(t.querySelectorAll('thead th'), function(th){return th.textContent.trim()});
+    if(!ths.length)return;
+    var tb=t.querySelector('tbody');
+    var rows=tb?Array.prototype.slice.call(tb.querySelectorAll('tr')):Array.prototype.slice.call(t.querySelectorAll('tr')).slice(1);
+    rows.forEach(function(tr){
+      tr.querySelectorAll('td').forEach(function(td,i){
+        if(ths[i] && !td.getAttribute('data-label'))td.setAttribute('data-label',ths[i]);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

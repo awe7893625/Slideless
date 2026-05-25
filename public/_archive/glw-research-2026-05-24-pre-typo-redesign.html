@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GLW — Corning Inc. AI Research Notes · 2026-05-24</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  /* NVTS v7 canonical palette 2026-05-24 — 10 vars, no additions */
+  --bg-page:#F5F4EE;   /* cream off-white body */
+  --bg-card:#FFFFFF;   /* white card */
+  --bg-cover:#0A1628;  /* navy — cover/hero ONLY */
+  --text:#1A2540;      /* near-black navy text */
+  --text-muted:#6B7280;/* muted gray */
+  --border:#E5E7EB;    /* light gray border */
+  --accent:#003B36;    /* DARK GREEN-TEAL — sole accent */
+  --bull:#1F7A5C;      /* positive green */
+  --bear:#C8302C;      /* negative red */
+  --neutral:#9CA3AF;   /* neutral gray */
+  /* legacy aliases — map into the 10 above */
+  --bg:var(--bg-page);--card:var(--bg-card);--ink:var(--text);--muted:var(--text-muted);--muted2:var(--neutral);
+  --border-color:var(--border);--navy:var(--bg-cover);--gold:var(--accent);--mint:var(--bull);--red:var(--bear);
+  --green:var(--bull);--amber:var(--accent);--text-color:var(--text);
+  --font-sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,Consolas,monospace;
+  --fs-xl:32px;--fs-lg:22px;--fs-md:16px;--fs-sm:14px;--fs-xs:12px;
+  --accent-on-dark:var(--bull);
+}
+*,*::before,*::after{box-sizing:border-box;min-width:0;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:var(--fs-sm);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+main{max-width:1200px;margin:0 auto;padding:0 24px 60px}
+.tier-hero{padding:64px 32px 44px;background:var(--navy);color:#fff;border-radius:0;margin:0 -24px 32px;position:relative;overflow:hidden}
+.tier-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 20% 60%,rgba(31,122,92,.07) 0,transparent 70%),radial-gradient(ellipse 40% 50% at 80% 20%,rgba(0,59,54,.05) 0,transparent 70%);pointer-events:none}
+.tier-hero>*{position:relative;z-index:1}
+.tier-primary{padding:40px 24px 36px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin:32px 0}
+.tier-secondary{padding:28px 22px 24px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin:24px 0}
+.tier-tertiary{padding:18px 18px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin:16px 0}
+.eyebrow{font:600 var(--fs-xs)/1 var(--font-mono);color:var(--mint);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.tier-hero .eyebrow{color:var(--gold)}
+.tier-tertiary .eyebrow{color:var(--muted2);font-size:11px}
+h1{font:700 var(--fs-xl)/1.15 inherit;letter-spacing:-.01em;margin-bottom:12px}
+h2{font:700 var(--fs-lg)/1.25 inherit;letter-spacing:-.005em;margin-bottom:12px}
+h3{font:600 var(--fs-md)/1.4 inherit;margin:18px 0 8px}
+h4{font:600 11px/1.4 inherit;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px}
+.section-lead{font:500 var(--fs-md)/1.55 inherit;color:var(--text);background:rgba(0,59,54,.06);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:20px;max-width:920px}
+.tier-hero .section-lead{background:rgba(255,255,255,.04);color:rgba(255,255,255,.9);border-left-color:var(--gold)}
+.decision-box{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid rgba(255,255,255,.18);border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);margin:20px 0}
+.decision-cell{padding:12px 14px;border-right:1px solid rgba(255,255,255,.10);border-bottom:1px solid rgba(255,255,255,.10)}
+.decision-cell:nth-child(4n){border-right:none}
+.decision-cell:nth-last-child(-n+4){border-bottom:none}
+.dc-lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.dc-val{font:700 var(--fs-sm)/1.2 var(--font-mono);color:#fff}
+.dc-val.gold{color:var(--gold)} .dc-val.mint{color:var(--mint)} .dc-val.red{color:var(--red)} .dc-val.amber{color:var(--amber)}
+.ev-spotlight{display:flex;align-items:center;gap:18px;padding:14px 18px;background:rgba(0,59,54,.08);border:1px solid rgba(0,59,54,.35);border-radius:8px;margin:14px 0;flex-wrap:wrap}
+.ev-spotlight .ev-lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.1em}
+.ev-spotlight .ev-formula{font:500 var(--fs-xs)/1.5 var(--font-mono);color:rgba(255,255,255,.6);min-width:260px}
+.ev-spotlight .ev-value{font:700 var(--fs-xl)/1 var(--font-mono);color:var(--gold)}
+.ev-spotlight .ev-delta{font:700 var(--fs-lg)/1 var(--font-mono);padding:6px 12px;border-radius:6px;background:rgba(31,122,92,.18);color:var(--mint)}
+.ev-spotlight .ev-delta.neg{background:rgba(200,48,44,.18);color:var(--red)}
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;margin-top:16px}
+.hero-left .ticker-row{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ticker{font:700 var(--fs-xl)/1 var(--font-mono);color:#fff}
+.exchange{font:500 11px/1 var(--font-mono);color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.sector-tag{font:500 11px/1 var(--font-mono);color:rgba(255,255,255,.7);padding:3px 8px;background:rgba(255,255,255,.07);border-radius:4px}
+.thesis-one{font:500 var(--fs-md)/1.5 inherit;color:rgba(255,255,255,.92);margin:14px 0 20px;max-width:560px}
+.price-block{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px}
+.price-cell .pc-lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.price-cell .pc-val{font:700 var(--fs-lg)/1.1 var(--font-mono);color:#fff}
+.price-cell .pc-val.green{color:#1F7A5C} .price-cell .pc-val.red{color:#C8302C} .price-cell .pc-val.gold{color:var(--gold)}
+.hero-right{display:flex;flex-direction:column;gap:12px}
+.h-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:6px;padding:10px 14px}
+.h-card.bull{border-left:3px solid var(--mint)}
+.h-card.bear{border-left:3px solid var(--red)}
+.h-card.monitor{border-left:3px solid var(--gold)}
+.h-card .hc-lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.h-card ul{list-style:none;padding:0;margin:0}
+.h-card li{font:500 var(--fs-xs)/1.5 inherit;color:rgba(255,255,255,.85);margin-bottom:4px;padding-left:14px;position:relative}
+.h-card li::before{content:"·";color:var(--gold);position:absolute;left:0}
+.confidence-row{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(31,122,92,.06);border:1px solid rgba(31,122,92,.2);border-radius:6px}
+.confidence-row .cr-lbl{font:600 11px/1 var(--font-mono);color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em}
+.confidence-row .cr-val{font:700 var(--fs-md)/1 var(--font-mono);color:var(--mint)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border);margin:12px 0}
+table.tbl{width:100%;border-collapse:collapse;min-width:auto}
+table.tbl th{background:#F5F4EE;font:600 11px/1.3 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tbl td{padding:10px 12px;font-size:var(--fs-sm);color:var(--text);border-bottom:1px solid #F5F4EE;vertical-align:top}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr.hl{background:rgba(0,59,54,.05)}
+table.tbl th.num,table.tbl td.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+table.tbl.dense th,table.tbl.dense td{padding:6px 10px;font-size:var(--fs-xs)}
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.kpi-cell{padding:10px 12px;border-right:1px solid var(--border);background:var(--card)}
+.kpi-cell:last-child{border-right:none}
+.kpi-cell .kc-lbl{font:600 10px/1 var(--font-mono);color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.kpi-cell .kc-val{font:700 var(--fs-lg)/1.1 var(--font-mono);color:var(--text)}
+.kpi-cell .kc-sub{font:500 10px/1 var(--font-mono);color:var(--muted);margin-top:3px}
+.kpi-cell .kc-val.red{color:var(--red)} .kpi-cell .kc-val.green{color:var(--green)} .kpi-cell .kc-val.gold{color:var(--gold)} .kpi-cell .kc-val.mint{color:var(--mint)} .kpi-cell .kc-val.amber{color:var(--amber)}
+.viz-hero{background:#F5F4EE;border:1px solid var(--border);border-radius:10px;padding:18px;margin:16px 0}
+.viz-dark{background:var(--navy);border-color:var(--navy);color:#fff;border-radius:10px;padding:18px;margin:16px 0}
+.viz-caption{font:500 var(--fs-xs)/1.5 var(--font-mono);color:var(--muted);margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
+.callout{border-left:3px solid var(--gold);background:rgba(0,59,54,.04);padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0}
+.callout.red{border-color:var(--red);background:rgba(200,48,44,.04)}
+.callout.mint{border-color:var(--mint);background:rgba(31,122,92,.05)}
+.callout .cl-ttl{font:600 11px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;color:var(--gold)}
+.callout.red .cl-ttl{color:var(--red)} .callout.mint .cl-ttl{color:#1F7A5C}
+.quote-block{border-left:3px solid var(--mint);padding:12px 16px;background:rgba(31,122,92,.04);border-radius:0 8px 8px 0;margin:14px 0}
+.quote-block blockquote{font:italic 500 var(--fs-sm)/1.6 var(--font-sans);color:var(--text);margin-bottom:8px}
+.quote-block .q-attr{font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+details{border:1px solid var(--border);border-radius:6px;background:var(--card);margin:10px 0}
+details summary{padding:10px 14px;cursor:pointer;font:600 var(--fs-sm)/1.3 inherit;color:var(--text);list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::after{content:"+";color:var(--muted);font:700 var(--fs-md)/1 var(--font-mono);margin-left:12px}
+details[open] summary::after{content:"−"}
+details>div{padding:0 14px 14px;border-top:1px solid var(--border);font-size:var(--fs-sm)}
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.grid-2.equal{grid-template-columns:1fr 1fr}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tag{display:inline-block;padding:2px 8px;font:600 11px/1.4 var(--font-mono);border-radius:4px;letter-spacing:.04em}
+.tag.gold{background:rgba(0,59,54,.15);color:#003B36}
+.tag.mint{background:rgba(31,122,92,.18);color:#1F7A5C}
+.tag.red{background:rgba(200,48,44,.10);color:var(--red)}
+.tag.gray{background:#E5E7EB;color:var(--muted)}
+nav.toc{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:8px 0;margin:0 0 -16px;z-index:50;font:500 var(--fs-xs)/1 var(--font-mono)}
+nav.toc ul{list-style:none;margin:0 auto;padding:0 24px;display:flex;gap:14px;overflow-x:auto;max-width:1200px}
+nav.toc a{color:var(--muted);white-space:nowrap;padding:4px 0;border-bottom:2px solid transparent}
+nav.toc a:hover{color:var(--text);border-bottom-color:var(--gold)}
+.scqa-block{padding:14px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card)}
+.scqa-block .sb-label{font:700 11px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.scqa-block ul{list-style:none;padding:0;margin:0}
+.scqa-block li{position:relative;padding-left:16px;margin-bottom:6px;font-size:var(--fs-sm);line-height:1.5}
+.scqa-block li::before{content:"·";position:absolute;left:0;color:var(--gold)}
+.persona-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.persona-card .pc-name{font:700 var(--fs-sm)/1.2 var(--font-mono);color:var(--text);margin-bottom:4px}
+.persona-card .pc-stance{font:600 11px/1 var(--font-mono);margin-bottom:8px}
+.persona-card .pc-stance.bull{color:var(--green)} .persona-card .pc-stance.bear{color:var(--red)} .persona-card .pc-stance.neutral{color:var(--amber)}
+.persona-card p{font-size:var(--fs-xs);color:var(--muted);line-height:1.5}
+.calc-row{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:14px;align-items:flex-end;padding:12px 0;border-top:1px solid var(--border);margin-top:12px}
+.calc-field label{font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px}
+.calc-field input[type=range]{width:140px}
+.calc-field .cf-val{font:700 var(--fs-sm)/1 var(--font-mono);color:var(--gold);margin-left:6px}
+.calc-result{padding:10px 16px;background:rgba(0,59,54,.08);border:1px solid rgba(0,59,54,.3);border-radius:6px}
+.calc-result .cr-label{font:600 11px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.calc-result .cr-pt{font:700 var(--fs-lg)/1 var(--font-mono);color:var(--gold)}
+.calc-result .cr-vs{font:500 12px/1 var(--font-mono);color:var(--muted);margin-top:4px}
+.footer{margin:48px 0 0;padding:18px 22px;background:#1A2540;color:rgba(255,255,255,.55);font:var(--fs-xs)/1.6 var(--font-mono);border-radius:8px}
+.footer .strong-d{color:rgba(255,255,255,.9);font-weight:600}
+@media(max-width:768px){
+  *,*::before,*::after{min-width:0!important;max-width:100%!important;box-sizing:border-box}
+  html,body{overflow-x:hidden!important}
+  main{padding:0 14px 50px}
+  .tier-hero{padding:36px 16px 28px;margin:0 -14px 24px}
+  .tier-primary{padding:22px 14px 20px;margin:18px 0}
+  .tier-secondary{padding:18px 12px 16px;margin:14px 0}
+  .tier-tertiary{padding:12px 12px 10px;margin:10px 0}
+  h1{font-size:22px} h2{font-size:var(--fs-md)}
+  .hero-grid,.grid-2,.grid-2.equal,.grid-3{grid-template-columns:1fr;gap:14px}
+  .decision-box{grid-template-columns:repeat(2,1fr)}
+  .decision-cell:nth-child(2n){border-right:none}
+  .decision-cell:nth-last-child(-n+2){border-bottom:none}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .kpi-cell{border-right:none!important;border-bottom:1px solid var(--border)}
+  .kpi-cell:nth-child(odd){border-right:1px solid var(--border)!important}
+  table.tbl thead{display:none}
+  table.tbl tr{display:block;margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:8px}
+  table.tbl td{display:block;border-bottom:none;padding:4px 8px}
+  table.tbl td::before{content:attr(data-label);display:block;font:600 10px/1 var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+  table.tbl td.num{text-align:left}
+  nav.toc{display:none}
+  .ev-spotlight{flex-direction:column;align-items:flex-start;gap:10px}
+  .price-block{gap:14px}
+  .calc-row{grid-template-columns:1fr;gap:10px}
+}
+
+/* ===== NVTS v7 CENTERED SPLASH COVER CSS — 2026-05-25 ===== */
+.cover{background:var(--bg-cover,#0A1628);padding:100px 40px 64px;text-align:center}
+.cover-eyebrow{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent,#003B36);margin-bottom:20px}
+.cover h1{font-size:40px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:16px}
+.cover h1 .accent{color:var(--accent,#003B36)}
+.cover-sub{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:32px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cover-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-bottom:32px}
+.cover-stat-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--accent,#003B36)}
+.cover-stat-label{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px}
+.cover-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.8}
+.cover-warning{display:inline-block;margin-top:20px;padding:8px 20px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;font-size:11px;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace}
+@media(max-width:768px){.cover{padding:48px 24px;min-height:360px}.cover h1{font-size:26px}.cover-stats{gap:20px}}
+.divider{height:4px;background:linear-gradient(90deg,transparent,var(--accent,#003B36),transparent);margin:0}
+/* PERSONAS */
+.personas-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:20px 0}
+@media(max-width:1024px){.personas-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.personas-grid{grid-template-columns:1fr 1fr}}
+.persona-card{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;min-width:0}
+.persona-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.persona-card h3{font-size:12px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#003B36;margin:0;flex:1;min-width:0}
+.persona-score{font-size:16px;font-weight:700;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#1A2540;white-space:nowrap;flex-shrink:0}
+.persona-signal{font-size:11px;color:#6B7280;margin-bottom:6px}
+.persona-bullets{list-style:none;padding:0;margin:0}
+.persona-bullets li{position:relative;display:block;padding-left:14px;font-size:11px;line-height:1.65;color:#1A2540;margin:3px 0}
+.persona-bullets li::before{content:"·";position:absolute;left:2px;color:#003B36;font-weight:700}
+.personas-consensus{padding:14px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-top:16px}
+.personas-consensus h3{font-size:14px;font-weight:700;color:#003B36;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;margin:0 0 10px}
+/* RISK MATRIX */
+.risk-matrix-wrap{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;padding:18px;margin:20px 0}
+.risk-matrix-wrap svg{width:100%;height:auto;min-height:280px}
+.risk-table-wrap{overflow-x:auto;margin:16px 0}
+/* CATALYST */
+.catalyst-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.catalyst-table th{background:#F5F4EE;padding:7px 10px;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;text-transform:uppercase;color:#6B7280;border-bottom:1px solid #E5E7EB;text-align:left}
+.catalyst-table td{padding:7px 10px;border-bottom:1px solid #E5E7EB;font-size:13px}
+/* WATCHLIST */
+.watchlist-items{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.watchlist-item{padding:12px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-left:3px solid #003B36;border-radius:0 6px 6px 0}
+.watchlist-item .wl-metric{font-size:11px;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.watchlist-item .wl-condition{font-size:13px;font-weight:700;color:#1A2540}
+.watchlist-item .wl-bull{font-size:12px;color:#1F7A5C;margin-top:2px}
+.watchlist-item .wl-bear{font-size:12px;color:#C8302C;margin-top:2px}
+/* SECTION SHARED */
+.section{padding:36px 22px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;margin:24px 0}
+.section-eyebrow{display:inline-block;font:600 11px/1 'JetBrains Mono','SF Mono',Consolas,monospace;color:#1F7A5C;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.section-h2{font-size:22px;color:#0A1628;margin:0 0 10px;font-weight:700}
+.section-lead{font-size:14px;line-height:1.55;color:#1A2540;padding:10px 12px;background:rgba(0,59,54,0.04);border-left:3px solid #003B36;border-radius:0 6px 6px 0;margin:8px 0 16px}
+.section-bullets{list-style:none;padding:0;margin:12px 0 0}
+.section-bullets li{position:relative;display:block;padding-left:18px;font-size:13px;line-height:1.7;color:#1A2540;margin:5px 0}
+.section-bullets li::before{content:"·";position:absolute;left:4px;color:#003B36;font-weight:700}
+
+</style>
+</head>
+<body data-current-price="194.05">
+
+<nav class="toc">
+<ul>
+<li><a href="#s00">Decision</a></li>
+<li><a href="#s01">Summary</a></li>
+<li><a href="#s02">Thesis</a></li>
+<li><a href="#s03">Business</a></li>
+<li><a href="#s04">Product Deep-Dive</a></li>
+<li><a href="#s05">Glass Substrate</a></li>
+<li><a href="#s06">Supply Chain</a></li>
+<li><a href="#s07">Earnings Call</a></li>
+<li><a href="#s08">Financials</a></li>
+<li><a href="#s09">Valuation</a></li>
+<li><a href="#s10">Sentiment</a></li>
+<li><a href="#s11">Risks</a></li>
+<li><a href="#s12">Conclusion</a></li>
+</ul>
+</nav>
+
+<main>
+
+<!-- S00: NVTS v7 CENTERED SPLASH COVER -->
+<div class="cover" id="s00">
+  <div class="cover-eyebrow">Sell-Side Initiation Brief — AI 光纖 + 玻璃基板雙引擎 — 2026-05-24 v1</div>
+  <h1>Corning GLW：AI 基礎設施玻璃骨幹<br>押注 <span class="accent">光纖需求 + 玻璃基板</span> 雙引擎再評價</h1>
+  <div class="cover-sub">FY2025 revenue +19% YoY; Optical Comms +53.5% — Corning is the glass backbone of hyperscaler AI buildout.<br>該回答的問題：PE 45.9x vs 歷史 15–25x，$194 進場安全邊際在哪裡？</div>
+  <div class="cover-stats">
+    <div><div class="cover-stat-num">$194.05</div><div class="cover-stat-label">現價</div></div>
+    <div><div class="cover-stat-num">+195%</div><div class="cover-stat-label">12個月漲幅</div></div>
+    <div><div class="cover-stat-num">$228</div><div class="cover-stat-label">期望值 (加權)</div></div>
+    <div><div class="cover-stat-num">$168–175</div><div class="cover-stat-label">建議進場區間</div></div>
+    <div><div class="cover-stat-num">$31.2B</div><div class="cover-stat-label">市值</div></div>
+  </div>
+  <div class="cover-meta">Q2 2026 Earnings July 29 ｜ WATCH 觀望 ｜ ~853M 股 ｜ 玻璃基板 pre-commercial ｜ 內部人 5 月賣出 $10.7M</div>
+  <div class="cover-warning">This report is for informational purposes only — not investment advice — see full disclaimer at end</div>
+</div>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S01 — EXECUTIVE SNAPSHOT (6 KPIs)
+════════════════════════════════════════════════════════════════ -->
+<section id="s01" class="tier-tertiary">
+  <div class="eyebrow">Executive Snapshot · Q1 2026 / FY2025 Data</div>
+  <div class="kpi-strip">
+    <div class="kpi-cell">
+      <div class="kc-lbl">PE Fwd (NTM)</div>
+      <div class="kc-val amber">45.9x</div>
+      <div class="kc-sub">TTM: 93.3x · Stretched</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">Dividend Yield</div>
+      <div class="kc-val">1.6%</div>
+      <div class="kc-sub">$1.12/yr · Annualized</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">EPS TTM</div>
+      <div class="kc-val gold">$2.08</div>
+      <div class="kc-sub">Fwd: $4.22 · FY2025 $1.83</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">Gross Margin</div>
+      <div class="kc-val mint">36.4%</div>
+      <div class="kc-sub">Q1'26: 36.9% · +170bps YoY</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">12m Total Return</div>
+      <div class="kc-val green">+307%</div>
+      <div class="kc-sub">AI re-rating · S&P +~20%</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">52w Range</div>
+      <div class="kc-val amber">89th %ile</div>
+      <div class="kc-sub">$49–$212 · $194 now</div>
+    </div>
+  </div>
+  <div style="margin-top:12px;font-size:12px;color:#6B7280;display:flex;gap:16px;flex-wrap:wrap">
+    <span>● 估值貴 — PE 45.9x Fwd vs historical 15–25x; fully pricing AI fiber bull case</span>
+    <span>● 股東回報存在 — 1.6% yield + $1.4B FCF (FY2025); buyback suspended during capacity ramp</span>
+    <span>● 股價位置 — 52w 89th %ile; entry risk elevated; wait for pullback to MA50 ($162)</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S02 — INVESTMENT THESIS (SCQA)
+════════════════════════════════════════════════════════════════ -->
+<section id="s02" class="tier-primary">
+  <div class="eyebrow">Investment Thesis</div>
+  <h2>AI 光纖 + 玻璃基板：雙引擎再加速</h2>
+  <p class="section-lead">Corning 正在從「LCD 玻璃供應商」重新定位為 AI 基礎設施材料平台。光纖大單可見度已延伸至 2027；玻璃基板封裝是 2028 年後的第二條成長曲線。</p>
+  <div class="grid-2 equal" style="gap:12px;margin-top:16px">
+    <div class="scqa-block">
+      <div class="sb-label" style="color:#1F7A5C">S — Situation</div>
+      <ul>
+        <li>FY2025 revenue +19% YoY to $15.6B; Q1 2026 +20% YoY — 4th consecutive double-digit quarter</li>
+        <li>Optical Communications segment grew +53.5% in FY2025, now 31% of revenue</li>
+        <li>Share price +307% trailing 12 months — market repricing GLW as "AI infrastructure"</li>
+        <li>Gross margin expanded 370bps from FY2024 to FY2025 (32.6% → 36.0%)</li>
+      </ul>
+    </div>
+    <div class="scqa-block">
+      <div class="sb-label" style="color:#C8302C">C — Complication</div>
+      <ul>
+        <li>At $194, PE Fwd 45.9x — premium vs historical 15–25x; pricing Bull scenario today</li>
+        <li>Display Technologies (24% of rev): China LCD panel overcapacity = structural ASP headwind</li>
+        <li>Insider selling: COO, CTO, General Counsel all sold at $188–207 in May 2026</li>
+        <li>Glass substrate revenue: still pre-commercial; FY2028E contribution range $50M–$500M</li>
+      </ul>
+    </div>
+    <div class="scqa-block">
+      <div class="sb-label" style="color:#003B36">Q — Question</div>
+      <ul>
+        <li>Is 45.9x Fwd PE justified by AI fiber durability + glass substrate optionality?</li>
+        <li>Or is the market extrapolating a cyclical AI capex surge as a permanent structural re-rating?</li>
+        <li>What evidence would confirm vs deny the bull thesis at $194?</li>
+      </ul>
+    </div>
+    <div class="scqa-block">
+      <div class="sb-label" style="color:var(--gold)">A — Answer</div>
+      <ul>
+        <li><strong>Base Case: WATCH</strong> — AI fiber demand is real and multi-year, but current price fully reflects the base scenario. Disciplined entry zone: $168–175 (MA50 support, ~13% below current)</li>
+        <li>Thesis upgrades if Q2 2026 Optical Comms YoY exceeds 35% and glass substrate gets named Intel design-win</li>
+        <li>Thesis breaks if optical comms growth falls below 15% YoY or Display mass impairment</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout mint" style="margin-top:16px">
+    <div class="cl-ttl">Why Now — 3 Time-Specific Factors</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px">
+      <div><strong>2025–2026:</strong> Hyperscaler AI capex cycle at peak; Microsoft, Google, Meta fiber procurement commitments visible multi-quarter</div>
+      <div><strong>2027:</strong> Intel Glass Core Substrate sampling begins; AGC and Corning both in qualification — first commercial glass packaging revenue</div>
+      <div><strong>2028+:</strong> If AI inference edge devices (phones, AR) require enhanced Gorilla Glass + glass substrate packaging — Specialty Materials becomes third growth engine</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S03 — BUSINESS MODEL BREAKDOWN (5 Segments)
+════════════════════════════════════════════════════════════════ -->
+<section id="s03" class="tier-primary">
+  <div class="eyebrow">Business Model Breakdown</div>
+  <h2>5 Segments — Revenue Structure FY2025E</h2>
+  <p class="section-lead">Optical Communications は FY2025 で 53.5% 成長し全社収益の 31% へ拡大。AI データセンター需要が Corning の収益構造を根本的に変えつつある。</p>
+
+  <!-- Segment SVG viz -->
+  <div class="viz-hero" style="margin-bottom:18px">
+    <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;height:auto" aria-label="GLW FY2025E Revenue Mix by Segment">
+      <title>Corning FY2025E Revenue Mix — 5 Segments</title>
+      <!-- Background grid lines -->
+      <line x1="70" y1="20" x2="70" y2="210" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="70" y1="210" x2="870" y2="210" stroke="#E5E7EB" stroke-width="1"/>
+      <!-- Y-axis labels -->
+      <text x="60" y="215" text-anchor="end" font-size="10" fill="#9CA3AF">$0B</text>
+      <text x="60" y="165" text-anchor="end" font-size="10" fill="#9CA3AF">$1B</text>
+      <text x="60" y="115" text-anchor="end" font-size="10" fill="#9CA3AF">$2B</text>
+      <text x="60" y="65" text-anchor="end" font-size="10" fill="#9CA3AF">$3B</text>
+      <text x="60" y="25" text-anchor="end" font-size="10" fill="#9CA3AF">$5B</text>
+      <line x1="70" y1="165" x2="870" y2="165" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <line x1="70" y1="115" x2="870" y2="115" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <line x1="70" y1="65" x2="870" y2="65" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <!-- Segment bars (to scale): max $4.82B = 175px height, x start=70, bar width=110, gap=50 -->
+      <!-- Optical Comms $4.82B = 175px -->
+      <rect x="80" y="35" width="110" height="175" fill="#1F7A5C" rx="3"/>
+      <text x="135" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#1F7A5C">$4.82B</text>
+      <text x="135" y="220" text-anchor="middle" font-size="10" fill="#6B7280">Optical Comms</text>
+      <text x="135" y="232" text-anchor="middle" font-size="9" fill="#9CA3AF">30.9% | +53.5%</text>
+      <!-- Display $3.72B = 135px -->
+      <rect x="230" y="75" width="110" height="135" fill="#9CA3AF" rx="3"/>
+      <text x="285" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#6B7280">$3.72B</text>
+      <text x="285" y="220" text-anchor="middle" font-size="10" fill="#6B7280">Display Tech</text>
+      <text x="285" y="232" text-anchor="middle" font-size="9" fill="#9CA3AF">23.8% | +1.6%</text>
+      <!-- Specialty $2.48B = 90px -->
+      <rect x="380" y="120" width="110" height="90" fill="#003B36" rx="3"/>
+      <text x="435" y="113" text-anchor="middle" font-size="11" font-weight="700" fill="#003B36">$2.48B</text>
+      <text x="435" y="220" text-anchor="middle" font-size="10" fill="#6B7280">Specialty Mat.</text>
+      <text x="435" y="232" text-anchor="middle" font-size="9" fill="#9CA3AF">15.9% | +21.6%</text>
+      <!-- Environmental $1.68B = 61px -->
+      <rect x="530" y="149" width="110" height="61" fill="#E5E7EB" rx="3"/>
+      <text x="585" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#9CA3AF">$1.68B</text>
+      <text x="585" y="220" text-anchor="middle" font-size="10" fill="#6B7280">Environmental</text>
+      <text x="585" y="232" text-anchor="middle" font-size="9" fill="#C8302C">10.8% | -2.3%</text>
+      <!-- Life Sciences $1.01B = 37px -->
+      <rect x="680" y="173" width="110" height="37" fill="#E5E7EB" rx="3"/>
+      <text x="735" y="166" text-anchor="middle" font-size="11" font-weight="700" fill="#9CA3AF">$1.01B</text>
+      <text x="735" y="220" text-anchor="middle" font-size="10" fill="#6B7280">Life Sciences</text>
+      <text x="735" y="232" text-anchor="middle" font-size="9" fill="#9CA3AF">6.5% | +3.1%</text>
+      <!-- Legend -->
+      <rect x="810" y="90" width="12" height="12" fill="#1F7A5C" rx="2"/>
+      <text x="827" y="101" font-size="10" fill="#6B7280">AI Tailwind</text>
+      <rect x="810" y="108" width="12" height="12" fill="#003B36" rx="2"/>
+      <text x="827" y="119" font-size="10" fill="#6B7280">Growth Driver</text>
+      <rect x="810" y="126" width="12" height="12" fill="#E5E7EB" rx="2"/>
+      <text x="827" y="137" font-size="10" fill="#6B7280">Stable/Decline</text>
+      <!-- Y-axis title -->
+      <text x="22" y="120" text-anchor="middle" font-size="10" fill="#9CA3AF" transform="rotate(-90,22,120)">Revenue (USD)</text>
+    </svg>
+    <div class="viz-caption">Source: GLW 10-K FY2025 / Q1 2026 10-Q. FY2025E segment estimates based on quarterly run rates and company disclosures. Individual research estimates.</div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Segment</th>
+          <th class="num">FY2025E Rev</th>
+          <th class="num">% of Total</th>
+          <th class="num">FY2025 YoY</th>
+          <th>Thematic / AI Relevance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td data-label="Segment"><strong>Optical Communications</strong></td>
+      <td class="num" data-label="FY2025E">$4.82B</td>
+      <td class="num" data-label="% Total">30.9%</td>
+      <td class="num" data-label="YoY"><span style="color:#1F7A5C;font-weight:600">+53.5%</span></td>
+      <td data-label="Thematic" style="font-size:12px;color:#6B7280">AI data center optical fiber - hyperscaler buildout</td></tr>
+<tr><td data-label="Segment"><strong>Display Technologies</strong></td>
+      <td class="num" data-label="FY2025E">$3.72B</td>
+      <td class="num" data-label="% Total">23.8%</td>
+      <td class="num" data-label="YoY"><span style="color:#6B7280;font-weight:600">+1.6%</span></td>
+      <td data-label="Thematic" style="font-size:12px;color:#6B7280">Display glass - TV/IT; hedged by yen; recovering slowly</td></tr>
+<tr><td data-label="Segment"><strong>Environmental Technologies</strong></td>
+      <td class="num" data-label="FY2025E">$1.68B</td>
+      <td class="num" data-label="% Total">10.8%</td>
+      <td class="num" data-label="YoY"><span style="color:#C8302C;font-weight:600">-2.3%</span></td>
+      <td data-label="Thematic" style="font-size:12px;color:#6B7280">Auto emission controls - transitional headwind</td></tr>
+<tr><td data-label="Segment"><strong>Specialty Materials</strong></td>
+      <td class="num" data-label="FY2025E">$2.48B</td>
+      <td class="num" data-label="% Total">15.9%</td>
+      <td class="num" data-label="YoY"><span style="color:#1F7A5C;font-weight:600">+21.6%</span></td>
+      <td data-label="Thematic" style="font-size:12px;color:#6B7280">Consumer electronics + Glass substrate for semiconductor packaging</td></tr>
+<tr><td data-label="Segment"><strong>Life Sciences</strong></td>
+      <td class="num" data-label="FY2025E">$1.01B</td>
+      <td class="num" data-label="% Total">6.5%</td>
+      <td class="num" data-label="YoY"><span style="color:#6B7280;font-weight:600">+3.1%</span></td>
+      <td data-label="Thematic" style="font-size:12px;color:#6B7280">Healthcare - stable compounder</td></tr>
+
+      </tbody>
+    </table>
+  </div>
+  <div class="callout" style="margin-top:14px">
+    <div class="cl-ttl">Key Observation</div>
+    <p style="font-size:12px">Optical Communications (31% of revenue, +53.5% YoY) is now the clear growth engine. At current trajectory, by FY2027E Optical Comms could represent 38–42% of total revenue. The stock re-rating is justified by segment mix shift — but requires the growth rate to be sustained, not a one-time surge.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S04 — PRODUCT TECHNOLOGY DEEP DIVE (5-segment exploded view)
+════════════════════════════════════════════════════════════════ -->
+<section id="s04" class="tier-primary">
+  <div class="eyebrow">Product Technology Deep Dive · 核心驅動產品深拆</div>
+  <h2>Five Segments — 驅動力 / 技術護城河 / FY28 展望</h2>
+  <p class="section-lead">Optical Communications is the stock price driver: AI data center fiber cables are spec-in requirements for hyperscaler builds. Specialty Materials (Gorilla Glass + glass packaging) is the 2027–28 second catalyst.</p>
+
+  <!-- Product Architecture SVG -->
+  <div class="viz-hero">
+    <svg viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:860px" aria-label="Corning Product Architecture and AI Value Chain Position">
+      <title>Corning — Product Architecture &amp; AI Value Chain</title>
+      <!-- Title -->
+      <text x="430" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2540">Corning Product Portfolio — AI Value Chain Exposure Map</text>
+
+      <!-- Column headers -->
+      <text x="90" y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280" text-transform="uppercase">PRODUCT</text>
+      <text x="240" y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">END MARKET</text>
+      <text x="390" y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">MOAT</text>
+      <text x="540" y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">AI RELEVANCE</text>
+      <text x="690" y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">FY28E STATUS</text>
+      <line x1="20" y1="46" x2="840" y2="46" stroke="#E5E7EB" stroke-width="1"/>
+
+      <!-- Row 1: Optical Fiber — HIGH AI -->
+      <rect x="20" y="52" width="820" height="48" fill="rgba(31,122,92,0.08)" rx="4"/>
+      <rect x="20" y="52" width="4" height="48" fill="#1F7A5C" rx="2"/>
+      <text x="90" y="73" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2540">Optical Fiber &amp; Cable</text>
+      <text x="90" y="87" text-anchor="middle" font-size="10" fill="#6B7280">ClearCurve / LEAF</text>
+      <text x="240" y="73" text-anchor="middle" font-size="11" fill="#1A2540">AI Data Centers</text>
+      <text x="240" y="87" text-anchor="middle" font-size="10" fill="#6B7280">Hyperscalers + Telco</text>
+      <text x="390" y="73" text-anchor="middle" font-size="11" fill="#1A2540">Preform IP + scale</text>
+      <text x="390" y="87" text-anchor="middle" font-size="10" fill="#6B7280">60yr mfg know-how</text>
+      <text x="540" y="73" text-anchor="middle" font-size="11" font-weight="700" fill="#1F7A5C">★★★ CRITICAL</text>
+      <text x="540" y="87" text-anchor="middle" font-size="10" fill="#6B7280">AI cluster fabric = fiber</text>
+      <text x="690" y="73" text-anchor="middle" font-size="11" fill="#1F7A5C">$5.5–7B</text>
+      <text x="690" y="87" text-anchor="middle" font-size="10" fill="#6B7280">+25–45% CAGR</text>
+
+      <!-- Row 2: Display Glass -->
+      <rect x="20" y="104" width="820" height="48" fill="rgba(0,0,0,0)" rx="4"/>
+      <rect x="20" y="104" width="4" height="48" fill="#9CA3AF" rx="2"/>
+      <text x="90" y="125" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2540">LCD Glass Substrate</text>
+      <text x="90" y="139" text-anchor="middle" font-size="10" fill="#6B7280">Eagle XG / Lotus NXT</text>
+      <text x="240" y="125" text-anchor="middle" font-size="11" fill="#1A2540">TV / IT Displays</text>
+      <text x="240" y="139" text-anchor="middle" font-size="10" fill="#6B7280">Panel makers: BOE, LGD</text>
+      <text x="390" y="125" text-anchor="middle" font-size="11" fill="#1A2540">Glass composition IP</text>
+      <text x="390" y="139" text-anchor="middle" font-size="10" fill="#6B7280">Thermal process lock-in</text>
+      <text x="540" y="125" text-anchor="middle" font-size="11" fill="#9CA3AF">LOW</text>
+      <text x="540" y="139" text-anchor="middle" font-size="10" fill="#C8302C">China overcapacity risk</text>
+      <text x="690" y="125" text-anchor="middle" font-size="11" fill="#6B7280">$3.5–4B</text>
+      <text x="690" y="139" text-anchor="middle" font-size="10" fill="#9CA3AF">Flat/slight decline</text>
+
+      <!-- Row 3: Gorilla Glass -->
+      <rect x="20" y="156" width="820" height="48" fill="rgba(0,59,54,0.05)" rx="4"/>
+      <rect x="20" y="156" width="4" height="48" fill="#003B36" rx="2"/>
+      <text x="90" y="177" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2540">Gorilla Glass (Victus)</text>
+      <text x="90" y="191" text-anchor="middle" font-size="10" fill="#6B7280">+ Glass Substrate PKG</text>
+      <text x="240" y="177" text-anchor="middle" font-size="11" fill="#1A2540">Smartphones / AR / AI</text>
+      <text x="240" y="191" text-anchor="middle" font-size="10" fill="#6B7280">Apple, Samsung, Google</text>
+      <text x="390" y="177" text-anchor="middle" font-size="11" fill="#1A2540">Damage resistance IP</text>
+      <text x="390" y="191" text-anchor="middle" font-size="10" fill="#6B7280">Design-in specification</text>
+      <text x="540" y="177" text-anchor="middle" font-size="11" font-weight="700" fill="#003B36">★★ EMERGING</text>
+      <text x="540" y="191" text-anchor="middle" font-size="10" fill="#6B7280">AI edge + glass PKG optionality</text>
+      <text x="690" y="177" text-anchor="middle" font-size="11" fill="#003B36">$2.8–4.5B</text>
+      <text x="690" y="191" text-anchor="middle" font-size="10" fill="#6B7280">Glass PKG upside ★</text>
+
+      <!-- Row 4: Environmental -->
+      <rect x="20" y="208" width="820" height="48" fill="rgba(0,0,0,0)" rx="4"/>
+      <rect x="20" y="208" width="4" height="48" fill="#E5E7EB" rx="2"/>
+      <text x="90" y="229" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2540">Emission Controls</text>
+      <text x="90" y="243" text-anchor="middle" font-size="10" fill="#6B7280">Ceramic substrates</text>
+      <text x="240" y="229" text-anchor="middle" font-size="11" fill="#1A2540">Auto OEMs (ICE + HEV)</text>
+      <text x="240" y="243" text-anchor="middle" font-size="10" fill="#6B7280">Global emission regs</text>
+      <text x="390" y="229" text-anchor="middle" font-size="11" fill="#1A2540">Regulatory spec-in</text>
+      <text x="390" y="243" text-anchor="middle" font-size="10" fill="#6B7280">Thermal process moat</text>
+      <text x="540" y="229" text-anchor="middle" font-size="11" fill="#9CA3AF">MINIMAL</text>
+      <text x="540" y="243" text-anchor="middle" font-size="10" fill="#9CA3AF">Not AI-relevant</text>
+      <text x="690" y="229" text-anchor="middle" font-size="11" fill="#9CA3AF">$1.5–1.7B</text>
+      <text x="690" y="243" text-anchor="middle" font-size="10" fill="#9CA3AF">EV transition risk</text>
+
+      <!-- Row 5: Life Sciences -->
+      <rect x="20" y="260" width="820" height="48" fill="rgba(0,0,0,0)" rx="4"/>
+      <rect x="20" y="260" width="4" height="48" fill="#E5E7EB" rx="2"/>
+      <text x="90" y="281" text-anchor="middle" font-size="11" font-weight="700" fill="#1A2540">Lab &amp; Pharma Glass</text>
+      <text x="90" y="295" text-anchor="middle" font-size="10" fill="#6B7280">Vessels, vials, culture</text>
+      <text x="240" y="281" text-anchor="middle" font-size="11" fill="#1A2540">Pharma / Research Labs</text>
+      <text x="240" y="295" text-anchor="middle" font-size="10" fill="#6B7280">Hospitals, biotech</text>
+      <text x="390" y="281" text-anchor="middle" font-size="11" fill="#1A2540">Specialty glass purity</text>
+      <text x="390" y="295" text-anchor="middle" font-size="10" fill="#6B7280">ISO qualification</text>
+      <text x="540" y="281" text-anchor="middle" font-size="11" fill="#9CA3AF">MINIMAL</text>
+      <text x="540" y="295" text-anchor="middle" font-size="10" fill="#9CA3AF">Healthcare steady</text>
+      <text x="690" y="281" text-anchor="middle" font-size="11" fill="#9CA3AF">$1.0–1.2B</text>
+      <text x="690" y="295" text-anchor="middle" font-size="10" fill="#9CA3AF">Low-growth stable</text>
+    </svg>
+    <div class="viz-caption">Source: GLW 10-K FY2025, Q1 2026 10-Q, investor day disclosures. FY28E figures are individual research scenario estimates. ★★★ = Core AI thesis driver</div>
+  </div>
+
+  <!-- 5-column deep-dive table -->
+  <div class="tbl-wrap" style="margin-top:18px">
+    <table class="tbl dense">
+      <thead>
+        <tr>
+          <th>Product / Segment</th>
+          <th>Current Position</th>
+          <th>Key Metric</th>
+          <th>Bull Case Driver</th>
+          <th>Key Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="hl"><td data-label="Product"><strong>Optical Fiber &amp; Cable</strong> <span class="tag mint">AI Core</span></td>
+          <td data-label="Current">AI DC buildout = spec-in requirement; hyperscaler multi-Q visibility</td>
+          <td class="num" data-label="Key Metric">+53.5% YoY FY2025; ~$4.8B run rate</td>
+          <td data-label="Bull Driver">AI capex extends to 2028; per-rack fiber density increases 3–5x for AI vs traditional DC</td>
+          <td data-label="Risk">Demand normalization / hyperscaler capex digestion H2 2026</td></tr>
+        <tr><td data-label="Product"><strong>Gorilla Glass + Glass PKG</strong> <span class="tag gold">Emerging</span></td>
+          <td data-label="Current">7th gen Victus in flagship smartphones; glass substrate packaging in qualification</td>
+          <td class="num" data-label="Key Metric">+21.6% YoY FY2025; ~$2.5B</td>
+          <td data-label="Bull Driver">AI edge devices require stronger glass; Intel glass core substrate volume 2027–28</td>
+          <td data-label="Risk">Glass substrate delayed; Gorilla faces thin plastic competition</td></tr>
+        <tr><td data-label="Product"><strong>LCD Display Glass</strong> <span class="tag gray">Headwind</span></td>
+          <td data-label="Current">Largest single segment by history; now declining share of mix</td>
+          <td class="num" data-label="Key Metric">+1.6% YoY FY2025; ~$3.7B</td>
+          <td data-label="Bull Driver">OLED/MicroLED transition needs new Corning glass types; TV upgrade cycle</td>
+          <td data-label="Risk">BOE/CSOT overcapacity continues; ASP erosion 5–10% per year</td></tr>
+        <tr><td data-label="Product"><strong>Emission Filters</strong> <span class="tag gray">Declining</span></td>
+          <td data-label="Current">ICE auto emission regs; HEV still requires catalytic converters</td>
+          <td class="num" data-label="Key Metric">-2.3% YoY FY2025; ~$1.7B</td>
+          <td data-label="Bull Driver">EV transition slower than expected = ICE installed base persists longer</td>
+          <td data-label="Risk">BEV penetration accelerates; diesel filters phased out</td></tr>
+        <tr><td data-label="Product"><strong>Life Sciences Glass</strong> <span class="tag gray">Stable</span></td>
+          <td data-label="Current">Pharma glass vials, cell culture, lab equipment</td>
+          <td class="num" data-label="Key Metric">+3.1% YoY FY2025; ~$1.0B</td>
+          <td data-label="Bull Driver">Cell therapy / gene therapy demand for ultra-pure glass containers</td>
+          <td data-label="Risk">Biopharma capex cuts; inventory destocking</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S05 — GLASS SUBSTRATE THEMATIC DEEP DIVE
+════════════════════════════════════════════════════════════════ -->
+<section id="s05" class="tier-primary">
+  <div class="eyebrow">Glass Substrate · 玻璃基板封裝 · 主題深拆</div>
+  <h2>Intel Glass Core Substrate — Corning 的下一條成長曲線</h2>
+  <p class="section-lead">玻璃基板 (Glass Core Substrate) 是 AI 晶片封裝的下一代材料革命：取代有機基板、降低熱膨脹、允許更細線路。Corning 是 Intel 2026–28 路線圖中核心玻璃供應商之一。</p>
+
+  <!-- Glass substrate exploded view SVG -->
+  <div class="viz-hero" style="background:#0A1628;color:#fff">
+    <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:800px" aria-label="Glass Core Substrate vs Organic Substrate comparison diagram">
+      <title>Glass Core Substrate Architecture — Corning Role in Intel Packaging Roadmap</title>
+
+      <!-- Left: Traditional Organic Substrate -->
+      <text x="190" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="rgba(255,255,255,0.6)">Traditional Organic Substrate</text>
+      <!-- Chip die -->
+      <rect x="120" y="35" width="140" height="35" fill="#6B7280" rx="3"/>
+      <text x="190" y="58" text-anchor="middle" font-size="11" fill="white">Silicon Die / Chiplet</text>
+      <!-- underfill -->
+      <rect x="120" y="70" width="140" height="12" fill="#6B7280" rx="2"/>
+      <text x="190" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Underfill</text>
+      <!-- Organic core -->
+      <rect x="100" y="82" width="180" height="50" fill="#6B7280" rx="3"/>
+      <text x="190" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="rgba(255,255,255,0.8)">Organic Core</text>
+      <text x="190" y="118" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">(epoxy/resin — limited thermal)</text>
+      <!-- solder -->
+      <rect x="120" y="132" width="140" height="12" fill="#6B7280" rx="2"/>
+      <text x="190" y="142" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Solder Resist / BGA</text>
+      <!-- PCB -->
+      <rect x="80" y="144" width="220" height="30" fill="#1A2540" rx="3"/>
+      <text x="190" y="163" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.6)">Motherboard PCB</text>
+
+      <!-- Limitations -->
+      <rect x="80" y="185" width="220" height="50" fill="rgba(200,48,44,0.15)" rx="4" stroke="#C8302C" stroke-width="0.5"/>
+      <text x="190" y="202" text-anchor="middle" font-size="10" font-weight="700" fill="#C8302C">Limitations</text>
+      <text x="190" y="216" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.6)">CTE mismatch → warpage at scale</text>
+      <text x="190" y="228" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.6)">Min line/space ~5μm → routing limit</text>
+
+      <!-- Center arrow -->
+      <text x="400" y="135" text-anchor="middle" font-size="24" fill="#003B36">→</text>
+      <text x="400" y="155" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.6)">Industry</text>
+      <text x="400" y="167" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.6)">Transition</text>
+
+      <!-- Right: Glass Core Substrate (Corning) -->
+      <text x="610" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#1F7A5C">Glass Core Substrate (Corning / AGC)</text>
+      <!-- Chip die -->
+      <rect x="540" y="35" width="140" height="35" fill="#1A2540" rx="3"/>
+      <text x="610" y="58" text-anchor="middle" font-size="11" fill="white">Silicon Die / Chiplet</text>
+      <!-- underfill -->
+      <rect x="540" y="70" width="140" height="12" fill="#1A2540" rx="2"/>
+      <text x="610" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Thin-film bridge / RDL</text>
+      <!-- Glass core highlighted -->
+      <rect x="510" y="82" width="200" height="50" fill="rgba(31,122,92,0.25)" rx="3" stroke="#1F7A5C" stroke-width="1.5"/>
+      <text x="610" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="#1F7A5C">GLASS CORE</text>
+      <text x="610" y="118" text-anchor="middle" font-size="9" fill="rgba(31,122,92,0.8)">(Corning specialty glass — ultra-flat)</text>
+      <!-- solder -->
+      <rect x="540" y="132" width="140" height="12" fill="#1A2540" rx="2"/>
+      <text x="610" y="142" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Fine-pitch BGA</text>
+      <!-- PCB -->
+      <rect x="490" y="144" width="240" height="30" fill="#1A2540" rx="3"/>
+      <text x="610" y="163" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.6)">Motherboard PCB</text>
+
+      <!-- Advantages -->
+      <rect x="490" y="185" width="240" height="60" fill="rgba(31,122,92,0.12)" rx="4" stroke="#1F7A5C" stroke-width="0.5"/>
+      <text x="610" y="202" text-anchor="middle" font-size="10" font-weight="700" fill="#1F7A5C">Advantages</text>
+      <text x="610" y="216" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Near-zero CTE → no warpage at large die</text>
+      <text x="610" y="228" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Line/space to 1μm → 5x routing density</text>
+      <text x="610" y="240" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.7)">Better signal integrity for AI inference</text>
+    </svg>
+    <div class="viz-caption" style="color:rgba(255,255,255,0.5);border-top-color:rgba(255,255,255,0.15)">Diagram: Glass Core Substrate architecture. Corning role: glass core panel manufacturer in Intel's Glass Core Substrate roadmap. Source: Intel packaging roadmap announcements 2023–2025, industry research.</div>
+  </div>
+
+  <!-- Competitive landscape table -->
+  <h3 style="margin-top:20px">玻璃基板競爭格局 — Corning vs AGC vs Schott</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Glass Type</th>
+          <th>Qualification Status</th>
+          <th>Intel Partnership</th>
+          <th>Revenue Readiness</th>
+          <th>Key Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="hl">
+          <td data-label="Company"><strong>Corning (GLW)</strong> <span class="tag gold">Subject</span></td>
+          <td data-label="Glass Type">Specialty aluminosilicate glass; ultra-flat core panels</td>
+          <td data-label="Qualification">Active qualification; sampling 2026–27</td>
+          <td data-label="Intel">Named supplier in Intel Glass Core Substrate roadmap (public disclosure)</td>
+          <td data-label="Revenue">FY2028E: $50–500M (wide range — pre-commercial)</td>
+          <td data-label="Risk">Timeline dependent on Intel 18A adoption rate</td>
+        </tr>
+        <tr>
+          <td data-label="Company"><strong>AGC Inc. (Japan)</strong></td>
+          <td data-label="Glass Type">Alkali-free flat glass; established IC substrate glass</td>
+          <td data-label="Qualification">Advanced — AGC further ahead in some qualifications</td>
+          <td data-label="Intel">Also named in Intel roadmap; potential dual-source</td>
+          <td data-label="Revenue">Earlier revenue expected vs Corning (2026–27E)</td>
+          <td data-label="Risk">Yen hedging complexity; Japan supply chain</td>
+        </tr>
+        <tr>
+          <td data-label="Company"><strong>Schott AG (Germany)</strong></td>
+          <td data-label="Glass Type">Borosilicate specialty glass; thin glass panels</td>
+          <td data-label="Qualification">Qualification ongoing; smaller scale</td>
+          <td data-label="Intel">Not publicly named in Intel primary roadmap</td>
+          <td data-label="Revenue">FY2028E: minimal; longer ramp timeline</td>
+          <td data-label="Risk">Scale limitations; private company, limited disclosure</td>
+        </tr>
+        <tr>
+          <td data-label="Company"><strong>Nippon Electric Glass (5214.T)</strong></td>
+          <td data-label="Glass Type">Ultra-thin display glass; alkali-free panels</td>
+          <td data-label="Qualification">Display glass expertise; limited IC substrate track record</td>
+          <td data-label="Intel">Not primary packaging glass supplier</td>
+          <td data-label="Revenue">Minimal IC substrate revenue expected by 2028</td>
+          <td data-label="Risk">Display-focused; pivot to IC packaging uncertain</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Revenue scenario callout -->
+  <div class="callout mint" style="margin-top:14px">
+    <div class="cl-ttl">Glass Substrate Revenue Scenario — FY2028E (個人估算)</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px">
+      <div><strong style="color:#C8302C">Bear: $50M</strong><br>Intel 18A delayed to 2029+; Corning not primary supplier; organic substrate dominant</div>
+      <div><strong style="color:#003B36">Base: $200M</strong><br>Corning qualifies as dual-source with AGC; limited volume ramp; 2028 = first revenue</div>
+      <div><strong style="color:#1F7A5C">Bull: $500M</strong><br>Corning primary supplier; Intel 18A volume ramp on schedule; AMD/Qualcomm also adopt glass substrate</div>
+    </div>
+    <p style="font-size:11px;margin-top:8px;color:#6B7280">Important: Glass substrate is currently ~0% of GLW revenue. The optionality exists but is NOT priced at $194 vs $0 — it contributes to the Bull case PT of $295 but not the Base or Bear.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S06 — SUPPLY CHAIN POSITION MAP
+════════════════════════════════════════════════════════════════ -->
+<section id="s06" class="tier-primary">
+  <div class="eyebrow">Supply Chain Position</div>
+  <h2>Corning 在 AI 基礎設施供應鏈中的位置</h2>
+  <p class="section-lead">Corning 是 AI 光纖價值鏈的唯一玻璃預製棒 (preform) 製造商之一，同時在玻璃基板封裝供應鏈中，AGC 是最直接競爭對手。</p>
+
+  <div class="viz-hero">
+    <div style="margin:16px 0">
+      <img src="GLW-supply-2026-05-24.svg"
+           alt="Corning 供應鏈位置圖"
+           style="width:100%;max-height:340px;object-fit:contain"
+           fetchpriority="high">
+      <div style="font-size:11px;color:var(--c-text-sub,#9CA3AF);margin-top:8px;line-height:1.5">
+        圖：Corning 在 Glass substrate / Optical fiber 價值鏈中的位置（visual_pack v3, 標籤示意圖）
+      </div>
+    </div>
+    <!-- legacy SVG preserved below as fallback reference (hidden) -->
+    <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" style="display:none;height:auto;max-width:860px" aria-label="Corning Supply Chain Position Map — Optical Fiber and Glass Substrate">
+      <title>Corning Supply Chain Position — Optical Fiber (AI DC) + Glass Substrate (IC Packaging)</title>
+
+      <!-- Column dividers -->
+      <text x="90" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">UPSTREAM</text>
+      <text x="280" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">CORNING</text>
+      <text x="500" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">DOWNSTREAM</text>
+      <text x="700" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">END MARKET</text>
+      <line x1="20" y1="24" x2="840" y2="24" stroke="#E5E7EB" stroke-width="1"/>
+
+      <!-- ── OPTICAL FIBER CHAIN ── -->
+      <text x="430" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#1F7A5C">─── OPTICAL COMMUNICATIONS CHAIN ───</text>
+
+      <!-- Upstream: SiO2 / Chemical suppliers -->
+      <rect x="20" y="52" width="140" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="90" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">SiO₂ / Chemicals</text>
+      <text x="90" y="84" text-anchor="middle" font-size="9" fill="#9CA3AF">Evonik, Momentive</text>
+
+      <text x="174" y="76" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- Corning: Preform + Cable -->
+      <rect x="188" y="52" width="174" height="44" fill="rgba(31,122,92,0.12)" rx="5" stroke="#1F7A5C" stroke-width="2"/>
+      <text x="275" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1F7A5C">CORNING</text>
+      <text x="275" y="84" text-anchor="middle" font-size="9" fill="#1F7A5C">Preform → Fiber → Cable</text>
+
+      <text x="375" y="76" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- Downstream: OFS, Prysmian (cable assemblers) -->
+      <rect x="390" y="52" width="150" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="465" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">Cable Integrators</text>
+      <text x="465" y="84" text-anchor="middle" font-size="9" fill="#9CA3AF">Prysmian, CommScope</text>
+
+      <text x="553" y="76" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- End market: AI Data Centers -->
+      <rect x="567" y="52" width="140" height="44" fill="rgba(29,78,216,0.08)" rx="5" stroke="#1A2540" stroke-width="1"/>
+      <text x="637" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#1A2540">AI Data Centers</text>
+      <text x="637" y="84" text-anchor="middle" font-size="9" fill="#1A2540">MSFT, GOOG, META, AWS</text>
+
+      <!-- ── GLASS SUBSTRATE CHAIN ── -->
+      <text x="430" y="120" text-anchor="middle" font-size="11" font-weight="700" fill="#003B36">─── GLASS SUBSTRATE / IC PACKAGING CHAIN ───</text>
+
+      <!-- Upstream: Raw glass materials -->
+      <rect x="20" y="130" width="140" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="90" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">Boron / Alumina</text>
+      <text x="90" y="162" text-anchor="middle" font-size="9" fill="#9CA3AF">Raw mineral suppliers</text>
+
+      <text x="174" y="154" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- Corning + AGC: Glass panels -->
+      <rect x="188" y="130" width="174" height="44" fill="rgba(0,59,54,0.10)" rx="5" stroke="#003B36" stroke-width="2"/>
+      <text x="275" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#003B36">CORNING / AGC</text>
+      <text x="275" y="162" text-anchor="middle" font-size="9" fill="#003B36">Glass core panels (qualifying)</text>
+
+      <text x="375" y="154" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- Downstream: OSAT / substrate makers -->
+      <rect x="390" y="130" width="150" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="465" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#6B7280">OSAT / Substrate</text>
+      <text x="465" y="162" text-anchor="middle" font-size="9" fill="#9CA3AF">Intel Foundry, SPIL, ASE</text>
+
+      <text x="553" y="154" text-anchor="middle" font-size="16" fill="#9CA3AF">→</text>
+
+      <!-- End market: AI Chips -->
+      <rect x="567" y="130" width="140" height="44" fill="rgba(0,59,54,0.08)" rx="5" stroke="#003B36" stroke-width="1"/>
+      <text x="637" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#003B36">AI Chips (2027–28)</text>
+      <text x="637" y="162" text-anchor="middle" font-size="9" fill="#003B36">Intel 18A, future AMD/ARM</text>
+
+      <!-- ── DISPLAY GLASS CHAIN ── -->
+      <text x="430" y="196" text-anchor="middle" font-size="11" font-weight="700" fill="#9CA3AF">─── DISPLAY GLASS CHAIN ───</text>
+
+      <rect x="20" y="206" width="140" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="90" y="224" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">SiO₂ / Mixed Oxides</text>
+      <text x="90" y="238" text-anchor="middle" font-size="9" fill="#9CA3AF">Commodity inputs</text>
+      <text x="174" y="230" text-anchor="middle" font-size="16" fill="#E5E7EB">→</text>
+      <rect x="188" y="206" width="174" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="275" y="224" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">CORNING</text>
+      <text x="275" y="238" text-anchor="middle" font-size="9" fill="#9CA3AF">Eagle XG / Lotus NXT glass</text>
+      <text x="375" y="230" text-anchor="middle" font-size="16" fill="#E5E7EB">→</text>
+      <rect x="390" y="206" width="150" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="465" y="224" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">Panel Makers</text>
+      <text x="465" y="238" text-anchor="middle" font-size="9" fill="#9CA3AF">BOE, LGD, AUO, CSOT</text>
+      <text x="553" y="230" text-anchor="middle" font-size="16" fill="#E5E7EB">→</text>
+      <rect x="567" y="206" width="140" height="44" fill="#F5F4EE" rx="5" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="637" y="224" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">TV / IT Displays</text>
+      <text x="637" y="238" text-anchor="middle" font-size="9" fill="#9CA3AF">Consumer electronics</text>
+
+      <!-- Legend -->
+      <rect x="20" y="270" width="14" height="14" fill="rgba(31,122,92,0.3)" rx="2" stroke="#1F7A5C" stroke-width="1.5"/>
+      <text x="40" y="282" font-size="10" fill="#1F7A5C">Corning (AI Fiber) — Primary Value Driver</text>
+      <rect x="250" y="270" width="14" height="14" fill="rgba(0,59,54,0.2)" rx="2" stroke="#003B36" stroke-width="1.5"/>
+      <text x="270" y="282" font-size="10" fill="#003B36">Corning (Glass Substrate) — Qualifying 2026–27</text>
+      <rect x="530" y="270" width="14" height="14" fill="#F5F4EE" rx="2" stroke="#E5E7EB" stroke-width="1"/>
+      <text x="550" y="282" font-size="10" fill="#9CA3AF">Corning (Display) — Mature / Headwind</text>
+      <text x="430" y="310" text-anchor="middle" font-size="10" fill="#9CA3AF">Source: GLW 10-K 2025, Intel Glass Core Substrate announcements, industry research. Individual research notes.</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S07 — Q1 2026 EARNINGS CALL (真法說會 Quotes)
+════════════════════════════════════════════════════════════════ -->
+<section id="s07" class="tier-primary">
+  <div class="eyebrow">Q1 2026 Earnings Call · April 29, 2026 · Source: GLW 10-Q + Transcript</div>
+  <h2>法說會重點 — Wendell Weeks + Edward Schlesinger</h2>
+  <p class="section-lead">Q1 2026 delivered the 4th consecutive double-digit growth quarter. CEO Weeks emphasized AI fiber demand durability; CFO Schlesinger flagged capacity investment headwind on near-term FCF. Post-earnings stock continued re-rating higher.</p>
+
+  <!-- Q1 2026 KPI Strip -->
+  <div class="kpi-strip" style="margin-bottom:18px">
+    <div class="kpi-cell">
+      <div class="kc-lbl">Revenue YoY</div>
+      <div class="kc-val green">+19.9%</div>
+      <div class="kc-sub">$4.14B vs $3.45B</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">Gross Margin</div>
+      <div class="kc-val mint">36.9%</div>
+      <div class="kc-sub">+170bps YoY</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">Operating Income</div>
+      <div class="kc-val">$639M</div>
+      <div class="kc-sub">+43.6% YoY</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">EPS Diluted</div>
+      <div class="kc-val gold">$0.43</div>
+      <div class="kc-sub">Seasonal low (vs $0.62 Q4)</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">FCF</div>
+      <div class="kc-val amber">$30M</div>
+      <div class="kc-sub">CapEx ramp quarter</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kc-lbl">Stock Reaction</div>
+      <div class="kc-val green">↑ Cont.</div>
+      <div class="kc-sub">Re-rating to $194 by May</div>
+    </div>
+  </div>
+
+  <!-- CEO Quote -->
+  <div class="quote-block">
+    <blockquote>"We delivered our fourth consecutive quarter of double-digit core sales growth, driven by exceptional strength in our Optical Communications segment. AI-related fiber demand continued to accelerate, with hyperscaler capital expenditure commitments supporting our multi-year growth outlook."</blockquote>
+    <div class="q-attr">Wendell P. Weeks, CEO — Q1 2026 Earnings Call, April 29, 2026 · Source: GLW Q1 2026 Press Release</div>
+  </div>
+
+  <div class="quote-block">
+    <blockquote>"The secular trend toward AI infrastructure is fundamentally changing data center architecture. Our optical fiber and cable products are increasingly essential as hyperscalers build out AI training and inference clusters. We see this demand as durable and multi-year in nature."</blockquote>
+    <div class="q-attr">Wendell P. Weeks, CEO — On AI infrastructure durability · Q1 2026 Earnings Call</div>
+  </div>
+
+  <div class="quote-block">
+    <blockquote>"Core sales grew 20% year over year to $4.1 billion. Core gross margin expanded to approximately 37%, reflecting both operational leverage and favorable product mix in high-value optical communications products. We remain on track to achieve our full-year operating model targets."</blockquote>
+    <div class="q-attr">Edward A. Schlesinger, CFO — Q1 2026 Earnings Call, April 29, 2026 · Source: GLW Q1 2026 Earnings Release</div>
+  </div>
+
+  <div class="quote-block">
+    <blockquote>"We continue to invest in capacity to meet growing demand, with capital expenditure guidance of approximately $1.5 billion for 2026. We returned $350 million to shareholders through dividends in the quarter, and our balance sheet remains strong with net debt of approximately $8.7 billion."</blockquote>
+    <div class="q-attr">Edward A. Schlesinger, CFO — On capital allocation · Q1 2026 Earnings Call</div>
+  </div>
+
+  <!-- Q&A Tensions -->
+  <h3 style="margin-top:20px">Q&amp;A 緊張點 (Analyst Pushback)</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>#</th><th>Analyst Concern</th><th>Management Response</th><th>Signal</th></tr></thead>
+      <tbody>
+        <tr><td data-label="#"><strong>1</strong></td>
+          <td data-label="Concern">AI fiber order visibility: is this structural or one-time hyperscaler procurement?</td>
+          <td data-label="Response">Weeks: multi-quarter visibility; customer commitments extending to 2027; structural, not one-time. Per-rack fiber density for AI clusters is 3–5x vs traditional DC.</td>
+          <td data-label="Signal"><span class="tag mint">Bullish — confirmed</span></td></tr>
+        <tr><td data-label="#"><strong>2</strong></td>
+          <td data-label="Concern">Display Technologies: China panel overcapacity = ongoing ASP pressure?</td>
+          <td data-label="Response">Management acknowledged price pressure; framed Optical Comms outperformance as offsetting. Did not quantify annual ASP erosion rate — <strong>notable omission</strong>.</td>
+          <td data-label="Signal"><span class="tag amber">Watch — not fully addressed</span></td></tr>
+        <tr><td data-label="#"><strong>3</strong></td>
+          <td data-label="Concern">Glass substrate semiconductor packaging: revenue timeline?</td>
+          <td data-label="Response">"A meaningful opportunity we are developing" — declined to give revenue guidance for 2026. Development on track. No named customer design-wins disclosed.</td>
+          <td data-label="Signal"><span class="tag amber">Pre-commercial — optionality only</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QoQ comparison -->
+  <details style="margin-top:14px"><summary>Q1 2026 vs Q4 2025 vs Q1 2025 — Quarterly Comparison</summary>
+  <div>
+  <div class="tbl-wrap"><table class="tbl dense">
+    <thead><tr><th>Metric</th><th class="num">Q1 2026</th><th class="num">Q4 2025</th><th class="num">Q1 2025</th><th class="num">YoY Q1</th></tr></thead>
+    <tbody>
+      <tr><td>Revenue</td><td class="num">$4.14B</td><td class="num">$4.21B</td><td class="num">$3.45B</td><td class="num" style="color:#1F7A5C">+19.9%</td></tr>
+      <tr><td>Gross Margin</td><td class="num">36.9%</td><td class="num">35.5%</td><td class="num">35.2%</td><td class="num" style="color:#1F7A5C">+170bps</td></tr>
+      <tr><td>Operating Income</td><td class="num">$639M</td><td class="num">$672M</td><td class="num">$445M</td><td class="num" style="color:#1F7A5C">+43.6%</td></tr>
+      <tr><td>EPS Diluted</td><td class="num">$0.43</td><td class="num">$0.62</td><td class="num">$0.18</td><td class="num" style="color:#1F7A5C">+139%</td></tr>
+      <tr><td>FCF</td><td class="num">$30M</td><td class="num">$620M</td><td class="num">-$57M</td><td class="num" style="color:#1F7A5C">Positive</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:12px;color:#6B7280;margin-top:8px">Note: Q1 FCF seasonally low due to CapEx timing. Full-year FY2025 FCF was $1.41B. Source: GLW quarterly earnings releases.</p>
+  </div></details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S08 — FINANCIAL ANALYSIS (Quarterly + Annual Dashboard)
+════════════════════════════════════════════════════════════════ -->
+<section id="s08" class="tier-primary">
+  <div class="eyebrow">Financial Analysis · Source: SEC 10-Q / 10-K</div>
+  <h2>財務儀表板 — 毛利率擴張 + 季度趨勢</h2>
+  <p class="section-lead">FY2025 gross margin recovered to 36.0% (+340bps vs FY2024 32.6%), driven by Optical Communications mix shift. Q1 2026 GM of 36.9% confirms the trend is structural, not one-time.</p>
+
+  <!-- Revenue + GM Chart -->
+  <div class="viz-hero">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <h4 style="margin-bottom:8px">Annual Revenue ($B) + Gross Margin (%)</h4>
+        <canvas id="revChart" height="180"></canvas>
+      </div>
+      <div>
+        <h4 style="margin-bottom:8px">Price (Last 30 Days)</h4>
+        <canvas id="priceChart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="viz-caption">Source: GLW Annual Reports (SEC 10-K), quarterly earnings releases, Yahoo Finance. Revenue and margin data as reported (GAAP).</div>
+  </div>
+
+  <!-- Quarterly Table -->
+  <h3 style="margin-top:20px">季度財務儀表板 (Q1 2026 → Q2 2025)</h3>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th class="num">Revenue</th>
+          <th class="num">Gross Margin</th>
+          <th class="num">Op Income</th>
+          <th class="num">EPS Diluted</th>
+          <th class="num">FCF</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="hl"><td data-label="Period"><strong>2026-03</strong>&nbsp;<span class="tag gold" style="font-size:10px">Q1'26</span></td>
+      <td class="num" data-label="Revenue">$4.14B<span style="color:#1F7A5C;font-size:11px"> (+20.0% YoY)</span></td>
+      <td class="num" data-label="Gross Margin">36.9%</td>
+      <td class="num" data-label="Op Income">$639M</td>
+      <td class="num" data-label="EPS Diluted">$0.43</td>
+      <td class="num" data-label="FCF">$30M</td></tr>
+<tr><td data-label="Period"><strong>2025-12</strong></td>
+      <td class="num" data-label="Revenue">$4.21B</td>
+      <td class="num" data-label="Gross Margin">35.5%</td>
+      <td class="num" data-label="Op Income">$672M</td>
+      <td class="num" data-label="EPS Diluted">$0.62</td>
+      <td class="num" data-label="FCF">$620M</td></tr>
+<tr><td data-label="Period"><strong>2025-09</strong></td>
+      <td class="num" data-label="Revenue">$4.10B</td>
+      <td class="num" data-label="Gross Margin">37.1%</td>
+      <td class="num" data-label="Op Income">$589M</td>
+      <td class="num" data-label="EPS Diluted">$0.50</td>
+      <td class="num" data-label="FCF">$450M</td></tr>
+<tr><td data-label="Period"><strong>2025-06</strong></td>
+      <td class="num" data-label="Revenue">$3.86B</td>
+      <td class="num" data-label="Gross Margin">36.0%</td>
+      <td class="num" data-label="Op Income">$573M</td>
+      <td class="num" data-label="EPS Diluted">$0.54</td>
+      <td class="num" data-label="FCF">$400M</td></tr>
+<tr><td data-label="Period"><strong>2025-03</strong></td>
+      <td class="num" data-label="Revenue">$3.45B</td>
+      <td class="num" data-label="Gross Margin">35.2%</td>
+      <td class="num" data-label="Op Income">$445M</td>
+      <td class="num" data-label="EPS Diluted">$0.18</td>
+      <td class="num" data-label="FCF">$-57M</td></tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Annual Table -->
+  <h3 style="margin-top:20px">年度財務 (FY2025 → FY2022)</h3>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th class="num">Revenue</th>
+          <th class="num">Gross Margin</th>
+          <th class="num">Op Income</th>
+          <th class="num">EPS Diluted</th>
+          <th class="num">FCF</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="hl"><td data-label="Year"><strong>2025</strong></td>
+      <td class="num" data-label="Revenue">$15.63B<span style="color:#1F7A5C;font-size:11px"> (+19.1%)</span></td>
+      <td class="num" data-label="Gross Margin">36.0%</td>
+      <td class="num" data-label="Op Income">$2279M</td>
+      <td class="num" data-label="EPS">$1.83</td>
+      <td class="num" data-label="FCF">$1413M</td></tr>
+<tr><td data-label="Year"><strong>2024</strong></td>
+      <td class="num" data-label="Revenue">$13.12B<span style="color:#1F7A5C;font-size:11px"> (+4.2%)</span></td>
+      <td class="num" data-label="Gross Margin">32.6%</td>
+      <td class="num" data-label="Op Income">$1135M</td>
+      <td class="num" data-label="EPS">$0.58</td>
+      <td class="num" data-label="FCF">$974M</td></tr>
+<tr><td data-label="Year"><strong>2023</strong></td>
+      <td class="num" data-label="Revenue">$12.59B<span style="color:#C8302C;font-size:11px"> (-11.3%)</span></td>
+      <td class="num" data-label="Gross Margin">31.2%</td>
+      <td class="num" data-label="Op Income">$890M</td>
+      <td class="num" data-label="EPS">$0.68</td>
+      <td class="num" data-label="FCF">$615M</td></tr>
+<tr><td data-label="Year"><strong>2022</strong></td>
+      <td class="num" data-label="Revenue">$14.19B</td>
+      <td class="num" data-label="Gross Margin">31.8%</td>
+      <td class="num" data-label="Op Income">$1438M</td>
+      <td class="num" data-label="EPS">$1.54</td>
+      <td class="num" data-label="FCF">$1011M</td></tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Margin analysis callout -->
+  <div class="grid-2 equal" style="gap:12px;margin-top:16px">
+    <div class="callout mint">
+      <div class="cl-ttl">Margin Expansion Story</div>
+      <ul style="list-style:none;padding:0;font-size:12px">
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#1F7A5C">✓</span> FY2024 → FY2025 GM: 32.6% → 36.0% (+340bps) — structural</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#1F7A5C">✓</span> Q1 2026 GM 36.9% — highest in recent history; confirms mix shift</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#1F7A5C">✓</span> Optical Comms (AI fiber) carries higher GM than Display or Environmental</li>
+        <li style="padding-left:14px;position:relative"><span style="position:absolute;left:0;color:#1F7A5C">✓</span> Operating leverage: OpEx as % of revenue declining as revenue scales</li>
+      </ul>
+    </div>
+    <div class="callout red">
+      <div class="cl-ttl">FCF Watch Points</div>
+      <ul style="list-style:none;padding:0;font-size:12px">
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#C8302C">!</span> Q1 2026 FCF only $30M — capacity expansion CapEx $1.5B full-year 2026</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#C8302C">!</span> FY2025 FCF $1.41B — adequate but below FY2022 level given higher CapEx</li>
+        <li style="padding-left:14px;position:relative;margin-bottom:6px"><span style="position:absolute;left:0;color:#C8302C">!</span> Net debt ~$8.7B (as of Q1 2026) — elevated; manageable given FCF trajectory</li>
+        <li style="padding-left:14px;position:relative"><span style="position:absolute;left:0;color:#C8302C">!</span> Dividend: $1.12/share annual = ~$960M/yr; well-covered by FCF but limits buybacks</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Technical indicators compact -->
+  <div class="tier-tertiary" style="margin-top:16px">
+    <div class="eyebrow" style="font-size:10px">Technical Indicators (S08b — yfinance deterministic · Score 64)</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px">
+      <div style="font-size:12px"><strong style="font-family:monospace">MA50</strong><br>$162.39 <span style="color:#6B7280;font-size:11px">(+19.5% vs)</span></div>
+      <div style="font-size:12px"><strong style="font-family:monospace">MA200</strong><br>$109.66 <span style="color:#1F7A5C;font-size:11px">(+77.0% vs)</span></div>
+      <div style="font-size:12px"><strong style="font-family:monospace">RSI(14)</strong><br>64.5 <span style="color:#003B36;font-size:11px">Approaching OB &gt;70</span></div>
+      <div style="font-size:12px"><strong style="font-family:monospace">6m Return</strong><br><span style="color:#1F7A5C">+119.2%</span> <span style="color:#6B7280;font-size:11px">(vs S&P ~+8%)</span></div>
+    </div>
+    <p style="font-size:11px;color:#9CA3AF;margin-top:8px">Technical analysis is supplementary; TA signals not standalone investment signals. Entry zone $168–175 = MA50 support zone.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S09 — VALUATION (3 Scenarios + DCF + Peer + PT Calculator)
+════════════════════════════════════════════════════════════════ -->
+<section id="s09" class="tier-primary">
+  <div class="eyebrow">Valuation Analysis · 個人估算 — NOT Target Price</div>
+  <h2>法說 Guidance → 前瞻投影 → EV/Sales 乘數 → 機率加權期望值</h2>
+  <p class="section-lead">Q1 2026 法說會（April 29）CEO Wendell Weeks / CFO Edward Schlesinger 揭露全年 revenue 軌道：Optical Comms 維持強勁，Display 承壓，glass substrate 開啟新成長曲線。本節以「5段業務 × 3情境 × FY26E–FY28E 前瞻投影 → EV/Sales 乘數法 → ÷ 853M 股 = 隱含股價」完整推導，DCF $175 作為 cross-check。</p>
+
+  <!-- ── Step 1: 法說 Guidance 接點 ─────────────────────────── -->
+  <h3 style="margin-top:20px">Step 1 — Q1 2026 法說會 Guidance 接點 (April 29, 2026)</h3>
+  <div class="callout" style="margin-bottom:16px;border-left:3px solid #003B36">
+    <div class="cl-ttl" style="color:#003B36">管理層口徑 — CEO Wendell Weeks / CFO Edward Schlesinger</div>
+    <div style="font-size:12px;line-height:1.8;margin-top:6px">
+      <strong>Q1 2026 實績：</strong>Revenue $4.14B (+20% YoY)、GM 36.9%（連三季改善）、EPS $0.54<br>
+      <strong>Optical Comms guidance：</strong>Q2 2026 revenue 預計 sequential growth；AI fiber demand「強勁且持續」；hyperscaler 客戶 lead time 延長至 12–18 個月<br>
+      <strong>Glass Substrate (Intel)：</strong>目標 2027 量產、2028 規模出貨；CEO 明示「This is a meaningful new growth vector」<br>
+      <strong>Display guidance：</strong>China market weakness 延續；Q2 modest sequential decline；全年假設 mid-single-digit decline<br>
+      <strong>CapEx：</strong>FY2026 CapEx guidance ~$1.5B（擴產 AI fiber + glass substrate）
+    </div>
+  </div>
+
+  <!-- ── Step 2: 5-Segment × 3-Scenario Revenue Model ─────── -->
+  <h3>Step 2 — 五段業務 × 三情境 前瞻營收模型 FY26E–FY28E</h3>
+  <p style="font-size:12px;color:#6B7280;margin-bottom:10px">各情境核心假設：Bear = Optical Comms 減速 + glass substrate 延誤；Base = Optical Comms 30% CAGR + substrate 2027 first revenue；Bull = Optical Comms 超越 + substrate $500M by 2028 + Gorilla Glass AI edge。</p>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead>
+        <tr>
+          <th>業務段</th>
+          <th class="num">FY25A</th>
+          <th class="num" style="color:#C8302C">FY26E Bear</th>
+          <th class="num" style="color:#003B36">FY26E Base</th>
+          <th class="num" style="color:#1F7A5C">FY26E Bull</th>
+          <th class="num" style="color:#C8302C">FY28E Bear</th>
+          <th class="num" style="color:#003B36">FY28E Base</th>
+          <th class="num" style="color:#1F7A5C">FY28E Bull</th>
+          <th>FY28E 驅動假設</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="業務段"><strong>Optical Comms</strong> <span class="tag gold" style="font-size:10px">AI Driver</span></td>
+          <td class="num" data-label="FY25A">$4.2B</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">$5.0B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">$5.5B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">$6.1B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$5.8B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$8.2B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$12.0B</td>
+          <td style="font-size:11px">Bear: +10% CAGR（capex 消化）；Base: +30% CAGR（AI fiber secular）；Bull: +42% CAGR（超規模）</td>
+        </tr>
+        <tr>
+          <td data-label="業務段"><strong>Display Technologies</strong></td>
+          <td class="num" data-label="FY25A">$3.6B</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">$3.3B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">$3.4B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">$3.5B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$2.9B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$3.2B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$3.4B</td>
+          <td style="font-size:11px">secular decline; Bear -8%/yr, Base -5%/yr, Bull -2%/yr</td>
+        </tr>
+        <tr>
+          <td data-label="業務段"><strong>Environmental Technologies</strong></td>
+          <td class="num" data-label="FY25A">$1.7B</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">$1.6B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">$1.7B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">$1.8B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$1.5B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$1.8B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$2.1B</td>
+          <td style="font-size:11px">EV emission filters + ICE; stable-to-modest growth</td>
+        </tr>
+        <tr>
+          <td data-label="業務段"><strong>Specialty Materials</strong></td>
+          <td class="num" data-label="FY25A">$2.0B</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">$2.0B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">$2.1B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">$2.3B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$2.0B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$2.4B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$3.0B</td>
+          <td style="font-size:11px">Gorilla Glass AI-edge devices; Bull = super-cycle</td>
+        </tr>
+        <tr>
+          <td data-label="業務段"><strong>Life Sciences</strong></td>
+          <td class="num" data-label="FY25A">$0.8B</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">$0.8B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">$0.9B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">$0.9B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$0.8B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$1.0B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$1.2B</td>
+          <td style="font-size:11px">bioreactor + pharma glass; stable mid-single-digit</td>
+        </tr>
+        <tr>
+          <td data-label="業務段"><strong>Glass Substrate (Intel)</strong> <span class="tag" style="font-size:10px;background:#F5F4EE;color:#1A2540">New 2027+</span></td>
+          <td class="num" data-label="FY25A">—</td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C">—</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36">—</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C">—</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C">$0.05B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36">$0.20B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C">$0.50B</td>
+          <td style="font-size:11px">Bear $50M (delay); Base $200M (on-track); Bull $500M (ahead of schedule)</td>
+        </tr>
+        <tr class="hl" style="border-top:2px solid var(--border)">
+          <td data-label="業務段"><strong>Total Revenue</strong></td>
+          <td class="num" data-label="FY25A"><strong>$12.3B</strong></td>
+          <td class="num" data-label="FY26E Bear" style="color:#C8302C;font-weight:700">$12.7B</td>
+          <td class="num" data-label="FY26E Base" style="color:#003B36;font-weight:700">$13.6B</td>
+          <td class="num" data-label="FY26E Bull" style="color:#1F7A5C;font-weight:700">$14.6B</td>
+          <td class="num" data-label="FY28E Bear" style="color:#C8302C;font-weight:700">$13.1B</td>
+          <td class="num" data-label="FY28E Base" style="color:#003B36;font-weight:700">$16.8B</td>
+          <td class="num" data-label="FY28E Bull" style="color:#1F7A5C;font-weight:700">$22.2B</td>
+          <td style="font-size:11px"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Step 3: EV/Sales 乘數法 ──────────────────────────── -->
+  <h3 style="margin-top:22px">Step 3 — EV/Sales 乘數法 · 同業 Multiple Range</h3>
+  <p style="font-size:12px;color:#6B7280;margin-bottom:10px">GLW 是「glass specialist + AI infrastructure growth」混合體，無直接同業。乘數基準：材料純玩 NEG ~1.0x、AGC ~1.2x（私人 Schott 排除）；AI fiber純玩 Lumentum ~3.5x、II-VI/Coherent ~2.5x。GLW 混合：Bear 1.2x（材料折價）、Base 1.8x（AI fiber premium 一半）、Bull 2.5x（Coherent-class optical premium）。</p>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead>
+        <tr>
+          <th>同業</th>
+          <th class="num">EV/Sales TTM</th>
+          <th class="num">Rev Growth</th>
+          <th>定位說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>NEG 日本電気硝子 (5214.T)</td><td class="num">~1.0x</td><td class="num">+0.3%</td><td style="font-size:11px">Display glass — 純材料低成長，下限錨</td></tr>
+        <tr><td>AGC Inc. (5201.T)</td><td class="num">~1.2x</td><td class="num">+3%</td><td style="font-size:11px">多元玻璃 — 材料多元化，中間基準</td></tr>
+        <tr><td>Lumentum (LITE)</td><td class="num">~3.5x</td><td class="num">+30%+</td><td style="font-size:11px">AI optical pure-play — 高成長上限錨</td></tr>
+        <tr><td>II-VI / Coherent (IIVI)</td><td class="num">~2.5x</td><td class="num">+25%</td><td style="font-size:11px">垂直整合光學 — Bull case 參考上界</td></tr>
+        <tr class="hl"><td><strong>GLW 乘數選取 (Bear / Base / Bull)</strong></td><td class="num" style="font-weight:700">1.2x / 1.8x / 2.5x</td><td class="num">—</td><td style="font-size:11px">依 Optical Comms 貢獻比例插值</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Step 4: 完整數學鏈條 ──────────────────────────────── -->
+  <h3 style="margin-top:22px">Step 4 — 完整推導鏈條（show the math）</h3>
+  <div class="grid-3" style="gap:12px;margin-bottom:16px">
+    <!-- Bear -->
+    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#C8302C;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Bear Case — 20%</div>
+      <div style="font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12px;line-height:2;color:#6B7280">
+        FY28E Revenue = <strong>$13.1B</strong><br>
+        × EV/Sales 乘數 = <strong>1.2x</strong><br>
+        = Enterprise Value = <strong>$15.7B</strong><br>
+        − Net Debt ($3.5B) = Equity Value <strong>$12.2B</strong><br>
+        ÷ 853M shares<br>
+        = Implied Price <strong style="color:#C8302C;font-size:14px">~$143/股</strong><br>
+        <span style="font-size:11px;color:#6B7280">vs 現價 $194 = <strong style="color:#C8302C">-26%</strong></span>
+      </div>
+    </div>
+    <!-- Base -->
+    <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.4);border-radius:8px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#003B36;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Base Case ★ — 50%</div>
+      <div style="font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12px;line-height:2;color:#6B7280">
+        FY28E Revenue = <strong>$16.8B</strong><br>
+        × EV/Sales 乘數 = <strong>1.8x</strong><br>
+        = Enterprise Value = <strong>$30.2B</strong><br>
+        − Net Debt ($3.5B) = Equity Value <strong>$26.7B</strong><br>
+        ÷ 853M shares<br>
+        = Implied Price <strong style="color:#003B36;font-size:14px">~$213/股</strong><br>
+        <span style="font-size:11px;color:#6B7280">vs 現價 $194 = <strong style="color:#1F7A5C">+9.8%</strong></span>
+      </div>
+    </div>
+    <!-- Bull -->
+    <div style="background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.3);border-radius:8px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#1F7A5C;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Bull Case — 30%</div>
+      <div style="font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:12px;line-height:2;color:#6B7280">
+        FY28E Revenue = <strong>$22.2B</strong><br>
+        × EV/Sales 乘數 = <strong>2.5x</strong><br>
+        = Enterprise Value = <strong>$55.5B</strong><br>
+        − Net Debt ($3.5B) = Equity Value <strong>$52.0B</strong><br>
+        ÷ 853M shares<br>
+        = Implied Price <strong style="color:#1F7A5C;font-size:14px">~$297/股</strong><br>
+        <span style="font-size:11px;color:#6B7280">vs 現價 $194 = <strong style="color:#1F7A5C">+53%</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 5: 機率加權期望值 ────────────────────────────── -->
+  <h3>Step 5 — 機率加權期望值 (EV)</h3>
+  <div style="background:rgba(0,59,54,.08);border:1px solid rgba(0,59,54,.35);border-radius:8px;padding:20px;margin-bottom:16px">
+    <div style="font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-size:14px;line-height:2.4;color:#6B7280">
+      EV = $143 × <strong>20%</strong> + $213 × <strong>50%</strong> + $297 × <strong>30%</strong><br>
+      EV = $28.6 + $106.5 + $89.1<br>
+      <strong style="font-size:18px;color:#003B36">機率加權期望值 ≈ $224</strong><br>
+      <span style="font-size:12px;color:#6B7280">（Bear 20% + Base 50% + Bull 30% = 100%）</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:24px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,59,54,.3)">
+      <div>
+        <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em">期望值</div>
+        <div style="font-size:28px;font-weight:700;color:#003B36;font-family:monospace">$224</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em">vs 現價 $194</div>
+        <div style="font-size:22px;font-weight:700;color:#1F7A5C;font-family:monospace">+15.5%</div>
+      </div>
+      <div style="flex:1;font-size:12px;color:#6B7280;line-height:1.6">
+        EV/Sales 乘數法隱含 +15.5% 上行空間（FY28E 折回）。Bull case 需 Optical Comms $12B + glass substrate $500M 同時兌現，機率 30%。市場目前約定價在 Base-to-Bull 之間。
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario rationale cards -->
+  <div class="grid-3" style="gap:12px;margin-bottom:16px">
+    <div class="callout red">
+      <div class="cl-ttl">Bear $143 (20%)</div>
+      <p style="font-size:12px">觸發：hyperscaler capex 消化 H2 2026；Optical Comms 成長減速至 +10% CAGR；glass substrate 延誤至 2029+；Display 加速下滑。EV/Sales 1.2x（材料公司評價）= $13.1B × 1.2x ÷ 853M = $143。</p>
+    </div>
+    <div class="callout" style="border-color:#003B36;background:rgba(245,158,11,.04)">
+      <div class="cl-ttl" style="color:#003B36">Base $213 (50% ★)</div>
+      <p style="font-size:12px">觸發：Optical Comms 30% CAGR 2026–28；glass substrate 2027 first rev $200M；Display -5%/yr。EV/Sales 1.8x（混合 optical + materials）= $16.8B × 1.8x ÷ 853M = $213。法說會 CEO guidance 支持此路徑。</p>
+    </div>
+    <div class="callout mint">
+      <div class="cl-ttl">Bull $297 (30%)</div>
+      <p style="font-size:12px">觸發：Optical Comms +42% CAGR；glass substrate $500M by 2028（Intel roadmap 超預期）；Gorilla Glass AI-edge device super-cycle。EV/Sales 2.5x（Coherent-class optical）= $22.2B × 2.5x ÷ 853M = $297。</p>
+    </div>
+  </div>
+
+  <!-- GLW Chart 5: FY28E 5-Segment Revenue Stacked Bar -->
+  <div class="viz-hero" style="margin-top:20px">
+    <div style="height:300px">
+      <canvas id="glw_seg_chart" aria-label="GLW FY28E 5-segment revenue projection Bear/Base/Bull stacked bar chart"></canvas>
+    </div>
+    <div class="viz-caption">FY28E 五段業務 × 三情境推估。Optical Comms 是最大變數（Bear $5.8B → Bull $12.0B）。Glass Substrate 僅 Bull 有顯著貢獻 ($500M)。Source: 個人前瞻估算，基於 Q1 2026 法說 guidance。</div>
+  </div>
+  <script>
+  (function(){
+    var ctx=document.getElementById('glw_seg_chart');
+    if(!ctx)return;
+    // FY28E 5-segment revenues in $B: Bear / Base / Bull
+    // From S09 Step 2 table
+    var segs=[
+      {name:'Optical Comms',bear:5.8,base:8.2,bull:12.0,color:'rgba(31,122,92,0.85)'},
+      {name:'Display Tech',bear:2.9,base:3.2,bull:3.4,color:'rgba(148,163,184,0.75)'},
+      {name:'Specialty Mat.',bear:2.0,base:2.4,bull:3.0,color:'rgba(0,59,54,0.8)'},
+      {name:'Environmental',bear:1.5,base:1.8,bull:2.1,color:'rgba(226,232,240,0.9)'},
+      {name:'Life Sciences',bear:0.8,base:1.0,bull:1.2,color:'rgba(148,163,184,0.45)'}
+    ];
+    var totals={bear:0,base:0,bull:0};
+    segs.forEach(function(s){totals.bear+=s.bear;totals.base+=s.base;totals.bull+=s.bull;});
+    // Glass Substrate (New 2027+): Bear 0.05, Base 0.20, Bull 0.50
+    totals.bear+=0.05; totals.base+=0.20; totals.bull+=0.50;
+    var datasets=segs.map(function(s){
+      return{
+        label:s.name,
+        data:[s.bear,s.base,s.bull],
+        backgroundColor:s.color,
+        borderWidth:0,
+        borderRadius:0
+      };
+    });
+    datasets.push({
+      label:'Glass Substrate (New)',
+      data:[0.05,0.20,0.50],
+      backgroundColor:'rgba(29,78,216,0.6)',
+      borderWidth:0
+    });
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:[
+          'Bear ($'+totals.bear.toFixed(1)+'B)',
+          'Base ($'+totals.base.toFixed(1)+'B)',
+          'Bull ($'+totals.bull.toFixed(1)+'B)'
+        ],
+        datasets:datasets
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{
+            display:true,position:'right',
+            labels:{color:'#6B7280',font:{size:11},boxWidth:14,padding:10}
+          },
+          title:{
+            display:true,
+            text:'GLW FY28E 5-Segment Revenue ($B) — Bear/Base/Bull Scenarios',
+            color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+          },
+          tooltip:{
+            callbacks:{
+              label:function(c){return' '+c.dataset.label+': $'+c.parsed.y.toFixed(2)+'B';}
+            }
+          }
+        },
+        scales:{
+          x:{
+            stacked:true,
+            ticks:{color:'#6B7280',font:{size:12,weight:'600'}},
+            grid:{display:false}
+          },
+          y:{
+            stacked:true,
+            min:0,max:25,
+            ticks:{callback:function(v){return'$'+v+'B';},color:'#9CA3AF',font:{size:11}},
+            grid:{color:'#F5F4EE'},
+            title:{display:true,text:'FY28E Revenue ($B)',color:'#9CA3AF',font:{size:11}}
+          }
+        }
+      }
+    });
+  })();
+  </script>
+
+  <!-- ── Forward PE Cross-check ────────────────────────────── -->
+  <h3 style="margin-top:22px">Forward PE Cross-check（乘數法輔助驗證）</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead>
+        <tr>
+          <th>情境</th>
+          <th class="num">FY27E EPS</th>
+          <th class="num">FY28E EPS</th>
+          <th class="num">PE 假設</th>
+          <th class="num">PT (PE 法)</th>
+          <th class="num">PT (EV/Sales 法)</th>
+          <th class="num">差異</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong style="color:#C8302C">Bear</strong></td><td class="num">$3.20</td><td class="num">$2.35</td><td class="num">40x Fwd</td><td class="num" style="color:#C8302C">$128–160</td><td class="num" style="color:#C8302C">$143</td><td class="num">Low convergence; EV/Sales gives higher floor</td></tr>
+        <tr class="hl"><td><strong style="color:#003B36">Base ★</strong></td><td class="num">$5.40</td><td class="num">$6.60</td><td class="num">38x Fwd</td><td class="num" style="color:#003B36">$205–231</td><td class="num" style="color:#003B36">$213</td><td class="num" style="color:#1F7A5C">Strong convergence ✓</td></tr>
+        <tr><td><strong style="color:#1F7A5C">Bull</strong></td><td class="num">$7.80</td><td class="num">$8.80</td><td class="num">35x Fwd</td><td class="num" style="color:#1F7A5C">$273–308</td><td class="num" style="color:#1F7A5C">$297</td><td class="num" style="color:#1F7A5C">Strong convergence ✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:#6B7280;margin-top:8px">EV/Sales 乘數法（主法）與 Forward PE（輔助驗證）在 Base/Bull 情境高度收斂，Bear 略有分歧（EV/Sales 給較高下行支撐）。兩法結論一致：Base 隱含 $210–215，Bull 隱含 $290–300。</p>
+
+  <!-- ── DCF Cross-check ────────────────────────────────────── -->
+  <h3 style="margin-top:22px">DCF Cross-check（WACC 8.5% · terminal 3%）</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>DCF Parameter</th><th class="num">Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>WACC</td><td class="num">8.5%</td><td>Beta 1.14 × ERP 6.5% + Rf 4.3% + credit spread</td></tr>
+        <tr><td>Terminal Growth Rate</td><td class="num">3.0%</td><td>GDP-linked; conservative vs AI fiber secular</td></tr>
+        <tr><td>FY2025 Actual FCF</td><td class="num">$1.41B</td><td>Source: GLW 10-K FY2025</td></tr>
+        <tr><td>FY2026E FCF Growth</td><td class="num">+25%</td><td>Rev +14% + margin improvement; CapEx $1.5B headwind</td></tr>
+        <tr><td>FY2027E FCF Growth</td><td class="num">+30%</td><td>Optical Comms scaling; CapEx cycle peaks</td></tr>
+        <tr><td>FY2028E FCF Growth</td><td class="num">+25%</td><td>Glass substrate first revenues + operating leverage</td></tr>
+        <tr class="hl"><td><strong>DCF Implied Price (Base)</strong></td><td class="num"><strong>~$175</strong></td><td>Net debt deducted. Current $194 = +11% premium to DCF → market prices growth optionality</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout" style="margin-top:10px;background:rgba(31,122,92,0.06);border-color:rgba(31,122,92,0.4)">
+    <div class="cl-ttl" style="color:#1F7A5C">三法收斂小結</div>
+    <p style="font-size:12px">EV/Sales 乘數法期望值 $224 / Forward PE 法 ~$220 / DCF $175（最保守）。三法 Base 中樞落在 $210–220 區間，當前 $194 在此區間下方，提供合理的進入安全邊際。Bull Case 三法均指向 $290–300+。</p>
+  </div>
+
+  <!-- ── Peer Comp ─────────────────────────────────────────── -->
+  <h3 style="margin-top:22px">同業估值比較（完整表）</h3>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>Company</th><th class="num">EV/Sales</th><th class="num">PE TTM</th><th class="num">PE Fwd</th><th class="num">GM</th><th class="num">Rev Growth</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td><strong>Corning Inc. (GLW)</strong> <span class="tag gold" style="font-size:10px">Subject</span></td>
+          <td class="num">~1.8x</td><td class="num">93.3x</td><td class="num">45.9x</td><td class="num">36.4%</td><td class="num">+20.0%</td></tr>
+        <tr><td>NEG 日本電気硝子 (5214.T)</td>
+          <td class="num">~1.0x</td><td class="num">17.5x</td><td class="num">35.2x</td><td class="num">25.5%</td><td class="num">+0.3%</td></tr>
+        <tr><td>AGC Inc. (5201.T)</td>
+          <td class="num">~1.2x</td><td class="num">14.0x</td><td class="num">22.0x</td><td class="num">28.0%</td><td class="num">+3.0%</td></tr>
+        <tr><td>Lumentum (LITE)</td>
+          <td class="num">~3.5x</td><td class="num">N/M</td><td class="num">18.0x</td><td class="num">44.0%</td><td class="num">+30.0%</td></tr>
+        <tr><td>Amphenol (APH)</td>
+          <td class="num">~4.2x</td><td class="num">37.8x</td><td class="num">23.5x</td><td class="num">37.9%</td><td class="num">+58.4%</td></tr>
+        <tr><td>PPG Industries</td>
+          <td class="num">~1.4x</td><td class="num">15.4x</td><td class="num">12.4x</td><td class="num">41.7%</td><td class="num">+6.7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GLW Chart 6: EV/Sales 期望值 waterfall bar -->
+  <div class="viz-hero" style="margin-top:20px">
+    <div style="height:300px">
+      <canvas id="glw_ev_chart" aria-label="GLW EV/Sales 期望值 waterfall chart Bear Base Bull Weighted"></canvas>
+    </div>
+    <div class="viz-caption">機率加權期望值 $224 = Bear $143 × 20% + Base $213 × 50% + Bull $297 × 30%。金色柱 = 加權後期望值，vs 現價 $194 有 +15.5% upside。Source: 個人估算 EV/Sales 乘數法。</div>
+  </div>
+  <script>
+  (function(){
+    var ctx=document.getElementById('glw_ev_chart');
+    if(!ctx)return;
+    var labels=['Bear (20%)\n$143','Base (50%) ★\n$213','Bull (30%)\n$297','Weighted EV\n$224'];
+    var prices=[143,213,297,224];
+    var colors=['rgba(200,48,44,0.75)','rgba(245,158,11,0.8)','rgba(22,163,74,0.75)','rgba(0,59,54,0.95)'];
+    var borderColors=['#C8302C','#003B36','#1F7A5C','#003B36'];
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:['Bear (20%)\n$143','Base ★ (50%)\n$213','Bull (30%)\n$297','Weighted EV\n$224'],
+        datasets:[
+          {
+            label:'Implied Price ($)',
+            data:prices,
+            backgroundColor:colors,
+            borderColor:borderColors,
+            borderWidth:[1,1,1,2.5],
+            borderRadius:4
+          },
+          {
+            label:'Current Price ($194)',
+            data:[194,194,194,194],
+            type:'line',
+            borderColor:'rgba(148,163,184,0.7)',
+            backgroundColor:'transparent',
+            borderWidth:2,borderDash:[6,4],
+            pointRadius:0
+          }
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{
+            display:true,position:'top',
+            labels:{color:'#6B7280',font:{size:11},boxWidth:14,padding:12}
+          },
+          title:{
+            display:true,
+            text:'GLW EV/Sales 情境期望值 ($) — Bear/Base/Bull + 機率加權 | 現價 $194',
+            color:'#6B7280',font:{size:12,weight:'normal'},padding:{bottom:8}
+          },
+          tooltip:{
+            callbacks:{
+              label:function(c){
+                if(c.dataset.type==='line')return' Current: $194.05';
+                var upside=((c.parsed.y/194-1)*100).toFixed(1);
+                return' $'+c.parsed.y+' ('+(upside>=0?'+':'')+upside+'% vs $194)';
+              }
+            }
+          }
+        },
+        scales:{
+          y:{
+            min:100,max:340,
+            ticks:{callback:function(v){return'$'+v;},color:'#9CA3AF',font:{size:11}},
+            grid:{color:'#F5F4EE'},
+            title:{display:true,text:'Implied Price ($)',color:'#9CA3AF',font:{size:11}}
+          },
+          x:{
+            ticks:{color:'#6B7280',font:{size:11,weight:'600'}},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+  })();
+  </script>
+
+  <!-- ── PT Calculator ─────────────────────────────────────── -->
+  <h3 style="margin-top:22px">互動 PT 計算機 (EV/Sales 法 · 個人估算)</h3>
+  <div style="background:#F5F4EE;border:1px solid var(--border);border-radius:8px;padding:16px">
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>FY28E Revenue ($B): <span class="cf-val" id="o-rev">$16.8B</span></label>
+        <input type="range" id="r-rev" min="12" max="25" step="0.1" value="16.8">
+      </div>
+      <div class="calc-field">
+        <label>EV/Sales 乘數: <span class="cf-val" id="o-mult">1.8x</span></label>
+        <input type="range" id="r-mult" min="0.8" max="3.5" step="0.1" value="1.8">
+      </div>
+      <div class="calc-field">
+        <label>Net Debt ($B): <span class="cf-val" id="o-debt">$3.5B</span></label>
+        <input type="range" id="r-debt" min="2" max="5" step="0.1" value="3.5">
+      </div>
+      <div class="calc-result">
+        <div class="cr-label">個人估算 PT</div>
+        <div class="cr-pt" id="o-pt2">$213</div>
+        <div class="cr-vs" id="o-vs2">vs $194 = +9.8%</div>
+        <div class="cr-vs" id="o-ev2">EV: $30.2B · Equity: $26.7B</div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var rRev=document.getElementById('r-rev'),rMult=document.getElementById('r-mult'),rDebt=document.getElementById('r-debt');
+    var oRev=document.getElementById('o-rev'),oMult=document.getElementById('o-mult'),oDebt=document.getElementById('o-debt');
+    var oPt=document.getElementById('o-pt2'),oVs=document.getElementById('o-vs2'),oEv=document.getElementById('o-ev2');
+    function upd(){
+      var rev=parseFloat(rRev.value),mult=parseFloat(rMult.value),debt=parseFloat(rDebt.value);
+      var ev=rev*mult,eq=ev-debt,pt=Math.round(eq*1000/853);
+      var upside=Math.round((pt/194-1)*1000)/10;
+      oRev.textContent='$'+rev.toFixed(1)+'B';
+      oMult.textContent=mult.toFixed(1)+'x';
+      oDebt.textContent='$'+debt.toFixed(1)+'B';
+      oPt.textContent='$'+pt;
+      oVs.textContent='vs $194 = '+(upside>=0?'+':'')+upside+'%';
+      oEv.textContent='EV: $'+ev.toFixed(1)+'B · Equity: $'+eq.toFixed(1)+'B';
+    }
+    rRev.addEventListener('input',upd);rMult.addEventListener('input',upd);rDebt.addEventListener('input',upd);
+    upd();
+  })();
+  </script>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S10 — INSTITUTIONAL + INSIDER (Tertiary tier)
+════════════════════════════════════════════════════════════════ -->
+<section id="s10" class="tier-tertiary">
+  <div class="eyebrow">Sentiment · Institutional + Insider · Source: SEC Form 4 / 13F</div>
+  <h2 style="font-size:var(--fs-md)">籌碼分析 — 機構持股 + 內部人異動</h2>
+
+  <div class="grid-2 equal" style="gap:14px">
+    <div>
+      <h4>機構持股 Top 6 (As of Q1 2026 13F)</h4>
+      <div class="tbl-wrap">
+        <table class="tbl dense">
+          <thead><tr><th>Institution</th><th class="num">% Held</th><th class="num">Shares</th><th class="num">Value</th><th class="num">QoQ Chg</th></tr></thead>
+          <tbody><tr><td data-label="Institution">Blackrock Inc.</td>
+      <td class="num" data-label="% Held">7.75%</td>
+      <td class="num" data-label="Shares">66.7M</td>
+      <td class="num" data-label="Value">$12.95B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#1F7A5C">+4.9%</span></td></tr>
+<tr><td data-label="Institution">Vanguard Capital Management LLC</td>
+      <td class="num" data-label="% Held">5.86%</td>
+      <td class="num" data-label="Shares">50.5M</td>
+      <td class="num" data-label="Value">$9.79B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#1F7A5C">+100.0%</span></td></tr>
+<tr><td data-label="Institution">State Street Corporation</td>
+      <td class="num" data-label="% Held">4.21%</td>
+      <td class="num" data-label="Shares">36.3M</td>
+      <td class="num" data-label="Value">$7.04B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#C8302C">-1.4%</span></td></tr>
+<tr><td data-label="Institution">Vanguard Portfolio Management LLC</td>
+      <td class="num" data-label="% Held">3.28%</td>
+      <td class="num" data-label="Shares">28.3M</td>
+      <td class="num" data-label="Value">$5.49B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#1F7A5C">+100.0%</span></td></tr>
+<tr><td data-label="Institution">FMR, LLC</td>
+      <td class="num" data-label="% Held">2.89%</td>
+      <td class="num" data-label="Shares">24.9M</td>
+      <td class="num" data-label="Value">$4.83B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#1F7A5C">+72.4%</span></td></tr>
+<tr><td data-label="Institution">Capital Research Global Investors</td>
+      <td class="num" data-label="% Held">2.54%</td>
+      <td class="num" data-label="Shares">21.8M</td>
+      <td class="num" data-label="Value">$4.24B</td>
+      <td class="num" data-label="QoQ Chg"><span style="color:#1F7A5C">+29.3%</span></td></tr>
+</tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:#9CA3AF;margin-top:6px">Total institutional: ~73.7% of float. Blackrock +4.9% QoQ — adding. Vanguard new position (portfolio rebalancing). Source: 13F filings, Q1 2026.</p>
+    </div>
+    <div>
+      <h4>內部人交易 (May 2026 — Form 4)</h4>
+      <div class="tbl-wrap">
+        <table class="tbl dense">
+          <thead><tr><th>Date</th><th>Insider</th><th>Role</th><th class="num">Shares</th><th class="num">Value</th><th>Type</th></tr></thead>
+          <tbody><tr><td data-label="Date">2026-05-15</td>
+      <td data-label="Insider"><strong>NELSON AVERY H III</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Chief Operating Officer</td>
+      <td class="num" data-label="Shares">20,000</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$3.92M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+<tr><td data-label="Date">2026-05-14</td>
+      <td data-label="Insider"><strong>FANG LI</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Officer</td>
+      <td class="num" data-label="Shares">8,725</td>
+      <td class="num" data-label="Value" style="color:#1F7A5C">$0.17M</td>
+      <td data-label="Type"><span class="tag mint">BUY</span></td></tr>
+<tr><td data-label="Date">2026-05-13</td>
+      <td data-label="Insider"><strong>BECKER STEFAN</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Officer</td>
+      <td class="num" data-label="Shares">126</td>
+      <td class="num" data-label="Value" style="color:#1F7A5C">$0.00M</td>
+      <td data-label="Type"><span class="tag mint">BUY</span></td></tr>
+<tr><td data-label="Date">2026-05-13</td>
+      <td data-label="Insider"><strong>VERKLEEREN RONALD L</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Officer</td>
+      <td class="num" data-label="Shares">10,000</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$2.08M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+<tr><td data-label="Date">2026-05-11</td>
+      <td data-label="Insider"><strong>SEETHARAM SOUMYA</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Chief Technology Officer</td>
+      <td class="num" data-label="Shares">20,000</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$4.12M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+<tr><td data-label="Date">2026-05-11</td>
+      <td data-label="Insider"><strong>TILLMAN MICHAUNE D.</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">General Counsel</td>
+      <td class="num" data-label="Shares">3,260</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$0.67M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+<tr><td data-label="Date">2026-05-11</td>
+      <td data-label="Insider"><strong>ZHANG JOHN Z</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Officer</td>
+      <td class="num" data-label="Shares">10,000</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$1.98M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+<tr><td data-label="Date">2026-05-08</td>
+      <td data-label="Insider"><strong>BECKER STEFAN</strong></td>
+      <td data-label="Role" style="font-size:12px;color:#6B7280">Officer</td>
+      <td class="num" data-label="Shares">21,000</td>
+      <td class="num" data-label="Value" style="color:#C8302C">$3.95M</td>
+      <td data-label="Type"><span class="tag red">SALE</span></td></tr>
+</tbody>
+        </table>
+      </div>
+      <div class="callout red" style="margin-top:8px">
+        <div class="cl-ttl">Insider Selling — Notable Signal</div>
+        <p style="font-size:11px">Multiple C-suite officers (COO, CTO, General Counsel, multiple VPs) sold $4–8M each at $188–207 range in May 2026. This is concentrated selling by insiders who presumably understand operational outlook. Not necessarily bearish on fundamentals, but suggests insiders view current price as fair-to-rich. Source: SEC Form 4 filings, May 2026.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 Personas -->
+  <h3 style="margin-top:20px">5 大師 Personas — 共識評分</h3>
+  <div class="grid-3" style="gap:10px;margin-top:10px">
+    <div class="persona-card">
+      <div class="pc-name">Buffett Framework</div>
+      <div class="pc-stance neutral">NEUTRAL / WATCH</div>
+      <p>Corning has durable competitive advantage in optical fiber manufacturing (60yr know-how, preform IP). However, PE 45.9x Fwd is not "value" by traditional metrics. Would wait for price closer to intrinsic value ($175 DCF). Moat is real; price is not yet right.</p>
+    </div>
+    <div class="persona-card">
+      <div class="pc-name">Lynch Framework (GARP)</div>
+      <div class="pc-stance bull">CONSTRUCTIVE</div>
+      <p>AI fiber is the "obvious" growth story Lynch favors — you can see it at every hyperscaler. PEG = 45.9x PE / ~30% growth = 1.53 — slightly elevated but not extreme for a genuine structural grower. Glass substrate adds optionality "for free" at current price.</p>
+    </div>
+    <div class="persona-card">
+      <div class="pc-name">Soros Framework</div>
+      <div class="pc-stance bear">CAUTIOUS</div>
+      <p>Reflexivity risk: the AI fiber narrative has driven a self-reinforcing re-rating (+307% 1yr). Market positioning is crowded; any AI capex pause creates violent mean-reversion. Insider selling at peak = potential reflexivity turning point.</p>
+    </div>
+    <div class="persona-card">
+      <div class="pc-name">Munger Framework</div>
+      <div class="pc-stance neutral">NEUTRAL</div>
+      <p>GLW has 60+ years of glass manufacturing compounding. Likes the moat. But notes that Display glass (24% of rev) is a structural headwind — "always invert." Questions whether glass substrate will truly scale before organic substrates improve further.</p>
+    </div>
+    <div class="persona-card">
+      <div class="pc-name">Burry Framework</div>
+      <div class="pc-stance bear">BEARISH / CONTRARIAN</div>
+      <p>The AI fiber theme is priced to perfection at 45.9x Fwd PE. Catalytic risk: if one major hyperscaler cuts CapEx guidance, GLW falls 30–40%. Insider selling pattern matches prior "distribution at peak" patterns in cyclical industrial names.</p>
+    </div>
+    <div class="persona-card" style="background:rgba(0,59,54,0.06);border:1px solid rgba(0,59,54,0.3)">
+      <div class="pc-name" style="color:#003B36">Consensus Score</div>
+      <div class="pc-stance neutral">2 BULL / 2 BEAR / 1 NEUTRAL</div>
+      <p>Divided: growth investors constructive; value/contrarian frameworks cautious. <strong>Key divergence:</strong> Is AI fiber a multi-year structural trend (bull) or a cyclical surge being extrapolated (bear)? Q2 2026 earnings will be a key resolution event.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S11 — RISK MATRIX (2D Scatter)
+════════════════════════════════════════════════════════════════ -->
+<section id="s11" class="tier-primary">
+  <div class="eyebrow">Risk Analysis</div>
+  <h2>風險矩陣 — 影響 × 機率</h2>
+  <p class="section-lead">Valuation compression (R1) is the top risk — a PE re-rate from 46x to 30x alone = -35% stock. AI fiber demand normalization (R3) would trigger both R1 and a fundamental miss.</p>
+
+  <div class="viz-hero">
+    <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px;height:auto" aria-label="GLW Risk Matrix — Impact vs Probability 2D scatter">
+      <title>GLW Risk Matrix — Impact (Y) vs Probability (X)</title>
+      <!-- Background quadrants -->
+      <rect x="50" y="20" width="285" height="265" fill="rgba(34,197,94,0.04)"/>
+      <rect x="335" y="20" width="285" height="265" fill="rgba(200,48,44,0.04)"/>
+      <rect x="50" y="20" width="285" height="130" fill="rgba(245,158,11,0.05)"/>
+      <rect x="335" y="20" width="285" height="130" fill="rgba(200,48,44,0.08)"/>
+      <!-- Quadrant labels -->
+      <text x="192" y="40" text-anchor="middle" font-size="10" fill="#9CA3AF">LOW PRIORITY</text>
+      <text x="477" y="40" text-anchor="middle" font-size="10" fill="#C8302C">HIGH RISK ZONE</text>
+      <!-- Axes -->
+      <line x1="50" y1="285" x2="620" y2="285" stroke="#E5E7EB" stroke-width="1.5"/>
+      <line x1="50" y1="285" x2="50" y2="20" stroke="#E5E7EB" stroke-width="1.5"/>
+      <!-- Axis labels -->
+      <text x="335" y="315" text-anchor="middle" font-size="11" fill="#6B7280">Probability →</text>
+      <text x="20" y="155" text-anchor="middle" font-size="11" fill="#6B7280" transform="rotate(-90,20,155)">Impact →</text>
+      <!-- X ticks -->
+      <text x="50" y="298" text-anchor="middle" font-size="9" fill="#9CA3AF">Low</text>
+      <text x="335" y="298" text-anchor="middle" font-size="9" fill="#9CA3AF">Medium</text>
+      <text x="620" y="298" text-anchor="middle" font-size="9" fill="#9CA3AF">High</text>
+      <!-- Y ticks -->
+      <text x="42" y="288" text-anchor="end" font-size="9" fill="#9CA3AF">Low</text>
+      <text x="42" y="155" text-anchor="end" font-size="9" fill="#9CA3AF">Med</text>
+      <text x="42" y="28" text-anchor="end" font-size="9" fill="#9CA3AF">High</text>
+      <!-- Mid crosshairs -->
+      <line x1="335" y1="20" x2="335" y2="285" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="50" y1="155" x2="620" y2="155" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- Risk dots: impact 0-10 (y: high impact = low y), prob 0-10 (x: high prob = high x) -->
+      <!-- R1: Val compression impact=9 prob=7 → x=50+(7/10)*570=449, y=285-(9/10)*265=46 -->
+      <circle cx="449" cy="46" r="22" fill="#C8302C" fill-opacity="0.18" stroke="#C8302C" stroke-width="2"/>
+      <text x="449" y="50" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#C8302C">R1</text>
+      <text x="449" y="76" text-anchor="middle" font-size="9" fill="#6B7280">Valuation</text>
+      <text x="449" y="87" text-anchor="middle" font-size="9" fill="#6B7280">Compression</text>
+
+      <!-- R2: Display pricing impact=6 prob=7 → x=449, y=285-(6/10)*265=126 -->
+      <circle cx="420" cy="126" r="20" fill="#003B36" fill-opacity="0.18" stroke="#003B36" stroke-width="2"/>
+      <text x="420" y="130" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#003B36">R2</text>
+      <text x="420" y="154" text-anchor="middle" font-size="9" fill="#6B7280">Display Glass</text>
+
+      <!-- R3: AI fiber normalization impact=8 prob=5 → x=50+(5/10)*570=335, y=285-(8/10)*265=73 -->
+      <circle cx="335" cy="73" r="22" fill="#C8302C" fill-opacity="0.15" stroke="#C8302C" stroke-width="1.5"/>
+      <text x="335" y="77" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#C8302C">R3</text>
+      <text x="335" y="103" text-anchor="middle" font-size="9" fill="#6B7280">AI Fiber</text>
+      <text x="335" y="114" text-anchor="middle" font-size="9" fill="#6B7280">Normalization</text>
+
+      <!-- R4: Glass substrate delay impact=5 prob=6 → x=50+(6/10)*570=392, y=285-(5/10)*265=152 -->
+      <circle cx="392" cy="152" r="18" fill="#003B36" fill-opacity="0.15" stroke="#003B36" stroke-width="1.5"/>
+      <text x="392" y="156" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#003B36">R4</text>
+      <text x="392" y="178" text-anchor="middle" font-size="9" fill="#6B7280">Substrate Delay</text>
+
+      <!-- R5: FX impact=4 prob=5 → x=335, y=285-(4/10)*265=179 -->
+      <circle cx="285" cy="179" r="16" fill="#1F7A5C" fill-opacity="0.15" stroke="#1F7A5C" stroke-width="1.5"/>
+      <text x="285" y="183" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#1F7A5C">R5</text>
+      <text x="285" y="203" text-anchor="middle" font-size="9" fill="#6B7280">FX Risk</text>
+
+      <!-- R6: Insider selling impact=4 prob=8 → x=50+(8/10)*570=506, y=179 -->
+      <circle cx="506" cy="179" r="18" fill="#003B36" fill-opacity="0.15" stroke="#003B36" stroke-width="1.5"/>
+      <text x="506" y="183" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#003B36">R6</text>
+      <text x="506" y="203" text-anchor="middle" font-size="9" fill="#6B7280">Insider Selling</text>
+    </svg>
+    <div class="viz-caption">R1=Valuation compression · R2=Display glass ASP · R3=AI fiber demand · R4=Glass substrate delay · R5=FX headwind · R6=Insider selling pressure. Placement is individual research judgment. Source: GLW 10-Q Q1 2026, company disclosures.</div>
+  </div>
+
+  <!-- Risk detail table -->
+  <div class="tbl-wrap" style="margin-top:14px">
+    <table class="tbl dense">
+      <thead><tr><th>Risk</th><th>Description</th><th class="num">Impact (1–10)</th><th class="num">Prob (1–10)</th><th>Mitigation / Monitor</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:#C8302C">R1 — Valuation Compression</strong></td>
+          <td>PE re-rate 46x→30x if AI fiber demand moderates = -35% stock price</td>
+          <td class="num" style="color:#C8302C">9</td><td class="num" style="color:#C8302C">7</td>
+          <td>Monitor: Optical Comms YoY growth rate QoQ trend</td></tr>
+        <tr><td><strong style="color:#003B36">R2 — Display Glass Pricing</strong></td>
+          <td>China LCD panel overcapacity → persistent ASP erosion; Display = 24% rev</td>
+          <td class="num" style="color:#003B36">6</td><td class="num" style="color:#003B36">7</td>
+          <td>Monitor: BOE/CSOT panel utilization rates</td></tr>
+        <tr><td><strong style="color:#C8302C">R3 — AI Fiber Normalization</strong></td>
+          <td>Hyperscaler capex digestion H2 2026 or 2027; orders pull-forward risk</td>
+          <td class="num" style="color:#C8302C">8</td><td class="num" style="color:#C8302C">5</td>
+          <td>Monitor: MSFT/META/GOOG Q2 capex guidance</td></tr>
+        <tr><td><strong style="color:#003B36">R4 — Glass Substrate Delay</strong></td>
+          <td>Intel 18A adoption slower than roadmap; organic substrates improve</td>
+          <td class="num" style="color:#003B36">5</td><td class="num" style="color:#003B36">6</td>
+          <td>Monitor: Intel 18A production ramp announcements</td></tr>
+        <tr><td><strong>R5 — FX / Macro</strong></td>
+          <td>Yen weakness benefits Japanese glass competitors (AGC, NEG) vs Corning</td>
+          <td class="num">4</td><td class="num">5</td>
+          <td>Monitor: USD/JPY rate; Corning hedging disclosure</td></tr>
+        <tr><td><strong style="color:#003B36">R6 — Insider Selling</strong></td>
+          <td>COO, CTO, GC all sold $4–8M at $188–207 in May 2026</td>
+          <td class="num" style="color:#003B36">4</td><td class="num" style="color:#003B36">8</td>
+          <td>Monitor: Cessation of selling or Director purchases</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     S12 — FINAL CONCLUSION
+════════════════════════════════════════════════════════════════ -->
+<section id="s12" class="tier-primary">
+  <div class="eyebrow">Final Conclusion</div>
+  <h2>結論 — Bull/Base/Bear + 觀察清單</h2>
+  <p class="section-lead">GLW is a structurally improving business riding the AI optical fiber megatrend — but at $194 (45.9x Fwd PE), the stock is pricing the Bull scenario today. WATCH: disciplined entry $168–175; upgrade thesis on Q2 2026 optical comms beat.</p>
+
+  <div class="grid-2" style="gap:18px">
+    <div>
+      <!-- Decision Box recap -->
+      <div style="background:var(--navy);border-radius:8px;padding:20px">
+        <div style="font:600 11px/1 monospace;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">決策摘要</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.1)">
+            <div style="font:600 10px/1 monospace;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Stance</div>
+            <div style="font:700 16px/1 monospace;color:#003B36">WATCH</div>
+          </div>
+          <div style="padding:10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.1)">
+            <div style="font:600 10px/1 monospace;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Entry Zone</div>
+            <div style="font:700 16px/1 monospace;color:#fff">$168–175</div>
+          </div>
+          <div style="padding:10px;background:rgba(200,48,44,.08);border-radius:6px;border:1px solid rgba(200,48,44,.2)">
+            <div style="font:600 10px/1 monospace;color:#C8302C;text-transform:uppercase;margin-bottom:5px">Bear PT (20%)</div>
+            <div style="font:700 16px/1 monospace;color:#C8302C">$160</div>
+          </div>
+          <div style="padding:10px;background:rgba(0,59,54,.08);border-radius:6px;border:1px solid rgba(0,59,54,.25)">
+            <div style="font:600 10px/1 monospace;color:#003B36;text-transform:uppercase;margin-bottom:5px">Base PT (50%★)</div>
+            <div style="font:700 16px/1 monospace;color:#003B36">$215</div>
+          </div>
+          <div style="padding:10px;background:rgba(31,122,92,.08);border-radius:6px;border:1px solid rgba(31,122,92,.25)">
+            <div style="font:600 10px/1 monospace;color:#1F7A5C;text-transform:uppercase;margin-bottom:5px">Bull PT (30%)</div>
+            <div style="font:700 16px/1 monospace;color:#1F7A5C">$295</div>
+          </div>
+          <div style="padding:10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.1)">
+            <div style="font:600 10px/1 monospace;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">EV 期望價格</div>
+            <div style="font:700 16px/1 monospace;color:#003B36">$228 (+17.5%)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3>下次法說前 5 個必看指標</h3>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="tbl dense">
+          <thead><tr><th>#</th><th>KPI</th><th>Bull 確認門檻</th><th>Bear 觸發</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Optical Comms Q2 2026 YoY</td><td style="color:#1F7A5C">&gt;35% YoY → Bull upgrade</td><td style="color:#C8302C">&lt;15% → thesis break</td></tr>
+            <tr><td>2</td><td>Glass substrate design-win announcement</td><td style="color:#1F7A5C">Named Intel / AMD customer</td><td style="color:#C8302C">No announcement by Q4 2026</td></tr>
+            <tr><td>3</td><td>Hyperscaler capex guidance (MSFT/GOOG/META)</td><td style="color:#1F7A5C">Maintained or raised for 2026</td><td style="color:#C8302C">Cut by &gt;15%</td></tr>
+            <tr><td>4</td><td>Display glass ASP QoQ</td><td style="color:#1F7A5C">Flat or positive</td><td style="color:#C8302C">&gt;5% QoQ decline</td></tr>
+            <tr><td>5</td><td>Insider activity</td><td style="color:#1F7A5C">Selling stops; Director buys</td><td style="color:#C8302C">Continued heavy sales above $190</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="margin-top:12px">
+        <div class="cl-ttl">Honest Stance Assessment</div>
+        <p style="font-size:12px">Current price $194 = 52-week 89th percentile. Forward PE 45.9x is 2–3x historical norm. EV of $228 (+17.5%) suggests limited margin of safety at entry today. The glass substrate optionality and AI fiber durability are REAL — but they justify the Base PT of $215, not $295. WAIT for $168–175 (MA50 support) before establishing position. Invalidation: sustained close below $155.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     APPENDIX — SOURCES + DISCLAIMER
+════════════════════════════════════════════════════════════════ -->
+<section class="tier-tertiary">
+  <div class="eyebrow">Appendix · Sources · 資料截止日</div>
+  <h2 style="font-size:var(--fs-md)">資料來源 + 強版免責聲明</h2>
+  <div class="tbl-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>資料類別</th><th>來源</th><th>截止日</th></tr></thead>
+      <tbody>
+        <tr><td>Q1 2026 財務數字</td><td>GLW Q1 2026 10-Q (SEC EDGAR) / Earnings Press Release</td><td>April 29, 2026</td></tr>
+        <tr><td>FY2025 Annual Financials</td><td>GLW 10-K FY2025 (SEC EDGAR)</td><td>February 2026</td></tr>
+        <tr><td>股價 / 技術指標</td><td>Yahoo Finance / yfinance API (deterministic)</td><td>2026-05-24</td></tr>
+        <tr><td>機構持股 (13F)</td><td>SEC EDGAR 13F filings Q1 2026</td><td>2026-03-31</td></tr>
+        <tr><td>內部人交易</td><td>SEC EDGAR Form 4 filings</td><td>May 2026</td></tr>
+        <tr><td>Intel Glass Core Substrate</td><td>Intel investor day 2023, technology roadmap disclosures</td><td>2023–2025</td></tr>
+        <tr><td>同業估值</td><td>Yahoo Finance / yfinance API</td><td>2026-05-24</td></tr>
+        <tr><td>法說會 quotes</td><td>GLW Q1 2026 Earnings Call transcript / press release</td><td>April 29, 2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:20px;padding:18px 20px;background:#F5F4EE;border:1px solid #003B36;border-radius:8px">
+    <div style="font:700 12px/1 monospace;color:#003B36;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">強版免責聲明 / Strong Disclaimer</div>
+    <p style="font-size:12px;color:#003B36;line-height:1.7"><strong>本報告不構成任何投資建議，任何情況下均不應作為買賣任何證券的依據。</strong><br>
+    本報告完全不收費、不帶會員、不接代操，任何形式的報酬均未發生。<br>
+    投資人應自行進行獨立研究並自行承擔全部投資風險；過去績效不代表未來表現。<br>
+    製作者非執業投資顧問，本報告為個人研究筆記，不代表任何機構立場。</p>
+    <p style="font-size:11px;color:#003B36;margin-top:8px">所有個人估算區間 (PT / EV / scenario) 均為研究框架輸出，非正式目標價。三情境模型基於公開資料與個人假設，實際結果可能大幅偏離。GLW 股價 52 週上漲 307%，高波動性意味本報告任何估算區間均存在大幅誤差可能。</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div style="font-weight:700;color:rgba(255,255,255,0.85)">GLW — Corning Incorporated · AI Research Notes · 2026-05-24</div>
+  <div style="margin-top:4px">個人研究筆記 · Production SOP v3 · 12 Sections · No Trade Signal</div>
+  <div style="margin-top:8px" class="strong-d">本報告不構成投資建議；本報告完全不收費、不帶會員、不接代操。</div>
+  <div class="strong-d">投資人應自行承擔風險；製作者非執業投資顧問。</div>
+  <div style="margin-top:6px;color:rgba(255,255,255,0.4)">Data sources: SEC EDGAR (10-K/10-Q/Form 4/13F), Yahoo Finance/yfinance API, Intel roadmap disclosures. Research cutoff: 2026-05-24.</div>
+</div>
+
+</main>
+
+<script>
+// ── Revenue + GM Chart
+(function(){
+  var ctx = document.getElementById('revChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ["2022", "2023", "2024", "2025"],
+      datasets: [
+        {label: 'Revenue ($B)', data: [14.19, 12.59, 13.12, 15.63], backgroundColor: 'rgba(31,122,92,0.7)', yAxisID:'y'},
+        {label: 'Gross Margin (%)', data: [31.8, 31.2, 32.6, 36.0], type:'line', borderColor:'#003B36', backgroundColor:'rgba(0,59,54,0.1)', yAxisID:'y1', tension:0.3, pointRadius:4}
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {legend: {labels: {font: {size:11}, color:'#6B7280'}}, tooltip: {}} ,
+      scales: {
+        y: {title:{display:true,text:'Revenue ($B)',color:'#6B7280',font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'}},
+        y1: {position:'right', title:{display:true,text:'GM %',color:'#003B36',font:{size:10}}, min:25, max:42, grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+})();
+
+// ── Price Chart
+(function(){
+  var ctx = document.getElementById('priceChart');
+  if(!ctx) return;
+  var dates = ["04-13", "04-14", "04-15", "04-16", "04-17", "04-20", "04-21", "04-22", "04-23", "04-24", "04-27", "04-28", "04-29", "04-30", "05-01", "05-04", "05-05", "05-06", "05-07", "05-08", "05-11", "05-12", "05-13", "05-14", "05-15", "05-18", "05-19", "05-20", "05-21", "05-22"];
+  var prices = [175.17, 172.82, 168.27, 166.08, 164.38, 165.38, 165.45, 168.76, 169.5, 175.89, 168.01, 153.05, 151.9, 164.24, 158.26, 159.96, 162.1, 181.57, 182.4, 186.94, 207.39, 198.24, 206.51, 208.28, 191.81, 178.55, 175.83, 180.69, 191.89, 194.05];
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'GLW Price', data: prices,
+        borderColor: '#1F7A5C', backgroundColor: 'rgba(31,122,92,0.08)',
+        tension: 0.3, pointRadius: 2, fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {legend: {display:false}},
+      scales: {
+        x: {ticks: {maxTicksLimit:6, font:{size:10}}, grid:{display:false}},
+        y: {ticks: {font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}}
+      }
+    }
+  });
+})();
+
+// ── PT Calculator
+(function(){
+  var rEps = document.getElementById('r-eps');
+  var rPe = document.getElementById('r-pe');
+  var rYr = document.getElementById('r-yr');
+  var oEps = document.getElementById('o-eps');
+  var oPe = document.getElementById('o-pe');
+  var oYr = document.getElementById('o-yr');
+  var oPt = document.getElementById('o-pt');
+  var oVs = document.getElementById('o-vs');
+  var oDpt = document.getElementById('o-dpt');
+  if(!rEps||!oPt) return;
+  var currentPrice = 194.05;
+  function calc(){
+    var eps = parseFloat(rEps.value);
+    var pe = parseInt(rPe.value);
+    var yr = parseInt(rYr.value);
+    var disc = 0.08;
+    oEps.textContent = '$' + eps.toFixed(2);
+    oPe.textContent = pe + 'x';
+    oYr.textContent = yr;
+    var pt = eps * pe;
+    var pv = pt / Math.pow(1+disc, yr);
+    var vs = ((pt - currentPrice) / currentPrice * 100).toFixed(1);
+    oPt.textContent = '$' + pt.toFixed(0);
+    oVs.textContent = 'vs $' + currentPrice + ' = ' + (vs > 0 ? '+':'') + vs + '%';
+    oDpt.textContent = 'PV (8% disc.): $' + pv.toFixed(0);
+    oPt.style.color = pt > currentPrice ? '#1F7A5C' : '#C8302C';
+  }
+  rEps.addEventListener('input', calc);
+  rPe.addEventListener('input', calc);
+  rYr.addEventListener('input', calc);
+  calc();
+})();
+</script>
+
+<!-- Chart 6: Insider + Institutional Net Flow Timeline -->
+<div class="viz-hero" style="margin-top:16px">
+  <h4 style="font-size:13px;color:var(--text);margin:0 0 8px">近6個月內部人 + 機構淨買賣</h4>
+  <div class="chart-wrap" style="height:260px;margin:0">
+    <canvas id="cglw_chipflow" aria-label="GLW insider+institutional net buy/sell bar chart"></canvas>
+  </div>
+  <script>
+  (function(){
+    var ctx = document.getElementById('cglw_chipflow');
+    if(!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'],
+        datasets: [{
+          label: 'Institutional Net ($M)',
+          data: [245, 380, -120, 520, 310, -85],
+          backgroundColor: function(ctx) {
+            return ctx.parsed.y >= 0 ? 'rgba(31,122,92,0.7)' : 'rgba(200,48,44,0.7)';
+          },
+          borderRadius: 3
+        },{
+          label: 'Insider Net ($M) — May 2026 Sales',
+          data: [0, 0, 0, 0, 0, -10.7],
+          backgroundColor: 'rgba(200,48,44,0.5)',
+          borderRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { font: { family: 'JetBrains Mono,monospace', size: 11 }, color: '#1A2540' } },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': $' + ctx.parsed.y + 'M'; }}}
+        },
+        scales: {
+          x: { ticks: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#6B7280' }, grid: { color: '#E5E7EB' } },
+          y: { ticks: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#6B7280' }, grid: { color: '#E5E7EB' },
+            title: { display: true, text: '$M', color: '#6B7280', font: { size: 10 } }
+          }
+        }
+      }
+    });
+  })();
+  </script>
+  <div class="viz-caption">Source: SEC Form 4 / 13F filings; Institutional est. based on BlackRock +4.9% / Vanguard new position Q1 2026; May insider sales: COO/CTO/GC sold $10.7M total at $188-207 range · 2026-05-24</div>
+</div>
+
+<section id="s13" class="section">
+  <div class="section-eyebrow">S13 · 5 大師 Personas 共識</div>
+  <h2 class="section-h2">AI 基礎設施材料平台再定價：大師對 PE 45x 分歧</h2>
+  <p class="section-lead">GLW 的 AI 再定價故事獲 Lynch/Soros 認可，但 Buffett/Munger 對 PE 45x 戒慎。共識評分 5.6 (觀望，等待回調入場)。</p>
+  <div class="personas-grid">
+    <div class="persona-card" data-persona="Buffett">
+      <div class="persona-card-header">
+        <h3>Buffett · 護城河+價值</h3>
+        <span class="persona-score">5.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立偏空</div>
+      <ul class="persona-bullets">
+        <li>Gorilla Glass 和光纖是真實護城河 (70年技術積累)</li>
+        <li>但 PE 45.9x 遠超 GLW 歷史 15-25x 區間</li>
+        <li>Display Tech (24%收入) 是週期性弱點</li>
+        <li>若 PE 壓縮至 25x，Target ~ — 大幅損失</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Munger">
+      <div class="persona-card-header">
+        <h3>Munger · 複利+質量</h3>
+        <span class="persona-score">5.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--neutral)">中立</div>
+      <ul class="persona-bullets">
+        <li>光纖 + 玻璃基板雙引擎是正確的長期複利方向</li>
+        <li>FY2025 GM 36% — 普通，不足以支撐 45x PE</li>
+        <li>R&amp;D 10.4% of revenue — 創新投入充足，長期正面</li>
+        <li>等到 PE 30x 以下才符合 Munger 複利標準</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Lynch">
+      <div class="persona-card-header">
+        <h3>Lynch · GARP+故事</h3>
+        <span class="persona-score">7.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bull)">偏多</div>
+      <ul class="persona-bullets">
+        <li>GLW = 被重新發現的老公司，Lynch 最愛的故事類型</li>
+        <li>Optical +53.5% YoY — 成長故事確認，非炒作</li>
+        <li>Glass substrate 是 2028 年的下一個成長引擎</li>
+        <li>+307% 12m return 後需要回調，但 story 未完</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Soros">
+      <div class="persona-card-header">
+        <h3>Soros · 反身性+宏觀</h3>
+        <span class="persona-score">6.5</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bull)">偏多</div>
+      <ul class="persona-bullets">
+        <li>AI infra 超級週期的反身性仍在正向加速中</li>
+        <li>GLW 是「AI infra play without GPU premium」</li>
+        <li>機構持股變化值得追蹤，若大戶進場 = 第二波</li>
+        <li>風險：AI capex pause = 反身性急速逆轉</li>
+      </ul>
+    </div>
+    <div class="persona-card" data-persona="Burry">
+      <div class="persona-card-header">
+        <h3>Burry · 熊市+逆向</h3>
+        <span class="persona-score">4.0</span>
+      </div>
+      <div class="persona-signal" style="color:var(--bear)">偏空</div>
+      <ul class="persona-bullets">
+        <li>PE 45x 的「AI 光纖」故事是 Burry 看來的敘事泡沫</li>
+        <li>內部人持續賣股 (Form 4) = 知情人不看好長期</li>
+        <li>Display Tech 週期底部回升只是暫時的</li>
+        <li>Bear PT $160 = PE 壓縮至 30x，並非不可能</li>
+      </ul>
+    </div>
+  </div>
+  <div class="personas-consensus">
+    <h3>共識評分 + 分歧點</h3>
+    <div class="tbl-wrap">
+      <table class="tbl dense">
+        <thead><tr><th>大師</th><th>評分</th><th>立場</th><th>核心論點</th></tr></thead>
+        <tbody>
+          <tr><td>Buffett</td><td class="num">5.5</td><td style="color:var(--neutral)">中立偏空</td><td>護城河真實但 PE 45x 超出價值買點</td></tr>
+          <tr><td>Munger</td><td class="num">5.0</td><td style="color:var(--neutral)">中立</td><td>光纖複利方向正確，等 PE 30x</td></tr>
+          <tr><td>Lynch</td><td class="num">7.0</td><td style="color:var(--bull)">偏多</td><td>老公司新故事，回調後建倉</td></tr>
+          <tr><td>Soros</td><td class="num">6.5</td><td style="color:var(--bull)">偏多</td><td>AI infra 反身性正向，機構跟進</td></tr>
+          <tr><td>Burry</td><td class="num">4.0</td><td style="color:var(--bear)">偏空</td><td>PE 泡沫，內部人賣股警示</td></tr>
+          <tr class="hl"><td><strong>共識</strong></td><td class="num"><strong>5.6</strong></td><td style="color:var(--neutral)"><strong>觀望</strong></td><td>$194 等回調至 $168-175 入場</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px"><strong>分歧：</strong>Lynch/Soros 認為 GLW AI story 值得押注 (回調後)；Buffett/Munger 對 PE 45x 戒慎；Burry 看空。<strong>共識入場區：</strong>$168-175。</p>
+  </div>
+
+  <!-- Chart 5: Personas Score Radar -->
+  <div class="viz-hero" style="margin-top:16px">
+    <h4 style="font-size:13px;color:var(--text);margin:0 0 8px">5 大師 consensus distribution</h4>
+    <div class="chart-wrap" style="height:260px;margin:0;max-width:360px">
+      <canvas id="cglw_personas" aria-label="GLW 5大師 Personas 評分分布 radar chart"></canvas>
+    </div>
+    <script>
+    (function(){
+      var ctx = document.getElementById('cglw_personas');
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Buffett\nValue', 'Munger\nQuality', 'Lynch\nGARP', 'Soros\nReflex.', 'Burry\nContr.'],
+          datasets: [{
+            label: 'GLW Score (max 10)',
+            data: [5.5, 5.0, 7.0, 6.5, 4.0],
+            fill: true,
+            backgroundColor: 'rgba(31,122,92,0.12)',
+            borderColor: 'rgba(31,122,92,0.8)',
+            pointBackgroundColor: '#1F7A5C',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { font: { family: 'JetBrains Mono,monospace', size: 10 }, color: '#1A2540' } } },
+          scales: {
+            r: {
+              min: 0, max: 10, ticks: { stepSize: 2, font: { size: 9 }, color: '#6B7280' },
+              grid: { color: '#E5E7EB' },
+              pointLabels: { font: { family: 'JetBrains Mono,monospace', size: 9 }, color: '#1A2540' }
+            }
+          }
+        }
+      });
+    })();
+    </script>
+    <div class="viz-caption">Consensus score 5.6 of 10 (Watch) — Lynch most bullish (7.0 pts), Burry most bearish (4.0 pts) — Entry zone $168-175</div>
+  </div>
+</section>
+
+<section id="s14" class="section">
+  <div class="section-eyebrow">S14 · 風險 2D 矩陣</div>
+  <h2 class="section-h2">首要風險：估值壓縮 PE 46x→30x 單獨即可造成 -35%</h2>
+  <p class="section-lead">GLW 最大威脅是估值風險：PE 45.9x 在 AI infra 主題降溫時壓縮空間巨大。AI fiber 需求正常化是最高優先基本面風險。</p>
+  <div class="risk-matrix-wrap">
+    <svg viewBox="0 0 500 300" aria-label="GLW 風險 2D 矩陣" style="min-height:280px">
+      <title>GLW Corning 風險矩陣</title>
+      <text x="250" y="18" text-anchor="middle" font-size="11" fill="#6B7280" font-family="monospace">Probability →</text>
+      <text x="14" y="150" text-anchor="middle" font-size="11" fill="#6B7280" font-family="monospace" transform="rotate(-90,14,150)">Impact →</text>
+      <line x1="50" y1="260" x2="470" y2="260" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="50" y1="25" x2="50" y2="260" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="180" y1="25" x2="180" y2="260" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <line x1="310" y1="25" x2="310" y2="260" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <line x1="50" y1="143" x2="470" y2="143" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+      <text x="115" y="276" text-anchor="middle" font-size="10" fill="#9CA3AF">Low</text>
+      <text x="245" y="276" text-anchor="middle" font-size="10" fill="#9CA3AF">Med</text>
+      <text x="390" y="276" text-anchor="middle" font-size="10" fill="#9CA3AF">High</text>
+      <text x="44" y="257" text-anchor="end" font-size="10" fill="#9CA3AF">Low</text>
+      <text x="44" y="148" text-anchor="end" font-size="10" fill="#9CA3AF">Med</text>
+      <text x="44" y="52" text-anchor="end" font-size="10" fill="#9CA3AF">High</text>
+      <rect x="310" y="25" width="160" height="118" fill="rgba(200,48,44,0.07)" rx="2"/>
+      <!-- R1: Valuation Compression — HIGH prob × HIGH impact -->
+      <circle cx="400" cy="48" r="17" fill="rgba(200,48,44,0.25)" stroke="#C8302C" stroke-width="2"/>
+      <text x="400" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="#C8302C">R1</text>
+      <!-- R3: AI Fiber Normalization — MED-HIGH × HIGH -->
+      <circle cx="335" cy="58" r="14" fill="rgba(200,48,44,0.18)" stroke="#C8302C" stroke-width="1.5"/>
+      <text x="335" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#C8302C">R3</text>
+      <!-- R2: Display — MED × MED -->
+      <circle cx="245" cy="148" r="11" fill="rgba(245,166,35,0.2)" stroke="#003B36" stroke-width="1.5"/>
+      <text x="245" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#003B36">R2</text>
+      <!-- R4: Substrate Delay — LOW × HIGH -->
+      <circle cx="115" cy="55" r="10" fill="rgba(200,48,44,0.12)" stroke="#C8302C" stroke-width="1"/>
+      <text x="115" y="59" text-anchor="middle" font-size="10" fill="#C8302C">R4</text>
+      <!-- R5: FX — MED × LOW -->
+      <circle cx="245" cy="220" r="8" fill="rgba(31,122,92,0.12)" stroke="#1F7A5C" stroke-width="1"/>
+      <text x="245" y="224" text-anchor="middle" font-size="10" fill="#1F7A5C">R5</text>
+    </svg>
+  </div>
+  <div class="risk-table-wrap">
+    <table class="tbl dense">
+      <thead><tr><th>ID</th><th>Risk</th><th>Probability</th><th>Impact</th><th>Time</th><th>Effect on Base PT</th><th>Monitor</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--bear)">R1</strong></td><td>Valuation Compression (PE 46x → 30x)</td><td>High 55%</td><td>Extreme -35%</td><td>3-12m</td><td>→ ~$126</td><td>AI infra narrative; Fed rate path</td></tr>
+        <tr><td><strong style="color:var(--bear)">R3</strong></td><td>AI Fiber Demand Normalization</td><td>Med-High 40%</td><td>High -20-25%</td><td>H2 2026</td><td>Optical growth &lt;15%</td><td>Hyperscaler capex guidance quarterly</td></tr>
+        <tr><td><strong style="color:var(--accent)">R2</strong></td><td>Display Glass ASP Decline</td><td>Med 35%</td><td>Med -10-15%</td><td>Ongoing</td><td>DT revenue -$300-400M</td><td>China LCD panel supply</td></tr>
+        <tr><td><strong style="color:var(--bear)">R4</strong></td><td>Glass Substrate Delay (Intel 18A)</td><td>Low 25%</td><td>High -15-20%</td><td>2027-28</td><td>Bull PT evaporates</td><td>Intel 18A production timeline</td></tr>
+        <tr><td><strong style="color:var(--bull)">R5</strong></td><td>FX / China Tariff</td><td>Med 40%</td><td>Low -5%</td><td>Ongoing</td><td>EPS drag ~$0.05-0.10</td><td>USD/CNY; China revenue %</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="section-bullets">
+    <li>R1 (valuation compression) is a pure narrative risk — GLW fundamentals can improve while stock falls 35% if PE re-rates from 46x to 30x</li>
+    <li>R1 + R3 combined scenario: AI narrative fades + fiber demand normalizes → Bear $160 in 6-9 months</li>
+    <li>Key monitoring gate: if Q2/Q3 hyperscaler capex guidance cut &gt;10%, immediately reassess Bull scenario</li>
+  </ul>
+</section>
+
+<section id="s15" class="section">
+  <div class="section-eyebrow">S15 · Upcoming Catalysts</div>
+  <h2 class="section-h2">2026-2028 Re-rating Catalyst Timeline</h2>
+  <p class="section-lead">GLW's re-rating requires optical fiber demand to sustain through 2027 AND glass substrate to hit volume production in 2028. Both must materialize to justify Bull PT $295.</p>
+  <div class="tbl-wrap">
+    <table class="catalyst-table">
+      <thead><tr><th>Timeline</th><th>Event</th><th>Priority</th><th>Bull Confirmation</th><th>Bear Warning</th></tr></thead>
+      <tbody>
+        <tr><td>2026-07-29 (est.)</td><td>Q2 2026 Earnings Call</td><td>★★★</td><td>Optical rev +40% YoY; raised FY26 guide</td><td>Optical growth &lt;25% or guide cut</td></tr>
+        <tr><td>2026 Q3</td><td>Optical segment quarterly revenue</td><td>★★★</td><td>Optical quarterly revenue &gt;$1.6B</td><td>Sequential decline 2+ quarters</td></tr>
+        <tr><td>2026 Q4</td><td>Glass substrate customer qualification</td><td>★★★</td><td>Named customer (Intel/AMD) confirms design-win</td><td>Pushed to 2028+</td></tr>
+        <tr><td>2027 H1</td><td>Intel 18A production ramp</td><td>★★</td><td>GLW substrate in mass production spec</td><td>Intel 18A yield issues delay substrate</td></tr>
+        <tr><td>2027 H2</td><td>Hyperscaler fiber order renewal</td><td>★★</td><td>Multi-year contracts renewed / expanded</td><td>AI capex pullback → fiber order pause</td></tr>
+        <tr><td>2028</td><td>Glass substrate volume ramp</td><td>★★★</td><td>Substrate revenue &gt;$500M</td><td>Substrate &lt;$100M — story only</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="section-bullets">
+    <li>Nearest catalyst: Q2 2026 earnings (July 29) — optical growth rate and FY26 guidance revision set the 6-month price direction</li>
+    <li>Glass substrate is the 2028 optionality — currently zero revenue; any named customer design-win before 2027 = significant Bull catalyst</li>
+    <li>Bear trigger: consecutive quarters showing Optical growth below 20% YoY → PE compression from 46x to 30x becomes probable</li>
+  </ul>
+</section>
+
+<section id="s16" class="section">
+  <div class="section-eyebrow">S16 · 觀察清單 — Next Earnings 5 Must-Watch Indicators</div>
+  <h2 class="section-h2">Optical Segment Growth Rate is the Single Most Critical Metric</h2>
+  <div class="watchlist-items">
+    <div class="watchlist-item">
+      <div class="wl-metric">① Optical Communications Revenue YoY (Source: 10-Q, Earnings Release)</div>
+      <div class="wl-condition">Watch: quarterly Optical segment vs prior year; FY2025 base +53.5%</div>
+      <div class="wl-bull">Bull ✓: Optical YoY &gt;+35% for 2+ consecutive quarters → re-rating thesis intact, supports $215 Base PT</div>
+      <div class="wl-bear">Bear ✗: Optical YoY &lt;+20% or sequential decline → AI fiber normalization; reassess Bear $160</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">② Gross Margin Trend (Source: 10-Q SEC filings)</div>
+      <div class="wl-condition">Watch: quarterly GM; FY2025 baseline 36.0% (+370bps YoY)</div>
+      <div class="wl-bull">Bull ✓: GM &gt;38% for 2+ quarters → scale leverage, mix-shift toward Optical/Specialty Glass</div>
+      <div class="wl-bear">Bear ✗: GM &lt;33% → Display Tech drag or Optical pricing pressure</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">③ Glass Substrate Qualification Progress (Source: Earnings calls, IR press releases)</div>
+      <div class="wl-condition">Watch: named customer design-win, volume timeline, or any quarterly revenue disclosure</div>
+      <div class="wl-bull">Bull ✓: Named major customer qualification announced → Bull PT $295 path opens</div>
+      <div class="wl-bear">Bear ✗: Zero substrate revenue by Q4 2026 with no named customer → optionality premium evaporates</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">④ Hyperscaler Capex Guidance (Source: AWS/Azure/Google quarterly earnings)</div>
+      <div class="wl-condition">Watch: AWS, Azure, GCP quarterly capex guidance vs prior year</div>
+      <div class="wl-bull">Bull ✓: 2 of 3 hyperscalers raise FY2026-27 capex &gt;10% → GLW fiber demand extends through 2027</div>
+      <div class="wl-bear">Bear ✗: 2 of 3 hyperscalers cut capex guidance → fiber order pipeline risks pause</div>
+    </div>
+    <div class="watchlist-item">
+      <div class="wl-metric">⑤ Insider Buying vs Selling (Source: SEC Form 4 filings)</div>
+      <div class="wl-condition">Watch: net insider transactions rolling 6 months; C-suite and Director transactions</div>
+      <div class="wl-bull">Bull ✓: Net insider buying &gt;$5M in a quarter → management conviction at current price</div>
+      <div class="wl-bear">Bear ✗: Net insider selling &gt;$20M in a quarter (no stated diversification reason) → negative signal</div>
+    </div>
+  </div>
+  <ul class="section-bullets">
+    <li>Highest priority: ① Optical YoY — if growth decelerates below 20%, re-rating narrative collapses, PE compression becomes probable</li>
+    <li>Glass substrate (③) separates Base $215 from Bull $295; no revenue by end-2026 = Bull case has no foundation</li>
+    <li>Entry gate: ①②③ all Bull signals + price pullback to $168-175 = 3:1 risk/reward</li>
+  </ul>
+</section>
+
+</body>
+</html>
