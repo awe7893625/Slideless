@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Shift 晨間報告 — 2026-06-13</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #1a1a1a;
+  --orange: #f97316;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --accent: #f97316;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { max-width: 100%; }
+body {
+  background: var(--bg-page);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+
+/* NAV */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: #f6f5f1; border-bottom: 1px solid #e5e3de;
+  padding: 12px 32px;
+  display: flex; align-items: center; gap: 24px;
+  isolation: isolate;
+  overflow-x: auto; white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.top-nav::-webkit-scrollbar { height: 0; }
+.nav-brand { font-weight: 700; color: var(--orange); font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+.nav-link { color: #666; font-size: 13px; flex-shrink: 0; transition: color .2s; }
+.nav-link:hover { color: var(--orange); }
+
+/* COVER */
+.cover {
+  margin-top: 48px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  padding: 72px 48px 56px;
+}
+.cover-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 16px;
+}
+.cover-title { font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.cover-title .accent { color: var(--orange); }
+.cover-subtitle { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.cover-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 40px; }
+.stats-bar { display: flex; gap: 40px; flex-wrap: wrap; }
+.stat-item .stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 700; color: var(--orange);
+  line-height: 1.2;
+}
+.stat-item .stat-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.stat-item .stat-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.3); }
+
+/* SECTIONS */
+.section { max-width: 1000px; margin: 0 auto; padding: 56px 48px; }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 8px;
+}
+.section-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.section-title .accent { color: var(--orange); }
+.section-desc { font-size: 14px; color: var(--text-muted); max-width: 640px; margin-bottom: 32px; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* CARDS */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+
+/* STATUS PILLS */
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+}
+.pill-green { background: rgba(34,197,94,0.15); color: #16a34a; }
+.pill-orange { background: rgba(249,115,22,0.15); color: var(--orange); }
+.pill-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.pill-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+.pill-yellow { background: rgba(234,179,8,0.15); color: #a16207; }
+.pill-gray { background: rgba(0,0,0,0.07); color: #555; }
+
+/* ALERT / WARN / INFO BANNERS */
+.alert-banner {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-left: 4px solid var(--red);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+}
+.alert-banner h4 { font-size: 14px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+.alert-banner p, .alert-banner li { font-size: 13px; color: #444; line-height: 1.7; }
+.alert-banner ul { padding-left: 18px; }
+
+.warn-banner {
+  background: rgba(234,179,8,0.08);
+  border: 1px solid rgba(234,179,8,0.25);
+  border-left: 4px solid var(--yellow);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+}
+.warn-banner h4 { font-size: 14px; font-weight: 700; color: #a16207; margin-bottom: 6px; }
+.warn-banner p, .warn-banner li { font-size: 13px; color: #444; line-height: 1.7; }
+.warn-banner ul { padding-left: 18px; }
+
+.info-banner {
+  background: rgba(59,130,246,0.07);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-left: 4px solid var(--blue);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;
+}
+.info-banner h4 { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+.info-banner p, .info-banner li { font-size: 13px; color: #444; line-height: 1.7; }
+
+/* ACTION CARDS */
+.action-card {
+  background: #fff3ed;
+  border: 1px solid rgba(249,115,22,0.3);
+  border-left: 4px solid var(--orange);
+  border-radius: 10px; padding: 18px 20px; margin-bottom: 14px;
+}
+.action-card-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700; color: var(--orange);
+  text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;
+}
+.action-card h4 { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+.action-card p { font-size: 13px; color: #555; line-height: 1.65; }
+
+/* DENSE TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); font-weight: 600;
+  padding: 8px 12px; border-bottom: 2px solid var(--border);
+  text-align: left; background: #faf9f6;
+}
+.data-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top; line-height: 1.5;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #faf9f6; }
+
+/* TABLE WRAP */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; border-radius: 10px; }
+.table-wrap table { min-width: 520px; }
+
+/* SUB-HEADING */
+.sub-heading {
+  font-size: 11px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-muted); margin-bottom: 10px; margin-top: 24px;
+}
+
+/* CARD WITH LEFT BORDER */
+.card-left-red { border-left: 3px solid var(--red); }
+.card-left-green { border-left: 3px solid var(--green); }
+.card-left-orange { border-left: 3px solid var(--orange); }
+.card-left-blue { border-left: 3px solid var(--blue); }
+.card-left-yellow { border-left: 3px solid var(--yellow); }
+
+/* FOOTER */
+.footer {
+  text-align: center; padding: 40px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* OVERFLOW WRAP GLOBAL */
+.card, .card *, .alert-banner, .alert-banner *, .warn-banner, .warn-banner *,
+.info-banner, .info-banner *, .action-card, .action-card *, .data-table, .data-table * {
+  overflow-wrap: anywhere; word-break: break-word;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .cover { padding: 56px 20px 40px; }
+  .cover-title { font-size: 28px; }
+  .stats-bar { gap: 20px; }
+  .section { padding: 40px 20px; }
+  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .top-nav { padding: 12px 16px; gap: 16px; }
+}
+@media (max-width: 640px) {
+  .grid-3, .grid-2 { grid-template-columns: 1fr !important; }
+  .card, .action-card { min-width: 0; }
+}
+@media (max-width: 480px) {
+  .nav-links { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <span class="nav-brand">RAIN AI TEAM</span>
+  <a href="#snapshot" class="nav-link">執行摘要</a>
+  <a href="#flaw" class="nav-link">系統性問題</a>
+  <a href="#verification" class="nav-link">即時驗證</a>
+  <a href="#seo" class="nav-link">SEO 警報</a>
+  <a href="#sessions" class="nav-link">Session 審查</a>
+  <a href="#cleanup" class="nav-link">Stale 任務</a>
+  <a href="#decisions" class="nav-link">待決策</a>
+</nav>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">RAIN AI TEAM — NIGHT SHIFT MORNING REPORT</div>
+  <h1 class="cover-title">Night Shift 晨間報告 — <span class="accent">2026-06-13</span></h1>
+  <p class="cover-subtitle">涵蓋：06-12 完整夜班審查週期（03:37 產出）+ 06-13 00:22 即時驗證</p>
+  <p class="cover-meta">今晚 06-13 夜班 00:20 剛啟動，0 個工作任務｜資料：night-shift-comprehensive-latest.json</p>
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num">103</div>
+      <div class="stat-label">LaunchAgents 總計</div>
+      <div class="stat-sub">68 健康 / 33 stale / 2 壞</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">CLEAR</div>
+      <div class="stat-label">安全掃描</div>
+      <div class="stat-sub">12 repos / 1676 files / 0 findings</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">72.4%</div>
+      <div class="stat-label">Dispatch Rate</div>
+      <div class="stat-sub">144 / 199 standard+ tasks</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">2</div>
+      <div class="stat-label">SEO 警報</div>
+      <div class="stat-sub">雙站排名大跌</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">75</div>
+      <div class="stat-label">Sessions</div>
+      <div class="stat-sub">29 with review / 29 skill deltas</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: SYSTEMIC FLAW ===== -->
+<section class="section" id="flaw">
+  <div class="section-eyebrow">SYSTEMIC ISSUE — PRIORITY 1</div>
+  <h2 class="section-title">晨報排程<span class="accent">結構性缺陷</span></h2>
+  <p class="section-desc">連續 3 晚晨報未送達的根因。這不是偶發錯誤，是排程架構本身的時序問題。</p>
+
+  <div class="alert-banner">
+    <h4>根因：晨報任務派發時夜班數據尚未產生</h4>
+    <ul>
+      <li>晨報任務固定在夜班開頭 <strong>00:20 派發</strong>，當時夜班作業根本還沒執行</li>
+      <li>夜班完整審查 <strong>03:37 才跑完</strong>，比晨報任務晚了超過 3 小時</li>
+      <li>結果：晨報永遠只能拿上一晚的數據，且前兩晚（06-11 / 06-12）晨報任務均被取消</li>
+      <li><strong>連續 3 晚 findings 從未送達</strong></li>
+    </ul>
+  </div>
+
+  <div class="sub-heading">影響時間線</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>晨報派發</th>
+            <th>夜班審查完成</th>
+            <th>晨報結果</th>
+            <th>問題</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">06-11</td>
+            <td>00:20</td>
+            <td>~03:30</td>
+            <td><span class="pill pill-red">取消</span></td>
+            <td>派發時無夜班數據</td>
+          </tr>
+          <tr>
+            <td class="mono">06-12</td>
+            <td>00:20</td>
+            <td>03:37</td>
+            <td><span class="pill pill-red">取消</span></td>
+            <td>派發時無夜班數據</td>
+          </tr>
+          <tr>
+            <td class="mono">06-13</td>
+            <td>00:20（今晚）</td>
+            <td>夜班剛啟動</td>
+            <td><span class="pill pill-orange">進行中</span></td>
+            <td>相同架構缺陷持續</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-heading">修法選項（待 Rain 決策）</div>
+  <div class="grid-2">
+    <div class="card card-left-green">
+      <div style="font-size:11px;font-weight:700;color:#16a34a;font-family:monospace;margin-bottom:8px;">方案 A — 推薦</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">改到 05:30–06:00 派發</div>
+      <p style="font-size:13px;color:#555;">夜班尾端才觸發晨報任務，確保能拿到完整當晚數據後再報告</p>
+    </div>
+    <div class="card card-left-blue">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);font-family:monospace;margin-bottom:8px;">方案 B</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">晨報改彙整「前一晚」數據</div>
+      <p style="font-size:13px;color:#555;">派發時機不變（00:20），明確定義報告週期為前一天夜班，不嘗試報當晚</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: EXECUTIVE SNAPSHOT ===== -->
+<section class="section" id="snapshot">
+  <div class="section-eyebrow">EXECUTIVE SNAPSHOT</div>
+  <h2 class="section-title">系統狀態<span class="accent">總覽</span></h2>
+  <p class="section-desc">06-12 夜班審查週期整體指標快照。</p>
+
+  <div class="sub-heading">LaunchAgent 健康度</div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>狀態</th><th>數量</th><th>佔比</th><th>說明</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill pill-green">健康</span></td>
+            <td class="mono">68</td>
+            <td>66%</td>
+            <td>正常運作</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-yellow">Stale</span></td>
+            <td class="mono">33</td>
+            <td>32%</td>
+            <td>log 超過 90h 沒更新，可能閒置或死亡</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-red">壞掉</span></td>
+            <td class="mono">2</td>
+            <td>2%</td>
+            <td>not loaded，功能完全失效</td>
+          </tr>
+          <tr>
+            <td><strong>總計</strong></td>
+            <td class="mono"><strong>103</strong></td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-heading">2 個壞掉的 LaunchAgent</div>
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-family:monospace;color:var(--red);margin-bottom:4px;">ai.rain.api-quota-monitor</div>
+      <p style="font-size:13px;color:#555;">狀態：not loaded<br>Auto-fix 任務 <span class="mono" style="font-size:11px;">4aa8d790</span> 建立但下落不明</p>
+    </div>
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-family:monospace;color:var(--red);margin-bottom:4px;">com.rain.foodmap-monitor</div>
+      <p style="font-size:13px;color:#555;">狀態：not loaded<br>Auto-fix 任務 <span class="mono" style="font-size:11px;">3be39d1a</span> 建立但下落不明</p>
+    </div>
+  </div>
+
+  <div class="sub-heading">安全掃描 + Dispatch 指標</div>
+  <div class="grid-2">
+    <div class="card card-left-green">
+      <div style="font-size:11px;font-family:monospace;color:#16a34a;margin-bottom:10px;">SECURITY SCAN — 2026-06-12</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div><div style="font-size:22px;font-weight:700;color:#16a34a;font-family:monospace;">CLEAR</div><div style="font-size:11px;color:#888;">整體風險</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">0</div><div style="font-size:11px;color:#888;">Critical/High</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">12</div><div style="font-size:11px;color:#888;">Repos 掃描</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">21</div><div style="font-size:11px;color:#888;">GitHub repos</div></div>
+      </div>
+    </div>
+    <div class="card card-left-orange">
+      <div style="font-size:11px;font-family:monospace;color:var(--orange);margin-bottom:10px;">DISPATCH STATS</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:monospace;">72.4%</div><div style="font-size:11px;color:#888;">Dispatch Rate</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">144</div><div style="font-size:11px;color:#888;">已派發</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">55</div><div style="font-size:11px;color:#888;">Solo 執行</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:monospace;">199</div><div style="font-size:11px;color:#888;">Standard+ 總</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: LIVE VERIFICATION ===== -->
+<section class="section" id="verification">
+  <div class="section-eyebrow">LIVE VERIFICATION — 06-13 00:22</div>
+  <h2 class="section-title">即時驗證<span class="accent">結果</span></h2>
+  <p class="section-desc">對前晚 findings 逐一驗證，分類：已自癒 / 仍失效 / 半誤報。</p>
+
+  <div class="info-banner">
+    <h4>SaaSAlternatives (pure-vista.vercel.app) 已自癒</h4>
+    <p>昨晚審查時 status 0（連線失敗），00:22 驗證回傳 HTTP 200。無需手動介入。Auto-fix 任務 <span class="mono" style="font-size:12px;">165caef4</span> 可評估關閉。</p>
+  </div>
+
+  <div class="sub-heading">仍在失效</div>
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-family:monospace;color:var(--red);margin-bottom:6px;">LaunchAgent: api-quota-monitor</div>
+      <p style="font-size:13px;color:#555;"><strong>仍 not loaded</strong><br>Auto-fix 任務超過 24h，不在最近 500 筆任務中，可能已遺失</p>
+    </div>
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-family:monospace;color:var(--red);margin-bottom:6px;">LaunchAgent: foodmap-monitor</div>
+      <p style="font-size:13px;color:#555;"><strong>仍 not loaded</strong><br>Auto-fix 任務超過 24h，不在最近 500 筆任務中，可能已遺失</p>
+    </div>
+  </div>
+
+  <div class="warn-banner">
+    <h4>Slideless root 404 — 屬半誤報</h4>
+    <p>slideless.vercel.app 根路徑回傳 404，但各報告頁（包含本報告）均正常 200。Root 無 index.html 是已知設計。website_health 持續對 root 告警屬誤判——建議 health check 改為對已知報告頁 URL，而非 root 路徑。</p>
+  </div>
+
+  <div class="sub-heading">Auto-fix 任務追蹤</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>任務 ID</th><th>內容</th><th>建立</th><th>00:22 狀態</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">4aa8d790</td>
+            <td>修復 LaunchAgent: api-quota-monitor</td>
+            <td>06-12</td>
+            <td><span class="pill pill-red">不在 recent 500</span></td>
+          </tr>
+          <tr>
+            <td class="mono">3be39d1a</td>
+            <td>修復 LaunchAgent: foodmap-monitor</td>
+            <td>06-12</td>
+            <td><span class="pill pill-red">不在 recent 500</span></td>
+          </tr>
+          <tr>
+            <td class="mono">c9937ed0</td>
+            <td>修復站點異常: Slideless</td>
+            <td>06-12</td>
+            <td><span class="pill pill-yellow">半誤報，待評估</span></td>
+          </tr>
+          <tr>
+            <td class="mono">165caef4</td>
+            <td>修復站點異常: SaaSAlternatives</td>
+            <td>06-12</td>
+            <td><span class="pill pill-green">已自癒，可關閉</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: SEO ALERTS ===== -->
+<section class="section" id="seo">
+  <div class="section-eyebrow">SEO / TRAFFIC ALERT</div>
+  <h2 class="section-title">搜尋排名<span class="accent">雙站大跌</span></h2>
+  <p class="section-desc">兩個站點的 Google 平均排名在本期出現顯著惡化，已從第一頁跌出。</p>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-weight:700;color:var(--red);font-family:monospace;margin-bottom:10px;">SOMETHING SELECT — somethings.cool</div>
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:26px;font-weight:700;font-family:monospace;color:#16a34a;">5.1</div>
+          <div style="font-size:11px;color:#888;">前期排名</div>
+        </div>
+        <div style="font-size:20px;color:#ccc;padding:0 4px;">→</div>
+        <div style="text-align:center;">
+          <div style="font-size:26px;font-weight:700;font-family:monospace;color:var(--red);">17.9</div>
+          <div style="font-size:11px;color:#888;">本期排名</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--red);">+12.8</div>
+          <div style="font-size:11px;color:#888;">下滑幅度</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#555;">第一頁 → 第二頁，有機流量損失風險高</p>
+    </div>
+    <div class="card card-left-red">
+      <div style="font-size:11px;font-weight:700;color:var(--red);font-family:monospace;margin-bottom:10px;">BLANK SPACE 留白 — blankspaces.uk</div>
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:26px;font-weight:700;font-family:monospace;color:#16a34a;">8.2</div>
+          <div style="font-size:11px;color:#888;">前期排名</div>
+        </div>
+        <div style="font-size:20px;color:#ccc;padding:0 4px;">→</div>
+        <div style="text-align:center;">
+          <div style="font-size:26px;font-weight:700;font-family:monospace;color:var(--red);">19.3</div>
+          <div style="font-size:11px;color:#888;">本期排名</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--red);">+11.1</div>
+          <div style="font-size:11px;color:#888;">下滑幅度</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#555;">第一頁 → 第二頁，品牌曝光顯著降低</p>
+    </div>
+  </div>
+
+  <div class="sub-heading">全站健康狀態</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>站點</th><th>URL</th><th>HTTP</th><th>SEO / 健康問題</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TheOrder</td>
+            <td class="mono" style="font-size:11px;">theorder.tw</td>
+            <td><span class="pill pill-green">200</span></td>
+            <td style="font-size:12px;color:var(--red);">jimbo 品牌頁 HTTP 0、缺 Product / FAQPage / ItemList Schema</td>
+          </tr>
+          <tr>
+            <td>SomethingSelect</td>
+            <td class="mono" style="font-size:11px;">somethings.cool</td>
+            <td><span class="pill pill-green">200</span></td>
+            <td><span style="color:var(--red);">排名大跌 5.1→17.9</span></td>
+          </tr>
+          <tr>
+            <td>Blankspaces</td>
+            <td class="mono" style="font-size:11px;">blankspaces.uk</td>
+            <td><span class="pill pill-green">200</span></td>
+            <td><span style="color:var(--red);">排名大跌 8.2→19.3</span></td>
+          </tr>
+          <tr>
+            <td>BankExamQuiz</td>
+            <td class="mono" style="font-size:11px;">bank.somethings.cool</td>
+            <td><span class="pill pill-green">200</span></td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>Slideless</td>
+            <td class="mono" style="font-size:11px;">slideless.vercel.app</td>
+            <td><span class="pill pill-yellow">404 root</span></td>
+            <td>半誤報；報告頁 200 正常</td>
+          </tr>
+          <tr>
+            <td>SaaSAlternatives</td>
+            <td class="mono" style="font-size:11px;">pure-vista.vercel.app</td>
+            <td><span class="pill pill-green">200 已恢復</span></td>
+            <td>昨晚 status 0，00:22 自癒</td>
+          </tr>
+          <tr>
+            <td>MarketBriefing</td>
+            <td class="mono" style="font-size:11px;">stockcast.tw</td>
+            <td><span class="pill pill-green">OK</span></td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:right;margin-top:4px;">← 左右滑動</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: SESSION REVIEWS ===== -->
+<section class="section" id="sessions">
+  <div class="section-eyebrow">SESSION REVIEW DIGEST</div>
+  <h2 class="section-title">Session 審查<span class="accent">精華</span></h2>
+  <p class="section-desc">75 sessions 總計 / 29 with review / 29 skill deltas。高頻錯誤與可複用改善模式。</p>
+
+  <div class="sub-heading">Top Errors — 高頻失敗模式</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>錯誤類別</th><th>根因</th><th>解法</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">E1</td>
+            <td>RTK hook 壓縮大 JSON，curl API 回應被 schema 化導致誤判</td>
+            <td>RTK 對大 JSON 自動 schema 壓縮 + CF auth redirect</td>
+            <td>落地 /tmp/x.json 後 jq 查詢；改查 localhost 檔案</td>
+          </tr>
+          <tr>
+            <td class="mono">E2</td>
+            <td>Channel 目錄名稱拼錯（klay vs klayt-telegram）</td>
+            <td>路徑小坑；HANDOFF 5/15 陳舊易誤導</td>
+            <td>先 ls channels/ 根目錄確認名稱；陳舊 handoff 識別日期後跳過</td>
+          </tr>
+          <tr>
+            <td class="mono">E3</td>
+            <td>0% CPU 誤判子程序卡死，誤殺 transcribe 程序</td>
+            <td>長時網路等待是正常型態，不能單憑 CPU 低殺程序</td>
+            <td>判斷卡死前先查等待對象（health + business log）</td>
+          </tr>
+          <tr>
+            <td class="mono">E4</td>
+            <td>inbox 圖片路徑失效（handoff 只列檔名，實際在 inbox_archive/）</td>
+            <td>舊 handoff 路徑未跟上歸檔後位置</td>
+            <td>用 find 定位；handoff 應記錄完整絕對路徑</td>
+          </tr>
+          <tr>
+            <td class="mono">E5</td>
+            <td>Kai POST /api/tasks 500/timeout；block-random-md hook 擋 /tmp .md</td>
+            <td>後端受創 + 同步 GitHub issue 造成慢路徑；hook 誤擋</td>
+            <td>Kai 離線時改走 memory + commit 記錄；改 Bash heredoc 寫入</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:right;margin-top:4px;">← 左右滑動</p>
+  </div>
+
+  <div class="sub-heading">Top Improvements — 可複用改善模式</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>改善點</th><th>適用場景</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">I1</td>
+            <td>連線不穩先查監管者 — grep kickstart watchdog.log 看重啟次數</td>
+            <td>任何 daemon / 連線問題第一步</td>
+          </tr>
+          <tr>
+            <td class="mono">I2</td>
+            <td>SPA 部署保留舊 hashed 資產；活躍使用時段不連發 build</td>
+            <td>前端部署標準最佳實踐</td>
+          </tr>
+          <tr>
+            <td class="mono">I3</td>
+            <td>修復解鎖休眠程式碼路徑（PATH/env/feature flag）= 行為變更，需主動觀察首小時</td>
+            <td>env 修復 / feature 開關後</td>
+          </tr>
+          <tr>
+            <td class="mono">I4</td>
+            <td>改 UI 前先截圖確認元件渲染；CSS 變更一律截圖驗收</td>
+            <td>所有 UI 修改任務</td>
+          </tr>
+          <tr>
+            <td class="mono">I5</td>
+            <td>已知大回應 API 第一發就 curl -o /tmp/x.json 落地再 jq，繞過 RTK 壓縮</td>
+            <td>Cockpit API / 任何大型 JSON 查詢</td>
+          </tr>
+          <tr>
+            <td class="mono">I6</td>
+            <td>重啟復原固定三步：handoff 快照 → inbox mtime 比對 → 舊 handoff 過期日期確認</td>
+            <td>Session 重啟標準程序</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:right;margin-top:4px;">← 左右滑動</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: STALE TASKS ===== -->
+<section class="section" id="cleanup">
+  <div class="section-eyebrow">TASK CLEANUP</div>
+  <h2 class="section-title">Stale 任務<span class="accent">清單</span></h2>
+  <p class="section-desc">6 張滯留 7-14 天的 pending 任務，建議 Rain 批次裁決（做 / 砍 / 推遲）。</p>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>任務 ID</th><th>標題</th><th>滯留</th><th>類別</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">14327ea2</td>
+            <td>Stockcast repair: Pelosi / Capitol Trades freshness audit</td>
+            <td><span class="pill pill-red">14 天</span></td>
+            <td>資料品質</td>
+          </tr>
+          <tr>
+            <td class="mono">e0c7a3c5</td>
+            <td>Stockcast repair: IEObserve Telegram raw feed stale</td>
+            <td><span class="pill pill-red">14 天</span></td>
+            <td>Feed 停更</td>
+          </tr>
+          <tr>
+            <td class="mono">d0689959</td>
+            <td>NexPilot 連線不穩 + 缺照片送出 + Iris/Probe header hitbox</td>
+            <td><span class="pill pill-red">14 天</span></td>
+            <td>UX Bug</td>
+          </tr>
+          <tr>
+            <td class="mono">f20377b4</td>
+            <td>M5 冷備 + 故障演練 (NexDesk DR)</td>
+            <td><span class="pill pill-orange">8 天</span></td>
+            <td>災難復原</td>
+          </tr>
+          <tr>
+            <td class="mono">bf1942a6</td>
+            <td>Stockcast repair: OpenClaw daily browser probe failed</td>
+            <td><span class="pill pill-orange">7 天</span></td>
+            <td>監控探針</td>
+          </tr>
+          <tr>
+            <td class="mono">406e9ae3</td>
+            <td>Stockcast repair: podcast transcript integrity failed</td>
+            <td><span class="pill pill-orange">7 天</span></td>
+            <td>轉錄完整性</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:right;margin-top:4px;">← 左右滑動</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ===== SECTION: DECISIONS ===== -->
+<section class="section" id="decisions">
+  <div class="section-eyebrow">ACTION REQUIRED — 需要 RAIN 決策</div>
+  <h2 class="section-title">待決策<span class="accent">事項</span></h2>
+  <p class="section-desc">以下 6 項系統無法自行決定，需要 Rain 拍板。</p>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 01 — 最高優先</div>
+    <h4>晨報排程缺陷修法選擇</h4>
+    <p>晨報任務應改到 05:30–06:00 派發（夜班尾端，方案 A），或改為彙整「前一晚」數據（方案 B）。目前設計永遠報不到當晚成果，已連續 3 晚沒有晨報送達。</p>
+  </div>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 02</div>
+    <h4>2 個壞掉的 LaunchAgent 處理方式</h4>
+    <p>ai.rain.api-quota-monitor / com.rain.foodmap-monitor 壞掉超過 24h 未修，auto-fix 建的任務也下落不明（不在最近 500 筆中）。是否手動修復，或提高 auto-fix 執行權限？</p>
+  </div>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 03</div>
+    <h4>SEO 排名雙站大跌 — 是否派 Silo 緊急診斷</h4>
+    <p>SOMETHING SELECT avg position 5.1→17.9（+12.8），Blank Space 8.2→19.3（+11.1）。兩站均從第一頁跌出。是否立即派 Silo 進行緊急 SEO 診斷與回補？</p>
+  </div>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 04</div>
+    <h4>6 張 Stale Pending 任務批次裁決</h4>
+    <p>7–14 天滯留：NexPilot 連線不穩、Stockcast repair x4（可考慮一次性批次清理）、M5 冷備演練。是否批次做 / 砍 / 推遲？</p>
+  </div>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 05</div>
+    <h4>33/103 LaunchAgent Stale — 是否安排大盤點</h4>
+    <p>含 3 個 log 超過 999h 的嚴重 stale（ai.rain.tailscale-kai-serve、ai.rain.happy-codex、ai.rain.weekly-governance）。是否安排一次 LaunchAgent 健康盤點與清理？</p>
+  </div>
+
+  <div class="action-card">
+    <div class="action-card-num">決策 06</div>
+    <h4>Firecrawl API Key 補設</h4>
+    <p>FIRECRAWL_API_KEY 環境變數未設定。如果有爬蟲需求依賴 Firecrawl，需補 key。若 smart-scraper 已足夠覆蓋需求，可忽略。</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>RAIN AI TEAM — Night Shift 晨間報告 2026-06-13</div>
+  <div style="margin-top:4px;">Generated by Nova｜2026-06-13 00:22｜資料來源：06-12 03:37 產出</div>
+</div>
+
+</body>
+</html>
