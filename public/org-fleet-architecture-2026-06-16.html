@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三機艦隊 × AI Agent 團隊 — 組織架構與協作流程</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-page: #f6f5f1;
+  --bg-card: #ffffff;
+  --border: #e5e3de;
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --bg-cover: #1a1a1a;
+  --bg-cover-card: #252525;
+  --cover-border: #3a3a3a;
+  --orange: #f97316;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --accent: #f97316;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  max-width: 100%;
+}
+body {
+  background: var(--bg-page);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.mermaid-wrap { overflow-x: auto; max-width: 100%; }
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: #f6f5f1; border-bottom: 1px solid #e5e3de;
+  padding: 12px 32px;
+  display: flex; align-items: center; gap: 24px;
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  overflow-x: auto; white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  isolation: isolate;
+}
+.top-nav::-webkit-scrollbar { height: 0; }
+.nav-brand { font-weight: 700; color: var(--orange); font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+.nav-link { color: #666; font-size: 13px; flex-shrink: 0; transition: color .2s; }
+.nav-link:hover { color: var(--orange); }
+.cover {
+  margin-top: 48px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  padding: 72px 48px 56px;
+}
+.cover-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 16px;
+}
+.cover-title { font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.cover-title .accent { color: var(--orange); }
+.cover-subtitle { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.cover-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 40px; }
+.stats-bar { display: flex; gap: 48px; flex-wrap: wrap; }
+.stat-item .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 700; color: var(--orange); }
+.stat-item .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); }
+.section { max-width: 1000px; margin: 0 auto; padding: 56px 48px; }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--orange); margin-bottom: 8px;
+}
+.section-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.section-title .accent { color: var(--orange); }
+.section-desc { font-size: 14px; color: var(--text-muted); max-width: 640px; margin-bottom: 32px; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.mermaid-container {
+  background: #1a1a1a; border-radius: 12px; padding: 32px; margin-bottom: 24px;
+  overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch;
+}
+.mermaid-label { font-size: 14px; font-weight: 600; color: #f0f0f0; margin-bottom: 16px; }
+.mermaid-container .mermaid { min-width: 0; }
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+}
+.pill-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.pill-orange { background: rgba(249,115,22,0.15); color: var(--orange); }
+.pill-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+.pill-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.pill-purple { background: rgba(168,85,247,0.15); color: var(--purple); }
+.pill-gray { background: rgba(100,100,100,0.15); color: #666; }
+.timeline-scroll {
+  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.timeline-scroll::-webkit-scrollbar { height: 4px; }
+.timeline-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.timeline-card {
+  min-width: 200px; flex-shrink: 0;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.timeline-card h5 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.timeline-card p { font-size: 12px; color: #888; }
+.dtree-header {
+  font-size: 15px; font-weight: 600; padding: 16px 20px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px 12px 0 0;
+}
+.dtree-body { display: grid; grid-template-columns: 1fr 1fr; }
+.dtree-cell {
+  padding: 14px 20px; font-size: 13px; background: #fff;
+  border: 1px solid var(--border); line-height: 1.7;
+}
+.dtree-cell:first-child { border-radius: 0 0 0 12px; }
+.dtree-cell:last-child { border-radius: 0 0 12px 0; }
+.dtree-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+.concept-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.concept-card-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.concept-card-desc { font-size: 13px; color: #555; line-height: 1.7; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  background: #f0ede7; text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: #666;
+  font-family: 'JetBrains Mono', monospace;
+}
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #faf9f6; }
+.data-table code {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: #f0ede7; padding: 2px 6px; border-radius: 4px;
+}
+.footer {
+  text-align: center; padding: 40px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-muted);
+}
+.table-wrap, .mermaid-wrap, .mermaid-container { max-width: 100%; }
+.card p, .card li, .concept-card p, .concept-card li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.card,.card *,
+.concept-card,.concept-card *,
+.timeline-card,.timeline-card *,
+.dtree-cell,.dtree-cell * {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+@media (max-width: 768px) {
+  .cover { padding: 56px 20px 40px; }
+  .cover-title { font-size: 28px; }
+  .stat-item .stat-num { font-size: 28px; }
+  .stats-bar { gap: 24px; }
+  .section { padding: 40px 20px; }
+  .grid-3, .grid-2, .dtree-body { grid-template-columns: 1fr; }
+  .dtree-cell:first-child { border-radius: 0; }
+  .dtree-cell:last-child { border-radius: 0 0 12px 12px; }
+  .top-nav { padding: 12px 16px; gap: 16px; }
+}
+@media (max-width: 640px) {
+  .grid-3, .grid-2, .dtree-body { grid-template-columns: 1fr !important; }
+  .card, .concept-card { min-width: 0; overflow: hidden; }
+  table { min-width: 0; }
+  .mermaid-container .mermaid { min-width: 0; }
+}
+@media (max-width: 480px) {
+  .nav-links { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <span class="nav-brand">RAIN AI TEAM</span>
+  <a href="#fleet" class="nav-link">節點總覽</a>
+  <a href="#models" class="nav-link">模型矩陣</a>
+  <a href="#org" class="nav-link">組織架構</a>
+  <a href="#cost" class="nav-link">成本路由</a>
+  <a href="#review" class="nav-link">審查管線</a>
+  <a href="#lifecycle" class="nav-link">任務閉環</a>
+</nav>
+
+<div class="cover">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div class="cover-eyebrow">RAIN AI TEAM &middot; 內部架構文件 &middot; 2026-06-16</div>
+    <div class="cover-title">三機艦隊 &times; AI Agent 團隊 — <span class="accent">組織架構</span></div>
+    <div class="cover-title" style="font-size:22px;margin-top:-4px;margin-bottom:12px;">與「派工→執行→審查→驗收」協作流程</div>
+    <div class="cover-subtitle">M4 Hub · M5 Max · Windows Beaver + Trinity Council 多 Agent 編制全拆解</div>
+    <div class="cover-meta">內部架構文件 &middot; 2026-06-16 &middot; Kai 中控台 &middot; Nova 報告生成</div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-num">3</div><div class="stat-label">台機器</div></div>
+      <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">Agent</div></div>
+      <div class="stat-item"><div class="stat-num">3</div><div class="stat-label">層審查</div></div>
+      <div class="stat-item"><div class="stat-num">Tier 0-3</div><div class="stat-label">成本分層</div></div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="fleet">
+  <div class="section-eyebrow">Section 01</div>
+  <div class="section-title">三機艦隊 <span class="accent">節點總覽</span></div>
+  <div class="section-desc">M4 Hub 負責協調與輕量任務；M5 Max 承接重量級 ML 推理；Windows Beaver 處理 Playwright 爬蟲與 CUDA 轉錄。三台各司其職，互補不重疊。</div>
+
+  <div class="grid-3" style="margin-bottom:32px;">
+    <div class="card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span class="pill pill-green">HUB</span>
+        <span style="font-size:16px;font-weight:700;">M4</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange);margin-bottom:8px;">Apple M4 · 16GB · 無 MLX</div>
+      <div style="font-size:13px;color:#555;margin-bottom:12px;line-height:1.7;"><strong>角色：</strong>Hub 協調 / Kai backend (FastAPI :5002) / NexPilot PWA / NexDesk hub / 輕量任務</div>
+      <div style="font-size:12px;color:#666;margin-bottom:8px;"><span style="font-weight:600;color:var(--text-muted);">本地模型：</span><br>Ollama qwen2.5:3b · gemma4:e4b（Logger 用）</div>
+      <div style="font-size:12px;color:#666;margin-bottom:12px;"><span style="font-weight:600;color:var(--text-muted);">連線：</span>本地 / Tailscale <code>M4·內網</code></div>
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:11px;font-weight:600;color:var(--red);">⚠ 雷區</span>
+        <div style="font-size:12px;color:#555;margin-top:4px;">只 16GB，常吃緊（剩幾百 MB）→ 勿派重爬蟲 / 大模型</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--blue);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span class="pill pill-blue">MAX</span>
+        <span style="font-size:16px;font-weight:700;">M5</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange);margin-bottom:8px;">Apple M5 Max · <strong>128GB</strong> · MLX v0.31 已裝</div>
+      <div style="font-size:13px;color:#555;margin-bottom:12px;line-height:1.7;"><strong>角色：</strong>重量級 ML 推理 / 本地 LLM 主力 / 重爬蟲 / NexPilot 遠端螢幕被控端</div>
+      <div style="font-size:12px;color:#666;margin-bottom:8px;"><span style="font-weight:600;color:var(--text-muted);">本地模型：</span><br>MLX server (:8771) + Ollama (:11434)，詳見模型矩陣</div>
+      <div style="font-size:12px;color:#666;margin-bottom:12px;"><span style="font-weight:600;color:var(--text-muted);">連線：</span><code>ssh «用戶»@M5·內網</code>（Tailscale）</div>
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:11px;font-weight:600;color:var(--red);">⚠ 雷區</span>
+        <div style="font-size:12px;color:#555;margin-top:4px;">MLX 大模型(gpt-oss-120b 59GB)會吃 100GB+，看實際剩餘不是看總量</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--purple);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span class="pill pill-purple">BEAVER</span>
+        <span style="font-size:16px;font-weight:700;">Windows</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange);margin-bottom:8px;">Ryzen 7 + RTX 3050 (4GB CUDA) · 16GB</div>
+      <div style="font-size:13px;color:#555;margin-bottom:12px;line-height:1.7;"><strong>角色：</strong>Playwright 爬蟲 / review 爬蟲 / faster-whisper 轉錄 worker / CUDA / Windows 測試</div>
+      <div style="font-size:12px;color:#666;margin-bottom:8px;"><span style="font-weight:600;color:var(--text-muted);">本地模型：</span><br>faster-whisper (cuda float16)；LLM 走雲端</div>
+      <div style="font-size:12px;color:#666;margin-bottom:12px;"><span style="font-weight:600;color:var(--text-muted);">連線：</span>beaver skill / WinRM / <code>Win·內網:8100</code></div>
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:11px;font-weight:600;color:var(--red);">⚠ 雷區</span>
+        <div style="font-size:12px;color:#555;margin-top:4px;">爬蟲 --workers 2（4 個 Firefox 把 16GB 撐爆）；beaver put &gt;5MB 截斷 → 改 HTTP over Tailscale</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">派工鐵則</div>
+  <div class="grid-2">
+    <div class="concept-card" style="border-left:3px solid var(--orange);">
+      <div class="concept-card-label" style="color:var(--orange);">鐵則 01</div>
+      <div class="concept-card-desc">派工前一律先跑 <code style="font-family:'JetBrains Mono',monospace;background:#f0ede7;padding:1px 5px;border-radius:3px;">fleet</code> CLI 看三台 RAM / load / 熱節流，別憑印象</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--red);">
+      <div class="concept-card-label" style="color:var(--red);">鐵則 02</div>
+      <div class="concept-card-desc">任一台 RAM 剩 &lt;2GB 或 🔥熱節流 → 別再加，挪去剩最多的那台</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--blue);">
+      <div class="concept-card-label" style="color:var(--blue);">鐵則 03</div>
+      <div class="concept-card-desc">三台都別閒：大量平行工作（爬蟲 / 發現 / 萃取）攤到 M4 + M5 + Win</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--green);">
+      <div class="concept-card-label" style="color:var(--green);">鐵則 04</div>
+      <div class="concept-card-desc">長跑任務用 <code style="font-family:'JetBrains Mono',monospace;background:#f0ede7;padding:1px 5px;border-radius:3px;">nohup</code>（Mac）/ <code style="font-family:'JetBrains Mono',monospace;background:#f0ede7;padding:1px 5px;border-radius:3px;">Start-Process Hidden</code>（Win）detach + 背景 watcher</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="models">
+  <div class="section-eyebrow">Section 02</div>
+  <div class="section-title">各節點 <span class="accent">模型矩陣</span></div>
+  <div class="section-desc">三台機器的本地模型 + 雲端模型全覽。免費勞力優先，Codex 已凍結，Claude subagent 是最貴路徑。</div>
+
+  <div class="mermaid-container">
+    <div class="mermaid-label">模型棲息地 — 三機 × 雲端佈局</div>
+    <div class="mermaid-wrap">
+<div class="mermaid">
+flowchart LR
+  subgraph M4["本地 M4 Hub（16GB）"]
+    m4a["qwen2.5:3b Ollama"]
+    m4b["gemma4:e4b Logger"]
+  end
+  subgraph M5["本地 M5 Max（128GB）"]
+    m5a["Qwen3.6-35B MLX:8771 主力"]
+    m5b["gpt-oss-120b Ollama 重推理"]
+    m5c["Qwen3-Coder-30B 寫code"]
+    m5d["whisper-large-v3 語音"]
+  end
+  subgraph WIN["Windows Beaver RTX3050"]
+    wa["faster-whisper CUDA"]
+  end
+  subgraph CPAY["雲端付費腦"]
+    ca["Claude Opus 4.8 決策"]
+    cb["Claude Sonnet 4.6 勞力"]
+    cc["Grok xAI Vick驗證"]
+  end
+  subgraph CFREE["雲端免費勞力"]
+    fa["NIM llama-3.3-70b pipeline"]
+    fc["OpenRouter qwen3-80b Noel夜班"]
+    fd["Hermes-405b 最大備援"]
+    fe["nim-write CLI 寫手"]
+  end
+  subgraph FRZ["凍結"]
+    zz["Codex gpt-5.4 2026-06-12凍結"]
+  end
+  HUB["M4 Hub llm_service"] --> M5
+  HUB --> CPAY
+  HUB --> CFREE
+  HUB --> M4
+  style FRZ fill:#3a1010,stroke:#ef4444,color:#f0f0f0
+  style M4 fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style M5 fill:#1a1a2a,stroke:#3b82f6,color:#f0f0f0
+  style WIN fill:#2a1a2a,stroke:#a855f7,color:#f0f0f0
+  style CPAY fill:#2a2a1a,stroke:#f97316,color:#f0f0f0
+  style CFREE fill:#1a2a2a,stroke:#22c55e,color:#f0f0f0
+</div>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="border-radius:12px;border:1px solid var(--border);margin-bottom:4px;">
+    <table class="data-table" style="min-width:800px;">
+      <thead>
+        <tr>
+          <th>節點</th>
+          <th>模型</th>
+          <th>端點</th>
+          <th>用途</th>
+          <th>邊際成本</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-green">M4 本地</span></td>
+          <td><code>qwen2.5:3b</code></td>
+          <td><code>127.0.0.1:11434</code></td>
+          <td>輕量摘要</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>16GB 限制</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">M4 本地</span></td>
+          <td><code>gemma4:e4b</code></td>
+          <td><code>127.0.0.1:11434</code></td>
+          <td>Logger 日誌摘要</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>fallback Haiku</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">M5 MLX</span></td>
+          <td><code>Qwen3.6-35B-A3B</code></td>
+          <td><code>M5·內網:8771</code></td>
+          <td>本地推理主力</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>比 llama.cpp 快 10-30%</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">M5 Ollama</span></td>
+          <td><code>gpt-oss:120b</code></td>
+          <td><code>M5·內網:11434</code></td>
+          <td>重推理</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>走 Ollama 非 MLX（MLX 會漏字）</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">M5 Ollama</span></td>
+          <td><code>qwen3-coder:30b</code></td>
+          <td><code>M5·內網:11434</code></td>
+          <td>本地寫 code</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>Codex 凍結後主力寫手之一</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">M5 MLX</span></td>
+          <td><code>whisper-large-v3</code></td>
+          <td><code>:8771</code></td>
+          <td>語音轉文字</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>NexPilot 語音輸入</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-purple">Win 本地</span></td>
+          <td><code>faster-whisper</code></td>
+          <td>cuda float16</td>
+          <td>轉錄 worker</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>RTX 3050 4GB</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">雲端</span></td>
+          <td><code>Claude Opus 4.8</code></td>
+          <td>Anthropic</td>
+          <td>拆解 · 決策 · 最終 review</td>
+          <td><span class="pill pill-red">高</span></td>
+          <td>不直接寫 production code</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">雲端</span></td>
+          <td><code>Claude Sonnet 4.6</code></td>
+          <td>Anthropic</td>
+          <td>subagent 勞力</td>
+          <td><span class="pill pill-orange">中</span></td>
+          <td>Iris / John / Rex / Nova 等</td>
+        </tr>
+        <tr style="background:rgba(239,68,68,0.04);">
+          <td><span class="pill pill-red">⛔ 凍結</span></td>
+          <td><code>Codex gpt-5.4</code></td>
+          <td>ChatGPT</td>
+          <td>⛔ 凍結</td>
+          <td>—</td>
+          <td>2026-06-12 起停用直到 $100 方案解凍</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">雲端</span></td>
+          <td><code>Grok (xAI)</code></td>
+          <td>xAI API</td>
+          <td>Vick 交叉驗證 · 異質視角</td>
+          <td><span class="pill pill-orange">付費</span></td>
+          <td>非 Anthropic 觀點</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">雲端·免費</span></td>
+          <td><code>NIM llama-3.3-70b</code></td>
+          <td>NVIDIA NIM</td>
+          <td>pipeline · 寫 code · 爬蟲腦</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>~40 RPM，4 把 key 輪替</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">雲端·免費</span></td>
+          <td><code>qwen3-next-80b</code></td>
+          <td>OpenRouter</td>
+          <td>Noel 夜班 fallback</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>262K ctx</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">雲端·免費</span></td>
+          <td><code>Hermes-405b</code></td>
+          <td>OpenRouter</td>
+          <td>最大免費備援</td>
+          <td><span class="pill pill-green">$0</span></td>
+          <td>Noel L6</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#888;text-align:right;margin-bottom:24px;">← 左右滑動</p>
+
+  <div class="concept-card" style="border-left:4px solid var(--red);background:rgba(239,68,68,0.04);">
+    <div class="concept-card-label" style="color:var(--red);">⚠ 成本陷阱</div>
+    <div class="concept-card-desc"><strong>Agent tool 開的 subagent 永遠是 Claude（最貴）。</strong>便宜的腦（NIM / DeepSeek / Codex / Haiku / M5 本地）只能透過 CLI / pipeline / OpenClaw agent 使用。省 token = 能不用 Agent tool 就不用。</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="org">
+  <div class="section-eyebrow">Section 03</div>
+  <div class="section-title">Agent 團隊 <span class="accent">組織架構</span></div>
+  <div class="section-desc">Trinity Council 三角頂端 + 部門分工。取自 team.json v2.3。</div>
+
+  <div class="mermaid-container">
+    <div class="mermaid-label">AI Agent 團隊組織架構圖</div>
+    <div class="mermaid-wrap">
+<div class="mermaid">
+flowchart TD
+  Rain["👤 Rain 人類·最終裁決"]
+  Klay["🎯 Klay CEO Opus·架構決策/dispatch"]
+  Rain --> Klay
+  subgraph ENG["🔧 Core 工程"]
+    Max["Max Senior Backend Opus"]
+    Rex["Rex Backend Sonnet"]
+    John["John Frontend Sonnet"]
+    Iris["Iris UI/UX Sonnet"]
+    Forge["Forge CI/CD Gate"]
+    Scout["Scout 架構分析 只讀"]
+  end
+  subgraph REVIEW["🔍 審查鏈"]
+    Ray["Ray 方案審查 Codex veto"]
+    Quill["Quill Code Review Sonnet"]
+    Vick["Vick Grok 交叉驗證"]
+  end
+  subgraph SEC["🔒 Security Finance"]
+    Sentinel["Sentinel 資安 commit hook"]
+    Knox["Knox 金鑰金庫 Opus"]
+    Inquisitor["Inquisitor 財審"]
+  end
+  subgraph HQ["⚙️ HQ Command"]
+    OM["Operations Manager 協調"]
+    Nova["Nova 報告 Deck"]
+  end
+  subgraph EXT["🌐 External 夜班 瀏覽器"]
+    Noel["Noel 夜班Lead Gemini"]
+    Vera["Vera 驗收員 webuat"]
+    Pixel["Pixel 生圖 Gemini"]
+    SpiderLynx["Spider+Lynx 爬蟲平行"]
+    ProbeEcho["Probe+Echo UI測試平行"]
+    Judy["Judy 瀏覽器自動化"]
+    Buzz["Buzz 社群"]
+  end
+  subgraph BEAVER["🪟 Beaver Workers Windows"]
+    Badger["Badger 結構爬蟲"]
+    Otter["Otter 瀏覽器操作"]
+    Shutter["Shutter 截圖QA"]
+    Ferret["Ferret 詳頁抽取"]
+  end
+  subgraph RESEARCH["🔬 Research Ops"]
+    Orion["Orion 記憶schema"]
+    Lab["Lab benchmark"]
+    Lens["Lens 逆向工程"]
+    Logger["Logger 日誌 gemma4"]
+  end
+  Klay --> ENG
+  Klay --> REVIEW
+  Klay --> SEC
+  Klay --> HQ
+  Klay --> EXT
+  Klay --> RESEARCH
+  Noel --> BEAVER
+  style Rain fill:#2d1a0a,stroke:#f97316,color:#f0f0f0
+  style Klay fill:#2d1a0a,stroke:#f97316,color:#f0f0f0
+  style ENG fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style REVIEW fill:#2a1a1a,stroke:#ef4444,color:#f0f0f0
+  style SEC fill:#1a1a2a,stroke:#3b82f6,color:#f0f0f0
+  style HQ fill:#2a2a1a,stroke:#f97316,color:#f0f0f0
+  style EXT fill:#1a2a2a,stroke:#22c55e,color:#f0f0f0
+  style BEAVER fill:#2a1a2a,stroke:#a855f7,color:#f0f0f0
+  style RESEARCH fill:#1a1a1a,stroke:#888,color:#f0f0f0
+</div>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;margin-top:24px;">指揮鏈三權</div>
+  <div class="grid-3">
+    <div class="concept-card" style="border-left:3px solid var(--orange);">
+      <div class="concept-card-label" style="color:var(--orange);">決策權</div>
+      <div class="concept-card-desc"><strong>Klay（CEO）+ Rain（最終）</strong><br>架構決策、任務拆解、跨部門協調、資源分配</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--red);">
+      <div class="concept-card-label" style="color:var(--red);">審查否決權</div>
+      <div class="concept-card-desc"><strong>Ray（auth / payment / migration）</strong><br>可一票否決 Major / Critical Phase 3 任務；不可繞過</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--blue);">
+      <div class="concept-card-label" style="color:var(--blue);">資安否決權</div>
+      <div class="concept-card-desc"><strong>Sentinel（commit hook 自動觸發）</strong><br>警報必須解決，不可跳過；auth / email / 外部 API 強制列入</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="cost">
+  <div class="section-eyebrow">Section 04</div>
+  <div class="section-title">成本路由 <span class="accent">分層</span></div>
+  <div class="section-desc">腦（Opus）只做決策；勞力優先走免費 Tier 0。Codex 凍結後，免費寫 code 主力是 nim-write + M5 本地 coder。</div>
+
+  <div class="table-wrap" style="border-radius:12px;border:1px solid var(--border);margin-bottom:4px;">
+    <table class="data-table" style="min-width:600px;">
+      <thead>
+        <tr>
+          <th>層</th>
+          <th>用途</th>
+          <th>工具</th>
+          <th>邊際成本</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(239,68,68,0.04);">
+          <td><span class="pill pill-red">腦（決策）</span></td>
+          <td>Klay 判斷 · 架構 · 最終 QA · Critical 簽核</td>
+          <td><code>Opus</code>（不省）</td>
+          <td><span class="pill pill-red">高</span></td>
+        </tr>
+        <tr style="background:rgba(34,197,94,0.04);">
+          <td><span class="pill pill-green">勞力 Tier 0</span></td>
+          <td>寫 code · 一次性 LLM · 摘要 · 抽取</td>
+          <td><code>nim-write</code> / NIM 免費 / M5 本地 / OpenClaw CLI</td>
+          <td><span class="pill pill-green">≈ $0</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">勞力 Tier 1</span></td>
+          <td>Tier 0 搞不定但量大</td>
+          <td><code>Haiku</code> / <code>Sonnet</code> pipeline</td>
+          <td><span class="pill pill-orange">中</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">勞力 Tier 2</span></td>
+          <td>真的非 Sonnet 不可（複雜寫碼）</td>
+          <td><code>Sonnet</code> subagent</td>
+          <td><span class="pill pill-orange">高</span></td>
+        </tr>
+        <tr style="background:rgba(239,68,68,0.08);">
+          <td><span class="pill pill-red">禁用 Tier 3</span></td>
+          <td>Opus subagent 跑勞力</td>
+          <td>—</td>
+          <td><span class="pill pill-red">⛔ 禁</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#888;text-align:right;margin-bottom:24px;">← 左右滑動</p>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">決策樹：要派一個寫 code 的活，怎麼選？</div>
+  <div class="dtree-header">❓ 能用 nim-write / M5 本地 coder / NIM 搞定嗎？</div>
+  <div class="dtree-body">
+    <div class="dtree-cell" style="border-right:none;">
+      <div class="dtree-tag" style="color:var(--green);">✅ YES → 免費勞力（Tier 0）</div>
+      <div>走 <code>nim-write</code> 或 <code>ssh M5 qwen3-coder</code><br>零成本，盡量用這條</div>
+    </div>
+    <div class="dtree-cell">
+      <div class="dtree-tag" style="color:var(--orange);">❌ NO → 需要 Claude 級推理？</div>
+      <div>YES → Sonnet subagent（Tier 2）<br>NO → 拆小工作再回到 Tier 0</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px;">
+    <div class="concept-card" style="border-left:4px solid var(--red);">
+      <div class="concept-card-label" style="color:var(--red);">⛔ Codex 凍結（2026-06-12）</div>
+      <div class="concept-card-desc">原本「先 codex exec」一律改走 nim-write / M5 / NIM。Opus 永不直接寫 production code（Tiny ≤30 行 / 1 檔例外）。</div>
+    </div>
+    <div class="concept-card" style="border-left:4px solid var(--orange);">
+      <div class="concept-card-label" style="color:var(--orange);">口訣</div>
+      <div class="concept-card-desc" style="font-size:15px;font-weight:600;color:var(--text);">能 Tier 0 不上 1，能 1 不上 2，永不 Tier 3。能不用 Agent tool 就不用。</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="review">
+  <div class="section-eyebrow">Section 05</div>
+  <div class="section-title">三層 <span class="accent">審查管線</span></div>
+  <div class="section-desc">Sentinel 自動掃描 → Quill L1 程式碼審查 → Forge L2 CI Gate → Ray L3 架構審查（Major+）→ Vera 驗收。</div>
+
+  <div class="mermaid-container">
+    <div class="mermaid-label">三層審查管線流程</div>
+    <div class="mermaid-wrap">
+<div class="mermaid">
+flowchart LR
+  IMPL["實作完成"] --> SENT
+  SENT["🔒 Sentinel commit hook 密鑰掃描"] --> Q1
+  Q1["📝 Quill L1 Code Review 規格合規/DRY/測試缺口"] --> FORGE
+  FORGE["⚙️ Forge L2 CI Gate lint/test/build/deploy Evidence Gate"] --> RAY_CHECK
+  RAY_CHECK{{"Major/Critical?"}}
+  RAY_CHECK -- No --> VERA
+  RAY_CHECK -- Yes --> RAY
+  RAY["🎯 Ray L3 方案架構審查 veto 權"] --> VICK_CHECK
+  VICK_CHECK{{"Critical?"}}
+  VICK_CHECK -- No --> VERA
+  VICK_CHECK -- Yes --> VICK
+  VICK["🔀 Vick Grok 交叉驗證 異質視角"] --> VERA
+  VERA["✅ Vera 零成本驗收 webuat+NIM"] --> DONE["交付"]
+  PE["🖥️ Probe+Echo UI核心畫面"]
+  VERA --- PE
+  style SENT fill:#1a1a2a,stroke:#3b82f6,color:#f0f0f0
+  style Q1 fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style FORGE fill:#2a2a1a,stroke:#f97316,color:#f0f0f0
+  style RAY fill:#3a1a1a,stroke:#ef4444,color:#f0f0f0
+  style VICK fill:#2a1a2a,stroke:#a855f7,color:#f0f0f0
+  style VERA fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style DONE fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+</div>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">任務分級 × 審查者矩陣</div>
+  <div class="table-wrap" style="border-radius:12px;border:1px solid var(--border);margin-bottom:4px;">
+    <table class="data-table" style="min-width:700px;">
+      <thead>
+        <tr>
+          <th>任務等級</th>
+          <th>Sentinel hook</th>
+          <th>Quill (L1)</th>
+          <th>Forge (L2)</th>
+          <th>Ray (L3)</th>
+          <th>Probe + Echo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-gray">Tiny（1 檔）</span></td>
+          <td><span class="pill pill-green">✅ 自動</span></td>
+          <td>❌</td>
+          <td>❌</td>
+          <td>❌</td>
+          <td>❌</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">Standard</span></td>
+          <td><span class="pill pill-green">✅ 自動</span></td>
+          <td><span class="pill pill-orange">✅ 輕量</span></td>
+          <td><span class="pill pill-green">✅</span></td>
+          <td>❌</td>
+          <td>❌</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-orange">Major（3+ 檔）</span></td>
+          <td><span class="pill pill-green">✅ 自動</span></td>
+          <td><span class="pill pill-green">✅ 完整</span></td>
+          <td><span class="pill pill-green">✅</span></td>
+          <td><span class="pill pill-green">✅ 完整</span></td>
+          <td><span class="pill pill-orange">手動觸發</span></td>
+        </tr>
+        <tr style="background:rgba(239,68,68,0.04);">
+          <td><span class="pill pill-red">Critical（auth/payment）</span></td>
+          <td><span class="pill pill-green">✅ 自動</span></td>
+          <td><span class="pill pill-green">✅ 完整</span></td>
+          <td><span class="pill pill-green">✅</span></td>
+          <td><span class="pill pill-red">✅ 完整+veto</span></td>
+          <td><span class="pill pill-orange">手動觸發</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#888;text-align:right;margin-bottom:24px;">← 左右滑動</p>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">角色邊界（不重疊）</div>
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div class="concept-card" style="border-left:3px solid var(--green);">
+      <div class="concept-card-label" style="color:var(--green);">Quill — 程式碼層</div>
+      <div class="concept-card-desc">PR / diff · 規格合規 · DRY · 測試缺口。<strong>不做架構簽核</strong>。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--orange);">
+      <div class="concept-card-label" style="color:var(--orange);">Forge — CI Gate</div>
+      <div class="concept-card-desc">lint / test / build / deploy + Evidence Gate + Critical 部署後 1hr Runtime Watch。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--red);">
+      <div class="concept-card-label" style="color:var(--red);">Ray — 設計層</div>
+      <div class="concept-card-desc">任務定義 · 架構風險 · 開工簽核 · veto。<strong>不做日常 code review</strong>。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--blue);">
+      <div class="concept-card-label" style="color:var(--blue);">Sentinel — 密鑰掃描</div>
+      <div class="concept-card-desc">auth · payment · email · 登入態瀏覽器自動化 · 外部 API / token / secrets 任一觸發即強制列入。</div>
+    </div>
+  </div>
+
+  <div class="concept-card" style="border-left:4px solid var(--red);background:rgba(239,68,68,0.04);">
+    <div class="concept-card-label" style="color:var(--red);">Security Review Required 條件</div>
+    <div class="concept-card-desc">auth · payment · email 收發 · 登入態瀏覽器自動化 · 外部 API / token / secrets。觸發但無 Sentinel 結果 → Critical 不得交付。</div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<div class="section" id="lifecycle">
+  <div class="section-eyebrow">Section 06</div>
+  <div class="section-title">任務閉環：<span class="accent">端到端生命週期</span></div>
+  <div class="section-desc">從 Rain 交付 spec 到交差驗收，完整的派工→執行→審查→驗收→閉環流程。每個環節都有對應的機器 / Agent / 工具。</div>
+
+  <div class="mermaid-container">
+    <div class="mermaid-label">一個任務的端到端生命週期</div>
+    <div class="mermaid-wrap">
+<div class="mermaid">
+flowchart TD
+  RAIN["👤 Rain 交付完整 spec"]
+  RAIN --> SPEC_CLR
+  subgraph SPEC_LOOP["/spec 閉環"]
+    SPEC_CLR["釐清需求"]
+    SPEC_CHAL["挑戰可行性 提更好做法"]
+    SPEC_BOARD["Rain 拍板 不改善項回寫spec當已知限制"]
+    SPEC_SAVE["持久化 .spec/slug.md"]
+    SPEC_CLR --> SPEC_CHAL --> SPEC_BOARD --> SPEC_SAVE
+  end
+  SPEC_SAVE --> KLAY
+  KLAY["Klay 拆解 建Kai task"]
+  KLAY --> RAY_SIGN{{"Major/Critical?"}}
+  RAY_SIGN -- Yes --> RAY_OK["Ray 開工簽核"]
+  RAY_SIGN -- No --> DISPATCH
+  RAY_OK --> DISPATCH
+  subgraph DISPATCH["派工路由"]
+    M4W["M4 Hub 協調/輕量/API整合"]
+    M5W["M5 Max 重推理/寫code/重爬蟲"]
+    WINW["Win Beaver Playwright/轉錄/截圖"]
+    FREEW["免費勞力 nim-write/NIM/M5本地"]
+  end
+  DISPATCH --> EXEC
+  EXEC["執行 detach+watcher盯卡死/自愈"]
+  EXEC --> REVIEW_P
+  subgraph REVIEW_P["審查管線"]
+    RS["Sentinel hook"]
+    RQ["Quill L1"]
+    RF["Forge L2 CI"]
+    RR["Ray L3 Major+"]
+    RV["Vick Critical"]
+    RS --> RQ --> RF --> RR --> RV
+  end
+  REVIEW_P --> UAT_P
+  subgraph UAT_P["驗收"]
+    VV["Vera webuat 零成本"]
+    PP["Probe/Echo UI核心畫面"]
+    VV --- PP
+  end
+  UAT_P --> GATE
+  GATE["交差閘門 逐項驗收spec per-item checklist"]
+  GATE --> LONG{{"長任務?"}}
+  LONG -- Yes --> EVAL["/api/taskops/id/submit-for-eval"]
+  LONG -- No --> DONE2
+  EVAL --> HAPPROVE{{"需人批?"}}
+  HAPPROVE -- Yes --> HA["/api/taskops/id/human-approve"]
+  HAPPROVE -- No --> DONE2
+  HA --> DONE2
+  DONE2["✅ 完成"]
+  DONE2 --> WB["Major+ obsidian-writeback"]
+  style SPEC_LOOP fill:#1a1a2a,stroke:#3b82f6,color:#f0f0f0
+  style DISPATCH fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style REVIEW_P fill:#3a1a1a,stroke:#ef4444,color:#f0f0f0
+  style UAT_P fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+  style GATE fill:#2a2a1a,stroke:#f97316,color:#f0f0f0
+  style DONE2 fill:#1a2a1a,stroke:#22c55e,color:#f0f0f0
+</div>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">任務 6 Phase Timeline</div>
+  <div class="timeline-scroll" style="margin-bottom:32px;">
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-green">DONE</span></div>
+      <h5>釐清（spec）</h5>
+      <p>SCQA · 需求挑戰 · Rain 拍板 · .spec/ 持久化</p>
+    </div>
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-green">DONE</span></div>
+      <h5>拆解 · 簽核</h5>
+      <p>Klay 拆解 · Kai task · Ray 開工簽核（Major+）</p>
+    </div>
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-orange">ACTIVE</span></div>
+      <h5>派工分流</h5>
+      <p>依 fleet 資源 → M4 / M5 / Win / 免費勞力 分配</p>
+    </div>
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-orange">ACTIVE</span></div>
+      <h5>執行</h5>
+      <p>detach + watcher · nim-write / M5 coder · 爬蟲並行</p>
+    </div>
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-blue">PLANNED</span></div>
+      <h5>審查（3 層）</h5>
+      <p>Sentinel → Quill → Forge → Ray → Vick</p>
+    </div>
+    <div class="timeline-card">
+      <div style="margin-bottom:8px;"><span class="pill pill-blue">PLANNED</span></div>
+      <h5>驗收 · 交差閘門</h5>
+      <p>Vera webuat · spec 逐項核對 · submit-for-eval</p>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">同一任務在三台機器的分工範例：做一個新功能</div>
+  <div class="table-wrap" style="border-radius:12px;border:1px solid var(--border);margin-bottom:4px;">
+    <table class="data-table" style="min-width:700px;">
+      <thead>
+        <tr>
+          <th>階段</th>
+          <th>M4 Hub</th>
+          <th>M5 Max</th>
+          <th>Win Beaver</th>
+          <th>雲端 / Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-orange">規劃</span></td>
+          <td>Klay 拆解 · Ray 簽核</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Opus 拆解 + Ray 審查</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">寫後端</span></td>
+          <td>整合進 Kai backend</td>
+          <td><code>qwen3-coder</code> 寫草稿</td>
+          <td>—</td>
+          <td><code>nim-write</code> / Sonnet (Rex)</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">寫前端</span></td>
+          <td>mount dist</td>
+          <td>—</td>
+          <td>—</td>
+          <td>John / Iris (Sonnet)</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-purple">爬蟲 / 資料</span></td>
+          <td>協調</td>
+          <td>重爬蟲 (.venv python)</td>
+          <td>Playwright <code>--workers 2</code></td>
+          <td>Spider / Lynx (NIM)</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-purple">轉錄 / 語音</span></td>
+          <td>—</td>
+          <td><code>whisper-large-v3</code></td>
+          <td><code>faster-whisper</code> CUDA</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-red">審查</span></td>
+          <td>Quill + Forge</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Ray + Vick</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">驗收</span></td>
+          <td>收斂報告</td>
+          <td>MLX 當 webuat 腦</td>
+          <td>截圖 QA (Shutter)</td>
+          <td>Vera (NIM 腦)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#888;text-align:right;margin-bottom:24px;">← 左右滑動</p>
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:12px;">黃金守則</div>
+  <div class="grid-2">
+    <div class="concept-card" style="border-left:3px solid var(--green);">
+      <div class="concept-card-label" style="color:var(--green);">資源守則</div>
+      <div class="concept-card-desc">派工前先 <code style="font-family:'JetBrains Mono',monospace;background:#f0ede7;padding:1px 5px;border-radius:3px;">fleet</code>；三台都別閒也別爆。任一台 RAM &lt;2GB → 挪到剩最多的那台。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--orange);">
+      <div class="concept-card-label" style="color:var(--orange);">成本守則</div>
+      <div class="concept-card-desc">寫 code 先免費勞力（Codex 已凍結）。能 Tier 0 不上 1，永不 Tier 3。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--red);">
+      <div class="concept-card-label" style="color:var(--red);">審查守則</div>
+      <div class="concept-card-desc">Major+ 必過 Quill + Forge + Ray；auth / payment 必過 Sentinel + Ray veto。不可跳過。</div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid var(--blue);">
+      <div class="concept-card-label" style="color:var(--blue);">交差守則</div>
+      <div class="concept-card-desc">交差前必跑 spec 逐項驗收閘門，附 per-item checklist。沒驗收不算 done。</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  RAIN AI TEAM &middot; 三機艦隊 × AI Agent 團隊架構 &middot; 2026-06-16 &middot; Nova 報告生成
+</div>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#6366f1',
+    primaryBorderColor: '#4f46e5',
+    primaryTextColor: '#f0f0f0',
+    lineColor: '#555',
+    secondaryColor: '#252525',
+    tertiaryColor: '#1a1a1a',
+    fontSize: '14px'
+  },
+  flowchart: {
+    htmlLabels: true,
+    curve: 'basis',
+    nodeSpacing: 50,
+    rankSpacing: 60,
+    padding: 15
+  }
+});
+</script>
+</body>
+</html>
