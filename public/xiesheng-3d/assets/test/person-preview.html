@@ -1,0 +1,45 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"/><style>html,body{margin:0;height:100%;background:#cfcdc8}#c{width:100%;height:100%;display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script src="../../vendor/three.min.js"></script>
+<script src="../../vendor/OrbitControls.js"></script>
+<script>
+const r=new THREE.WebGLRenderer({canvas:c,antialias:true});r.setSize(innerWidth,innerHeight);r.setPixelRatio(2);
+r.outputEncoding=THREE.sRGBEncoding;r.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xcfcdc8);
+const cam=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,.01,100);cam.position.set(1.5,1.1,3.1);
+const ctr=new THREE.OrbitControls(cam,r.domElement);ctr.target.set(0,0.95,0);ctr.update();
+scene.add(new THREE.HemisphereLight(0xffffff,0x666666,1.0));
+const sun=new THREE.DirectionalLight(0xffffff,1.3);sun.position.set(2,4,3);scene.add(sun);
+const grid=new THREE.GridHelper(4,16,0x9a978f,0xb8b5ad);scene.add(grid);
+const body=new THREE.MeshStandardMaterial({color:0x141419,roughness:.55,metalness:0.05});
+const face=new THREE.MeshStandardMaterial({color:0x2a2a33,roughness:.6});
+function limb(grp,a,b2,r1,r2,mat){a=new THREE.Vector3(...a);b2=new THREE.Vector3(...b2);
+  const dir=new THREE.Vector3().subVectors(b2,a),len=dir.length(),mid=new THREE.Vector3().addVectors(a,b2).multiplyScalar(.5);
+  const cyl=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,len,18),mat||body);cyl.position.copy(mid);
+  cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());grp.add(cyl);
+  [[a,r1],[b2,r2]].forEach(([p,rr])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(rr,14,10),mat||body);s.position.copy(p);grp.add(s);});}
+function ball(grp,x,y,z,rr,mat){const s=new THREE.Mesh(new THREE.SphereGeometry(rr,20,16),mat||body);s.position.set(x,y,z);grp.add(s);return s;}
+function cone(grp,rt,rb,h,y,sz){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,24),body);m.position.set(0,y,0);if(sz)m.scale.set(1,1,sz);grp.add(m);return m;}
+function disc(grp,rr,h,y){const m=new THREE.Mesh(new THREE.CylinderGeometry(rr,rr,h,28),body);m.position.set(0,y,0.01);m.scale.set(1,1,0.92);grp.add(m);return m;}
+const st=new THREE.Group();
+// 瘦版黑衣人:窄大衣
+cone(st,0.16,0.215,1.02,0.93,0.52);
+ball(st,0,1.45,0,0.066,body).scale.set(1.7,0.58,0.82);  // 窄肩
+const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.082,0.11,0.12,20),body);collar.position.set(0,1.50,-0.01);collar.scale.set(1,1,0.68);st.add(collar);
+limb(st,[0,1.47,0],[0,1.55,0],0.046,0.042);             // 細脖
+ball(st,0,1.585,0.01,0.098,face);                        // 頭
+// 明顯紳士帽:寬帽簷 + 高帽冠 + 帽帶 + 帽頂
+disc(st,0.218,0.026,1.652);                              // 寬帽簷(一眼是帽)
+cone(st,0.086,0.106,0.155,1.742);                        // 高帽冠
+ball(st,0,1.822,0,0.09,body).scale.set(1,0.42,1);        // 帽頂圓
+const band=new THREE.Mesh(new THREE.CylinderGeometry(0.109,0.109,0.032,24),face);band.position.set(0,1.676,0.01);band.scale.set(1,1,0.92);st.add(band);
+[-1,1].forEach(s=>{
+  limb(st,[s*0.092,0.42,0.01],[s*0.084,0.045,0.02],0.046,0.035); // 瘦小腿
+  const foot=new THREE.Mesh(new THREE.BoxGeometry(0.085,0.055,0.24),body);foot.position.set(s*0.084,0.028,0.06);st.add(foot);
+  limb(st,[s*0.158,1.40,0.01],[s*0.176,1.04,0.04],0.046,0.038); // 貼身瘦臂
+  limb(st,[s*0.176,1.04,0.04],[s*0.18,0.66,0.06],0.038,0.032);
+  ball(st,s*0.18,0.63,0.06,0.036);});
+scene.add(st);
+(function loop(){requestAnimationFrame(loop);r.render(scene,cam);})();
+addEventListener('resize',()=>{r.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();});
+</script></body></html>
